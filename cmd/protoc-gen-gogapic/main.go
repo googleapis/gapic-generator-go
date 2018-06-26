@@ -158,7 +158,9 @@ func (g *generator) printf(s string, a ...interface{}) {
 		return
 	}
 
-	g.in -= strings.Count(s, "}")
+	for i := 0; i < len(s) && s[i] == '}'; i++ {
+		g.in--
+	}
 
 	in := g.in
 	for in > len(tabsCache) {
@@ -170,7 +172,9 @@ func (g *generator) printf(s string, a ...interface{}) {
 	fmt.Fprintf(&g.sb, s, a...)
 	g.sb.WriteByte('\n')
 
-	g.in += strings.Count(s, "{")
+	for i := len(s) - 1; i >= 0 && s[i] == '{'; i-- {
+		g.in++
+	}
 }
 
 func (g *generator) commit(fileName string) {
@@ -346,12 +350,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		p("// the `x-goog-api-client` header passed on each request. Intended for")
 		p("// use by Google-written clients.")
 		p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", *serv.Name)
-
-		// The curly confuses the auto-indent
-		g.in++
 		p(`  kv := append([]string{"gl-go", version.Go()}, keyval...)`)
-		g.in--
-
 		p(`  kv = append(kv, "gapic", version.Repo, "gax", gax.Version, "grpc", grpc.Version)`)
 		p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
 		p("}")
