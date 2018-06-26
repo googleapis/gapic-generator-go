@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 	"unicode"
@@ -42,14 +43,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	outDir := ""
+	if p := genReq.Parameter; p != nil {
+		outDir = *p
+	}
+
 	var g generator
 	g.init(genReq.ProtoFile)
 	for _, f := range genReq.ProtoFile {
 		if strContains(genReq.FileToGenerate, *f.Name) {
-			for i, s := range f.Service {
+			for _, s := range f.Service {
 				g.gen(s)
-				// TODO(pongad): figure out where to actually put this
-				g.commit(fmt.Sprintf("foo%d.go", i))
+				g.commit(filepath.Join(outDir, camelToSnake(*s.Name)+"_client.go"))
 			}
 		}
 	}
@@ -136,10 +141,23 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 func (g *generator) pkgName(e proto.Message) string {
 	fdesc := g.parentFile[e]
 	pkg := *fdesc.Options.GoPackage
-	if p := strings.IndexByte(pkg, ';'); p > 0 {
+	if p := strings.IndexByte(pkg, ';'); p >= 0 {
 		return pkg[p+1:] + "pb"
 	}
-	panic("inferring name from package path not implemented yet")
+
+	for {
+		p := strings.LastIndexByte(pkg, '/')
+		if p < 0 {
+			return pkg + "pb"
+		}
+		elem := pkg[p+1:]
+		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
+			// It's a version number; skip so we get a more meaningful name
+			pkg = pkg[:p]
+			continue
+		}
+		return elem + "pb"
+	}
 }
 
 // printf formatted-prints to sb, using the print syntax from fmt package.
@@ -425,4 +443,15 @@ func lowerFirst(s string) string {
 	}
 	r, w := utf8.DecodeRuneInString(s)
 	return string(unicode.ToLower(r)) + s[w:]
+}
+
+func camelToSnake(s string) string {
+	var sb strings.Builder
+	for i, r := range s {
+		if unicode.IsUpper(r) && i != 0 {
+			sb.WriteByte('_')
+		}
+		sb.WriteRune(unicode.ToLower(r))
+	}
+	return sb.String()
 }
