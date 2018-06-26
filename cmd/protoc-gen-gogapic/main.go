@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -94,6 +95,9 @@ type generator struct {
 
 	// Maps proto elements to their comments
 	comments map[proto.Message]string
+
+	// Methods to generate LRO type for. Populated as we go.
+	lroMethods []*descriptor.MethodDescriptorProto
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
@@ -112,6 +116,7 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 
 		// types
 		for _, m := range f.MessageType {
+			// In descriptors, putting the dot in front means the name is fully-qualified.
 			fullyQualifiedName := fmt.Sprintf(".%s.%s", *f.Package, *m.Name)
 			g.types[fullyQualifiedName] = m
 		}
@@ -376,7 +381,23 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	}
 
 	for _, m := range serv.Method {
-		g.unaryCall(*serv.Name, m)
+		g.methodDoc(m)
+
+		switch {
+		// protoc puts a dot in front of name, signaling that the name is fully qualified.
+		case *m.OutputType == ".google.longrunning.Operation":
+			g.lroMethods = append(g.lroMethods, m)
+			g.lroCall(*serv.Name, m)
+		default:
+			g.unaryCall(*serv.Name, m)
+		}
+	}
+
+	sort.Slice(g.lroMethods, func(i, j int) bool {
+		return *g.lroMethods[i].Name < *g.lroMethods[j].Name
+	})
+	for _, m := range g.lroMethods {
+		g.lroType(*serv.Name, m)
 	}
 }
 
@@ -385,7 +406,6 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	outType := g.types[*m.OutputType]
 	p := g.printf
 
-	g.methodDoc(m)
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		servName, *m.Name, g.pkgName(inType), *inType.Name, g.pkgName(outType), *outType.Name)
 
