@@ -98,12 +98,15 @@ type generator struct {
 
 	// Methods to generate LRO type for. Populated as we go.
 	lroMethods []*descriptor.MethodDescriptorProto
+
+	imports map[importSpec]bool
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 	g.parentFile = map[proto.Message]*descriptor.FileDescriptorProto{}
 	g.types = map[string]*descriptor.DescriptorProto{}
 	g.comments = map[proto.Message]string{}
+	g.imports = map[importSpec]bool{}
 
 	for _, f := range files {
 		// parentFile
@@ -221,9 +224,34 @@ func (g *generator) commit(fileName string) {
 
 	var header strings.Builder
 	fmt.Fprintf(&header, license, time.Now().Year())
-	// TODO(pongad): imports
 	// TODO(pongad): read package name from somewhere
 	header.WriteString("package foo\n\n")
+
+	var imps []importSpec
+	for imp := range g.imports {
+		imps = append(imps, imp)
+	}
+	impDiv := sortImports(imps)
+
+	writeImp := func(is importSpec) {
+		s := "\t%[2]q\n"
+		if is.name != "" {
+			s = "\t%s %q\n"
+		}
+		fmt.Fprintf(&header, s, is.name, is.path)
+	}
+
+	header.WriteString("import (\n")
+	for _, imp := range imps[:impDiv] {
+		writeImp(imp)
+	}
+	if impDiv != 0 && impDiv != len(imps) {
+		header.WriteByte('\n')
+	}
+	for _, imp := range imps[impDiv:] {
+		writeImp(imp)
+	}
+	header.WriteString(")\n\n")
 
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    &fileName,
@@ -240,7 +268,13 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 
 	p := g.printf
 
-	// TODO(pongad): maybe individual sections should be their own methods.
+	var hasLRO bool
+	for _, m := range serv.Method {
+		if isLRO(m) {
+			hasLRO = true
+			break
+		}
+	}
 
 	// CallOptions struct
 	{
@@ -258,6 +292,8 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		}
 		p("}")
 		p("")
+
+		g.imports[importSpec{"gax", "github.com/googleapis/gax-go"}] = true
 	}
 
 	// defaultClientOptions
@@ -270,6 +306,8 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		p("  }")
 		p("}")
 		p("")
+
+		g.imports[importSpec{path: "google.golang.org/api/option"}] = true
 	}
 
 	// defaultCallOptions
@@ -298,11 +336,15 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		p("%sClient %s.%sClient", lowerFirst(*serv.Name), g.pkgName(serv), *serv.Name)
 		p("")
 
-		p("// LROClient is used internally to handle longrunning operations.")
-		p("// It is exposed so that its CallOptions can be modified if required.")
-		p("// Users should not Close this client.")
-		p("LROClient *lroauto.OperationsClient")
-		p("")
+		if hasLRO {
+			p("// LROClient is used internally to handle longrunning operations.")
+			p("// It is exposed so that its CallOptions can be modified if required.")
+			p("// Users should not Close this client.")
+			p("LROClient *lroauto.OperationsClient")
+			p("")
+
+			g.imports[importSpec{name: "lroauto", path: "cloud.google.com/go/longrunning/autogen"}] = true
+		}
 
 		p("// The call options for this service.")
 		p("CallOptions *%sCallOptions", *serv.Name)
@@ -312,6 +354,9 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		p("xGoogMetadata metadata.MD")
 		p("}")
 		p("")
+
+		g.imports[importSpec{path: "google.golang.org/grpc"}] = true
+		g.imports[importSpec{path: "google.golang.org/grpc/metadata"}] = true
 	}
 
 	// Client constructor
@@ -333,19 +378,26 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		p("  }")
 		p("  c.setGoogleClientInfo()")
 		p("")
-		p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, option.WithGRPCConn(conn))")
-		p("  if err != nil {")
-		p("    // This error \"should not happen\", since we are just reusing old connection")
-		p("    // and never actually need to dial.")
-		p("    // If this does happen, we could leak conn. However, we cannot close conn:")
-		p("    // If the user invoked the function with option.WithGRPCConn,")
-		p("    // we would close a connection that's still in use.")
-		p("    // TODO(pongad): investigate error conditions.")
-		p("    return nil, err")
-		p("  }")
+
+		if hasLRO {
+			p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, option.WithGRPCConn(conn))")
+			p("  if err != nil {")
+			p("    // This error \"should not happen\", since we are just reusing old connection")
+			p("    // and never actually need to dial.")
+			p("    // If this does happen, we could leak conn. However, we cannot close conn:")
+			p("    // If the user invoked the function with option.WithGRPCConn,")
+			p("    // we would close a connection that's still in use.")
+			p("    // TODO(pongad): investigate error conditions.")
+			p("    return nil, err")
+			p("  }")
+		}
+
 		p("  return c, nil")
 		p("}")
 		p("")
+
+		g.imports[importSpec{path: "google.golang.org/api/transport"}] = true
+		g.imports[importSpec{path: "golang.org/x/net/context"}] = true
 	}
 
 	// Connection()
@@ -378,14 +430,15 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
 		p("}")
 		p("")
+
+		g.imports[importSpec{path: "cloud.google.com/go/internal/version"}] = true
 	}
 
 	for _, m := range serv.Method {
 		g.methodDoc(m)
 
 		switch {
-		// protoc puts a dot in front of name, signaling that the name is fully qualified.
-		case *m.OutputType == ".google.longrunning.Operation":
+		case isLRO(m):
 			g.lroMethods = append(g.lroMethods, m)
 			g.lroCall(*serv.Name, m)
 		default:

@@ -16,6 +16,11 @@ package main
 
 import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
+func isLRO(m *descriptor.MethodDescriptorProto) bool {
+	// protoc puts a dot in front of name, signaling that the name is fully qualified.
+	return *m.OutputType == ".google.longrunning.Operation"
+}
+
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) {
 	inType := g.types[*m.InputType]
 	outType := g.types[*m.OutputType]
@@ -42,6 +47,8 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 
 	p("}")
 	p("")
+
+	g.imports[importSpec{path: "cloud.google.com/go/longrunning"}] = true
 }
 
 func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto) {
@@ -56,7 +63,7 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 	// Type definition
 	{
 		p("// %s manages a long-running operation from %s.", lroType, *m.Name)
-		p("type %s struct{", lroType)
+		p("type %s struct {", lroType)
 		p("  lro *longrunning.Operation")
 		p("}")
 		p("")
