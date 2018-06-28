@@ -61,25 +61,28 @@ func main() {
 	var g generator
 	g.init(genReq.ProtoFile)
 	for _, f := range genReq.ProtoFile {
-		if strContains(genReq.FileToGenerate, *f.Name) {
-			for _, s := range f.Service {
-				// TODO(pongad): gapic-generator does not remove the package name here,
-				// so even though the client for LoggingServiceV2 is just "Client"
-				// the file name is "logging_client.go".
-				// Keep the current behavior for now, but we could revisit this later.
-				outFile := reduceServName(*s.Name, "")
-				outFile = camelToSnake(outFile)
-				outFile = filepath.Join(outDir, outFile)
+		if !strContains(genReq.FileToGenerate, *f.Name) {
+			continue
+		}
+		for _, s := range f.Service {
+			// TODO(pongad): gapic-generator does not remove the package name here,
+			// so even though the client for LoggingServiceV2 is just "Client"
+			// the file name is "logging_client.go".
+			// Keep the current behavior for now, but we could revisit this later.
+			outFile := reduceServName(*s.Name, "")
+			outFile = camelToSnake(outFile)
+			outFile = filepath.Join(outDir, outFile)
 
-				g.reset()
-				g.gen(s, pkgName)
-				g.commit(outFile+"_client.go", pkgName)
-
-				g.reset()
-				g.genExampleFile(s, pkgName)
-				g.imports[importSpec{path: pkgPath}] = true
-				g.commit(outFile+"_client_example_test.go", pkgName+"_test")
+			g.reset()
+			if err := g.gen(s, pkgName); err != nil {
+				log.Fatal(err)
 			}
+			g.commit(outFile+"_client.go", pkgName)
+
+			g.reset()
+			g.genExampleFile(s, pkgName)
+			g.imports[importSpec{path: pkgPath}] = true
+			g.commit(outFile+"_client_example_test.go", pkgName+"_test")
 		}
 	}
 
@@ -125,9 +128,6 @@ type generator struct {
 
 	// Maps proto elements to their comments
 	comments map[proto.Message]string
-
-	// Methods to generate LRO type for. Populated as we go.
-	lroMethods []*descriptor.MethodDescriptorProto
 
 	imports map[importSpec]bool
 }
@@ -301,31 +301,104 @@ func (g *generator) reset() {
 	}
 }
 
-func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) {
+func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
 	servName := reduceServName(*serv.Name, pkgName)
 	g.clientOptions(serv, servName)
 	g.clientInit(serv, servName)
 
+	// Methods to generate LRO and iterator types for. Populated as we go.
+	var (
+		lroMethods []*descriptor.MethodDescriptorProto
+		iterTypes  = map[string]iterType{}
+	)
+
 	for _, m := range serv.Method {
 		g.methodDoc(m)
 
-		switch {
-		case isLRO(m):
-			g.lroMethods = append(g.lroMethods, m)
+		if isLRO(m) {
+			lroMethods = append(lroMethods, m)
 			g.lroCall(servName, m)
-		case *m.OutputType == emptyType:
-			g.emptyUnaryCall(servName, m)
-		default:
-			g.unaryCall(servName, m)
+			continue
 		}
+
+		if *m.OutputType == emptyType {
+			g.emptyUnaryCall(servName, m)
+			continue
+		}
+
+		if pf, err := g.pagingField(m); err != nil {
+			return err
+		} else if pf != nil {
+			iter := g.iterTypeOf(pf)
+			iterTypes[iter.iterTypeName] = iter
+			g.pagingCall(servName, m, pf, iter)
+			continue
+		}
+
+		g.unaryCall(servName, m)
 	}
 
-	sort.Slice(g.lroMethods, func(i, j int) bool {
-		return *g.lroMethods[i].Name < *g.lroMethods[j].Name
+	sort.Slice(lroMethods, func(i, j int) bool {
+		return *lroMethods[i].Name < *lroMethods[j].Name
 	})
-	for _, m := range g.lroMethods {
+	for _, m := range lroMethods {
 		g.lroType(servName, m)
 	}
+
+	var iters []iterType
+	for _, iter := range iterTypes {
+		iters = append(iters, iter)
+	}
+	sort.Slice(iters, func(i, j int) bool {
+		return iters[i].iterTypeName < iters[j].iterTypeName
+	})
+	for _, iter := range iters {
+		g.pagingIter(iter)
+	}
+
+	return nil
+}
+
+// TODO(pongad): this will probably need to read from annotations later.
+// TODO(pongad): move this to paging.go
+
+// pagingField reports the "resource field" to be iterated over by paginating method m.
+// If the method is not a paging method, pagingField returns (nil, nil).
+// If the method looks like a paging method, but the field cannot be determined, pagingField errors.
+func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descriptor.FieldDescriptorProto, error) {
+	var (
+		hasSize, hasToken, hasNextToken bool
+		elemFields                      []*descriptor.FieldDescriptorProto
+	)
+
+	outType := g.types[*m.OutputType]
+
+	for _, f := range g.types[*m.InputType].Field {
+		if *f.Name == "page_size" && *f.Type == descriptor.FieldDescriptorProto_TYPE_INT32 {
+			hasSize = true
+		}
+		if *f.Name == "page_token" && *f.Type == descriptor.FieldDescriptorProto_TYPE_STRING {
+			hasToken = true
+		}
+	}
+	for _, f := range outType.Field {
+		if *f.Name == "next_page_token" && *f.Type == descriptor.FieldDescriptorProto_TYPE_STRING {
+			hasNextToken = true
+		}
+		if *f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			elemFields = append(elemFields, f)
+		}
+	}
+	if !hasSize || !hasToken || !hasNextToken {
+		return nil, nil
+	}
+	if len(elemFields) == 0 {
+		return nil, fmt.Errorf("%s looks like paging method, but can't find repeated field in %s", *m.Name, *outType.Name)
+	}
+	if len(elemFields) > 1 {
+		return nil, fmt.Errorf("%s looks like paging method, but too many repeated fields in %s", *m.Name, *outType.Name)
+	}
+	return elemFields[0], nil
 }
 
 func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) {
@@ -339,8 +412,8 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		servName, *m.Name, inSpec.name, *inType.Name, outSpec.name, *outType.Name)
 
-	p("ctx = insertMetadata(ctx, c.xGoogMetadata)")
-	p("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
+	g.insertMetadata()
+	g.appendCallOpts(m)
 	p("var resp *%s.%s", outSpec.name, *outType.Name)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
@@ -368,10 +441,8 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		servName, *m.Name, inSpec.name, *inType.Name)
 
-	// TODO(pongad): use insertMetadata and appendCallOpts when Ief7ad9be8b81c9f059a8097e49eafeabf154b33d lands.
-
-	p("ctx = insertMetadata(ctx, c.xGoogMetadata)")
-	p("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
+	g.insertMetadata()
+	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  _, err = %s", grpcClientCall(servName, *m.Name))
@@ -383,6 +454,14 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	p("")
 
 	g.imports[inSpec] = true
+}
+
+func (g *generator) insertMetadata() {
+	g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata)")
+}
+
+func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
+	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
 }
 
 func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
@@ -407,7 +486,12 @@ func (g *generator) comment(s string) {
 
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {
-		g.printf("// %s", strings.TrimSpace(l))
+		l = strings.TrimSpace(l)
+		if l == "" {
+			g.printf("//")
+		} else {
+			g.printf("// %s", l)
+		}
 	}
 }
 
@@ -468,6 +552,14 @@ func lowerFirst(s string) string {
 	return string(unicode.ToLower(r)) + s[w:]
 }
 
+func upperFirst(s string) string {
+	if s == "" {
+		return ""
+	}
+	r, w := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[w:]
+}
+
 func camelToSnake(s string) string {
 	var sb strings.Builder
 	for i, r := range s {
@@ -475,6 +567,22 @@ func camelToSnake(s string) string {
 			sb.WriteByte('_')
 		}
 		sb.WriteRune(unicode.ToLower(r))
+	}
+	return sb.String()
+}
+
+func snakeToCamel(s string) string {
+	var sb strings.Builder
+	up := true
+	for _, r := range s {
+		if r == '_' {
+			up = true
+		} else if up {
+			sb.WriteRune(unicode.ToUpper(r))
+			up = false
+		} else {
+			sb.WriteRune(r)
+		}
 	}
 	return sb.String()
 }

@@ -33,8 +33,8 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 		servName, *m.Name, inSpec.name, *inType.Name, lroType)
 
-	p("  ctx = insertMetadata(ctx, c.xGoogMetadata)")
-	p("  opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
+	g.insertMetadata()
+	g.appendCallOpts(m)
 	p("  var resp *%s.%s", outSpec.name, *outType.Name)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
@@ -95,13 +95,14 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 		p("// See documentation of Poll for error-handling information.")
 		p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
 		p("  var resp %s", respType)
-		// TODO(pongad): what should the default interval be?
-		p("  if err := op.lro.WaitWithInterval(ctx, &resp, 45000*time.Millisecond, opts...); err != nil {")
+		p("  if err := op.lro.WaitWithInterval(ctx, &resp, time.Minute, opts...); err != nil {")
 		p("    return nil, err")
 		p("  }")
 		p("  return &resp, nil")
 		p("}")
 		p("")
+
+		g.imports[importSpec{path: "time"}] = true
 	}
 
 	// Poll
