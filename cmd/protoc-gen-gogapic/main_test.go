@@ -58,3 +58,19 @@ func TestMethodDoc(t *testing.T) {
 		}
 	}
 }
+
+func TestReduceServName(t *testing.T) {
+	for _, tst := range []struct {
+		in, want string
+	}{
+		{"Foo", "Foo"},
+		{"FooV2", "Foo"},
+		{"FooService", "Foo"},
+		{"FooServiceV2", "Foo"},
+		{"FooV2Bar", "FooV2Bar"},
+	} {
+		if got := reduceServName(tst.in); got != tst.want {
+			t.Errorf("reduceServName(%q) = %q, want %q", tst.in, got, tst.want)
+		}
+	}
+}

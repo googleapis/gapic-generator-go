@@ -55,7 +55,7 @@ func main() {
 		if strContains(genReq.FileToGenerate, *f.Name) {
 			for _, s := range f.Service {
 				g.gen(s)
-				g.commit(filepath.Join(outDir, camelToSnake(*s.Name)+"_client.go"))
+				g.commit(filepath.Join(outDir, camelToSnake(reduceServName(*s.Name))+"_client.go"))
 			}
 		}
 	}
@@ -281,6 +281,8 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		}
 	}
 
+	servName := reduceServName(*serv.Name)
+
 	// CallOptions struct
 	{
 		var maxNameLen int
@@ -290,8 +292,8 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 			}
 		}
 
-		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", *serv.Name)
-		p("type %sCallOptions struct {", *serv.Name)
+		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", servName)
+		p("type %sCallOptions struct {", servName)
 		for _, m := range serv.Method {
 			p("%s%s[]gax.CallOption", *m.Name, spaces(maxNameLen-len(*m.Name)+1))
 		}
@@ -304,7 +306,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	// defaultClientOptions
 	{
 		// TODO(pongad): read URL from somewhere
-		p("func default%sClientOptions() []option.ClientOption {", *serv.Name)
+		p("func default%sClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
 		p(`    option.WithEndpoint("foo.googleapis.com:443"),`)
 		p("    option.WithScopes(DefaultAuthScopes()...),")
@@ -318,8 +320,8 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	// defaultCallOptions
 	{
 		// TODO(pongad): read retry params from somewhere
-		p("func default%[1]sCallOptions() *%[1]sCallOptions {", *serv.Name)
-		p("  return &%sCallOptions{", *serv.Name)
+		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
+		p("  return &%sCallOptions{", servName)
 		p("  }")
 		p("}")
 		p("")
@@ -328,17 +330,17 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	// client struct
 	{
 		// TODO(pongad): read "human" API name from somewhere
-		p("// %sClient is a client for interacting with Foo API.", *serv.Name)
+		p("// %sClient is a client for interacting with Foo API.", servName)
 		p("//")
 		p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-		p("type %sClient struct {", *serv.Name)
+		p("type %sClient struct {", servName)
 
 		p("// The connection to the service.")
 		p("conn *grpc.ClientConn")
 		p("")
 
 		p("// The gRPC API client.")
-		p("%sClient %s.%sClient", lowerFirst(*serv.Name), g.pkgName(serv), *serv.Name)
+		p("%sClient %s.%sClient", lowerFirst(servName), g.pkgName(serv), servName)
 		p("")
 
 		if hasLRO {
@@ -352,7 +354,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		}
 
 		p("// The call options for this service.")
-		p("CallOptions *%sCallOptions", *serv.Name)
+		p("CallOptions *%sCallOptions", servName)
 		p("")
 
 		p("// The x-goog-* metadata to be sent with each request.")
@@ -367,19 +369,19 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	// Client constructor
 	{
 		// TODO(pongad): client name
-		p("// New%sClient creates a new foo client.", *serv.Name)
+		p("// New%sClient creates a new foo client.", servName)
 		p("//")
 		g.comment(g.comments[serv])
-		p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", *serv.Name)
-		p("  conn, err := transport.DialGRPC(ctx, append(default%sClientOptions(), opts...)...)", *serv.Name)
+		p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
+		p("  conn, err := transport.DialGRPC(ctx, append(default%sClientOptions(), opts...)...)", servName)
 		p("  if err != nil {")
 		p("    return nil, err")
 		p("  }")
-		p("  c := &%sClient{", *serv.Name)
+		p("  c := &%sClient{", servName)
 		p("    conn:        conn,")
-		p("    CallOptions: default%sCallOptions(),", *serv.Name)
+		p("    CallOptions: default%sCallOptions(),", servName)
 		p("")
-		p("    %sClient: %s.New%sClient(conn),", lowerFirst(*serv.Name), g.pkgName(serv), *serv.Name)
+		p("    %sClient: %s.New%sClient(conn),", lowerFirst(servName), g.pkgName(serv), servName)
 		p("  }")
 		p("  c.setGoogleClientInfo()")
 		p("")
@@ -408,7 +410,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	// Connection()
 	{
 		p("// Connection returns the client's connection to the API service.")
-		p("func (c *%sClient) Connection() *grpc.ClientConn {", *serv.Name)
+		p("func (c *%sClient) Connection() *grpc.ClientConn {", servName)
 		p("  return c.conn")
 		p("}")
 		p("")
@@ -418,7 +420,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	{
 		p("// Close closes the connection to the API service. The user should invoke this when")
 		p("// the client is no longer required.")
-		p("func (c *%sClient) Close() error {", *serv.Name)
+		p("func (c *%sClient) Close() error {", servName)
 		p("  return c.conn.Close()")
 		p("}")
 		p("")
@@ -429,7 +431,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		p("// setGoogleClientInfo sets the name and version of the application in")
 		p("// the `x-goog-api-client` header passed on each request. Intended for")
 		p("// use by Google-written clients.")
-		p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", *serv.Name)
+		p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", servName)
 		p(`  kv := append([]string{"gl-go", version.Go()}, keyval...)`)
 		p(`  kv = append(kv, "gapic", version.Repo, "gax", gax.Version, "grpc", grpc.Version)`)
 		p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
@@ -445,9 +447,9 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		switch {
 		case isLRO(m):
 			g.lroMethods = append(g.lroMethods, m)
-			g.lroCall(*serv.Name, m)
+			g.lroCall(servName, m)
 		default:
-			g.unaryCall(*serv.Name, m)
+			g.unaryCall(servName, m)
 		}
 	}
 
@@ -455,7 +457,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		return *g.lroMethods[i].Name < *g.lroMethods[j].Name
 	})
 	for _, m := range g.lroMethods {
-		g.lroType(*serv.Name, m)
+		g.lroType(servName, m)
 	}
 }
 
@@ -519,6 +521,27 @@ func spaces(n int) string {
 		return strings.Repeat(" ", n)
 	}
 	return spacesCache[:n]
+}
+
+func reduceServName(s string) string {
+	// remove trailing version
+	if p := strings.LastIndexByte(s, 'V'); p >= 0 {
+		isVer := true
+		for _, r := range s[p+1:] {
+			if !unicode.IsDigit(r) {
+				isVer = false
+				break
+			}
+		}
+		if isVer {
+			s = s[:p]
+		}
+	}
+
+	if servSuf := "Service"; strings.HasSuffix(s, servSuf) {
+		s = s[:len(s)-len(servSuf)]
+	}
+	return s
 }
 
 func lowerFirst(s string) string {
