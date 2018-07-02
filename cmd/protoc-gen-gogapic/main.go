@@ -145,18 +145,18 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 	}
 }
 
-// pkgName reports the package name of protobuf element e.
-func (g *generator) pkgName(e proto.Message) string {
+// importSpec reports the importSpec for package containing protobuf element e.
+func (g *generator) importSpec(e proto.Message) importSpec {
 	fdesc := g.parentFile[e]
 	pkg := *fdesc.Options.GoPackage
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {
-		return pkg[p+1:] + "pb"
+		return importSpec{path: pkg[:p], name: pkg[p+1:] + "pb"}
 	}
 
 	for {
 		p := strings.LastIndexByte(pkg, '/')
 		if p < 0 {
-			return pkg + "pb"
+			return importSpec{path: pkg, name: pkg + "pb"}
 		}
 		elem := pkg[p+1:]
 		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
@@ -164,8 +164,13 @@ func (g *generator) pkgName(e proto.Message) string {
 			pkg = pkg[:p]
 			continue
 		}
-		return elem + "pb"
+		return importSpec{path: pkg, name: elem + "pb"}
 	}
+}
+
+// pkgName reports the package name of protobuf element e.
+func (g *generator) pkgName(e proto.Message) string {
+	return g.importSpec(e).name
 }
 
 // printf formatted-prints to sb, using the print syntax from fmt package.
@@ -457,14 +462,17 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) {
 	inType := g.types[*m.InputType]
 	outType := g.types[*m.OutputType]
+	inSpec := g.importSpec(inType)
+	outSpec := g.importSpec(outType)
+
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		servName, *m.Name, g.pkgName(inType), *inType.Name, g.pkgName(outType), *outType.Name)
+		servName, *m.Name, inSpec.name, *inType.Name, outSpec.name, *outType.Name)
 
 	p("ctx = insertMetadata(ctx, c.xGoogMetadata)")
 	p("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
-	p("var resp *%s.%s", g.pkgName(outType), *outType.Name)
+	p("var resp *%s.%s", outSpec.name, *outType.Name)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  resp, err = c.%sClient.%s(ctx, req, settings.GRPC...)", lowerFirst(servName), *m.Name)
@@ -477,6 +485,9 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 
 	p("}")
 	p("")
+
+	g.imports[inSpec] = true
+	g.imports[outSpec] = true
 }
 
 // TODO(pongad): escape markdown

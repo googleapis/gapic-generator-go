@@ -24,15 +24,18 @@ func isLRO(m *descriptor.MethodDescriptorProto) bool {
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) {
 	inType := g.types[*m.InputType]
 	outType := g.types[*m.OutputType]
+	inSpec := g.importSpec(inType)
+	outSpec := g.importSpec(outType)
+
 	lroType := lroTypeName(*m.Name)
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		servName, *m.Name, g.pkgName(inType), *inType.Name, lroType)
+		servName, *m.Name, inSpec.name, *inType.Name, lroType)
 
 	p("  ctx = insertMetadata(ctx, c.xGoogMetadata)")
 	p("  opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
-	p("  var resp *%s.%s", g.pkgName(outType), *outType.Name)
+	p("  var resp *%s.%s", outSpec.name, *outType.Name)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
 	p("    resp, err = c.%sClient.%s(ctx, req, settings.GRPC...)", lowerFirst(servName), *m.Name)
@@ -49,6 +52,8 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("")
 
 	g.imports[importSpec{path: "cloud.google.com/go/longrunning"}] = true
+	g.imports[inSpec] = true
+	g.imports[outSpec] = true
 }
 
 func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto) {
@@ -79,6 +84,8 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 		p("  }")
 		p("}")
 		p("")
+
+		g.imports[importSpec{name: "longrunningpb", path: "google.golang.org/genproto/googleapis/longrunning"}] = true
 	}
 
 	// Wait
