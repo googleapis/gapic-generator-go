@@ -281,6 +281,8 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 		case isLRO(m):
 			g.lroMethods = append(g.lroMethods, m)
 			g.lroCall(servName, m)
+		case *m.OutputType == ".google.protobuf.Empty":
+			g.emptyUnaryCall(servName, m)
 		default:
 			g.unaryCall(servName, m)
 		}
@@ -323,6 +325,32 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
+}
+
+func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescriptorProto) {
+	inType := g.types[*m.InputType]
+	inSpec := g.importSpec(inType)
+
+	p := g.printf
+
+	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
+		servName, *m.Name, inSpec.name, *inType.Name)
+
+	// TODO(pongad): use insertMetadata and appendCallOpts when Ief7ad9be8b81c9f059a8097e49eafeabf154b33d lands.
+
+	p("ctx = insertMetadata(ctx, c.xGoogMetadata)")
+	p("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
+	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
+	p("  var err error")
+	p("  _, err = c.%sClient.%s(ctx, req, settings.GRPC...)", lowerFirst(servName), *m.Name)
+	p("  return err")
+	p("}, opts...)")
+	p("return err")
+
+	p("}")
+	p("")
+
+	g.imports[inSpec] = true
 }
 
 // TODO(pongad): escape markdown
