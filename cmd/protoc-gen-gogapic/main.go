@@ -363,7 +363,6 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	g.imports[inSpec] = true
 }
 
-// TODO(pongad): escape markdown
 func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 	com := g.comments[m]
 	com = strings.TrimSpace(com)
@@ -381,6 +380,9 @@ func (g *generator) comment(s string) {
 	if s == "" {
 		return
 	}
+
+	s = MDPlain(s)
+
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {
 		g.printf("// %s", strings.TrimSpace(l))
