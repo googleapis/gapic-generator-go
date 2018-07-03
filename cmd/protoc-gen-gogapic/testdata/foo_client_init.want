@@ -1,0 +1,56 @@
+// FooClient is a client for interacting with Foo API.
+//
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+type FooClient struct {
+	// The connection to the service.
+	conn *grpc.ClientConn
+
+	// The gRPC API client.
+	fooClient mypackagepb.FooClient
+
+	// The call options for this service.
+	CallOptions *FooCallOptions
+
+	// The x-goog-* metadata to be sent with each request.
+	xGoogMetadata metadata.MD
+}
+
+// NewFooClient creates a new foo client.
+//
+// Foo service does stuff.
+func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
+	conn, err := transport.DialGRPC(ctx, append(defaultFooClientOptions(), opts...)...)
+	if err != nil {
+		return nil, err
+	}
+	c := &FooClient{
+		conn:        conn,
+		CallOptions: defaultFooCallOptions(),
+
+		fooClient: mypackagepb.NewFooClient(conn),
+	}
+	c.setGoogleClientInfo()
+
+	return c, nil
+}
+
+// Connection returns the client's connection to the API service.
+func (c *FooClient) Connection() *grpc.ClientConn {
+	return c.conn
+}
+
+// Close closes the connection to the API service. The user should invoke this when
+// the client is no longer required.
+func (c *FooClient) Close() error {
+	return c.conn.Close()
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *FooClient) setGoogleClientInfo(keyval ...string) {
+	kv := append([]string{"gl-go", version.Go()}, keyval...)
+	kv = append(kv, "gapic", version.Repo, "gax", gax.Version, "grpc", grpc.Version)
+	c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))
+}
+

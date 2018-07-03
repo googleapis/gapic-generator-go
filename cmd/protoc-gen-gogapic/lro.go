@@ -38,7 +38,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("  var resp *%s.%s", outSpec.name, *outType.Name)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
-	p("    resp, err = c.%sClient.%s(ctx, req, settings.GRPC...)", lowerFirst(servName), *m.Name)
+	p("    resp, err = %s", grpcClientCall(servName, *m.Name))
 	p("    return err")
 	p("  }, opts...)")
 	p("  if err != nil {")
@@ -78,7 +78,7 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 	{
 		p("// %[1]s returns a new %[1]s from a given name.", lroType)
 		p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
-		p("func (c *%s) %[2]s(name string) *%[2]s {", servName, lroType)
+		p("func (c *%sClient) %[2]s(name string) *%[2]s {", servName, lroType)
 		p("  return &%s{", lroType)
 		p("    lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),")
 		p("  }")

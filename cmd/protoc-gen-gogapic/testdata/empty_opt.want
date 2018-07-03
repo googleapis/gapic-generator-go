@@ -1,0 +1,18 @@
+// CallOptions contains the retry settings for each method of Client.
+type CallOptions struct {
+	Zip []gax.CallOption
+	Zap []gax.CallOption
+}
+
+func defaultClientOptions() []option.ClientOption {
+	return []option.ClientOption{
+		option.WithEndpoint("foo.googleapis.com:443"),
+		option.WithScopes(DefaultAuthScopes()...),
+	}
+}
+
+func defaultCallOptions() *CallOptions {
+	return &CallOptions{
+	}
+}
+

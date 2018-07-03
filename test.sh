@@ -17,7 +17,7 @@ OUT=${OUT:-testdata/out}
 
 mkdir -p "$OUT"
 
-protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt cloud.google.com/go/vision/apiv1 $GOOGLEAPIS/google/cloud/vision/v1/*.proto
-protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt cloud.google.com/go/speech/apiv1 $GOOGLEAPIS/google/cloud/speech/v1/*.proto
-protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt cloud.google.com/go/pubsub/apiv1 $GOOGLEAPIS/google/pubsub/v1/*.proto
-protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt cloud.google.com/go/logging/apiv2 $GOOGLEAPIS/google/logging/v2/*.proto
+protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt 'cloud.google.com/go/vision/apiv1;vision' $GOOGLEAPIS/google/cloud/vision/v1/*.proto
+protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt 'cloud.google.com/go/speech/apiv1;speech' $GOOGLEAPIS/google/cloud/speech/v1/*.proto
+protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt 'cloud.google.com/go/pubsub/apiv1;pubsub' $GOOGLEAPIS/google/pubsub/v1/*.proto
+protoc --gogapic_out "$OUT" -I $GOOGLEAPIS --gogapic_opt 'cloud.google.com/go/logging/apiv2;logging' $GOOGLEAPIS/google/logging/v2/*.proto

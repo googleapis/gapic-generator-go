@@ -14,18 +14,12 @@
 
 package main
 
-import "github.com/golang/protobuf/protoc-gen-go/descriptor"
+import (
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+)
 
-func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) {
+func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) {
 	p := g.printf
-
-	var hasLRO bool
-	for _, m := range serv.Method {
-		if isLRO(m) {
-			hasLRO = true
-			break
-		}
-	}
 
 	// CallOptions struct
 	{
@@ -70,6 +64,18 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("}")
 		p("")
 	}
+}
+
+func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) {
+	p := g.printf
+
+	var hasLRO bool
+	for _, m := range serv.Method {
+		if isLRO(m) {
+			hasLRO = true
+			break
+		}
+	}
 
 	// client struct
 	{
@@ -84,7 +90,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("")
 
 		p("// The gRPC API client.")
-		p("%sClient %s.%sClient", lowerFirst(servName), g.pkgName(serv), servName)
+		p("%s %s.%sClient", grpcClientField(servName), g.pkgName(serv), *serv.Name)
 		p("")
 
 		if hasLRO {
@@ -125,7 +131,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("    conn:        conn,")
 		p("    CallOptions: default%sCallOptions(),", servName)
 		p("")
-		p("    %sClient: %s.New%sClient(conn),", lowerFirst(servName), g.pkgName(serv), servName)
+		p("    %s: %s.New%sClient(conn),", grpcClientField(servName), g.pkgName(serv), *serv.Name)
 		p("  }")
 		p("  c.setGoogleClientInfo()")
 		p("")

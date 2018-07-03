@@ -44,9 +44,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	outDir := ""
-	if p := genReq.Parameter; p != nil {
-		outDir = *p
+	var outDir, pkgName string
+	if genReq.Parameter == nil {
+		log.Fatal("need parameter in format: client/import/path;packageName")
+	}
+	if p := strings.IndexByte(*genReq.Parameter, ';'); p < 0 {
+		log.Fatal("need parameter in format: client/import/path;packageName")
+	} else {
+		outDir = (*genReq.Parameter)[:p]
+		pkgName = (*genReq.Parameter)[p+1:]
 	}
 
 	var g generator
@@ -55,8 +61,16 @@ func main() {
 		if strContains(genReq.FileToGenerate, *f.Name) {
 			for _, s := range f.Service {
 				g.reset()
-				g.gen(s)
-				g.commit(filepath.Join(outDir, camelToSnake(reduceServName(*s.Name))+"_client.go"))
+				g.gen(s, pkgName)
+
+				// TODO(pongad): gapic-generator does not remove the package name here,
+				// so even though the client for LoggingServiceV2 is just "Client"
+				// the file name is "logging_client.go".
+				// Keep the current behavior for now, but we could revisit this later.
+				outFile := reduceServName(*s.Name, "")
+				outFile = camelToSnake(outFile) + "_client.go"
+				outFile = filepath.Join(outDir, outFile)
+				g.commit(outFile, pkgName)
 			}
 		}
 	}
@@ -217,11 +231,10 @@ func (g *generator) printf(s string, a ...interface{}) {
 	}
 }
 
-func (g *generator) commit(fileName string) {
+func (g *generator) commit(fileName, pkgName string) {
 	var header strings.Builder
 	fmt.Fprintf(&header, apacheLicense, time.Now().Year())
-	// TODO(pongad): read package name from somewhere
-	header.WriteString("package foo\n\n")
+	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []importSpec
 	for imp := range g.imports {
@@ -266,8 +279,8 @@ func (g *generator) reset() {
 	}
 }
 
-func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
-	servName := reduceServName(*serv.Name)
+func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) {
+	servName := reduceServName(*serv.Name, pkgName)
 	g.clientInit(serv, servName)
 
 	for _, m := range serv.Method {
@@ -308,7 +321,7 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p("var resp *%s.%s", outSpec.name, *outType.Name)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
-	p("  resp, err = c.%sClient.%s(ctx, req, settings.GRPC...)", lowerFirst(servName), *m.Name)
+	p("  resp, err = %s", grpcClientCall(servName, *m.Name))
 	p("  return err")
 	p("}, opts...)")
 	p("if err != nil {")
@@ -338,7 +351,7 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	p("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
-	p("  _, err = c.%sClient.%s(ctx, req, settings.GRPC...)", lowerFirst(servName), *m.Name)
+	p("  _, err = %s", grpcClientCall(servName, *m.Name))
 	p("  return err")
 	p("}, opts...)")
 	p("return err")
@@ -380,25 +393,46 @@ func spaces(n int) string {
 	return spacesCache[:n]
 }
 
-func reduceServName(s string) string {
+// reduceServName removes redundant components from the service name.
+// For example, FooServiceV2 -> Foo.
+// The returned name is used as part of longer names, like FooClient.
+// If the package name and the service name is the same,
+// reduceServName returns empty string, so we get foo.Client instead of foo.FooClient.
+func reduceServName(svc, pkg string) string {
 	// remove trailing version
-	if p := strings.LastIndexByte(s, 'V'); p >= 0 {
+	if p := strings.LastIndexByte(svc, 'V'); p >= 0 {
 		isVer := true
-		for _, r := range s[p+1:] {
+		for _, r := range svc[p+1:] {
 			if !unicode.IsDigit(r) {
 				isVer = false
 				break
 			}
 		}
 		if isVer {
-			s = s[:p]
+			svc = svc[:p]
 		}
 	}
 
-	if servSuf := "Service"; strings.HasSuffix(s, servSuf) {
-		s = s[:len(s)-len(servSuf)]
+	if servSuf := "Service"; strings.HasSuffix(svc, servSuf) {
+		svc = svc[:len(svc)-len(servSuf)]
 	}
-	return s
+
+	if strings.EqualFold(svc, pkg) {
+		svc = ""
+	}
+	return svc
+}
+
+// grpcClientField reports the field name to store gRPC client.
+func grpcClientField(reducedServName string) string {
+	// Not the same as reduceServName(*serv.Name, pkg)+"Client".
+	// If the service name is reduced to empty string, we should
+	// lower-case "client" so that the field is not exported.
+	return lowerFirst(reducedServName + "Client")
+}
+
+func grpcClientCall(reducedServName, methName string) string {
+	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(reducedServName), methName)
 }
 
 func lowerFirst(s string) string {

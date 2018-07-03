@@ -1,0 +1,18 @@
+// FooCallOptions contains the retry settings for each method of FooClient.
+type FooCallOptions struct {
+	Zip []gax.CallOption
+	Zap []gax.CallOption
+}
+
+func defaultFooClientOptions() []option.ClientOption {
+	return []option.ClientOption{
+		option.WithEndpoint("foo.googleapis.com:443"),
+		option.WithScopes(DefaultAuthScopes()...),
+	}
+}
+
+func defaultFooCallOptions() *FooCallOptions {
+	return &FooCallOptions{
+	}
+}
+
