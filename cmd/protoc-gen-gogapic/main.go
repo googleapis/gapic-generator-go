@@ -54,11 +54,20 @@ func main() {
 	for _, f := range genReq.ProtoFile {
 		if strContains(genReq.FileToGenerate, *f.Name) {
 			for _, s := range f.Service {
+				g.reset()
 				g.gen(s)
 				g.commit(filepath.Join(outDir, camelToSnake(reduceServName(*s.Name))+"_client.go"))
 			}
 		}
 	}
+
+	// TODO(pongad): use package path and name from other CLs when they land.
+	g.reset()
+	g.genDocFile("package/path", "pkgname")
+	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+		Name:    proto.String(filepath.Join(outDir, "doc.go")),
+		Content: proto.String(g.sb.String()),
+	})
 
 	outBytes, err := proto.Marshal(&g.resp)
 	if err != nil {
@@ -209,26 +218,8 @@ func (g *generator) printf(s string, a ...interface{}) {
 }
 
 func (g *generator) commit(fileName string) {
-	const license = `// Copyright %d Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// AUTO-GENERATED CODE. DO NOT EDIT.
-
-`
-
 	var header strings.Builder
-	fmt.Fprintf(&header, license, time.Now().Year())
+	fmt.Fprintf(&header, apacheLicense, time.Now().Year())
 	// TODO(pongad): read package name from somewhere
 	header.WriteString("package foo\n\n")
 
@@ -267,10 +258,15 @@ func (g *generator) commit(fileName string) {
 	})
 }
 
-func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
+func (g *generator) reset() {
 	g.sb.Reset()
 	g.in = 0
+	for k := range g.imports {
+		delete(g.imports, k)
+	}
+}
 
+func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) {
 	servName := reduceServName(*serv.Name)
 	g.clientInit(serv, servName)
 
