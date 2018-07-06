@@ -1,0 +1,67 @@
+func ExampleNewFooClient() {
+	ctx := context.Background()
+	c, err := Bar.NewFooClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// TODO: Use client.
+	_ = c
+}
+
+func ExampleFooClient_GetEmptyThing() {
+	ctx := context.Background()
+	c, err := Bar.NewFooClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+	}
+	err = c.GetEmptyThing(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+}
+
+func ExampleFooClient_GetOneThing() {
+	ctx := context.Background()
+	c, err := Bar.NewFooClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+	}
+	resp, err := c.GetOneThing(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// TODO: Use resp.
+	_ = resp
+}
+
+func ExampleFooClient_GetBigThing() {
+	ctx := context.Background()
+	c, err := Bar.NewFooClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+	}
+	op, err := c.GetBigThing(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	resp, err := op.Wait(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// TODO: Use resp.
+	_ = resp
+}
+

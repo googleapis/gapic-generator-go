@@ -31,6 +31,8 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
+const emptyType = ".google.protobuf.Empty"
+
 var tabsCache = strings.Repeat("\t", 20)
 var spacesCache = strings.Repeat(" ", 100)
 
@@ -44,33 +46,39 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var outDir, pkgName string
+	var pkgPath, pkgName string
 	if genReq.Parameter == nil {
 		log.Fatal("need parameter in format: client/import/path;packageName")
 	}
 	if p := strings.IndexByte(*genReq.Parameter, ';'); p < 0 {
 		log.Fatal("need parameter in format: client/import/path;packageName")
 	} else {
-		outDir = (*genReq.Parameter)[:p]
+		pkgPath = (*genReq.Parameter)[:p]
 		pkgName = (*genReq.Parameter)[p+1:]
 	}
+	outDir := filepath.FromSlash(pkgPath)
 
 	var g generator
 	g.init(genReq.ProtoFile)
 	for _, f := range genReq.ProtoFile {
 		if strContains(genReq.FileToGenerate, *f.Name) {
 			for _, s := range f.Service {
-				g.reset()
-				g.gen(s, pkgName)
-
 				// TODO(pongad): gapic-generator does not remove the package name here,
 				// so even though the client for LoggingServiceV2 is just "Client"
 				// the file name is "logging_client.go".
 				// Keep the current behavior for now, but we could revisit this later.
 				outFile := reduceServName(*s.Name, "")
-				outFile = camelToSnake(outFile) + "_client.go"
+				outFile = camelToSnake(outFile)
 				outFile = filepath.Join(outDir, outFile)
-				g.commit(outFile, pkgName)
+
+				g.reset()
+				g.gen(s, pkgName)
+				g.commit(outFile+"_client.go", pkgName)
+
+				g.reset()
+				g.genExampleFile(s, pkgName)
+				g.imports[importSpec{path: pkgPath}] = true
+				g.commit(outFile+"_client_example_test.go", pkgName+"_test")
 			}
 		}
 	}
@@ -266,8 +274,23 @@ func (g *generator) commit(fileName, pkgName string) {
 		Name:    &fileName,
 		Content: proto.String(header.String()),
 	})
+
+	// Trim trailing newlines so we have only one.
+	// NOTE(pongad): This might be an overkill since we have gofmt,
+	// but the rest of the file already conforms to gofmt, so we might as well?
+	body := g.sb.String()
+	if !strings.HasSuffix(body, "\n") {
+		body += "\n"
+	}
+	for i := len(body) - 1; i >= 0; i-- {
+		if body[i] != '\n' {
+			body = body[:i+2]
+			break
+		}
+	}
+
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
-		Content: proto.String(g.sb.String()),
+		Content: proto.String(body),
 	})
 }
 
@@ -291,7 +314,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		case isLRO(m):
 			g.lroMethods = append(g.lroMethods, m)
 			g.lroCall(servName, m)
-		case *m.OutputType == ".google.protobuf.Empty":
+		case *m.OutputType == emptyType:
 			g.emptyUnaryCall(servName, m)
 		default:
 			g.unaryCall(servName, m)

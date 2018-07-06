@@ -28,6 +28,8 @@ import (
 var updateGolden = flag.Bool("update_golden", false, "update golden files")
 
 func diff(t *testing.T, name string, got []byte, goldenFile string) {
+	t.Helper()
+
 	if *updateGolden {
 		if err := ioutil.WriteFile(goldenFile, got, 0644); err != nil {
 			t.Fatal(err)
