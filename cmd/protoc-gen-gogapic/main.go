@@ -281,6 +281,7 @@ func (g *generator) reset() {
 
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) {
 	servName := reduceServName(*serv.Name, pkgName)
+	g.clientOptions(serv, servName)
 	g.clientInit(serv, servName)
 
 	for _, m := range serv.Method {
