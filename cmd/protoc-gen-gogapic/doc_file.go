@@ -14,16 +14,14 @@
 
 package main
 
-import "time"
-
 // genDocFile generates doc.go
 //
 // Since it's the only file that needs to write package documentation and canonical import,
 // it does not use g.commit().
-func (g *generator) genDocFile(pkgPath, pkgName string) {
+func (g *generator) genDocFile(pkgPath, pkgName string, year int) {
 	p := g.printf
 
-	p(apacheLicense, time.Now().Year())
+	p(apacheLicense, year)
 	p("")
 
 	p("// Package %s is an auto-generated package for the", pkgName)

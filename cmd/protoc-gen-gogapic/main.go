@@ -83,9 +83,8 @@ func main() {
 		}
 	}
 
-	// TODO(pongad): use package path and name from other CLs when they land.
 	g.reset()
-	g.genDocFile("package/path", "pkgname")
+	g.genDocFile(pkgPath, pkgName, time.Now().Year())
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(outDir, "doc.go")),
 		Content: proto.String(g.sb.String()),
