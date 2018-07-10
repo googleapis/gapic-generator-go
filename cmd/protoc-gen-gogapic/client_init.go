@@ -15,10 +15,12 @@
 package main
 
 import (
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
-func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) {
+func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
 	// CallOptions struct
@@ -43,10 +45,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// defaultClientOptions
 	{
+		eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
+		if err != nil {
+			return err
+		}
+
 		// TODO(pongad): read URL from somewhere
 		p("func default%sClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
-		p(`    option.WithEndpoint("foo.googleapis.com:443"),`)
+		p(`    option.WithEndpoint("%s:443"),`, *eHost.(*string))
 		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("  }")
 		p("}")
@@ -64,6 +71,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("}")
 		p("")
 	}
+
+	return nil
 }
 
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) {

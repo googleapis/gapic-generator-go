@@ -6,7 +6,7 @@ type FooCallOptions struct {
 
 func defaultFooClientOptions() []option.ClientOption {
 	return []option.ClientOption{
-		option.WithEndpoint("foo.googleapis.com:443"),
+		option.WithEndpoint("foo.bar.com:443"),
 		option.WithScopes(DefaultAuthScopes()...),
 	}
 }

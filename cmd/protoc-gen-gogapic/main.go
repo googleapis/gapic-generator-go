@@ -60,34 +60,41 @@ func main() {
 
 	var g generator
 	g.init(genReq.ProtoFile)
+
+	var genServs []*descriptor.ServiceDescriptorProto
 	for _, f := range genReq.ProtoFile {
-		if !strContains(genReq.FileToGenerate, *f.Name) {
-			continue
-		}
-		for _, s := range f.Service {
-			// TODO(pongad): gapic-generator does not remove the package name here,
-			// so even though the client for LoggingServiceV2 is just "Client"
-			// the file name is "logging_client.go".
-			// Keep the current behavior for now, but we could revisit this later.
-			outFile := reduceServName(*s.Name, "")
-			outFile = camelToSnake(outFile)
-			outFile = filepath.Join(outDir, outFile)
-
-			g.reset()
-			if err := g.gen(s, pkgName); err != nil {
-				log.Fatal(err)
-			}
-			g.commit(outFile+"_client.go", pkgName)
-
-			g.reset()
-			g.genExampleFile(s, pkgName)
-			g.imports[importSpec{path: pkgPath}] = true
-			g.commit(outFile+"_client_example_test.go", pkgName+"_test")
+		if strContains(genReq.FileToGenerate, *f.Name) {
+			genServs = append(genServs, f.Service...)
 		}
 	}
 
+	for _, s := range genServs {
+		// TODO(pongad): gapic-generator does not remove the package name here,
+		// so even though the client for LoggingServiceV2 is just "Client"
+		// the file name is "logging_client.go".
+		// Keep the current behavior for now, but we could revisit this later.
+		outFile := reduceServName(*s.Name, "")
+		outFile = camelToSnake(outFile)
+		outFile = filepath.Join(outDir, outFile)
+
+		g.reset()
+		if err := g.gen(s, pkgName); err != nil {
+			log.Fatal(err)
+		}
+		g.commit(outFile+"_client.go", pkgName)
+
+		g.reset()
+		g.genExampleFile(s, pkgName)
+		g.imports[importSpec{path: pkgPath}] = true
+		g.commit(outFile+"_client_example_test.go", pkgName+"_test")
+	}
+
 	g.reset()
-	g.genDocFile(pkgPath, pkgName, time.Now().Year())
+	scopes, err := collectScopes(genServs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	g.genDocFile(pkgPath, pkgName, time.Now().Year(), scopes)
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(outDir, "doc.go")),
 		Content: proto.String(g.sb.String()),
@@ -303,7 +310,9 @@ func (g *generator) reset() {
 
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
 	servName := reduceServName(*serv.Name, pkgName)
-	g.clientOptions(serv, servName)
+	if err := g.clientOptions(serv, servName); err != nil {
+		return err
+	}
 	g.clientInit(serv, servName)
 
 	// Methods to generate LRO and iterator types for. Populated as we go.

@@ -21,6 +21,6 @@ import (
 
 func TestDocFile(t *testing.T) {
 	var g generator
-	g.genDocFile("path/to/awesome", "awesome", 42)
+	g.genDocFile("path/to/awesome", "awesome", 42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
 	diff(t, "doc_file", []byte(g.sb.String()), filepath.Join("testdata", "doc_file.want"))
 }

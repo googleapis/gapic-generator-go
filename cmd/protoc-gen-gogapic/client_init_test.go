@@ -23,6 +23,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 var updateGolden = flag.Bool("update_golden", false, "update golden files")
@@ -53,7 +54,12 @@ func TestClientOpt(t *testing.T) {
 			{Name: proto.String("Zip")},
 			{Name: proto.String("Zap")},
 		},
+		Options: &descriptor.ServiceOptions{},
 	}
+	if err := proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.bar.com")); err != nil {
+		t.Fatal(err)
+	}
+
 	for _, tst := range []struct {
 		tstName, servName string
 	}{
@@ -61,7 +67,10 @@ func TestClientOpt(t *testing.T) {
 		{tstName: "empty_opt", servName: ""},
 	} {
 		g.reset()
-		g.clientOptions(serv, tst.servName)
+		if err := g.clientOptions(serv, tst.servName); err != nil {
+			t.Error(err)
+			continue
+		}
 		diff(t, tst.tstName, []byte(g.sb.String()), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }

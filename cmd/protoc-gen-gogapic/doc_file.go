@@ -14,11 +14,19 @@
 
 package main
 
+import (
+	"sort"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/genproto/googleapis/api/annotations"
+)
+
 // genDocFile generates doc.go
 //
 // Since it's the only file that needs to write package documentation and canonical import,
 // it does not use g.commit().
-func (g *generator) genDocFile(pkgPath, pkgName string, year int) {
+func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []string) {
 	p := g.printf
 
 	p(apacheLicense, year)
@@ -50,7 +58,29 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int) {
 	p("// DefaultAuthScopes reports the default set of authentication scopes to use with this package.")
 	p("func DefaultAuthScopes() []string {")
 	p("  return []string{")
-	// TODO(pongad): read scopes
+	for _, sc := range scopes {
+		p("%q,", sc)
+	}
 	p("  }")
 	p("}")
+}
+
+func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
+	scopeSet := map[string]bool{}
+	for _, s := range servs {
+		eOauth, err := proto.GetExtension(s.Options, annotations.E_Oauth)
+		if err != nil {
+			return nil, err
+		}
+		for _, sc := range eOauth.(*annotations.OAuth).Scopes {
+			scopeSet[sc] = true
+		}
+	}
+
+	var scopes []string
+	for sc := range scopeSet {
+		scopes = append(scopes, sc)
+	}
+	sort.Strings(scopes)
+	return scopes, nil
 }
