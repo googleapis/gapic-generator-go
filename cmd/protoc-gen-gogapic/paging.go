@@ -73,6 +73,47 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) iterT
 	return pt
 }
 
+// TODO(pongad): this will probably need to read from annotations later.
+
+// pagingField reports the "resource field" to be iterated over by paginating method m.
+// If the method is not a paging method, pagingField returns (nil, nil).
+// If the method looks like a paging method, but the field cannot be determined, pagingField errors.
+func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descriptor.FieldDescriptorProto, error) {
+	var (
+		hasSize, hasToken, hasNextToken bool
+		elemFields                      []*descriptor.FieldDescriptorProto
+	)
+
+	outType := g.types[*m.OutputType]
+
+	for _, f := range g.types[*m.InputType].Field {
+		if *f.Name == "page_size" && *f.Type == descriptor.FieldDescriptorProto_TYPE_INT32 {
+			hasSize = true
+		}
+		if *f.Name == "page_token" && *f.Type == descriptor.FieldDescriptorProto_TYPE_STRING {
+			hasToken = true
+		}
+	}
+	for _, f := range outType.Field {
+		if *f.Name == "next_page_token" && *f.Type == descriptor.FieldDescriptorProto_TYPE_STRING {
+			hasNextToken = true
+		}
+		if *f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			elemFields = append(elemFields, f)
+		}
+	}
+	if !hasSize || !hasToken || !hasNextToken {
+		return nil, nil
+	}
+	if len(elemFields) == 0 {
+		return nil, fmt.Errorf("%s looks like paging method, but can't find repeated field in %s", *m.Name, *outType.Name)
+	}
+	if len(elemFields) > 1 {
+		return nil, fmt.Errorf("%s looks like paging method, but too many repeated fields in %s", *m.Name, *outType.Name)
+	}
+	return elemFields[0], nil
+}
+
 func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt iterType) {
 	inType := g.types[*m.InputType]
 	outType := g.types[*m.OutputType]

@@ -43,7 +43,7 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	p("}")
 }
 
-func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) {
+func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
 	p := g.printf
 
 	inType := g.types[*m.InputType]
@@ -57,7 +57,11 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	p("    // TODO: Fill request struct fields.")
 	p("  }")
 
-	if isLRO(m) {
+	if pf, err := g.pagingField(m); err != nil {
+		return err
+	} else if pf != nil {
+		g.examplePagingCall(m)
+	} else if *m.OutputType == lroType {
 		g.exampleLROCall(m)
 	} else if *m.OutputType == emptyType {
 		g.exampleEmptyCall(m)
@@ -67,6 +71,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	p("}")
 	p("")
+	return nil
 }
 
 func (g *generator) exampleLROCall(m *descriptor.MethodDescriptorProto) {
@@ -104,4 +109,23 @@ func (g *generator) exampleEmptyCall(m *descriptor.MethodDescriptorProto) {
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
+}
+
+func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
+	p := g.printf
+
+	p("it := c.%s(ctx, req)", *m.Name)
+	p("for {")
+	p("  resp, err := it.Next()")
+	p("  if err == iterator.Done {")
+	p("    break")
+	p("  }")
+	p("  if err != nil {")
+	p("    // TODO: Handle error.")
+	p("  }")
+	p("  // TODO: Use resp.")
+	p("  _ = resp")
+	p("}")
+
+	g.imports[importSpec{path: "google.golang.org/api/iterator"}] = true
 }

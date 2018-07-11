@@ -65,3 +65,27 @@ func ExampleClient_GetBigThing() {
 	_ = resp
 }
 
+func ExampleClient_GetManyThings() {
+	ctx := context.Background()
+	c, err := Foo.NewClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	req := &mypackagepb.PageInputType{
+		// TODO: Fill request struct fields.
+	}
+	it := c.GetManyThings(ctx, req)
+	for {
+		resp, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// TODO: Handle error.
+		}
+		// TODO: Use resp.
+		_ = resp
+	}
+}
+

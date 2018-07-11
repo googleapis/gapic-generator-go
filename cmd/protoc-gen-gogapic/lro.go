@@ -16,11 +16,6 @@ package main
 
 import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
-func isLRO(m *descriptor.MethodDescriptorProto) bool {
-	// protoc puts a dot in front of name, signaling that the name is fully qualified.
-	return *m.OutputType == ".google.longrunning.Operation"
-}
-
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) {
 	inType := g.types[*m.InputType]
 	outType := g.types[*m.OutputType]
