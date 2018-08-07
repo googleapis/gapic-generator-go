@@ -15,6 +15,8 @@
 package main
 
 import (
+	"gapic-generator-go/internal/errors"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -47,7 +49,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	{
 		eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
 		if err != nil {
-			return err
+			return errors.E(err, "cannot read default host")
 		}
 
 		// TODO(pongad): read URL from somewhere

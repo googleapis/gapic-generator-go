@@ -26,6 +26,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"gapic-generator-go/internal/errors"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -315,7 +317,7 @@ func (g *generator) reset() {
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
 	servName := reduceServName(*serv.Name, pkgName)
 	if err := g.clientOptions(serv, servName); err != nil {
-		return err
+		return errors.E(err, "service: %s", *serv.Name)
 	}
 	g.clientInit(serv, servName)
 

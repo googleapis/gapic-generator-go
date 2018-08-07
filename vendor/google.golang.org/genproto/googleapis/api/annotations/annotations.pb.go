@@ -33,7 +33,7 @@ func (m *Project) Reset()         { *m = Project{} }
 func (m *Project) String() string { return proto.CompactTextString(m) }
 func (*Project) ProtoMessage()    {}
 func (*Project) Descriptor() ([]byte, []int) {
-	return fileDescriptor_annotations_5fd69169e88b8f63, []int{0}
+	return fileDescriptor_annotations_35a2112b558ef844, []int{0}
 }
 func (m *Project) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Project.Unmarshal(m, b)
@@ -75,7 +75,7 @@ func (m *Organization) Reset()         { *m = Organization{} }
 func (m *Organization) String() string { return proto.CompactTextString(m) }
 func (*Organization) ProtoMessage()    {}
 func (*Organization) Descriptor() ([]byte, []int) {
-	return fileDescriptor_annotations_5fd69169e88b8f63, []int{1}
+	return fileDescriptor_annotations_35a2112b558ef844, []int{1}
 }
 func (m *Organization) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Organization.Unmarshal(m, b)
@@ -208,10 +208,10 @@ func init() {
 }
 
 func init() {
-	proto.RegisterFile("google/api/annotations.proto", fileDescriptor_annotations_5fd69169e88b8f63)
+	proto.RegisterFile("google/api/annotations.proto", fileDescriptor_annotations_35a2112b558ef844)
 }
 
-var fileDescriptor_annotations_5fd69169e88b8f63 = []byte{
+var fileDescriptor_annotations_35a2112b558ef844 = []byte{
 	// 526 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x94, 0x4f, 0x6e, 0xd3, 0x40,
 	0x14, 0x87, 0x15, 0x94, 0x42, 0x3a, 0x09, 0xa4, 0xb5, 0x0a, 0x94, 0x50, 0x20, 0x0a, 0x9b, 0x88,

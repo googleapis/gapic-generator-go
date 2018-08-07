@@ -38,7 +38,7 @@ func (m *Resource) Reset()         { *m = Resource{} }
 func (m *Resource) String() string { return proto.CompactTextString(m) }
 func (*Resource) ProtoMessage()    {}
 func (*Resource) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resources_9a7ce653c6a8e6e4, []int{0}
+	return fileDescriptor_resources_145c60b7009c27cc, []int{0}
 }
 func (m *Resource) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Resource.Unmarshal(m, b)
@@ -89,7 +89,7 @@ func (m *ResourceSet) Reset()         { *m = ResourceSet{} }
 func (m *ResourceSet) String() string { return proto.CompactTextString(m) }
 func (*ResourceSet) ProtoMessage()    {}
 func (*ResourceSet) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resources_9a7ce653c6a8e6e4, []int{1}
+	return fileDescriptor_resources_145c60b7009c27cc, []int{1}
 }
 func (m *ResourceSet) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ResourceSet.Unmarshal(m, b)
@@ -129,10 +129,10 @@ func init() {
 }
 
 func init() {
-	proto.RegisterFile("google/api/resources.proto", fileDescriptor_resources_9a7ce653c6a8e6e4)
+	proto.RegisterFile("google/api/resources.proto", fileDescriptor_resources_145c60b7009c27cc)
 }
 
-var fileDescriptor_resources_9a7ce653c6a8e6e4 = []byte{
+var fileDescriptor_resources_145c60b7009c27cc = []byte{
 	// 226 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x90, 0x31, 0x6b, 0xc3, 0x30,
 	0x10, 0x85, 0x51, 0x5a, 0x4a, 0x7c, 0x81, 0x0c, 0xa2, 0x83, 0x49, 0x17, 0x93, 0x29, 0x93, 0x04,

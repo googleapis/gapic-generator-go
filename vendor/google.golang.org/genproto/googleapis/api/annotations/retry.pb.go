@@ -38,7 +38,7 @@ func (m *Retry) Reset()         { *m = Retry{} }
 func (m *Retry) String() string { return proto.CompactTextString(m) }
 func (*Retry) ProtoMessage()    {}
 func (*Retry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_retry_29bc466150155bc8, []int{0}
+	return fileDescriptor_retry_8a8cb4f6022190fb, []int{0}
 }
 func (m *Retry) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Retry.Unmarshal(m, b)
@@ -69,9 +69,9 @@ func init() {
 	proto.RegisterType((*Retry)(nil), "google.api.Retry")
 }
 
-func init() { proto.RegisterFile("google/api/retry.proto", fileDescriptor_retry_29bc466150155bc8) }
+func init() { proto.RegisterFile("google/api/retry.proto", fileDescriptor_retry_8a8cb4f6022190fb) }
 
-var fileDescriptor_retry_29bc466150155bc8 = []byte{
+var fileDescriptor_retry_8a8cb4f6022190fb = []byte{
 	// 187 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x8f, 0x31, 0x0b, 0xc2, 0x30,
 	0x10, 0x46, 0x29, 0x52, 0x87, 0x0c, 0x45, 0x0a, 0x8a, 0x74, 0x2a, 0x0e, 0xe2, 0x94, 0x80, 0x8e,

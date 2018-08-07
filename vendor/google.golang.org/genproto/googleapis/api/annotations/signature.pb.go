@@ -38,7 +38,7 @@ func (m *MethodSignature) Reset()         { *m = MethodSignature{} }
 func (m *MethodSignature) String() string { return proto.CompactTextString(m) }
 func (*MethodSignature) ProtoMessage()    {}
 func (*MethodSignature) Descriptor() ([]byte, []int) {
-	return fileDescriptor_signature_ff4b5040c6f73b46, []int{0}
+	return fileDescriptor_signature_bf68c379d9adbcc8, []int{0}
 }
 func (m *MethodSignature) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MethodSignature.Unmarshal(m, b)
@@ -84,10 +84,10 @@ func init() {
 }
 
 func init() {
-	proto.RegisterFile("google/api/signature.proto", fileDescriptor_signature_ff4b5040c6f73b46)
+	proto.RegisterFile("google/api/signature.proto", fileDescriptor_signature_bf68c379d9adbcc8)
 }
 
-var fileDescriptor_signature_ff4b5040c6f73b46 = []byte{
+var fileDescriptor_signature_bf68c379d9adbcc8 = []byte{
 	// 240 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x90, 0x41, 0x4b, 0xc4, 0x30,
 	0x10, 0x85, 0xa9, 0x85, 0x85, 0x8d, 0xba, 0x42, 0x51, 0x29, 0xeb, 0xa5, 0xe8, 0xa5, 0xa7, 0x04,
