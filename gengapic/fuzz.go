@@ -12,38 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+// +build gofuzz
 
-import (
-	"gapic-generator-go/gengapic"
-	"io/ioutil"
-	"log"
-	"os"
+package gengapic
 
-	"github.com/golang/protobuf/proto"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-)
+import plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 
-func main() {
-	reqBytes, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		log.Fatal(err)
-	}
+func Fuzz(data []byte) int {
 	var genReq plugin.CodeGeneratorRequest
-	if err := genReq.Unmarshal(reqBytes); err != nil {
-		log.Fatal(err)
+	if err := genReq.Unmarshal(data); err != nil {
+		// -1: don't include these in corpus even if they create new coverage.
+		// We're not interested in bytes that don't deserialize properly.
+		return -1
 	}
 
-	genResp, err := gengapic.Gen(&genReq)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	outBytes, err := proto.Marshal(genResp)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if _, err := os.Stdout.Write(outBytes); err != nil {
-		log.Fatal(err)
-	}
+	// It's OK if we error. Just test that we don't crash.
+	Gen(&genReq)
+	return 1
 }

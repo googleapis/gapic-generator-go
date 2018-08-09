@@ -15,7 +15,7 @@
 // TODO(pongad): maybe move markdown stuff into its own package
 // once we have a proper import path.
 
-package main
+package gengapic
 
 import "testing"
 
