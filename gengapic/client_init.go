@@ -77,7 +77,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	return nil
 }
 
-func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) {
+func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
 	var hasLRO bool
@@ -86,6 +86,11 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 			hasLRO = true
 			break
 		}
+	}
+
+	imp, err := g.importSpec(serv)
+	if err != nil {
+		return err
 	}
 
 	// client struct
@@ -101,7 +106,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("")
 
 		p("// The gRPC API client.")
-		p("%s %s.%sClient", grpcClientField(servName), g.pkgName(serv), *serv.Name)
+		p("%s %s.%sClient", grpcClientField(servName), imp.name, serv.GetName())
 		p("")
 
 		if hasLRO {
@@ -142,7 +147,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("    conn:        conn,")
 		p("    CallOptions: default%sCallOptions(),", servName)
 		p("")
-		p("    %s: %s.New%sClient(conn),", grpcClientField(servName), g.pkgName(serv), *serv.Name)
+		p("    %s: %s.New%sClient(conn),", grpcClientField(servName), imp.name, serv.GetName())
 		p("  }")
 		p("  c.setGoogleClientInfo()")
 		p("")
@@ -201,4 +206,5 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 		g.imports[importSpec{path: "cloud.google.com/go/internal/version"}] = true
 	}
+	return nil
 }

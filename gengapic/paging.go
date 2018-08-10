@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"log"
 
+	"gapic-generator-go/internal/errors"
+
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
@@ -50,27 +52,38 @@ type iterType struct {
 
 // iterTypeOf deduces iterType from a field to be iterated over.
 // elemField should be the "resource" of a paginating RPC.
-func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) iterType {
+func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iterType, error) {
 	var pt iterType
 
 	switch t := *elemField.Type; {
 	case t == descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		eType := g.types[*elemField.TypeName]
-		pt.elemTypeName = fmt.Sprintf("*%s.%s", g.pkgName(eType), *eType.Name)
+		eType := g.types[elemField.GetTypeName()]
+
+		imp, err := g.importSpec(eType)
+		if err != nil {
+			return iterType{}, err
+		}
+
+		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.name, eType.GetName())
 		pt.iterTypeName = *eType.Name + "Iterator"
-		pt.elemImports = []importSpec{g.importSpec(eType)}
+
+		pt.elemImports = []importSpec{imp}
+
 	case t == descriptor.FieldDescriptorProto_TYPE_ENUM:
 		log.Panic("iterating enum not supported yet")
+
 	case t == descriptor.FieldDescriptorProto_TYPE_BYTES:
 		pt.elemTypeName = "[]byte"
 		pt.iterTypeName = "BytesIterator"
+
 	case t < 0 || int(t) >= len(primitiveFieldToGoType) || primitiveFieldToGoType[t] == "":
 		log.Panicf("unrecognized type: %v", t)
+
 	default:
 		pt.elemTypeName = primitiveFieldToGoType[t]
 		pt.iterTypeName = upperFirst(pt.elemTypeName) + "Iterator"
 	}
-	return pt
+	return pt, nil
 }
 
 // TODO(pongad): this will probably need to read from annotations later.
@@ -84,21 +97,28 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 		elemFields                      []*descriptor.FieldDescriptorProto
 	)
 
-	outType := g.types[*m.OutputType]
+	inType := g.types[m.GetInputType()]
+	if inType == nil {
+		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
+	}
+	outType := g.types[m.GetOutputType()]
+	if outType == nil {
+		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
+	}
 
-	for _, f := range g.types[*m.InputType].Field {
-		if *f.Name == "page_size" && *f.Type == descriptor.FieldDescriptorProto_TYPE_INT32 {
+	for _, f := range inType.Field {
+		if f.GetName() == "page_size" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 {
 			hasSize = true
 		}
-		if *f.Name == "page_token" && *f.Type == descriptor.FieldDescriptorProto_TYPE_STRING {
+		if f.GetName() == "page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING {
 			hasToken = true
 		}
 	}
 	for _, f := range outType.Field {
-		if *f.Name == "next_page_token" && *f.Type == descriptor.FieldDescriptorProto_TYPE_STRING {
+		if f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING {
 			hasNextToken = true
 		}
-		if *f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			elemFields = append(elemFields, f)
 		}
 	}
@@ -114,11 +134,18 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 	return elemFields[0], nil
 }
 
-func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt iterType) {
+func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt iterType) error {
 	inType := g.types[*m.InputType]
 	outType := g.types[*m.OutputType]
-	inSpec := g.importSpec(inType)
-	outSpec := g.importSpec(outType)
+
+	inSpec, err := g.importSpec(inType)
+	if err != nil {
+		return err
+	}
+	outSpec, err := g.importSpec(outType)
+	if err != nil {
+		return err
+	}
 
 	p := g.printf
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
@@ -172,6 +199,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	for _, spec := range pt.elemImports {
 		g.imports[spec] = true
 	}
+	return nil
 }
 
 func (g *generator) pagingIter(pt iterType) {

@@ -14,9 +14,13 @@
 
 package gengapic
 
-import "github.com/golang/protobuf/protoc-gen-go/descriptor"
+import (
+	"gapic-generator-go/internal/errors"
 
-func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgName string) {
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+)
+
+func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
 	servName := reduceServName(*serv.Name, pkgName)
 	p := g.printf
 
@@ -29,8 +33,11 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 	g.imports[importSpec{path: "golang.org/x/net/context"}] = true
 
 	for _, m := range serv.Method {
-		g.exampleMethod(pkgName, servName, m)
+		if err := g.exampleMethod(pkgName, servName, m); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (g *generator) exampleInitClient(pkgName, servName string) {
@@ -46,11 +53,19 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
 	p := g.printf
 
-	inType := g.types[*m.InputType]
-	inSpec := g.importSpec(inType)
+	inType := g.types[m.GetInputType()]
+	if inType == nil {
+		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
+	}
+
+	inSpec, err := g.importSpec(inType)
+	if err != nil {
+		return err
+	}
+
 	g.imports[inSpec] = true
 
-	p("func Example%sClient_%s() {", servName, *m.Name)
+	p("func Example%sClient_%s() {", servName, m.GetName())
 	g.exampleInitClient(pkgName, servName)
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {

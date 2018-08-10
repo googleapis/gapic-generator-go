@@ -16,10 +16,13 @@ package gengapic
 
 import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
-func (g *generator) bidiCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
+func (g *generator) bidiCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	p := g.printf
 
-	servSpec := g.importSpec(s)
+	servSpec, err := g.importSpec(s)
+	if err != nil {
+		return err
+	}
 	g.imports[servSpec] = true
 
 	p("func (c *%sClient) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
@@ -39,4 +42,5 @@ func (g *generator) bidiCall(servName string, s *descriptor.ServiceDescriptorPro
 	p("  return resp, nil")
 	p("}")
 	p("")
+	return nil
 }

@@ -16,11 +16,19 @@ package gengapic
 
 import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
-func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) {
-	inType := g.types[*m.InputType]
-	outType := g.types[*m.OutputType]
-	inSpec := g.importSpec(inType)
-	outSpec := g.importSpec(outType)
+func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	inType := g.types[m.GetInputType()]
+	outType := g.types[m.GetOutputType()]
+
+	inSpec, err := g.importSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	outSpec, err := g.importSpec(outType)
+	if err != nil {
+		return err
+	}
 
 	lroType := lroTypeName(*m.Name)
 	p := g.printf
@@ -49,6 +57,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	g.imports[importSpec{path: "cloud.google.com/go/longrunning"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
+	return nil
 }
 
 func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto) {

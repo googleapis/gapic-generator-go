@@ -197,8 +197,10 @@ func TestIterTypeOf(t *testing.T) {
 			},
 		},
 	} {
-		got := g.iterTypeOf(tst.field)
-		if diff := cmp.Diff(tst.want, got, cmp.AllowUnexported(got, importSpec{})); diff != "" {
+		got, err := g.iterTypeOf(tst.field)
+		if err != nil {
+			t.Error(err)
+		} else if diff := cmp.Diff(tst.want, got, cmp.AllowUnexported(got, importSpec{})); diff != "" {
 			t.Errorf("%d: (got=-, want=+):\n%s", i, diff)
 		}
 	}

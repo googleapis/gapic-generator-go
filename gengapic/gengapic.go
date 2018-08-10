@@ -67,18 +67,20 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
-		outFile := reduceServName(*s.Name, "")
+		outFile := reduceServName(s.GetName(), "")
 		outFile = camelToSnake(outFile)
 		outFile = filepath.Join(outDir, outFile)
 
 		g.reset()
 		if err := g.gen(s, pkgName); err != nil {
-			return nil, err
+			return nil, errors.E(err, "service: %s", s.GetName())
 		}
 		g.commit(outFile+"_client.go", pkgName)
 
 		g.reset()
-		g.genExampleFile(s, pkgName)
+		if err := g.genExampleFile(s, pkgName); err != nil {
+			return nil, errors.E(err, "example: %s", s.GetName())
+		}
 		g.imports[importSpec{path: pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", pkgName+"_test")
 	}
@@ -145,12 +147,12 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 		// types
 		for _, m := range f.MessageType {
 			// In descriptors, putting the dot in front means the name is fully-qualified.
-			fullyQualifiedName := fmt.Sprintf(".%s.%s", *f.Package, *m.Name)
+			fullyQualifiedName := fmt.Sprintf(".%s.%s", f.GetPackage(), m.GetName())
 			g.types[fullyQualifiedName] = m
 		}
 
 		// comment
-		for _, loc := range f.SourceCodeInfo.Location {
+		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
 			// p is an array with format [f1, i1, f2, i2, ...]
 			// - f1 refers to the protobuf field tag
 			// - if field refer to by f1 is a slice, i1 refers to an element in that slice
@@ -171,17 +173,22 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 }
 
 // importSpec reports the importSpec for package containing protobuf element e.
-func (g *generator) importSpec(e proto.Message) importSpec {
+func (g *generator) importSpec(e proto.Message) (importSpec, error) {
 	fdesc := g.parentFile[e]
-	pkg := *fdesc.Options.GoPackage
+
+	pkg := fdesc.GetOptions().GetGoPackage()
+	if pkg == "" {
+		return importSpec{}, errors.E(nil, "can't determine import path, file %q missing `option go_package`", fdesc.GetName())
+	}
+
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {
-		return importSpec{path: pkg[:p], name: pkg[p+1:] + "pb"}
+		return importSpec{path: pkg[:p], name: pkg[p+1:] + "pb"}, nil
 	}
 
 	for {
 		p := strings.LastIndexByte(pkg, '/')
 		if p < 0 {
-			return importSpec{path: pkg, name: pkg + "pb"}
+			return importSpec{path: pkg, name: pkg + "pb"}, nil
 		}
 		elem := pkg[p+1:]
 		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
@@ -189,13 +196,8 @@ func (g *generator) importSpec(e proto.Message) importSpec {
 			pkg = pkg[:p]
 			continue
 		}
-		return importSpec{path: pkg, name: elem + "pb"}
+		return importSpec{path: pkg, name: elem + "pb"}, nil
 	}
-}
-
-// pkgName reports the package name of protobuf element e.
-func (g *generator) pkgName(e proto.Message) string {
-	return g.importSpec(e).name
 }
 
 // printf formatted-prints to sb, using the print syntax from fmt package.
@@ -299,9 +301,11 @@ func (g *generator) reset() {
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
 	servName := reduceServName(*serv.Name, pkgName)
 	if err := g.clientOptions(serv, servName); err != nil {
-		return errors.E(err, "service: %s", *serv.Name)
+		return err
 	}
-	g.clientInit(serv, servName)
+	if err := g.clientInit(serv, servName); err != nil {
+		return err
+	}
 
 	// Methods to generate LRO and iterator types for. Populated as we go.
 	var (
@@ -312,36 +316,46 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 	// TODO(pongad): Move content of loop into a method, so we can unit-test
 	// Do this after https://gapi-review.git.corp.google.com/c/gapic-generator-go/+/6870
 	// so we don't need to resolve conflicts.
+	var err error
 	for _, m := range serv.Method {
+		if err != nil {
+			return err
+		}
+
 		g.methodDoc(m)
 
 		if *m.OutputType == lroType {
 			lroMethods = append(lroMethods, m)
-			g.lroCall(servName, m)
+			err = g.lroCall(servName, m)
 			continue
 		}
 
 		if *m.OutputType == emptyType {
-			g.emptyUnaryCall(servName, m)
+			err = g.emptyUnaryCall(servName, m)
 			continue
 		}
 
 		if pf, err := g.pagingField(m); err != nil {
 			return err
 		} else if pf != nil {
-			iter := g.iterTypeOf(pf)
+			iter, err := g.iterTypeOf(pf)
+			if err != nil {
+				return err
+			}
 			iterTypes[iter.iterTypeName] = iter
-			g.pagingCall(servName, m, pf, iter)
+			err = g.pagingCall(servName, m, pf, iter)
 			continue
 		}
 
 		switch {
 		case m.GetClientStreaming() && m.GetServerStreaming():
-			g.bidiCall(servName, serv, m)
+			err = g.bidiCall(servName, serv, m)
 		default:
-			g.unaryCall(servName, m)
+			err = g.unaryCall(servName, m)
 		}
-
+	}
+	if err != nil {
+		return err
 	}
 
 	sort.Slice(lroMethods, func(i, j int) bool {
@@ -365,11 +379,18 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 	return nil
 }
 
-func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) {
+func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	inType := g.types[*m.InputType]
 	outType := g.types[*m.OutputType]
-	inSpec := g.importSpec(inType)
-	outSpec := g.importSpec(outType)
+
+	inSpec, err := g.importSpec(inType)
+	if err != nil {
+		return err
+	}
+	outSpec, err := g.importSpec(outType)
+	if err != nil {
+		return err
+	}
 
 	p := g.printf
 
@@ -394,22 +415,28 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
+
+	return nil
 }
 
-func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescriptorProto) {
+func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	inType := g.types[*m.InputType]
-	inSpec := g.importSpec(inType)
+
+	inSpec, err := g.importSpec(inType)
+	if err != nil {
+		return err
+	}
 
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		servName, *m.Name, inSpec.name, *inType.Name)
+		servName, m.GetName(), inSpec.name, inType.GetName())
 
 	g.insertMetadata()
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
-	p("  _, err = %s", grpcClientCall(servName, *m.Name))
+	p("  _, err = %s", grpcClientCall(servName, m.GetName()))
 	p("  return err")
 	p("}, opts...)")
 	p("return err")
@@ -418,6 +445,7 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	p("")
 
 	g.imports[inSpec] = true
+	return nil
 }
 
 func (g *generator) insertMetadata() {
