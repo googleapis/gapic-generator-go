@@ -110,6 +110,13 @@ func TestExample(t *testing.T) {
 				InputType:  proto.String(".my.pkg.PageInputType"),
 				OutputType: proto.String(".my.pkg.PageOutputType"),
 			},
+			{
+				Name:            proto.String("BidiThings"),
+				InputType:       proto.String(".my.pkg.InputType"),
+				OutputType:      proto.String(".my.pkg.OutputType"),
+				ServerStreaming: proto.Bool(true),
+				ClientStreaming: proto.Bool(true),
+			},
 		},
 	}
 	for _, tst := range []struct {
@@ -120,7 +127,7 @@ func TestExample(t *testing.T) {
 	} {
 		g.reset()
 		g.genExampleFile(serv, tst.pkgName)
-		diff(t, tst.tstName, []byte(g.sb.String()), filepath.Join("testdata", tst.tstName+".want"))
+		diff(t, tst.tstName, g.sb.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
 

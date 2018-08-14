@@ -28,11 +28,11 @@ import (
 
 var updateGolden = flag.Bool("update_golden", false, "update golden files")
 
-func diff(t *testing.T, name string, got []byte, goldenFile string) {
+func diff(t *testing.T, name, got, goldenFile string) {
 	t.Helper()
 
 	if *updateGolden {
-		if err := ioutil.WriteFile(goldenFile, got, 0644); err != nil {
+		if err := ioutil.WriteFile(goldenFile, []byte(got), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -40,7 +40,7 @@ func diff(t *testing.T, name string, got []byte, goldenFile string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if diff := cmp.Diff(got, want); diff != "" {
+	if diff := cmp.Diff(got, string(want)); diff != "" {
 		t.Errorf("%s: (-got,+want)\n%s", name, diff)
 	}
 }
@@ -71,7 +71,7 @@ func TestClientOpt(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		diff(t, tst.tstName, []byte(g.sb.String()), filepath.Join("testdata", tst.tstName+".want"))
+		diff(t, tst.tstName, g.sb.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
 
@@ -115,6 +115,6 @@ func TestClientInit(t *testing.T) {
 
 		g.reset()
 		g.clientInit(tst.serv, tst.servName)
-		diff(t, tst.tstName, []byte(g.sb.String()), filepath.Join("testdata", tst.tstName+".want"))
+		diff(t, tst.tstName, g.sb.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }

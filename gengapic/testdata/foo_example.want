@@ -89,3 +89,37 @@ func ExampleFooClient_GetManyThings() {
 	}
 }
 
+func ExampleFooClient_BidiThings() {
+	ctx := context.Background()
+	c, err := Bar.NewFooClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	stream, err := c.BidiThings(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	go func() {
+		reqs := []*mypackagepb.InputType{
+			// TODO: Create requests.
+		}
+		for _, req := range reqs {
+			if err := stream.Send(req); err != nil {
+				// TODO: Handle error.
+			}
+		}
+		stream.CloseSend()
+	}()
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			// TODO: handle error.
+		}
+		// TODO: Use resp.
+		_ = resp
+	}
+}
+

@@ -52,10 +52,13 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	p("func Example%sClient_%s() {", servName, *m.Name)
 	g.exampleInitClient(pkgName, servName)
-	p("")
-	p("  req := &%s.%s{", inSpec.name, *inType.Name)
-	p("    // TODO: Fill request struct fields.")
-	p("  }")
+
+	if !m.GetClientStreaming() && !m.GetServerStreaming() {
+		p("")
+		p("req := &%s.%s{", inSpec.name, *inType.Name)
+		p("  // TODO: Fill request struct fields.")
+		p("}")
+	}
 
 	if pf, err := g.pagingField(m); err != nil {
 		return err
@@ -65,6 +68,8 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 		g.exampleLROCall(m)
 	} else if *m.OutputType == emptyType {
 		g.exampleEmptyCall(m)
+	} else if m.GetClientStreaming() && m.GetServerStreaming() {
+		g.exampleBidiCall(m, inType, inSpec)
 	} else {
 		g.exampleUnaryCall(m)
 	}
@@ -128,4 +133,39 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
 	p("}")
 
 	g.imports[importSpec{path: "google.golang.org/api/iterator"}] = true
+}
+
+func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType *descriptor.DescriptorProto, inSpec importSpec) {
+	p := g.printf
+
+	p("stream, err := c.%s(ctx)", m.GetName())
+	p("if err != nil {")
+	p("  // TODO: Handle error.")
+	p("}")
+
+	p("go func() {")
+	p("  reqs := []*%s.%s{", inSpec.name, inType.GetName())
+	p("    // TODO: Create requests.")
+	p("  }")
+	p("  for _, req := range reqs {")
+	p("    if err := stream.Send(req); err != nil {")
+	p("            // TODO: Handle error.")
+	p("    }")
+	p("  }")
+	p("  stream.CloseSend()")
+	p("}()")
+
+	p("for {")
+	p("  resp, err := stream.Recv()")
+	p("  if err == io.EOF {")
+	p("    break")
+	p("  }")
+	p("  if err != nil {")
+	p("    // TODO: handle error.")
+	p("  }")
+	p("  // TODO: Use resp.")
+	p("  _ = resp")
+	p("}")
+
+	g.imports[importSpec{path: "io"}] = true
 }

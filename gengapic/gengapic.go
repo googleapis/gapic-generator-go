@@ -309,6 +309,9 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		iterTypes  = map[string]iterType{}
 	)
 
+	// TODO(pongad): Move content of loop into a method, so we can unit-test
+	// Do this after https://gapi-review.git.corp.google.com/c/gapic-generator-go/+/6870
+	// so we don't need to resolve conflicts.
 	for _, m := range serv.Method {
 		g.methodDoc(m)
 
@@ -332,7 +335,13 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 			continue
 		}
 
-		g.unaryCall(servName, m)
+		switch {
+		case m.GetClientStreaming() && m.GetServerStreaming():
+			g.bidiCall(servName, serv, m)
+		default:
+			g.unaryCall(servName, m)
+		}
+
 	}
 
 	sort.Slice(lroMethods, func(i, j int) bool {
@@ -477,10 +486,7 @@ func reduceServName(svc, pkg string) string {
 		}
 	}
 
-	if servSuf := "Service"; strings.HasSuffix(svc, servSuf) {
-		svc = svc[:len(svc)-len(servSuf)]
-	}
-
+	svc = strings.TrimSuffix(svc, "Service")
 	if strings.EqualFold(svc, pkg) {
 		svc = ""
 	}
