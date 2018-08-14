@@ -28,6 +28,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 const (
@@ -56,11 +57,24 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	g.init(genReq.ProtoFile)
 
 	var genServs []*descriptor.ServiceDescriptorProto
+	var eMeta *annotations.Metadata
 	for _, f := range genReq.ProtoFile {
-		if strContains(genReq.FileToGenerate, *f.Name) {
-			genServs = append(genServs, f.Service...)
+		if !strContains(genReq.FileToGenerate, f.GetName()) {
+			continue
+		}
+		genServs = append(genServs, f.Service...)
+
+		// TODO(pongad): check if first-one-wins is the right strategy here.
+		if eMeta == nil {
+			if em, err := proto.GetExtension(f.GetOptions(), annotations.E_Metadata); err == nil {
+				eMeta = em.(*annotations.Metadata)
+			}
 		}
 	}
+	if eMeta == nil {
+		return nil, errors.E(nil, "cannot find annotation %q: %v", annotations.E_Metadata.Name, genReq.FileToGenerate)
+	}
+	g.apiName = strings.Join(eMeta.PackageNamespace, " ") + " " + eMeta.ProductName
 
 	for _, s := range genServs {
 		// TODO(pongad): gapic-generator does not remove the package name here,
@@ -127,6 +141,9 @@ type generator struct {
 	comments map[proto.Message]string
 
 	imports map[importSpec]bool
+
+	// Human-readable name of the API used in docs
+	apiName string
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {

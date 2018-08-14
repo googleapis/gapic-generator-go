@@ -33,7 +33,7 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("")
 
 	p("// Package %s is an auto-generated package for the", pkgName)
-	p("// Foo API.") // TODO(pongad): read service name and description
+	p("// %s API.", g.apiName)
 	p("package %s // import %q", pkgName, pkgPath)
 	p("")
 

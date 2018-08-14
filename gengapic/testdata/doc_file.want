@@ -15,7 +15,7 @@
 // AUTO-GENERATED CODE. DO NOT EDIT.
 
 // Package awesome is an auto-generated package for the
-// Foo API.
+// Awesome Foo API.
 package awesome // import "path/to/awesome"
 
 import (

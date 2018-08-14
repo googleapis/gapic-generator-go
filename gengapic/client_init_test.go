@@ -77,6 +77,7 @@ func TestClientOpt(t *testing.T) {
 
 func TestClientInit(t *testing.T) {
 	var g generator
+	g.apiName = "Awesome Foo"
 	g.imports = map[importSpec]bool{}
 
 	servPlain := &descriptor.ServiceDescriptorProto{

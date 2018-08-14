@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"gapic-generator-go/internal/errors"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -52,7 +53,6 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			return errors.E(err, "cannot read default host")
 		}
 
-		// TODO(pongad): read URL from somewhere
 		p("func default%sClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
 		p(`    option.WithEndpoint("%s:443"),`, *eHost.(*string))
@@ -95,8 +95,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	// client struct
 	{
-		// TODO(pongad): read "human" API name from somewhere
-		p("// %sClient is a client for interacting with Foo API.", servName)
+		p("// %sClient is a client for interacting with %s API.", servName, g.apiName)
 		p("//")
 		p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 		p("type %sClient struct {", servName)
@@ -134,8 +133,10 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	// Client constructor
 	{
-		// TODO(pongad): client name
-		p("// New%sClient creates a new foo client.", servName)
+		clientName := camelToSnake(serv.GetName())
+		clientName = strings.Replace(clientName, "_", " ", -1)
+
+		p("// New%sClient creates a new %s client.", servName, clientName)
 		p("//")
 		g.comment(g.comments[serv])
 		p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
