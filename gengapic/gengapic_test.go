@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -109,6 +110,113 @@ func TestGRPCClientField(t *testing.T) {
 	} {
 		if got := grpcClientField(reduceServName(tst.in, tst.pkg)); got != tst.want {
 			t.Errorf("grpcClientField(reduceServName(%q, %q)) = %q, want %q", tst.in, tst.pkg, got, tst.want)
+		}
+	}
+}
+
+func TestGenMethod(t *testing.T) {
+	inputType := &descriptor.DescriptorProto{
+		Name: proto.String("InputType"),
+	}
+	outputType := &descriptor.DescriptorProto{
+		Name: proto.String("OutputType"),
+	}
+
+	typep := func(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
+		return &t
+	}
+	labelp := func(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
+		return &l
+	}
+
+	pageInputType := &descriptor.DescriptorProto{
+		Name: proto.String("PageInputType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{
+				Name:  proto.String("page_size"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			},
+			{
+				Name:  proto.String("page_token"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			},
+		},
+	}
+	pageOutputType := &descriptor.DescriptorProto{
+		Name: proto.String("PageOutputType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{
+				Name:  proto.String("next_page_token"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			},
+			{
+				Name:  proto.String("items"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+			},
+		},
+	}
+
+	file := &descriptor.FileDescriptorProto{
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+	serv := &descriptor.ServiceDescriptorProto{}
+
+	var g generator
+	g.imports = map[importSpec]bool{}
+
+	commonTypes(&g)
+	for _, typ := range []*descriptor.DescriptorProto{
+		inputType, outputType, pageInputType, pageOutputType,
+	} {
+		g.types[".my.pkg."+*typ.Name] = typ
+		g.parentFile[typ] = file
+	}
+	g.parentFile[serv] = file
+
+	meths := []*descriptor.MethodDescriptorProto{
+		{
+			Name:       proto.String("GetEmptyThing"),
+			InputType:  proto.String(".my.pkg.InputType"),
+			OutputType: proto.String(emptyType),
+		},
+		{
+			Name:       proto.String("GetOneThing"),
+			InputType:  proto.String(".my.pkg.InputType"),
+			OutputType: proto.String(".my.pkg.OutputType"),
+		},
+		{
+			Name:       proto.String("GetBigThing"),
+			InputType:  proto.String(".my.pkg.InputType"),
+			OutputType: proto.String(".google.longrunning.Operation"),
+		},
+		{
+			Name:       proto.String("GetManyThings"),
+			InputType:  proto.String(".my.pkg.PageInputType"),
+			OutputType: proto.String(".my.pkg.PageOutputType"),
+		},
+		{
+			Name:            proto.String("BidiThings"),
+			InputType:       proto.String(".my.pkg.InputType"),
+			OutputType:      proto.String(".my.pkg.OutputType"),
+			ServerStreaming: proto.Bool(true),
+			ClientStreaming: proto.Bool(true),
+		},
+	}
+
+	for _, m := range meths {
+		aux := auxTypes{
+			iters: map[string]iterType{},
+		}
+		if err := g.genMethod("Foo", serv, m, &aux); err != nil {
+			t.Error(err)
+		} else {
+			diff(t, m.GetName(), g.sb.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
 		}
 	}
 }

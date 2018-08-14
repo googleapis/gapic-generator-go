@@ -195,7 +195,11 @@ func (g *generator) importSpec(e proto.Message) (importSpec, error) {
 
 	pkg := fdesc.GetOptions().GetGoPackage()
 	if pkg == "" {
-		return importSpec{}, errors.E(nil, "can't determine import path, file %q missing `option go_package`", fdesc.GetName())
+		var eTxt interface{} = e
+		if et, ok := eTxt.(interface{ GetName() string }); ok {
+			eTxt = et.GetName()
+		}
+		return importSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", eTxt, fdesc.GetName())
 	}
 
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {
@@ -315,6 +319,7 @@ func (g *generator) reset() {
 	}
 }
 
+// gen generates client for the given service.
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
 	servName := reduceServName(*serv.Name, pkgName)
 	if err := g.clientOptions(serv, servName); err != nil {
@@ -324,66 +329,25 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		return err
 	}
 
-	// Methods to generate LRO and iterator types for. Populated as we go.
-	var (
-		lroMethods []*descriptor.MethodDescriptorProto
-		iterTypes  = map[string]iterType{}
-	)
-
-	// TODO(pongad): Move content of loop into a method, so we can unit-test
-	// Do this after https://gapi-review.git.corp.google.com/c/gapic-generator-go/+/6870
-	// so we don't need to resolve conflicts.
-	var err error
+	aux := auxTypes{
+		iters: map[string]iterType{},
+	}
 	for _, m := range serv.Method {
-		if err != nil {
-			return err
-		}
-
 		g.methodDoc(m)
-
-		if *m.OutputType == lroType {
-			lroMethods = append(lroMethods, m)
-			err = g.lroCall(servName, m)
-			continue
-		}
-
-		if *m.OutputType == emptyType {
-			err = g.emptyUnaryCall(servName, m)
-			continue
-		}
-
-		if pf, err := g.pagingField(m); err != nil {
-			return err
-		} else if pf != nil {
-			iter, err := g.iterTypeOf(pf)
-			if err != nil {
-				return err
-			}
-			iterTypes[iter.iterTypeName] = iter
-			err = g.pagingCall(servName, m, pf, iter)
-			continue
-		}
-
-		switch {
-		case m.GetClientStreaming() && m.GetServerStreaming():
-			err = g.bidiCall(servName, serv, m)
-		default:
-			err = g.unaryCall(servName, m)
+		if err := g.genMethod(servName, serv, m, &aux); err != nil {
+			return errors.E(err, "method: %s", m.GetName())
 		}
 	}
-	if err != nil {
-		return err
-	}
 
-	sort.Slice(lroMethods, func(i, j int) bool {
-		return *lroMethods[i].Name < *lroMethods[j].Name
+	sort.Slice(aux.lros, func(i, j int) bool {
+		return aux.lros[i].GetName() < aux.lros[j].GetName()
 	})
-	for _, m := range lroMethods {
+	for _, m := range aux.lros {
 		g.lroType(servName, m)
 	}
 
 	var iters []iterType
-	for _, iter := range iterTypes {
+	for _, iter := range aux.iters {
 		iters = append(iters, iter)
 	}
 	sort.Slice(iters, func(i, j int) bool {
@@ -394,6 +358,52 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 	}
 
 	return nil
+}
+
+// auxTypes gathers details of types we need to generate along with the client
+type auxTypes struct {
+	// List of LRO methods. For each method "Foo", we use this to create the "FooOperation" type.
+	lros []*descriptor.MethodDescriptorProto
+
+	// "List" of iterator types. We use these to generate FooIterator returned by paging methods.
+	// Since multiple methods can page over the same type, we dedupe by the name of the iterator,
+	// which is in turn determined by the element type name.
+	iters map[string]iterType
+}
+
+// genMethod generates a single method from a client. m must be a method declared in serv.
+// If the generated method requires an auxillary type, it is added to aux.
+func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto, aux *auxTypes) error {
+	if m.GetOutputType() == lroType {
+		aux.lros = append(aux.lros, m)
+		return g.lroCall(servName, m)
+	}
+
+	if m.GetOutputType() == emptyType {
+		return g.emptyUnaryCall(servName, m)
+	}
+
+	if pf, err := g.pagingField(m); err != nil {
+		return err
+	} else if pf != nil {
+		iter, err := g.iterTypeOf(pf)
+		if err != nil {
+			return err
+		}
+		aux.iters[iter.iterTypeName] = iter
+		return g.pagingCall(servName, m, pf, iter)
+	}
+
+	switch {
+	case m.GetClientStreaming() && m.GetServerStreaming():
+		return g.bidiCall(servName, serv, m)
+	case m.GetClientStreaming() && !m.GetServerStreaming():
+		return errors.E(nil, "client streaming methods not implemented yet")
+	case !m.GetClientStreaming() && m.GetServerStreaming():
+		return errors.E(nil, "server streaming methods not implemented yet")
+	default:
+		return g.unaryCall(servName, m)
+	}
 }
 
 func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) error {

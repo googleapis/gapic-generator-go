@@ -1,0 +1,94 @@
+func (c *FooClient) GetEmptyThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) error {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.GetEmptyThing[0:len(c.CallOptions.GetEmptyThing):len(c.CallOptions.GetEmptyThing)], opts...)
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		_, err = c.fooClient.GetEmptyThing(ctx, req, settings.GRPC...)
+		return err
+	}, opts...)
+	return err
+}
+
+func (c *FooClient) GetOneThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.GetOneThing[0:len(c.CallOptions.GetOneThing):len(c.CallOptions.GetOneThing)], opts...)
+	var resp *mypackagepb.OutputType
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = c.fooClient.GetOneThing(ctx, req, settings.GRPC...)
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *FooClient) GetBigThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*GetBigThingOperation, error) {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.GetBigThing[0:len(c.CallOptions.GetBigThing):len(c.CallOptions.GetBigThing)], opts...)
+	var resp *longrunningpb.Operation
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = c.fooClient.GetBigThing(ctx, req, settings.GRPC...)
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &GetBigThingOperation{
+		lro: longrunning.InternalNewOperation(c.LROClient, resp),
+	}, nil
+}
+
+func (c *FooClient) GetManyThings(ctx context.Context, req *mypackagepb.PageInputType, opts ...gax.CallOption) *StringIterator {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.GetManyThings[0:len(c.CallOptions.GetManyThings):len(c.CallOptions.GetManyThings)], opts...)
+	it := &StringIterator{}
+	req = proto.Clone(req).(*mypackagepb.PageInputType)
+	it.InternalFetch = func(pageSize int, pageToken string) ([]string, string, error) {
+		var resp *mypackagepb.PageOutputType
+		req.PageToken = pageToken
+		if pageSize > math.MaxInt32 {
+			req.PageSize = math.MaxInt32
+		} else {
+			req.PageSize = int32(pageSize)
+		}
+		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+			var err error
+			resp, err = c.fooClient.GetManyThings(ctx, req, settings.GRPC...)
+			return err
+		}, opts...)
+		if err != nil {
+			return nil, "", err
+		}
+		return resp.Items, resp.NextPageToken, nil
+	}
+	fetch := func(pageSize int, pageToken string) (string, error) {
+		items, nextPageToken, err := it.InternalFetch(pageSize, pageToken)
+		if err != nil {
+			return "", err
+		}
+		it.items = append(it.items, items...)
+		return nextPageToken, nil
+	}
+	it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)
+	it.pageInfo.MaxSize = int(req.PageSize)
+	return it
+}
+
+func (c *FooClient) BidiThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb._BidiThingsClient, error) {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.BidiThings[0:len(c.CallOptions.BidiThings):len(c.CallOptions.BidiThings)], opts...)
+	var resp mypackagepb._BidiThingsClient
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = c.fooClient.BidiThings(ctx, settings.GRPC...)
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+

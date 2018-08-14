@@ -77,9 +77,7 @@ func TestExample(t *testing.T) {
 		},
 	}
 
-	g.types = commonTypes()
-	g.parentFile = map[proto.Message]*descriptor.FileDescriptorProto{}
-
+	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
 		inputType, outputType, pageInputType, pageOutputType,
 	} {
@@ -131,13 +129,28 @@ func TestExample(t *testing.T) {
 	}
 }
 
-func commonTypes() map[string]*descriptor.DescriptorProto {
-	return map[string]*descriptor.DescriptorProto{
-		emptyType: &descriptor.DescriptorProto{
-			Name: proto.String("Empty"),
+func commonTypes(g *generator) {
+	empty := &descriptor.DescriptorProto{
+		Name: proto.String("Empty"),
+	}
+	lro := &descriptor.DescriptorProto{
+		Name: proto.String("Operation"),
+	}
+
+	g.types = map[string]*descriptor.DescriptorProto{
+		emptyType: empty,
+		lroType:   lro,
+	}
+	g.parentFile = map[proto.Message]*descriptor.FileDescriptorProto{
+		empty: &descriptor.FileDescriptorProto{
+			Options: &descriptor.FileOptions{
+				GoPackage: proto.String("github.com/golang/protobuf/ptypes/empty"),
+			},
 		},
-		lroType: &descriptor.DescriptorProto{
-			Name: proto.String("Operation"),
+		lro: &descriptor.FileDescriptorProto{
+			Options: &descriptor.FileOptions{
+				GoPackage: proto.String("google.golang.org/genproto/googleapis/longrunning;longrunning"),
+			},
 		},
 	}
 }
