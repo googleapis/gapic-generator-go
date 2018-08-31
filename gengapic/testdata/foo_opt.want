@@ -12,7 +12,21 @@ func defaultFooClientOptions() []option.ClientOption {
 }
 
 func defaultFooCallOptions() *FooCallOptions {
+	retry := []gax.CallOption{
+		gax.WithRetry(func() gax.Retryer {
+			return gax.OnCodes([]codes.Code{
+				codes.Internal,
+				codes.Unavailable,
+			}, gax.Backoff{
+				Initial: 100 * time.Millisecond,
+				Max: time.Minute,
+				Multiplier: 1.3,
+			})
+		}),
+	}
+
 	return &FooCallOptions{
+		Zip: retry,
 	}
 }
 

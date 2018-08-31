@@ -66,9 +66,46 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// defaultCallOptions
 	{
+		var retryables []string
+		for _, m := range serv.GetMethod() {
+			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
+			if err != nil {
+				// Some methods are not annotated, this is not an error.
+				continue
+			}
+			// Generator spec mandates we should only retry on GET, unless there is an override.
+			// TODO(pongad): implement the override.
+			if _, ok := eHttp.(*annotations.HttpRule).Pattern.(*annotations.HttpRule_Get); ok {
+				retryables = append(retryables, m.GetName())
+			}
+		}
+
 		// TODO(pongad): read retry params from somewhere
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
+
+		if len(retryables) > 0 {
+			p("retry := []gax.CallOption{")
+			p("  gax.WithRetry(func() gax.Retryer {")
+			p("    return gax.OnCodes([]codes.Code{")
+			p("      codes.Internal,")
+			p("      codes.Unavailable,")
+			p("    }, gax.Backoff{")
+			p("      Initial: 100 * time.Millisecond,")
+			p("      Max: time.Minute,")
+			p("      Multiplier: 1.3,")
+			p("    })")
+			p("  }),")
+			p("}")
+			p("")
+
+			g.imports[importSpec{path: "time"}] = true
+			g.imports[importSpec{path: "google.golang.org/grpc/codes"}] = true
+		}
+
 		p("  return &%sCallOptions{", servName)
+		for _, m := range retryables {
+			p("%s: retry,", m)
+		}
 		p("  }")
 		p("}")
 		p("")

@@ -51,12 +51,19 @@ func TestClientOpt(t *testing.T) {
 
 	serv := &descriptor.ServiceDescriptorProto{
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip")},
+			{Name: proto.String("Zip"), Options: &descriptor.MethodOptions{}},
 			{Name: proto.String("Zap")},
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
 	if err := proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.bar.com")); err != nil {
+		t.Fatal(err)
+	}
+	if err := proto.SetExtension(serv.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/zip",
+		},
+	}); err != nil {
 		t.Fatal(err)
 	}
 
