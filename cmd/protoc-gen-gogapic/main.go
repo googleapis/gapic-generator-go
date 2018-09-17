@@ -15,13 +15,13 @@
 package main
 
 import (
-	"gapic-generator-go/gengapic"
 	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/googleapis/gapic-generator-go/gengapic"
 )
 
 func main() {

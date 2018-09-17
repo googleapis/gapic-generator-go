@@ -23,11 +23,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"gapic-generator-go/internal/errors"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 

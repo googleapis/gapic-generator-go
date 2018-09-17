@@ -15,11 +15,11 @@
 package gengapic
 
 import (
-	"gapic-generator-go/internal/errors"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
