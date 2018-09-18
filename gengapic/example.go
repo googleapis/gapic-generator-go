@@ -15,9 +15,8 @@
 package gengapic
 
 import (
-	"gapic-generator-go/internal/errors"
-
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 )
 
 func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgName string) error {

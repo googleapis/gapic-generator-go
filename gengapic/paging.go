@@ -18,9 +18,8 @@ import (
 	"fmt"
 	"log"
 
-	"gapic-generator-go/internal/errors"
-
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 )
 
 var primitiveFieldToGoType = [...]string{
