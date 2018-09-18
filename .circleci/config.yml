@@ -6,3 +6,4 @@ jobs:
     steps:
       - checkout
       - run: go test -mod=readonly ./...
+      - run: find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
