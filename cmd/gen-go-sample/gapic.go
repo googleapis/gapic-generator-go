@@ -14,32 +14,35 @@
 
 package main
 
-type GapicConfig struct {
-	Interfaces []GapicInterface
+type GAPICConfig struct {
+	Interfaces []GAPICInterface
 }
 
-type GapicInterface struct {
+type GAPICInterface struct {
 	Name    string
-	Methods []GapicMethod
+	Methods []GAPICMethod
 }
 
-type GapicMethod struct {
+type GAPICMethod struct {
 	Name            string
-	SampleValueSets []GapicValueSet `yaml:"sample_value_sets"`
+	SampleValueSets []SampleValueSet `yaml:"sample_value_sets"`
 	Samples         struct {
-		Standalone []GapicSample
+		Standalone []GAPICSample
 	}
 }
 
-type GapicValueSet struct {
+type SampleValueSet struct {
 	ID         string
-	Parameters GapicParameter
+	Parameters SampleParameter
 }
 
-type GapicParameter struct {
+type SampleParameter struct {
 	Defaults []string
 }
 
-type GapicSample struct {
+type GAPICSample struct {
 	ValueSets []string `yaml:"value_sets"`
+
+	// TODO(pongad): Does this mean multiple samples have the same tag?
+	RegionTag string `yaml:"region_tag"`
 }

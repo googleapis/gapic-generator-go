@@ -65,8 +65,8 @@ func TestSample(t *testing.T) {
 	}
 
 	g := generator{
-		imps: map[pbinfo.ImportSpec]bool{},
-		dinfo: pbinfo.Info{
+		imports: map[pbinfo.ImportSpec]bool{},
+		descInfo: pbinfo.Info{
 			Serv: map[string]*descriptor.ServiceDescriptorProto{
 				".MyService": serv,
 			},
@@ -81,13 +81,13 @@ func TestSample(t *testing.T) {
 		},
 	}
 
-	vs := GapicValueSet{
+	vs := SampleValueSet{
 		ID: "my_value_set",
-		Parameters: GapicParameter{
+		Parameters: SampleParameter{
 			Defaults: []string{"foo=bar"},
 		},
 	}
-	if err := g.genSample("MyService", "MyMethod", vs); err != nil {
+	if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
 	diff(t, "TestSample", string(g.pt.Bytes()), filepath.Join("testdata", "sample.want"))

@@ -23,6 +23,7 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -40,7 +41,7 @@ func main() {
 
 	var (
 		gen = generator{
-			imps: map[pbinfo.ImportSpec]bool{},
+			imports: map[pbinfo.ImportSpec]bool{},
 		}
 
 		donec = make(chan struct{})
@@ -68,16 +69,18 @@ func main() {
 			log.Fatal(errors.E(err, "error reading proto descriptor file"))
 		}
 
-		gen.dinfo = pbinfo.Of(gen.desc.GetFile())
+		gen.descInfo = pbinfo.Of(gen.desc.GetFile())
 		donec <- struct{}{}
 	}()
 
 	<-donec
 	<-donec
 
+	// TODO: split some parts of this loop into functions, so we can idiomatically
+	// chain errors.
 	for _, iface := range gen.gapic.Interfaces {
 		for _, meth := range iface.Methods {
-			valSets := map[string]GapicValueSet{}
+			valSets := map[string]SampleValueSet{}
 			for _, vs := range meth.SampleValueSets {
 				valSets[vs.ID] = vs
 			}
@@ -90,7 +93,7 @@ func main() {
 					}
 
 					gen.reset()
-					if err := gen.genSample(iface.Name, meth.Name, vs); err != nil {
+					if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
 						log.Fatal(errors.E(err, "value set: %q", vs))
 					}
 					if err := gen.commit(!*nofmt); err != nil {
@@ -103,40 +106,53 @@ func main() {
 }
 
 type generator struct {
-	desc  descriptor.FileDescriptorSet
-	dinfo pbinfo.Info
-	gapic GapicConfig
+	desc     descriptor.FileDescriptorSet
+	descInfo pbinfo.Info
+	gapic    GAPICConfig
 
-	pt   printer.P
-	imps map[pbinfo.ImportSpec]bool
+	pt      printer.P
+	imports map[pbinfo.ImportSpec]bool
 }
 
 func (g *generator) reset() {
 	g.pt.Reset()
-	for imp := range g.imps {
-		delete(g.imps, imp)
+	for imp := range g.imports {
+		delete(g.imports, imp)
 	}
 }
 
 func (g *generator) commit(gofmt bool) error {
 	// We'll gofmt unless user asks us to not, so no need to think too hard about sorting
 	// "correctly". We just want a deterministic output here.
-	var imps []pbinfo.ImportSpec
-	for imp := range g.imps {
-		imps = append(imps, imp)
+	var imports []pbinfo.ImportSpec
+	for imp := range g.imports {
+		imports = append(imports, imp)
 	}
-	sort.Slice(imps, func(i, j int) bool {
-		if imps[i].Path != imps[j].Path {
-			return imps[i].Path < imps[j].Path
+	sort.Slice(imports, func(i, j int) bool {
+		// All non-stdlib imports come after stdlib imports.
+		iDot := strings.IndexByte(imports[i].Path, '.') >= 0
+		jDot := strings.IndexByte(imports[j].Path, '.') >= 0
+		if iDot != jDot {
+			return jDot
 		}
-		return imps[i].Name < imps[j].Name
+
+		if imports[i].Path != imports[j].Path {
+			return imports[i].Path < imports[j].Path
+		}
+		return imports[i].Name < imports[j].Name
 	})
 
+	firstNonStd := sort.Search(len(imports), func(i int) bool { return strings.IndexByte(imports[i].Path, '.') >= 0 })
+
+	// TODO(pongad): add license
 	var file bytes.Buffer
 	file.WriteString("package main\n")
 	file.WriteString("import(\n")
-	for _, imp := range imps {
-		fmt.Fprintf(&file, "%s %q", imp.Name, imp.Path)
+	for i, imp := range imports {
+		if i == firstNonStd {
+			file.WriteByte('\n')
+		}
+		fmt.Fprintf(&file, "%s %q\n", imp.Name, imp.Path)
 	}
 	file.WriteString(")\n")
 	file.Write(g.pt.Bytes())
@@ -153,13 +169,13 @@ func (g *generator) commit(gofmt bool) error {
 	return err
 }
 
-func (g *generator) genSample(ifaceName, methName string, valSet GapicValueSet) error {
-	serv := g.dinfo.Serv["."+ifaceName]
+func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleValueSet) error {
+	serv := g.descInfo.Serv["."+ifaceName]
 	if serv == nil {
 		return errors.E(nil, "can't find service: %q", ifaceName)
 	}
 
-	servSpec, err := g.dinfo.ImportSpec(serv)
+	servSpec, err := g.descInfo.ImportSpec(serv)
 	if err != nil {
 		return errors.E(err, "can't import service: %q", ifaceName)
 	}
@@ -177,21 +193,23 @@ func (g *generator) genSample(ifaceName, methName string, valSet GapicValueSet) 
 
 	p := g.pt.Printf
 
-	p("// [START %s]", valSet.ID)
+	p("// [START %s]", regTag)
 	p("")
 
+	// TODO(pongad): The package of the client is not the package of the service!
 	// TODO(pongad): properly reduce service name instead of hardcoding "NewClient"
 	p("func sample%s() {", methName)
 	p("  ctx := context.Background()")
 	p("  c := %s.%s(ctx)", servSpec.Name, "NewClient")
 	p("")
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
 	// TODO(pongad): properly create the request.
-	inType := g.dinfo.Type[meth.GetInputType()]
+	inType := g.descInfo.Type[meth.GetInputType()]
 	if inType == nil {
 		return errors.E(nil, "can't find input type %q", meth.GetInputType())
 	}
-	inSpec, err := g.dinfo.ImportSpec(inType)
+	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return errors.E(err, "can't import input type: %q", inType)
 	}
@@ -213,7 +231,7 @@ func (g *generator) genSample(ifaceName, methName string, valSet GapicValueSet) 
 
 	p("}")
 	p("")
-	p("// [END %s]", valSet.ID)
+	p("// [END %s]", regTag)
 	p("")
 
 	p("func main() {")
@@ -221,7 +239,8 @@ func (g *generator) genSample(ifaceName, methName string, valSet GapicValueSet) 
 	p("}")
 	p("")
 
-	g.imps[servSpec] = true
-	g.imps[inSpec] = true
+	g.imports[servSpec] = true
+	g.imports[inSpec] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	return nil
 }

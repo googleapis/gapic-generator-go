@@ -1,4 +1,4 @@
-// [START my_value_set]
+// [START awesome_region]
 
 func sampleMyMethod() {
 	ctx := context.Background()
@@ -14,7 +14,7 @@ func sampleMyMethod() {
 	fmt.Println(resp)
 }
 
-// [END my_value_set]
+// [END awesome_region]
 
 func main() {
 	sampleMyMethod()
