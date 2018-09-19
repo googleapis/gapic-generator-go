@@ -4,9 +4,13 @@ func sampleMyMethod() {
 	ctx := context.Background()
 	c := mypackagepb.NewClient(ctx)
 
-	req := mypackagepb.InputType{
-		// foo=bar
-	}
+req := TYPE{
+	A: TYPE{
+		X: 42,
+		Y: 3.14159,
+},
+	B: "foobar",
+}
 	resp, err := c.MyMethod(ctx, req)
 	if err != nil {
 		// TODO: Handle error.

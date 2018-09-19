@@ -84,7 +84,11 @@ func TestSample(t *testing.T) {
 	vs := SampleValueSet{
 		ID: "my_value_set",
 		Parameters: SampleParameter{
-			Defaults: []string{"foo=bar"},
+			Defaults: []string{
+				`a.x = 42`,
+				`a.y = 3.14159`,
+				`b = "foobar"`,
+			},
 		},
 	}
 	if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err != nil {
