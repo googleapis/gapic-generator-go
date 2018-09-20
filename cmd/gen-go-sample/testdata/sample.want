@@ -1,0 +1,22 @@
+// [START awesome_region]
+
+func sampleMyMethod() {
+	ctx := context.Background()
+	c := mypackagepb.NewClient(ctx)
+
+	req := mypackagepb.InputType{
+		// foo=bar
+	}
+	resp, err := c.MyMethod(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	fmt.Println(resp)
+}
+
+// [END awesome_region]
+
+func main() {
+	sampleMyMethod()
+}
+
