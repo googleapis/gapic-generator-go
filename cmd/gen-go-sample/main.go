@@ -24,10 +24,12 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	yaml "gopkg.in/yaml.v2"
@@ -144,8 +146,8 @@ func (g *generator) commit(gofmt bool) error {
 
 	firstNonStd := sort.Search(len(imports), func(i int) bool { return strings.IndexByte(imports[i].Path, '.') >= 0 })
 
-	// TODO(pongad): add license
 	var file bytes.Buffer
+	fmt.Fprintf(&file, license.Apache, time.Now().Year())
 	file.WriteString("package main\n")
 	file.WriteString("import(\n")
 	for i, imp := range imports {

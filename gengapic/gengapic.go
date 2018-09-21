@@ -27,6 +27,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -178,7 +179,7 @@ func (g *generator) printf(s string, a ...interface{}) {
 
 func (g *generator) commit(fileName, pkgName string) {
 	var header strings.Builder
-	fmt.Fprintf(&header, apacheLicense, time.Now().Year())
+	fmt.Fprintf(&header, license.Apache, time.Now().Year())
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []pbinfo.ImportSpec

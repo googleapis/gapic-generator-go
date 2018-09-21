@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gengapic
+package license
 
-const apacheLicense = `// Copyright %d Google LLC
+const Apache = `// Copyright %d Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
