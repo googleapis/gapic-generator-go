@@ -19,6 +19,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/license"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -29,7 +30,7 @@ import (
 func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []string) {
 	p := g.printf
 
-	p(apacheLicense, year)
+	p(license.Apache, year)
 	p("")
 
 	p("// Package %s is an auto-generated package for the", pkgName)
