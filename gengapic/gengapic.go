@@ -263,7 +263,9 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		return aux.lros[i].GetName() < aux.lros[j].GetName()
 	})
 	for _, m := range aux.lros {
-		g.lroType(servName, m)
+		if err := g.lroType(servName, serv, m); err != nil {
+			return errors.E(err, "while generating LRO type for %q", m.GetName())
+		}
 	}
 
 	var iters []iterType

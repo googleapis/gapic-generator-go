@@ -15,8 +15,14 @@
 package gengapic
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
@@ -63,14 +69,55 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	return nil
 }
 
-func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto) {
+func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	lroType := lroTypeName(*m.Name)
 	p := g.printf
 
-	// TODO(pongad): programmatically fill these.
-	respType := "Foo.Bar"
-	metaType := "Foo.MetaBar"
-	hasMeta := true
+	eLRO, err := proto.GetExtension(m.Options, annotations.E_LongrunningOperationTypes)
+	if err != nil {
+		return errors.E(err, "cannot read LRO types")
+	}
+	eLROType := eLRO.(*annotations.LongrunningOperationTypes)
+
+	var respType string
+	{
+		fullName := eLROType.Response
+
+		// eLRO.ResponseType is either fully-qualified or in the same package as the method.
+		if strings.IndexByte(fullName, '.') < 0 {
+			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
+		}
+
+		// Protoc adds '.' in front of names to signify they are fully qualified.
+		// Do that here so we can look up.
+		fullName = "." + fullName
+
+		typ := g.descInfo.Type[fullName]
+		respSpec, err := g.descInfo.ImportSpec(typ)
+		if err != nil {
+			return errors.E(err, "cannot find LRO type %q; type not linked?", fullName)
+		}
+		g.imports[respSpec] = true
+		respType = fmt.Sprintf("%s.%s", respSpec.Name, typ.GetName())
+	}
+
+	hasMeta := eLROType.Metadata != ""
+	var metaType string
+	if hasMeta {
+		fullName := eLROType.Metadata
+		if strings.IndexByte(fullName, '.') < 0 {
+			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
+		}
+		fullName = "." + fullName
+
+		typ := g.descInfo.Type[fullName]
+		meta, err := g.descInfo.ImportSpec(typ)
+		if err != nil {
+			return errors.E(err, "cannot find LRO metadata type %q; type not linked?", fullName)
+		}
+		g.imports[meta] = true
+		metaType = fmt.Sprintf("%s.%s", meta.Name, typ.GetName())
+	}
 
 	// Type definition
 	{
@@ -144,7 +191,7 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 		p("// Metadata itself does not contact the server, but Poll does.")
 		p("// To get the latest metadata, call this method after a successful call to Poll.")
 		p("// If the metadata is not available, the returned metadata and error are both nil.")
-		p("func (op *%s) Metadata() (*%s, error) {", lroType, respType)
+		p("func (op *%s) Metadata() (*%s, error) {", lroType, metaType)
 		p("  var meta %s", metaType)
 		p("  if err := op.lro.Metadata(&meta); err == longrunning.ErrNoMetadata {")
 		p("    return nil, nil")
@@ -174,7 +221,7 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 		p("}")
 		p("")
 	}
-
+	return nil
 }
 
 func lroTypeName(methodName string) string {
