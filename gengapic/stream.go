@@ -19,17 +19,17 @@ import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 func (g *generator) bidiCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	p := g.printf
 
-	servSpec, err := g.importSpec(s)
+	servSpec, err := g.descInfo.ImportSpec(s)
 	if err != nil {
 		return err
 	}
 	g.imports[servSpec] = true
 
 	p("func (c *%sClient) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		servName, m.GetName(), servSpec.name, s.GetName(), m.GetName())
+		servName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
 	g.insertMetadata()
 	g.appendCallOpts(m)
-	p("  var resp %s.%s_%sClient", servSpec.name, s.GetName(), m.GetName())
+	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")

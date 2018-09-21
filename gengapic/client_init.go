@@ -20,6 +20,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -28,22 +29,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// CallOptions struct
 	{
-		var maxNameLen int
-		for _, m := range serv.Method {
-			if l := len(*m.Name); maxNameLen < l {
-				maxNameLen = l
-			}
-		}
-
 		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", servName)
 		p("type %sCallOptions struct {", servName)
 		for _, m := range serv.Method {
-			p("%s%s[]gax.CallOption", *m.Name, spaces(maxNameLen-len(*m.Name)+1))
+			p("%s []gax.CallOption", *m.Name)
 		}
 		p("}")
 		p("")
 
-		g.imports[importSpec{"gax", "github.com/googleapis/gax-go"}] = true
+		g.imports[pbinfo.ImportSpec{"gax", "github.com/googleapis/gax-go"}] = true
 	}
 
 	// defaultClientOptions
@@ -61,7 +55,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("}")
 		p("")
 
-		g.imports[importSpec{path: "google.golang.org/api/option"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
 	}
 
 	// defaultCallOptions
@@ -98,8 +92,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			p("}")
 			p("")
 
-			g.imports[importSpec{path: "time"}] = true
-			g.imports[importSpec{path: "google.golang.org/grpc/codes"}] = true
+			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
+			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
 		}
 
 		p("  return &%sCallOptions{", servName)
@@ -125,7 +119,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		}
 	}
 
-	imp, err := g.importSpec(serv)
+	imp, err := g.descInfo.ImportSpec(serv)
 	if err != nil {
 		return err
 	}
@@ -142,7 +136,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("")
 
 		p("// The gRPC API client.")
-		p("%s %s.%sClient", grpcClientField(servName), imp.name, serv.GetName())
+		p("%s %s.%sClient", grpcClientField(servName), imp.Name, serv.GetName())
 		p("")
 
 		if hasLRO {
@@ -152,7 +146,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 			p("LROClient *lroauto.OperationsClient")
 			p("")
 
-			g.imports[importSpec{name: "lroauto", path: "cloud.google.com/go/longrunning/autogen"}] = true
+			g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
 		}
 
 		p("// The call options for this service.")
@@ -164,8 +158,8 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("}")
 		p("")
 
-		g.imports[importSpec{path: "google.golang.org/grpc"}] = true
-		g.imports[importSpec{path: "google.golang.org/grpc/metadata"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	}
 
 	// Client constructor
@@ -185,7 +179,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("    conn:        conn,")
 		p("    CallOptions: default%sCallOptions(),", servName)
 		p("")
-		p("    %s: %s.New%sClient(conn),", grpcClientField(servName), imp.name, serv.GetName())
+		p("    %s: %s.New%sClient(conn),", grpcClientField(servName), imp.Name, serv.GetName())
 		p("  }")
 		p("  c.setGoogleClientInfo()")
 		p("")
@@ -207,8 +201,8 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("}")
 		p("")
 
-		g.imports[importSpec{path: "google.golang.org/api/transport"}] = true
-		g.imports[importSpec{path: "golang.org/x/net/context"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/transport"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "golang.org/x/net/context"}] = true
 	}
 
 	// Connection()
@@ -242,7 +236,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("}")
 		p("")
 
-		g.imports[importSpec{path: "cloud.google.com/go/internal/version"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/internal/version"}] = true
 	}
 	return nil
 }

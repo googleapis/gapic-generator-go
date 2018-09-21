@@ -20,6 +20,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 func TestComment(t *testing.T) {
@@ -37,9 +38,9 @@ func TestComment(t *testing.T) {
 			want: "// abc\n// def\n",
 		},
 	} {
-		g.sb.Reset()
+		g.pt.Reset()
 		g.comment(tst.in)
-		if got := g.sb.String(); got != tst.want {
+		if got := g.pt.String(); got != tst.want {
 			t.Errorf("comment(%q) = %q, want %q", tst.in, got, tst.want)
 		}
 	}
@@ -66,9 +67,9 @@ func TestMethodDoc(t *testing.T) {
 		},
 	} {
 		g.comments[m] = tst.in
-		g.sb.Reset()
+		g.pt.Reset()
 		g.methodDoc(m)
-		if got := g.sb.String(); got != tst.want {
+		if got := g.pt.String(); got != tst.want {
 			t.Errorf("comment(%q) = %q, want %q", tst.in, got, tst.want)
 		}
 	}
@@ -168,16 +169,16 @@ func TestGenMethod(t *testing.T) {
 	serv := &descriptor.ServiceDescriptorProto{}
 
 	var g generator
-	g.imports = map[importSpec]bool{}
+	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
 		inputType, outputType, pageInputType, pageOutputType,
 	} {
-		g.types[".my.pkg."+*typ.Name] = typ
-		g.parentFile[typ] = file
+		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
+		g.descInfo.ParentFile[typ] = file
 	}
-	g.parentFile[serv] = file
+	g.descInfo.ParentFile[serv] = file
 
 	meths := []*descriptor.MethodDescriptorProto{
 		{
@@ -216,7 +217,7 @@ func TestGenMethod(t *testing.T) {
 		if err := g.genMethod("Foo", serv, m, &aux); err != nil {
 			t.Error(err)
 		} else {
-			diff(t, m.GetName(), g.sb.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+			diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
 		}
 	}
 }

@@ -20,6 +20,7 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 var primitiveFieldToGoType = [...]string{
@@ -44,9 +45,9 @@ var primitiveFieldToGoType = [...]string{
 type iterType struct {
 	iterTypeName, elemTypeName string
 
-	// If the elem type is a message, elemImports contains importSpec for the type.
+	// If the elem type is a message, elemImports contains pbinfo.ImportSpec for the type.
 	// Otherwise, len(elemImports)==0.
-	elemImports []importSpec
+	elemImports []pbinfo.ImportSpec
 }
 
 // iterTypeOf deduces iterType from a field to be iterated over.
@@ -56,17 +57,17 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iter
 
 	switch t := *elemField.Type; {
 	case t == descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		eType := g.types[elemField.GetTypeName()]
+		eType := g.descInfo.Type[elemField.GetTypeName()]
 
-		imp, err := g.importSpec(eType)
+		imp, err := g.descInfo.ImportSpec(eType)
 		if err != nil {
 			return iterType{}, err
 		}
 
-		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.name, eType.GetName())
+		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, eType.GetName())
 		pt.iterTypeName = *eType.Name + "Iterator"
 
-		pt.elemImports = []importSpec{imp}
+		pt.elemImports = []pbinfo.ImportSpec{imp}
 
 	case t == descriptor.FieldDescriptorProto_TYPE_ENUM:
 		log.Panic("iterating enum not supported yet")
@@ -96,11 +97,11 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 		elemFields                      []*descriptor.FieldDescriptorProto
 	)
 
-	inType := g.types[m.GetInputType()]
+	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
 		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
 	}
-	outType := g.types[m.GetOutputType()]
+	outType := g.descInfo.Type[m.GetOutputType()]
 	if outType == nil {
 		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
 	}
@@ -134,29 +135,29 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 }
 
 func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt iterType) error {
-	inType := g.types[*m.InputType]
-	outType := g.types[*m.OutputType]
+	inType := g.descInfo.Type[*m.InputType]
+	outType := g.descInfo.Type[*m.OutputType]
 
-	inSpec, err := g.importSpec(inType)
+	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
 	}
-	outSpec, err := g.importSpec(outType)
+	outSpec, err := g.descInfo.ImportSpec(outType)
 	if err != nil {
 		return err
 	}
 
 	p := g.printf
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-		servName, *m.Name, inSpec.name, *inType.Name, pt.iterTypeName)
+		servName, *m.Name, inSpec.Name, *inType.Name, pt.iterTypeName)
 
 	g.insertMetadata()
 	g.appendCallOpts(m)
 
 	p("it := &%s{}", pt.iterTypeName)
-	p("req = proto.Clone(req).(*%s.%s)", inSpec.name, *inType.Name)
+	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, *inType.Name)
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	p("  var resp *%s.%s", outSpec.name, *outType.Name)
+	p("  var resp *%s.%s", outSpec.Name, *outType.Name)
 	p("  req.PageToken = pageToken")
 	p("  if pageSize > math.MaxInt32 {")
 	p("    req.PageSize = math.MaxInt32")
@@ -190,9 +191,9 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("}")
 	p("")
 
-	g.imports[importSpec{path: "math"}] = true
-	g.imports[importSpec{path: "github.com/golang/protobuf/proto"}] = true
-	g.imports[importSpec{path: "google.golang.org/api/iterator"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "math"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "github.com/golang/protobuf/proto"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 	for _, spec := range pt.elemImports {

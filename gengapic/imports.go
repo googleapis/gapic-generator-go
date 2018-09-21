@@ -17,30 +17,28 @@ package gengapic
 import (
 	"sort"
 	"strings"
-)
 
-type importSpec struct {
-	name, path string
-}
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+)
 
 // sortImports sorts the import specs,
 // and returns the index of the first non-standard import.
-func sortImports(a []importSpec) int {
+func sortImports(a []pbinfo.ImportSpec) int {
 	sort.Slice(a, func(i, j int) bool {
-		iDot := strings.IndexByte(a[i].path, '.') >= 0
-		jDot := strings.IndexByte(a[j].path, '.') >= 0
+		iDot := strings.IndexByte(a[i].Path, '.') >= 0
+		jDot := strings.IndexByte(a[j].Path, '.') >= 0
 
 		// standard import (without dots) comes first
 		if iDot != jDot {
 			return jDot
 		}
 
-		if a[i].path != a[j].path {
-			return a[i].path < a[j].path
+		if a[i].Path != a[j].Path {
+			return a[i].Path < a[j].Path
 		}
-		return a[i].name < a[j].name
+		return a[i].Name < a[j].Name
 	})
 	return sort.Search(len(a), func(i int) bool {
-		return strings.IndexByte(a[i].path, '.') >= 0
+		return strings.IndexByte(a[i].Path, '.') >= 0
 	})
 }
