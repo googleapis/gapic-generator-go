@@ -69,3 +69,7 @@ func (p *P) Printf(s string, args ...interface{}) {
 func (p *P) Bytes() []byte {
 	return p.buf.Bytes()
 }
+
+func (p *P) String() string {
+	return p.buf.String()
+}

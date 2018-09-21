@@ -20,6 +20,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 func TestPagingField(t *testing.T) {
@@ -36,60 +37,59 @@ func TestPagingField(t *testing.T) {
 		Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 	}
 
-	g := &generator{
-		types: map[string]*descriptor.DescriptorProto{
-			"Foo": &descriptor.DescriptorProto{
-				Name: proto.String("Foo"),
-			},
-			"PageIn": &descriptor.DescriptorProto{
-				Name: proto.String("PageIn"),
-				Field: []*descriptor.FieldDescriptorProto{
-					{
-						Name:  proto.String("page_size"),
-						Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-						Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-					},
-					{
-						Name:  proto.String("page_token"),
-						Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-						Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-					},
+	g := &generator{}
+	g.descInfo.Type = map[string]*descriptor.DescriptorProto{
+		"Foo": &descriptor.DescriptorProto{
+			Name: proto.String("Foo"),
+		},
+		"PageIn": &descriptor.DescriptorProto{
+			Name: proto.String("PageIn"),
+			Field: []*descriptor.FieldDescriptorProto{
+				{
+					Name:  proto.String("page_size"),
+					Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				},
+				{
+					Name:  proto.String("page_token"),
+					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 				},
 			},
-			"PageOut": &descriptor.DescriptorProto{
-				Name: proto.String("PageOut"),
-				Field: []*descriptor.FieldDescriptorProto{
-					{
-						Name:  proto.String("next_page_token"),
-						Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-						Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-					},
-					resField,
+		},
+		"PageOut": &descriptor.DescriptorProto{
+			Name: proto.String("PageOut"),
+			Field: []*descriptor.FieldDescriptorProto{
+				{
+					Name:  proto.String("next_page_token"),
+					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 				},
+				resField,
 			},
-			"BadPageOut1": &descriptor.DescriptorProto{
-				Name: proto.String("BadPageOut1"),
-				Field: []*descriptor.FieldDescriptorProto{
-					{
-						Name:  proto.String("next_page_token"),
-						Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-						Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-					},
-					// No repeated field
+		},
+		"BadPageOut1": &descriptor.DescriptorProto{
+			Name: proto.String("BadPageOut1"),
+			Field: []*descriptor.FieldDescriptorProto{
+				{
+					Name:  proto.String("next_page_token"),
+					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 				},
+				// No repeated field
 			},
-			"BadPageOut2": &descriptor.DescriptorProto{
-				Name: proto.String("BadPageOut2"),
-				Field: []*descriptor.FieldDescriptorProto{
-					{
-						Name:  proto.String("next_page_token"),
-						Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-						Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-					},
-					// Too many repeated field
-					resField,
-					resField,
+		},
+		"BadPageOut2": &descriptor.DescriptorProto{
+			Name: proto.String("BadPageOut2"),
+			Field: []*descriptor.FieldDescriptorProto{
+				{
+					Name:  proto.String("next_page_token"),
+					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 				},
+				// Too many repeated field
+				resField,
+				resField,
 			},
 		},
 	}
@@ -151,13 +151,15 @@ func TestIterTypeOf(t *testing.T) {
 		Name: proto.String("Foo"),
 	}
 	g := &generator{
-		types: map[string]*descriptor.DescriptorProto{
-			*msgType.Name: msgType,
-		},
-		parentFile: map[proto.Message]*descriptor.FileDescriptorProto{
-			msgType: &descriptor.FileDescriptorProto{
-				Options: &descriptor.FileOptions{
-					GoPackage: proto.String("path/to/foo;foo"),
+		descInfo: pbinfo.Info{
+			Type: map[string]*descriptor.DescriptorProto{
+				*msgType.Name: msgType,
+			},
+			ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
+				msgType: &descriptor.FileDescriptorProto{
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("path/to/foo;foo"),
+					},
 				},
 			},
 		},
@@ -193,14 +195,14 @@ func TestIterTypeOf(t *testing.T) {
 			want: iterType{
 				iterTypeName: "FooIterator",
 				elemTypeName: "*foopb.Foo",
-				elemImports:  []importSpec{{name: "foopb", path: "path/to/foo"}},
+				elemImports:  []pbinfo.ImportSpec{{Name: "foopb", Path: "path/to/foo"}},
 			},
 		},
 	} {
 		got, err := g.iterTypeOf(tst.field)
 		if err != nil {
 			t.Error(err)
-		} else if diff := cmp.Diff(tst.want, got, cmp.AllowUnexported(got, importSpec{})); diff != "" {
+		} else if diff := cmp.Diff(tst.want, got, cmp.AllowUnexported(got, pbinfo.ImportSpec{})); diff != "" {
 			t.Errorf("%d: (got=-, want=+):\n%s", i, diff)
 		}
 	}

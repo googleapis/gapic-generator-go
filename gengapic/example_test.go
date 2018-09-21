@@ -20,11 +20,12 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 func TestExample(t *testing.T) {
 	var g generator
-	g.imports = map[importSpec]bool{}
+	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
@@ -81,8 +82,8 @@ func TestExample(t *testing.T) {
 	for _, typ := range []*descriptor.DescriptorProto{
 		inputType, outputType, pageInputType, pageOutputType,
 	} {
-		g.types[".my.pkg."+*typ.Name] = typ
-		g.parentFile[typ] = file
+		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
+		g.descInfo.ParentFile[typ] = file
 	}
 
 	serv := &descriptor.ServiceDescriptorProto{
@@ -125,7 +126,7 @@ func TestExample(t *testing.T) {
 	} {
 		g.reset()
 		g.genExampleFile(serv, tst.pkgName)
-		diff(t, tst.tstName, g.sb.String(), filepath.Join("testdata", tst.tstName+".want"))
+		diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
 
@@ -137,11 +138,11 @@ func commonTypes(g *generator) {
 		Name: proto.String("Operation"),
 	}
 
-	g.types = map[string]*descriptor.DescriptorProto{
+	g.descInfo.Type = map[string]*descriptor.DescriptorProto{
 		emptyType: empty,
 		lroType:   lro,
 	}
-	g.parentFile = map[proto.Message]*descriptor.FileDescriptorProto{
+	g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
 		empty: &descriptor.FileDescriptorProto{
 			Options: &descriptor.FileOptions{
 				GoPackage: proto.String("github.com/golang/protobuf/ptypes/empty"),

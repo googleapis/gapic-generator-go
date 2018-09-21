@@ -27,6 +27,8 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -35,9 +37,6 @@ const (
 	emptyType = ".google.protobuf.Empty"
 	lroType   = ".google.longrunning.Operation"
 )
-
-var tabsCache = strings.Repeat("\t", 20)
-var spacesCache = strings.Repeat(" ", 100)
 
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var pkgPath, pkgName string
@@ -94,7 +93,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if err := g.genExampleFile(s, pkgName); err != nil {
 			return nil, errors.E(err, "example: %s", s.GetName())
 		}
-		g.imports[importSpec{path: pkgPath}] = true
+		g.imports[pbinfo.ImportSpec{Path: pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", pkgName+"_test")
 	}
 
@@ -106,7 +105,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	g.genDocFile(pkgPath, pkgName, time.Now().Year(), scopes)
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(outDir, "doc.go")),
-		Content: proto.String(g.sb.String()),
+		Content: proto.String(g.pt.String()),
 	})
 
 	return &g.resp, nil
@@ -122,52 +121,28 @@ func strContains(a []string, s string) bool {
 }
 
 type generator struct {
-	sb strings.Builder
+	pt printer.P
 
-	// current indentation level
-	in int
-
-	resp plugin.CodeGeneratorResponse
-
-	// Maps services and messages to the file containing them,
-	// so we can figure out the import.
-	parentFile map[proto.Message]*descriptor.FileDescriptorProto
-
-	// Maps type names to their messages
-	types map[string]*descriptor.DescriptorProto
+	descInfo pbinfo.Info
 
 	// Maps proto elements to their comments
 	comments map[proto.Message]string
 
-	imports map[importSpec]bool
+	resp plugin.CodeGeneratorResponse
+
+	imports map[pbinfo.ImportSpec]bool
 
 	// Human-readable name of the API used in docs
 	apiName string
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
-	g.parentFile = map[proto.Message]*descriptor.FileDescriptorProto{}
-	g.types = map[string]*descriptor.DescriptorProto{}
+	g.descInfo = pbinfo.Of(files)
+
 	g.comments = map[proto.Message]string{}
-	g.imports = map[importSpec]bool{}
+	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	for _, f := range files {
-		// parentFile
-		for _, m := range f.MessageType {
-			g.parentFile[m] = f
-		}
-		for _, s := range f.Service {
-			g.parentFile[s] = f
-		}
-
-		// types
-		for _, m := range f.MessageType {
-			// In descriptors, putting the dot in front means the name is fully-qualified.
-			fullyQualifiedName := fmt.Sprintf(".%s.%s", f.GetPackage(), m.GetName())
-			g.types[fullyQualifiedName] = m
-		}
-
-		// comment
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
 			// p is an array with format [f1, i1, f2, i2, ...]
 			// - f1 refers to the protobuf field tag
@@ -188,38 +163,6 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 	}
 }
 
-// importSpec reports the importSpec for package containing protobuf element e.
-func (g *generator) importSpec(e proto.Message) (importSpec, error) {
-	fdesc := g.parentFile[e]
-
-	pkg := fdesc.GetOptions().GetGoPackage()
-	if pkg == "" {
-		var eTxt interface{} = e
-		if et, ok := eTxt.(interface{ GetName() string }); ok {
-			eTxt = et.GetName()
-		}
-		return importSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", eTxt, fdesc.GetName())
-	}
-
-	if p := strings.IndexByte(pkg, ';'); p >= 0 {
-		return importSpec{path: pkg[:p], name: pkg[p+1:] + "pb"}, nil
-	}
-
-	for {
-		p := strings.LastIndexByte(pkg, '/')
-		if p < 0 {
-			return importSpec{path: pkg, name: pkg + "pb"}, nil
-		}
-		elem := pkg[p+1:]
-		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
-			// It's a version number; skip so we get a more meaningful name
-			pkg = pkg[:p]
-			continue
-		}
-		return importSpec{path: pkg, name: elem + "pb"}, nil
-	}
-}
-
 // printf formatted-prints to sb, using the print syntax from fmt package.
 //
 // It automatically keeps track of indentation caused by curly-braces.
@@ -230,29 +173,7 @@ func (g *generator) importSpec(e proto.Message) (importSpec, error) {
 // Currently it's not terribly difficult to confuse the auto-indenter.
 // To fix-up, manipulate g.in or write to g.sb directly.
 func (g *generator) printf(s string, a ...interface{}) {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		g.sb.WriteByte('\n')
-		return
-	}
-
-	for i := 0; i < len(s) && s[i] == '}'; i++ {
-		g.in--
-	}
-
-	in := g.in
-	for in > len(tabsCache) {
-		g.sb.WriteString(tabsCache)
-		in -= len(tabsCache)
-	}
-	g.sb.WriteString(tabsCache[:in])
-
-	fmt.Fprintf(&g.sb, s, a...)
-	g.sb.WriteByte('\n')
-
-	for i := len(s) - 1; i >= 0 && s[i] == '{'; i-- {
-		g.in++
-	}
+	g.pt.Printf(s, a...)
 }
 
 func (g *generator) commit(fileName, pkgName string) {
@@ -260,18 +181,18 @@ func (g *generator) commit(fileName, pkgName string) {
 	fmt.Fprintf(&header, apacheLicense, time.Now().Year())
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
-	var imps []importSpec
+	var imps []pbinfo.ImportSpec
 	for imp := range g.imports {
 		imps = append(imps, imp)
 	}
 	impDiv := sortImports(imps)
 
-	writeImp := func(is importSpec) {
+	writeImp := func(is pbinfo.ImportSpec) {
 		s := "\t%[2]q\n"
-		if is.name != "" {
+		if is.Name != "" {
 			s = "\t%s %q\n"
 		}
-		fmt.Fprintf(&header, s, is.name, is.path)
+		fmt.Fprintf(&header, s, is.Name, is.Path)
 	}
 
 	header.WriteString("import (\n")
@@ -294,7 +215,7 @@ func (g *generator) commit(fileName, pkgName string) {
 	// Trim trailing newlines so we have only one.
 	// NOTE(pongad): This might be an overkill since we have gofmt,
 	// but the rest of the file already conforms to gofmt, so we might as well?
-	body := g.sb.String()
+	body := g.pt.String()
 	if !strings.HasSuffix(body, "\n") {
 		body += "\n"
 	}
@@ -311,8 +232,7 @@ func (g *generator) commit(fileName, pkgName string) {
 }
 
 func (g *generator) reset() {
-	g.sb.Reset()
-	g.in = 0
+	g.pt.Reset()
 	for k := range g.imports {
 		delete(g.imports, k)
 	}
@@ -406,14 +326,14 @@ func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescripto
 }
 
 func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	inType := g.types[*m.InputType]
-	outType := g.types[*m.OutputType]
+	inType := g.descInfo.Type[*m.InputType]
+	outType := g.descInfo.Type[*m.OutputType]
 
-	inSpec, err := g.importSpec(inType)
+	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
 	}
-	outSpec, err := g.importSpec(outType)
+	outSpec, err := g.descInfo.ImportSpec(outType)
 	if err != nil {
 		return err
 	}
@@ -421,11 +341,11 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		servName, *m.Name, inSpec.name, *inType.Name, outSpec.name, *outType.Name)
+		servName, *m.Name, inSpec.Name, *inType.Name, outSpec.Name, *outType.Name)
 
 	g.insertMetadata()
 	g.appendCallOpts(m)
-	p("var resp *%s.%s", outSpec.name, *outType.Name)
+	p("var resp *%s.%s", outSpec.Name, *outType.Name)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  resp, err = %s", grpcClientCall(servName, *m.Name))
@@ -446,9 +366,9 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 }
 
 func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	inType := g.types[*m.InputType]
+	inType := g.descInfo.Type[*m.InputType]
 
-	inSpec, err := g.importSpec(inType)
+	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
 	}
@@ -456,7 +376,7 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		servName, m.GetName(), inSpec.name, inType.GetName())
+		servName, m.GetName(), inSpec.Name, inType.GetName())
 
 	g.insertMetadata()
 	g.appendCallOpts(m)
@@ -511,13 +431,6 @@ func (g *generator) comment(s string) {
 			g.printf("// %s", l)
 		}
 	}
-}
-
-func spaces(n int) string {
-	if n > len(spacesCache) {
-		return strings.Repeat(" ", n)
-	}
-	return spacesCache[:n]
 }
 
 // reduceServName removes redundant components from the service name.
