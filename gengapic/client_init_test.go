@@ -23,6 +23,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -47,7 +48,7 @@ func diff(t *testing.T, name, got, goldenFile string) {
 
 func TestClientOpt(t *testing.T) {
 	var g generator
-	g.imports = map[importSpec]bool{}
+	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	serv := &descriptor.ServiceDescriptorProto{
 		Method: []*descriptor.MethodDescriptorProto{
@@ -78,14 +79,14 @@ func TestClientOpt(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		diff(t, tst.tstName, g.sb.String(), filepath.Join("testdata", tst.tstName+".want"))
+		diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
 
 func TestClientInit(t *testing.T) {
 	var g generator
 	g.apiName = "Awesome Foo"
-	g.imports = map[importSpec]bool{}
+	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	servPlain := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
@@ -110,7 +111,7 @@ func TestClientInit(t *testing.T) {
 		{tstName: "empty_client_init", servName: "", serv: servPlain},
 		{tstName: "lro_client_init", servName: "Foo", serv: servLRO},
 	} {
-		g.parentFile = map[proto.Message]*descriptor.FileDescriptorProto{
+		g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
 			tst.serv: &descriptor.FileDescriptorProto{
 				Options: &descriptor.FileOptions{
 					GoPackage: proto.String("mypackage"),
@@ -123,6 +124,6 @@ func TestClientInit(t *testing.T) {
 
 		g.reset()
 		g.clientInit(tst.serv, tst.servName)
-		diff(t, tst.tstName, g.sb.String(), filepath.Join("testdata", tst.tstName+".want"))
+		diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }

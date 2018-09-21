@@ -14,18 +14,21 @@
 
 package gengapic
 
-import "github.com/golang/protobuf/protoc-gen-go/descriptor"
+import (
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+)
 
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	inType := g.types[m.GetInputType()]
-	outType := g.types[m.GetOutputType()]
+	inType := g.descInfo.Type[m.GetInputType()]
+	outType := g.descInfo.Type[m.GetOutputType()]
 
-	inSpec, err := g.importSpec(inType)
+	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
 	}
 
-	outSpec, err := g.importSpec(outType)
+	outSpec, err := g.descInfo.ImportSpec(outType)
 	if err != nil {
 		return err
 	}
@@ -34,11 +37,11 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		servName, *m.Name, inSpec.name, *inType.Name, lroType)
+		servName, *m.Name, inSpec.Name, *inType.Name, lroType)
 
 	g.insertMetadata()
 	g.appendCallOpts(m)
-	p("  var resp *%s.%s", outSpec.name, *outType.Name)
+	p("  var resp *%s.%s", outSpec.Name, *outType.Name)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
 	p("    resp, err = %s", grpcClientCall(servName, *m.Name))
@@ -54,7 +57,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("}")
 	p("")
 
-	g.imports[importSpec{path: "cloud.google.com/go/longrunning"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 	return nil
@@ -89,7 +92,7 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.imports[importSpec{name: "longrunningpb", path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
 	}
 
 	// Wait
@@ -106,7 +109,7 @@ func (g *generator) lroType(servName string, m *descriptor.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.imports[importSpec{path: "time"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 	}
 
 	// Poll

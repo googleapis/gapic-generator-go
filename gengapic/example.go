@@ -17,6 +17,7 @@ package gengapic
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
@@ -29,7 +30,7 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 	p("  _ = c")
 	p("}")
 	p("")
-	g.imports[importSpec{path: "golang.org/x/net/context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "golang.org/x/net/context"}] = true
 
 	for _, m := range serv.Method {
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {
@@ -52,12 +53,12 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
 	p := g.printf
 
-	inType := g.types[m.GetInputType()]
+	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
 		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
 	}
 
-	inSpec, err := g.importSpec(inType)
+	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
-		p("req := &%s.%s{", inSpec.name, *inType.Name)
+		p("req := &%s.%s{", inSpec.Name, *inType.Name)
 		p("  // TODO: Fill request struct fields.")
 		p("}")
 	}
@@ -146,10 +147,10 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
 	p("  _ = resp")
 	p("}")
 
-	g.imports[importSpec{path: "google.golang.org/api/iterator"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 }
 
-func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType *descriptor.DescriptorProto, inSpec importSpec) {
+func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType *descriptor.DescriptorProto, inSpec pbinfo.ImportSpec) {
 	p := g.printf
 
 	p("stream, err := c.%s(ctx)", m.GetName())
@@ -158,7 +159,7 @@ func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType 
 	p("}")
 
 	p("go func() {")
-	p("  reqs := []*%s.%s{", inSpec.name, inType.GetName())
+	p("  reqs := []*%s.%s{", inSpec.Name, inType.GetName())
 	p("    // TODO: Create requests.")
 	p("  }")
 	p("  for _, req := range reqs {")
@@ -181,5 +182,5 @@ func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType 
 	p("  _ = resp")
 	p("}")
 
-	g.imports[importSpec{path: "io"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 }
