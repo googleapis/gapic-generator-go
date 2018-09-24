@@ -45,7 +45,7 @@ type initType struct {
 type initTree struct {
 	typ initType
 
-	// T is either a composite value (struct/array/map), where keys and vals are set,
+	// initTree is either a composite value (struct/array/map), where keys and vals are set,
 	// or a simple value, where leafVal is set.
 
 	// Use array representation; we need order, and we probably won't
