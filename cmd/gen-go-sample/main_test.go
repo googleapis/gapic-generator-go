@@ -48,7 +48,19 @@ func diff(t *testing.T, name, got, goldenFile string) {
 func TestSample(t *testing.T) {
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String("AType")},
+			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+		},
 	}
+	aType := &descriptor.DescriptorProto{
+		Name: proto.String("AType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
+			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
+		},
+	}
+
 	serv := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("MyService"),
 		Method: []*descriptor.MethodDescriptorProto{
@@ -74,9 +86,11 @@ func TestSample(t *testing.T) {
 				serv:           file,
 				serv.Method[0]: file,
 				inType:         file,
+				aType:          file,
 			},
 			Type: map[string]*descriptor.DescriptorProto{
 				"InputType": inType,
+				"AType":     aType,
 			},
 		},
 	}

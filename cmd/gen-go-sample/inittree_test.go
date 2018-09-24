@@ -17,19 +17,47 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
+
+func typep(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
+	return &t
+}
 
 func TestTree(t *testing.T) {
 	specs := []string{
 		`a.b = 1`,
 		`a.c = "xyz"`,
 		`a.d = 2.718281828`,
-		`x = 123`,
+		`x = true`,
 	}
 
-	var root initTree
+	info := pbinfo.Info{
+		Type: map[string]*descriptor.DescriptorProto{
+			"RootType": {
+				Field: []*descriptor.FieldDescriptorProto{
+					{Name: proto.String("a"), TypeName: proto.String("AType")},
+					{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BOOL)},
+				},
+			},
+			"AType": {
+				Field: []*descriptor.FieldDescriptorProto{
+					{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
+					{Name: proto.String("c"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+					{Name: proto.String("d"), Type: typep(descriptor.FieldDescriptorProto_TYPE_DOUBLE)},
+				},
+			},
+		},
+	}
+
+	root := initTree{
+		typ: initType{desc: info.Type["RootType"]},
+	}
 	for _, s := range specs {
-		if err := root.Parse(s); err != nil {
+		if err := root.Parse(s, info); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -41,25 +69,47 @@ func TestTree(t *testing.T) {
 		{[]string{"a", "b"}, "1"},
 		{[]string{"a", "c"}, `"xyz"`},
 		{[]string{"a", "d"}, "2.718281828"},
-		{[]string{"x"}, "123"},
+		{[]string{"x"}, "true"},
 	} {
 		node := &root
 		for _, p := range tst.path {
-			node = node.get(p)
+			var err error
+			node, err = node.get(p, info)
+			if err != nil {
+				t.Error(err)
+			}
 		}
 		if node.leafVal != tst.val {
 			t.Errorf("%s = %q, want %q", strings.Join(tst.path, "->"), node.leafVal, tst.val)
 		}
 	}
+}
 
-	if t.Failed() {
-		t.SkipNow()
+func TestTreeErrors(t *testing.T) {
+	info := pbinfo.Info{
+		Type: map[string]*descriptor.DescriptorProto{
+			"RootType": {
+				Field: []*descriptor.FieldDescriptorProto{
+					{Name: proto.String("a"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
+				},
+			},
+		},
 	}
 
-	var buf strings.Builder
-	buf.WriteByte('\n')
-	if err := root.Print(&buf); err != nil {
-		t.Error(err)
+testcase:
+	for _, tst := range [][]string{
+		{`3=4`}, // bad field name
+
+		{`a=1`, `a=2`},      // sets same node twice
+		{`a="abc"`},         // type is int64, value is string
+		{`unknown_field=3`}, // field doesn't exist
+	} {
+		root := initTree{typ: initType{desc: info.Type["RootType"]}}
+		for _, txt := range tst {
+			if root.Parse(txt, info) != nil {
+				continue testcase
+			}
+		}
+		t.Errorf("initTree.parse succeeded, want error: %v", tst)
 	}
-	t.Log(buf.String())
 }
