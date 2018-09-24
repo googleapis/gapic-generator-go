@@ -25,6 +25,6 @@ if [ -z $COMMON_PROTO ]; then
 	exit 1
 fi
 
-./gen-go-sample \
+./gen-go-sample $* \
   -gapic "$GOOGLEAPIS/google/cloud/language/v1/language_gapic.yaml" \
   -desc <(protoc -o /dev/stdout --include_imports -I "$COMMON_PROTO" -I "$GOOGLEAPIS" "$GOOGLEAPIS"/google/cloud/language/v1/*.proto)
