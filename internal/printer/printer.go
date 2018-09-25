@@ -18,6 +18,7 @@ package printer
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -63,6 +64,11 @@ func (p *P) Printf(s string, args ...interface{}) {
 	for i := len(s) - 1; i >= 0 && s[i] == '{'; i-- {
 		p.indent++
 	}
+}
+
+// Writer returns a writer that writes to p's underlying buffer without performing indentation.
+func (p *P) Writer() io.Writer {
+	return &p.buf
 }
 
 // Bytes returns the bytes written by Printf. It is valid up to the next call to Printf or Reset.
