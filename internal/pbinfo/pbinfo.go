@@ -24,11 +24,16 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 )
 
+// ProtoType represents a type in protobuf descriptors.
+// It is an interface implemented by DescriptorProto and EnumDescriptorProto.
 type ProtoType interface {
 	proto.Message
 	GetName() string
 }
 
+// Info provides lookup tables for various protobuf properties.
+// For example, we can look up a type by name without iterating the entire
+// descriptor.
 type Info struct {
 	// Maps services and messages to the file containing them,
 	// so we can figure out the import.
@@ -77,8 +82,8 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 	return info
 }
 
-func addMessage(m map[string]ProtoType, pref string, msg *descriptor.DescriptorProto) {
-	fullName := pref + "." + msg.GetName()
+func addMessage(m map[string]ProtoType, prefix string, msg *descriptor.DescriptorProto) {
+	fullName := prefix + "." + msg.GetName()
 	m[fullName] = msg
 
 	for _, subMsg := range msg.NestedType {
