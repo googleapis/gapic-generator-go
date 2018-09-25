@@ -1,0 +1,15 @@
+func (c *FooClient) ServerThings(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (mypackagepb._ServerThingsClient, error) {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.ServerThings[0:len(c.CallOptions.ServerThings):len(c.CallOptions.ServerThings)], opts...)
+	var resp mypackagepb._ServerThingsClient
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = c.fooClient.ServerThings(ctx, req, settings.GRPC...)
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+

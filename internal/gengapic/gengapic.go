@@ -317,12 +317,10 @@ func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescripto
 	}
 
 	switch {
-	case m.GetClientStreaming() && m.GetServerStreaming():
-		return g.bidiCall(servName, serv, m)
-	case m.GetClientStreaming() && !m.GetServerStreaming():
-		return errors.E(nil, "client streaming methods not implemented yet")
-	case !m.GetClientStreaming() && m.GetServerStreaming():
-		return errors.E(nil, "server streaming methods not implemented yet")
+	case m.GetClientStreaming():
+		return g.noRequestStreamCall(servName, serv, m)
+	case m.GetServerStreaming():
+		return g.serverStreamCall(servName, serv, m)
 	default:
 		return g.unaryCall(servName, m)
 	}

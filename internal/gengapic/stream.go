@@ -16,7 +16,8 @@ package gengapic
 
 import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
-func (g *generator) bidiCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+// Used for both bidi and client streaming.
+func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	p := g.printf
 
 	servSpec, err := g.descInfo.ImportSpec(s)
@@ -42,5 +43,44 @@ func (g *generator) bidiCall(servName string, s *descriptor.ServiceDescriptorPro
 	p("  return resp, nil")
 	p("}")
 	p("")
+	return nil
+}
+
+func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+	inType := g.descInfo.Type[*m.InputType]
+
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+	g.imports[inSpec] = true
+
+	servSpec, err := g.descInfo.ImportSpec(s)
+	if err != nil {
+		return err
+	}
+	g.imports[servSpec] = true
+
+	p := g.printf
+
+	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+		servName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
+
+	g.insertMetadata()
+	g.appendCallOpts(m)
+	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
+	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
+	p("  var err error")
+	p("  resp, err = %s", grpcClientCall(servName, m.GetName()))
+	p("  return err")
+	p("}, opts...)")
+	p("if err != nil {")
+	p("  return nil, err")
+	p("}")
+	p("return resp, nil")
+
+	p("}")
+	p("")
+
 	return nil
 }
