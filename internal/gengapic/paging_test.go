@@ -38,7 +38,7 @@ func TestPagingField(t *testing.T) {
 	}
 
 	g := &generator{}
-	g.descInfo.Type = map[string]*descriptor.DescriptorProto{
+	g.descInfo.Type = map[string]pbinfo.ProtoType{
 		"Foo": &descriptor.DescriptorProto{
 			Name: proto.String("Foo"),
 		},
@@ -152,8 +152,8 @@ func TestIterTypeOf(t *testing.T) {
 	}
 	g := &generator{
 		descInfo: pbinfo.Info{
-			Type: map[string]*descriptor.DescriptorProto{
-				*msgType.Name: msgType,
+			Type: map[string]pbinfo.ProtoType{
+				msgType.GetName(): msgType,
 			},
 			ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
 				msgType: &descriptor.FileDescriptorProto{
@@ -190,7 +190,7 @@ func TestIterTypeOf(t *testing.T) {
 		{
 			field: &descriptor.FieldDescriptorProto{
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-				TypeName: msgType.Name,
+				TypeName: proto.String(msgType.GetName()),
 			},
 			want: iterType{
 				iterTypeName: "FooIterator",

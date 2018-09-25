@@ -138,7 +138,7 @@ func commonTypes(g *generator) {
 		Name: proto.String("Operation"),
 	}
 
-	g.descInfo.Type = map[string]*descriptor.DescriptorProto{
+	g.descInfo.Type = map[string]pbinfo.ProtoType{
 		emptyType: empty,
 		lroType:   lro,
 	}

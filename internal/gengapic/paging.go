@@ -65,7 +65,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iter
 		}
 
 		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, eType.GetName())
-		pt.iterTypeName = *eType.Name + "Iterator"
+		pt.iterTypeName = eType.GetName() + "Iterator"
 
 		pt.elemImports = []pbinfo.ImportSpec{imp}
 
@@ -101,12 +101,21 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 	if inType == nil {
 		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
 	}
+	inMsg, ok := inType.(*descriptor.DescriptorProto)
+	if !ok {
+		return nil, errors.E(nil, "expected %q to be message type, found %T", m.GetInputType(), inType)
+	}
+
 	outType := g.descInfo.Type[m.GetOutputType()]
 	if outType == nil {
 		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
 	}
+	outMsg, ok := outType.(*descriptor.DescriptorProto)
+	if !ok {
+		return nil, errors.E(nil, "expected %q to be message type, found %T", m.GetOutputType(), outType)
+	}
 
-	for _, f := range inType.Field {
+	for _, f := range inMsg.Field {
 		if f.GetName() == "page_size" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 {
 			hasSize = true
 		}
@@ -114,7 +123,7 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 			hasToken = true
 		}
 	}
-	for _, f := range outType.Field {
+	for _, f := range outMsg.Field {
 		if f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING {
 			hasNextToken = true
 		}
@@ -126,10 +135,10 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 		return nil, nil
 	}
 	if len(elemFields) == 0 {
-		return nil, fmt.Errorf("%s looks like paging method, but can't find repeated field in %s", *m.Name, *outType.Name)
+		return nil, fmt.Errorf("%s looks like paging method, but can't find repeated field in %s", *m.Name, outType.GetName())
 	}
 	if len(elemFields) > 1 {
-		return nil, fmt.Errorf("%s looks like paging method, but too many repeated fields in %s", *m.Name, *outType.Name)
+		return nil, fmt.Errorf("%s looks like paging method, but too many repeated fields in %s", *m.Name, outType.GetName())
 	}
 	return elemFields[0], nil
 }
@@ -149,15 +158,15 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 
 	p := g.printf
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-		servName, *m.Name, inSpec.Name, *inType.Name, pt.iterTypeName)
+		servName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
 
 	g.insertMetadata()
 	g.appendCallOpts(m)
 
 	p("it := &%s{}", pt.iterTypeName)
-	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, *inType.Name)
+	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	p("  var resp *%s.%s", outSpec.Name, *outType.Name)
+	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("  req.PageToken = pageToken")
 	p("  if pageSize > math.MaxInt32 {")
 	p("    req.PageSize = math.MaxInt32")
