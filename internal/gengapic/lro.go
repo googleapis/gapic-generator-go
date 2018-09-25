@@ -88,8 +88,8 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
 		}
 
-		// Protoc adds '.' in front of names to signify they are fully qualified.
-		// Do that here so we can look up.
+		// When we build a map[name]Type in pbinfo, we prefix names with '.' to signify that they are fully qualified.
+		// The string in ResponseType does not have the prefix, so we add it.
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
