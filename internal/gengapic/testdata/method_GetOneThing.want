@@ -1,14 +1,3 @@
-func (c *FooClient) GetEmptyThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) error {
-	ctx = insertMetadata(ctx, c.xGoogMetadata)
-	opts = append(c.CallOptions.GetEmptyThing[0:len(c.CallOptions.GetEmptyThing):len(c.CallOptions.GetEmptyThing)], opts...)
-	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
-		var err error
-		_, err = c.fooClient.GetEmptyThing(ctx, req, settings.GRPC...)
-		return err
-	}, opts...)
-	return err
-}
-
 func (c *FooClient) GetOneThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	opts = append(c.CallOptions.GetOneThing[0:len(c.CallOptions.GetOneThing):len(c.CallOptions.GetOneThing)], opts...)

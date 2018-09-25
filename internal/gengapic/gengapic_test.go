@@ -21,6 +21,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 func TestComment(t *testing.T) {
@@ -162,6 +163,7 @@ func TestGenMethod(t *testing.T) {
 	}
 
 	file := &descriptor.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
 		Options: &descriptor.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
@@ -195,6 +197,7 @@ func TestGenMethod(t *testing.T) {
 			Name:       proto.String("GetBigThing"),
 			InputType:  proto.String(".my.pkg.InputType"),
 			OutputType: proto.String(".google.longrunning.Operation"),
+			Options:    &descriptor.MethodOptions{},
 		},
 		{
 			Name:       proto.String("GetManyThings"),
@@ -210,14 +213,37 @@ func TestGenMethod(t *testing.T) {
 		},
 	}
 
+methods:
 	for _, m := range meths {
+		g.pt.Reset()
+
+		// Just add this everywhere. Only LRO method will pick it up.
+		if m.Options != nil {
+			lroType := &annotations.LongrunningOperationTypes{
+				Response: "OutputType",
+			}
+			proto.SetExtension(m.Options, annotations.E_LongrunningOperationTypes, lroType)
+		}
+
 		aux := auxTypes{
 			iters: map[string]iterType{},
 		}
 		if err := g.genMethod("Foo", serv, m, &aux); err != nil {
 			t.Error(err)
-		} else {
-			diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+			continue
 		}
+
+		for _, m := range aux.lros {
+			if err := g.lroType("MyService", serv, m); err != nil {
+				t.Error(err)
+				continue methods
+			}
+		}
+
+		for _, iter := range aux.iters {
+			g.pagingIter(iter)
+		}
+
+		diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
 	}
 }
