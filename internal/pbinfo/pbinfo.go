@@ -24,13 +24,23 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 )
 
+// ProtoType represents a type in protobuf descriptors.
+// It is an interface implemented by DescriptorProto and EnumDescriptorProto.
+type ProtoType interface {
+	proto.Message
+	GetName() string
+}
+
+// Info provides lookup tables for various protobuf properties.
+// For example, we can look up a type by name without iterating the entire
+// descriptor.
 type Info struct {
 	// Maps services and messages to the file containing them,
 	// so we can figure out the import.
 	ParentFile map[proto.Message]*descriptor.FileDescriptorProto
 
 	// Maps type names to their messages.
-	Type map[string]*descriptor.DescriptorProto
+	Type map[string]ProtoType
 
 	// Maps service names to their descriptors.
 	Serv map[string]*descriptor.ServiceDescriptorProto
@@ -40,7 +50,7 @@ type Info struct {
 func Of(files []*descriptor.FileDescriptorProto) Info {
 	info := Info{
 		ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{},
-		Type:       map[string]*descriptor.DescriptorProto{},
+		Type:       map[string]ProtoType{},
 		Serv:       map[string]*descriptor.ServiceDescriptorProto{},
 	}
 
@@ -56,8 +66,10 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 		// Type
 		for _, m := range f.MessageType {
 			// In descriptors, putting the dot in front means the name is fully-qualified.
-			fullyQualifiedName := fmt.Sprintf(".%s.%s", f.GetPackage(), m.GetName())
-			info.Type[fullyQualifiedName] = m
+			addMessage(info.Type, "."+f.GetPackage(), m)
+		}
+		for _, e := range f.EnumType {
+			info.Type["."+f.GetPackage()+"."+e.GetName()] = e
 		}
 
 		// Serv
@@ -68,6 +80,18 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 	}
 
 	return info
+}
+
+func addMessage(m map[string]ProtoType, prefix string, msg *descriptor.DescriptorProto) {
+	fullName := prefix + "." + msg.GetName()
+	m[fullName] = msg
+
+	for _, subMsg := range msg.NestedType {
+		addMessage(m, fullName, subMsg)
+	}
+	for _, subEnum := range msg.EnumType {
+		m[fullName+"."+subEnum.GetName()] = subEnum
+	}
 }
 
 type ImportSpec struct {

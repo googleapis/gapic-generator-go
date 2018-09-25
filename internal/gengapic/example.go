@@ -70,7 +70,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
-		p("req := &%s.%s{", inSpec.Name, *inType.Name)
+		p("req := &%s.%s{", inSpec.Name, inType.GetName())
 		p("  // TODO: Fill request struct fields.")
 		p("}")
 	}
@@ -150,7 +150,7 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 }
 
-func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType *descriptor.DescriptorProto, inSpec pbinfo.ImportSpec) {
+func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType pbinfo.ProtoType, inSpec pbinfo.ImportSpec) {
 	p := g.printf
 
 	p("stream, err := c.%s(ctx)", m.GetName())
