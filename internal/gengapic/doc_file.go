@@ -19,6 +19,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
@@ -71,7 +72,7 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error)
 	for _, s := range servs {
 		eOauth, err := proto.GetExtension(s.Options, annotations.E_Oauth)
 		if err != nil {
-			return nil, err
+			return nil, errors.E(err, "cannot find scopes for service: %q", s.GetName())
 		}
 		for _, sc := range eOauth.(*annotations.OAuth).Scopes {
 			scopeSet[sc] = true
