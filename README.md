@@ -30,7 +30,7 @@ Invocation
 The `go_gapic_opt` flag is necessary because we need to know where to generated file will live.
 The substring before the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
 The substring after the semicolon is the name of the package used in the `package` statement.
-Idiomatically the name is last element of the path but it needs not be.
+Idiomatically the name is last element of the path but it need not be.
 For instance, the last element of the path might be the package's version, and the package would benefit
 from a more descriptive name.
 
