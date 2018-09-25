@@ -21,7 +21,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/googleapis/gapic-generator-go/gengapic"
+	"github.com/googleapis/gapic-generator-go/internal/gengapic"
 )
 
 func main() {

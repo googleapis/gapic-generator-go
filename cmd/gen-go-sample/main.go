@@ -99,7 +99,7 @@ func main() {
 						log.Fatal(errors.E(err, "value set: %q", vs))
 					}
 					if err := gen.commit(!*nofmt); err != nil {
-						log.Fatal(errors.E(err, "value set: %q", vs))
+						log.Fatal(errors.E(err, "can't commit value set: %q", vs))
 					}
 				}
 			}
@@ -163,7 +163,7 @@ func (g *generator) commit(gofmt bool) error {
 	if gofmt {
 		b2, err := format.Source(b)
 		if err != nil {
-			return err
+			return errors.E(err, "syntax error, run with -nofmt to find out why?")
 		}
 		b = b2
 	}
@@ -216,11 +216,25 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		return errors.E(err, "can't import input type: %q", inType)
 	}
 
-	p("  req := %s.%s{", inSpec.Name, inType.GetName())
+	var itree initTree
 	for _, def := range valSet.Parameters.Defaults {
-		p("// %s", def)
+		if err := itree.Parse(def); err != nil {
+			return errors.E(err, "can't set default value: %q", def)
+		}
 	}
-	p("  }")
+	{
+		w := g.pt.Writer()
+
+		if _, err := w.Write([]byte("req := ")); err != nil {
+			return err
+		}
+		if err := itree.Print(g.pt.Writer()); err != nil {
+			return err
+		}
+		if _, err := w.Write([]byte{'\n'}); err != nil {
+			return err
+		}
+	}
 
 	// TODO(pongad): handle non-unary
 	p("  resp, err := c.%s(ctx, req)", methName)
