@@ -1,3 +1,5 @@
 /testdata/out
 perf.data*
 /cover.prof
+
+showcase-testdir
