@@ -4,8 +4,8 @@ func sampleMyMethod() {
 	ctx := context.Background()
 	c := mypackagepb.NewClient(ctx)
 
-req := TYPE{
-	A: TYPE{
+req := mypackagepb.InputType{
+	A: mypackagepb.AType{
 		X: 42,
 		Y: 3.14159,
 },

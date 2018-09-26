@@ -216,9 +216,11 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		return errors.E(err, "can't import input type: %q", inType)
 	}
 
-	var itree initTree
+	itree := initTree{
+		typ: initType{desc: inType},
+	}
 	for _, def := range valSet.Parameters.Defaults {
-		if err := itree.Parse(def); err != nil {
+		if err := itree.Parse(def, g.descInfo); err != nil {
 			return errors.E(err, "can't set default value: %q", def)
 		}
 	}
@@ -228,7 +230,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		if _, err := w.Write([]byte("req := ")); err != nil {
 			return err
 		}
-		if err := itree.Print(g.pt.Writer()); err != nil {
+		if err := itree.Print(g.pt.Writer(), g); err != nil {
 			return err
 		}
 		if _, err := w.Write([]byte{'\n'}); err != nil {
