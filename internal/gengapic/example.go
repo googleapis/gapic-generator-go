@@ -21,7 +21,7 @@ import (
 )
 
 func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
-	servName := reduceServName(*serv.Name, pkgName)
+	servName := pbinfo.ReduceServName(*serv.Name, pkgName)
 	p := g.printf
 
 	p("func ExampleNew%sClient() {", servName)

@@ -26,5 +26,6 @@ if [ -z $COMMON_PROTO ]; then
 fi
 
 ./gen-go-sample $* \
+  -clientpkg 'cloud.google.com/go/language/apiv1;language' \
   -gapic "$GOOGLEAPIS/google/cloud/language/v1/language_gapic.yaml" \
   -desc <(protoc -o /dev/stdout --include_imports -I "$COMMON_PROTO" -I "$GOOGLEAPIS" "$GOOGLEAPIS"/google/cloud/language/v1/*.proto)

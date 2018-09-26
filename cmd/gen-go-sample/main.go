@@ -38,17 +38,21 @@ import (
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
+	clientPkg := flag.String("clientpkg", "", "the package of the client, in format 'url/to/client/pkg;name'")
 	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
 	flag.Parse()
 
-	var (
-		gen = generator{
-			imports: map[pbinfo.ImportSpec]bool{},
-		}
+	gen := generator{
+		imports: map[pbinfo.ImportSpec]bool{},
+	}
 
-		donec = make(chan struct{})
-	)
+	if p := strings.IndexByte(*clientPkg, ';'); p >= 0 {
+		gen.clientPkg = pbinfo.ImportSpec{Path: (*clientPkg)[:p], Name: (*clientPkg)[p+1:]}
+	} else {
+		log.Fatalf("need -clientPkg in 'url/to/client/pkg;name' format, got %q", *clientPkg)
+	}
 
+	donec := make(chan struct{})
 	go func() {
 		f, err := os.Open(*gapicFname)
 		if err != nil {
@@ -95,6 +99,7 @@ func main() {
 					}
 
 					gen.reset()
+					gen.imports[gen.clientPkg] = true
 					if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
 						log.Fatal(errors.E(err, "value set: %q", vs))
 					}
@@ -111,6 +116,8 @@ type generator struct {
 	desc     descriptor.FileDescriptorSet
 	descInfo pbinfo.Info
 	gapic    GAPICConfig
+
+	clientPkg pbinfo.ImportSpec
 
 	pt      printer.P
 	imports map[pbinfo.ImportSpec]bool
@@ -177,11 +184,6 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		return errors.E(nil, "can't find service: %q", ifaceName)
 	}
 
-	servSpec, err := g.descInfo.ImportSpec(serv)
-	if err != nil {
-		return errors.E(err, "can't import service: %q", ifaceName)
-	}
-
 	var meth *descriptor.MethodDescriptorProto
 	for _, m := range serv.GetMethod() {
 		if m.GetName() == methName {
@@ -198,11 +200,9 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	p("// [START %s]", regTag)
 	p("")
 
-	// TODO(pongad): The package of the client is not the package of the service!
-	// TODO(pongad): properly reduce service name instead of hardcoding "NewClient"
 	p("func sample%s() {", methName)
 	p("  ctx := context.Background()")
-	p("  c := %s.%s(ctx)", servSpec.Name, "NewClient")
+	p("  c := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
@@ -257,7 +257,6 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	p("}")
 	p("")
 
-	g.imports[servSpec] = true
 	g.imports[inSpec] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	return nil

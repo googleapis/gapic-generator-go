@@ -45,6 +45,7 @@ func diff(t *testing.T, name, got, goldenFile string) {
 	}
 }
 
+// TODO(pongad): maybe we should baseline test the whole file.
 func TestSample(t *testing.T) {
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
@@ -62,7 +63,7 @@ func TestSample(t *testing.T) {
 	}
 
 	serv := &descriptor.ServiceDescriptorProto{
-		Name: proto.String("MyService"),
+		Name: proto.String("FooService"),
 		Method: []*descriptor.MethodDescriptorProto{
 			{
 				Name:      proto.String("MyMethod"),
@@ -72,12 +73,13 @@ func TestSample(t *testing.T) {
 	}
 	file := &descriptor.FileDescriptorProto{
 		Options: &descriptor.FileOptions{
-			GoPackage: proto.String("path/to/mypackage;mypackage"),
+			GoPackage: proto.String("path/to/foo;foo"),
 		},
 	}
 
 	g := generator{
-		imports: map[pbinfo.ImportSpec]bool{},
+		clientPkg: pbinfo.ImportSpec{Path: "path/to/foo", Name: "foo"},
+		imports:   map[pbinfo.ImportSpec]bool{},
 		descInfo: pbinfo.Info{
 			Serv: map[string]*descriptor.ServiceDescriptorProto{
 				".MyService": serv,

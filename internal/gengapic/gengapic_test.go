@@ -94,8 +94,8 @@ func TestReduceServName(t *testing.T) {
 
 		{"FooV2Bar", "", "FooV2Bar"},
 	} {
-		if got := reduceServName(tst.in, tst.pkg); got != tst.want {
-			t.Errorf("reduceServName(%q, %q) = %q, want %q", tst.in, tst.pkg, got, tst.want)
+		if got := pbinfo.ReduceServName(tst.in, tst.pkg); got != tst.want {
+			t.Errorf("pbinfo.ReduceServName(%q, %q) = %q, want %q", tst.in, tst.pkg, got, tst.want)
 		}
 	}
 }
@@ -110,8 +110,8 @@ func TestGRPCClientField(t *testing.T) {
 		{"FooServiceV2", "foo", "client"},
 		{"FooV2Bar", "", "fooV2BarClient"},
 	} {
-		if got := grpcClientField(reduceServName(tst.in, tst.pkg)); got != tst.want {
-			t.Errorf("grpcClientField(reduceServName(%q, %q)) = %q, want %q", tst.in, tst.pkg, got, tst.want)
+		if got := grpcClientField(pbinfo.ReduceServName(tst.in, tst.pkg)); got != tst.want {
+			t.Errorf("grpcClientField(pbinfo.ReduceServName(%q, %q)) = %q, want %q", tst.in, tst.pkg, got, tst.want)
 		}
 	}
 }
