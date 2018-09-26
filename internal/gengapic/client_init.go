@@ -63,9 +63,12 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		var retryables []string
 		for _, m := range serv.GetMethod() {
 			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-			if err != nil {
+			if err == proto.ErrMissingExtension {
 				// Some methods are not annotated, this is not an error.
 				continue
+			}
+			if err != nil {
+				return errors.E(err, "cannot read HTTP annotation")
 			}
 			// Generator spec mandates we should only retry on GET, unless there is an override.
 			// TODO(pongad): implement the override.
