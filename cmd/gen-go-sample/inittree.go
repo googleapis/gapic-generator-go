@@ -34,9 +34,8 @@ import (
 // initType treats a type in a way similar to how Go treats them,
 // so that it's easy to generate initialization code.
 type initType struct {
-	// If the type is a message, desc describes the message.
+	// If the type is a message or enum, desc describes the type.
 	// If the type is a primitive, primValid reports whether the token is valid for the type.
-	// TODO(pongad): desc probably won't work with enums.
 	desc      pbinfo.ProtoType
 	primValid func(string) bool
 }
@@ -160,6 +159,7 @@ func (t *initTree) Parse(txt string, info pbinfo.Info) error {
 
 	// TODO(pongad): handle resource names
 	// TODO(pongad): properly validate and print enums
+	// TODO(pongad): properly print oneof fields
 equal:
 	switch r := sc.Scan(); r {
 	case scanner.Int, scanner.Float, scanner.String, scanner.Ident:
