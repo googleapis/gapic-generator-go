@@ -80,7 +80,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
-		outFile := reduceServName(s.GetName(), "")
+		outFile := pbinfo.ReduceServName(s.GetName(), "")
 		outFile = camelToSnake(outFile)
 		outFile = filepath.Join(outDir, outFile)
 
@@ -241,7 +241,7 @@ func (g *generator) reset() {
 
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
-	servName := reduceServName(*serv.Name, pkgName)
+	servName := pbinfo.ReduceServName(*serv.Name, pkgName)
 	if err := g.clientOptions(serv, servName); err != nil {
 		return err
 	}
@@ -436,36 +436,9 @@ func (g *generator) comment(s string) {
 	}
 }
 
-// reduceServName removes redundant components from the service name.
-// For example, FooServiceV2 -> Foo.
-// The returned name is used as part of longer names, like FooClient.
-// If the package name and the service name is the same,
-// reduceServName returns empty string, so we get foo.Client instead of foo.FooClient.
-func reduceServName(svc, pkg string) string {
-	// remove trailing version
-	if p := strings.LastIndexByte(svc, 'V'); p >= 0 {
-		isVer := true
-		for _, r := range svc[p+1:] {
-			if !unicode.IsDigit(r) {
-				isVer = false
-				break
-			}
-		}
-		if isVer {
-			svc = svc[:p]
-		}
-	}
-
-	svc = strings.TrimSuffix(svc, "Service")
-	if strings.EqualFold(svc, pkg) {
-		svc = ""
-	}
-	return svc
-}
-
 // grpcClientField reports the field name to store gRPC client.
 func grpcClientField(reducedServName string) string {
-	// Not the same as reduceServName(*serv.Name, pkg)+"Client".
+	// Not the same as pbinfo.ReduceServName(*serv.Name, pkg)+"Client".
 	// If the service name is reduced to empty string, we should
 	// lower-case "client" so that the field is not exported.
 	return lowerFirst(reducedServName + "Client")

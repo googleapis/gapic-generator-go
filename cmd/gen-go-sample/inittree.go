@@ -208,7 +208,7 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	}
 	g.imports[impSpec] = true
 
-	fmt.Fprintf(w, "%s.%s{\n", impSpec.Name, desc.GetName())
+	fmt.Fprintf(w, "&%s.%s{\n", impSpec.Name, desc.GetName())
 	for i, k := range t.keys {
 		for i := 0; i < ind; i++ {
 			w.WriteByte('\t')

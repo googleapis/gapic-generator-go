@@ -18,6 +18,7 @@ package pbinfo
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -132,4 +133,31 @@ func (in *Info) ImportSpec(e proto.Message) (ImportSpec, error) {
 		}
 		return ImportSpec{Path: pkg, Name: elem + "pb"}, nil
 	}
+}
+
+// ReduceServName removes redundant components from the service name.
+// For example, FooServiceV2 -> Foo.
+// The returned name is used as part of longer names, like FooClient.
+// If the package name and the service name is the same,
+// ReduceServName returns empty string, so we get foo.Client instead of foo.FooClient.
+func ReduceServName(svc, pkg string) string {
+	// remove trailing version
+	if p := strings.LastIndexByte(svc, 'V'); p >= 0 {
+		isVer := true
+		for _, r := range svc[p+1:] {
+			if !unicode.IsDigit(r) {
+				isVer = false
+				break
+			}
+		}
+		if isVer {
+			svc = svc[:p]
+		}
+	}
+
+	svc = strings.TrimSuffix(svc, "Service")
+	if strings.EqualFold(svc, pkg) {
+		svc = ""
+	}
+	return svc
 }
