@@ -40,6 +40,15 @@ type Info struct {
 	// so we can figure out the import.
 	ParentFile map[proto.Message]*descriptor.FileDescriptorProto
 
+	// NOTE(pongad): ParentElement and sub-types are only used in samples.
+	// They are added in the shared package because they share a lot of similarities
+	// with things that are already here. Maybe revisit this in the future?
+
+	// Maps a protobuf element to the enclosing scope.
+	// If enum E is defined in message M which is in file F,
+	// ParentElement[E]=M, ParentElement[M]=nil, and ParentFile[M]=F
+	ParentElement map[ProtoType]ProtoType
+
 	// Maps type names to their messages.
 	Type map[string]ProtoType
 
@@ -50,15 +59,19 @@ type Info struct {
 // Of creates Info from given protobuf files.
 func Of(files []*descriptor.FileDescriptorProto) Info {
 	info := Info{
-		ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{},
-		Type:       map[string]ProtoType{},
-		Serv:       map[string]*descriptor.ServiceDescriptorProto{},
+		ParentFile:    map[proto.Message]*descriptor.FileDescriptorProto{},
+		ParentElement: map[ProtoType]ProtoType{},
+		Type:          map[string]ProtoType{},
+		Serv:          map[string]*descriptor.ServiceDescriptorProto{},
 	}
 
 	for _, f := range files {
 		// ParentFile
 		for _, m := range f.MessageType {
 			info.ParentFile[m] = f
+		}
+		for _, e := range f.EnumType {
+			info.ParentFile[e] = f
 		}
 		for _, s := range f.Service {
 			info.ParentFile[s] = f
@@ -67,7 +80,7 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 		// Type
 		for _, m := range f.MessageType {
 			// In descriptors, putting the dot in front means the name is fully-qualified.
-			addMessage(info.Type, "."+f.GetPackage(), m)
+			addMessage(info.Type, info.ParentElement, "."+f.GetPackage(), m, nil)
 		}
 		for _, e := range f.EnumType {
 			info.Type["."+f.GetPackage()+"."+e.GetName()] = e
@@ -83,15 +96,20 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 	return info
 }
 
-func addMessage(m map[string]ProtoType, prefix string, msg *descriptor.DescriptorProto) {
+func addMessage(typMap map[string]ProtoType, parentMap map[ProtoType]ProtoType, prefix string, msg, parentMsg *descriptor.DescriptorProto) {
 	fullName := prefix + "." + msg.GetName()
-	m[fullName] = msg
+	typMap[fullName] = msg
+	if parentMsg != nil {
+		parentMap[msg] = parentMsg
+	}
 
 	for _, subMsg := range msg.NestedType {
-		addMessage(m, fullName, subMsg)
+		addMessage(typMap, parentMap, fullName, subMsg, msg)
 	}
+
 	for _, subEnum := range msg.EnumType {
-		m[fullName+"."+subEnum.GetName()] = subEnum
+		typMap[fullName+"."+subEnum.GetName()] = subEnum
+		parentMap[subEnum] = msg
 	}
 }
 
