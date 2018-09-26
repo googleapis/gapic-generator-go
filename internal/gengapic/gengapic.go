@@ -263,7 +263,9 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		return aux.lros[i].GetName() < aux.lros[j].GetName()
 	})
 	for _, m := range aux.lros {
-		g.lroType(servName, m)
+		if err := g.lroType(servName, serv, m); err != nil {
+			return errors.E(err, "while generating LRO type for %q", m.GetName())
+		}
 	}
 
 	var iters []iterType
@@ -342,11 +344,11 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		servName, *m.Name, inSpec.Name, *inType.Name, outSpec.Name, *outType.Name)
+		servName, *m.Name, inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
 	g.insertMetadata()
 	g.appendCallOpts(m)
-	p("var resp *%s.%s", outSpec.Name, *outType.Name)
+	p("var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  resp, err = %s", grpcClientCall(servName, *m.Name))

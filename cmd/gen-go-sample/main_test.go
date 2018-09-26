@@ -88,7 +88,7 @@ func TestSample(t *testing.T) {
 				inType:         file,
 				aType:          file,
 			},
-			Type: map[string]*descriptor.DescriptorProto{
+			Type: map[string]pbinfo.ProtoType{
 				"InputType": inType,
 				"AType":     aType,
 			},
