@@ -37,7 +37,7 @@ type initType struct {
 	// If the type is a message, desc describes the message.
 	// If the type is a primitive, primValid reports whether the token is valid for the type.
 	// TODO(pongad): desc probably won't work with enums.
-	desc      *descriptor.DescriptorProto
+	desc      pbinfo.ProtoType
 	primValid func(string) bool
 }
 
@@ -64,8 +64,15 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		}
 	}
 
+	var fields []*descriptor.FieldDescriptorProto
+	if msg, ok := t.typ.desc.(*descriptor.DescriptorProto); ok {
+		fields = msg.Field
+	} else {
+		return nil, errors.E(nil, "type does not have fields: %T", t.typ.desc)
+	}
+
 	v := new(initTree)
-	for _, f := range t.typ.desc.Field {
+	for _, f := range fields {
 		if f.GetName() != k {
 			continue
 		}

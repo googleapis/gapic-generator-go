@@ -36,14 +36,14 @@ func TestTree(t *testing.T) {
 	}
 
 	info := pbinfo.Info{
-		Type: map[string]*descriptor.DescriptorProto{
-			"RootType": {
+		Type: map[string]pbinfo.ProtoType{
+			"RootType": &descriptor.DescriptorProto{
 				Field: []*descriptor.FieldDescriptorProto{
 					{Name: proto.String("a"), TypeName: proto.String("AType")},
 					{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BOOL)},
 				},
 			},
-			"AType": {
+			"AType": &descriptor.DescriptorProto{
 				Field: []*descriptor.FieldDescriptorProto{
 					{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
 					{Name: proto.String("c"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
@@ -87,8 +87,8 @@ func TestTree(t *testing.T) {
 
 func TestTreeErrors(t *testing.T) {
 	info := pbinfo.Info{
-		Type: map[string]*descriptor.DescriptorProto{
-			"RootType": {
+		Type: map[string]pbinfo.ProtoType{
+			"RootType": &descriptor.DescriptorProto{
 				Field: []*descriptor.FieldDescriptorProto{
 					{Name: proto.String("a"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
 				},
