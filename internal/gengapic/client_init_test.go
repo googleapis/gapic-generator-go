@@ -53,7 +53,7 @@ func TestClientOpt(t *testing.T) {
 	serv := &descriptor.ServiceDescriptorProto{
 		Method: []*descriptor.MethodDescriptorProto{
 			{Name: proto.String("Zip"), Options: &descriptor.MethodOptions{}},
-			{Name: proto.String("Zap")},
+			{Name: proto.String("Zap"), Options: &descriptor.MethodOptions{}},
 		},
 		Options: &descriptor.ServiceOptions{},
 	}

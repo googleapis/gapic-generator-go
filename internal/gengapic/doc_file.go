@@ -71,6 +71,9 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error)
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
 		eOauth, err := proto.GetExtension(s.Options, annotations.E_Oauth)
+		if err == proto.ErrMissingExtension {
+			continue
+		}
 		if err != nil {
 			return nil, errors.E(err, "cannot find scopes for service: %q", s.GetName())
 		}
