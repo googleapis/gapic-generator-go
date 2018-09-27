@@ -22,6 +22,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
 func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -60,11 +61,33 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// defaultCallOptions
 	{
-		var retryables []string
+		type methodCode struct {
+			method string
+			codes  []code.Code
+		}
+
+		var defaultRetry []string
+		var overrideRetry []methodCode
+
 		for _, m := range serv.GetMethod() {
+			if m.GetOptions() == nil {
+				// Some methods are not annotated, this is not an error.
+				continue
+			}
+
+			eRetry, err := proto.GetExtension(m.GetOptions(), annotations.E_Retry)
+			if err != proto.ErrMissingExtension {
+				if err != nil {
+					return errors.E(err, "cannot read retry annotation")
+				}
+				if codes := eRetry.(*annotations.Retry).Codes; len(codes) > 0 {
+					overrideRetry = append(overrideRetry, methodCode{m.GetName(), codes})
+				}
+				continue
+			}
+
 			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 			if err == proto.ErrMissingExtension {
-				// Some methods are not annotated, this is not an error.
 				continue
 			}
 			if err != nil {
@@ -73,35 +96,56 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			// Generator spec mandates we should only retry on GET, unless there is an override.
 			// TODO(pongad): implement the override.
 			if _, ok := eHttp.(*annotations.HttpRule).Pattern.(*annotations.HttpRule_Get); ok {
-				retryables = append(retryables, m.GetName())
+				defaultRetry = append(defaultRetry, m.GetName())
 			}
 		}
 
 		// TODO(pongad): read retry params from somewhere
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 
-		if len(retryables) > 0 {
-			p("retry := []gax.CallOption{")
-			p("  gax.WithRetry(func() gax.Retryer {")
-			p("    return gax.OnCodes([]codes.Code{")
-			p("      codes.Internal,")
-			p("      codes.Unavailable,")
-			p("    }, gax.Backoff{")
-			p("      Initial: 100 * time.Millisecond,")
-			p("      Max: time.Minute,")
-			p("      Multiplier: 1.3,")
-			p("    })")
-			p("  }),")
+		if len(defaultRetry) > 0 || len(overrideRetry) > 0 {
+			p("backoff := gax.Backoff{")
+			p("  Initial: 100 * time.Millisecond,")
+			p("  Max: time.Minute,")
+			p("  Multiplier: 1.3,")
 			p("}")
-			p("")
 
 			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
 		}
 
+		if len(defaultRetry) > 0 {
+			p("retry := []gax.CallOption{")
+			p("  gax.WithRetry(func() gax.Retryer {")
+			p("    return gax.OnCodes([]codes.Code{")
+			p("      codes.Internal,")
+			p("      codes.Unavailable,")
+			p("    }, backoff)")
+			p("  }),")
+			p("}")
+			p("")
+
+		}
+
 		p("  return &%sCallOptions{", servName)
-		for _, m := range retryables {
+		for _, m := range defaultRetry {
 			p("%s: retry,", m)
+		}
+		for _, retry := range overrideRetry {
+			p("%s: []gax.CallOption{", retry.method)
+			p("  gax.WithRetry(func() gax.Retryer {")
+			p("    return gax.OnCodes([]codes.Code{")
+			for _, c := range retry.codes {
+				if c == code.Code_CANCELLED {
+					// Go uses one 'l' spelling.
+					p("codes.Canceled,")
+				} else {
+					p("codes.%s,", snakeToCamel(c.String()))
+				}
+			}
+			p("    }, backoff)")
+			p("  }),")
+			p("},")
 		}
 		p("  }")
 		p("}")
