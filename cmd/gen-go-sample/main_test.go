@@ -16,7 +16,6 @@ package main
 
 import (
 	"flag"
-	"hash/crc32"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -47,7 +46,6 @@ func diff(t *testing.T, name, got, goldenFile string) {
 	}
 }
 
-// TODO(pongad): maybe we should baseline test the whole file.
 func TestSample(t *testing.T) {
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
@@ -117,7 +115,7 @@ func TestSample(t *testing.T) {
 
 	// Don't format. Format can change with Go version.
 	gofmt := false
-	year := int(crc32.ChecksumIEEE([]byte("gopher samples")))
+	year := 2018
 	if err := g.commit(gofmt, year, &sb); err != nil {
 		t.Fatal(err)
 	}
