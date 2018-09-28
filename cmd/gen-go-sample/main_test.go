@@ -18,6 +18,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -45,7 +46,6 @@ func diff(t *testing.T, name, got, goldenFile string) {
 	}
 }
 
-// TODO(pongad): maybe we should baseline test the whole file.
 func TestSample(t *testing.T) {
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
@@ -80,12 +80,12 @@ func TestSample(t *testing.T) {
 	}
 	file := &descriptor.FileDescriptorProto{
 		Options: &descriptor.FileOptions{
-			GoPackage: proto.String("path/to/foo;foo"),
+			GoPackage: proto.String("path/to/pb/foo;foo"),
 		},
 	}
 
 	g := generator{
-		clientPkg: pbinfo.ImportSpec{Path: "path/to/foo", Name: "foo"},
+		clientPkg: pbinfo.ImportSpec{Path: "path/to/client/foo", Name: "foo"},
 		imports:   map[pbinfo.ImportSpec]bool{},
 		descInfo: pbinfo.Info{
 			Serv: map[string]*descriptor.ServiceDescriptorProto{
@@ -122,5 +122,14 @@ func TestSample(t *testing.T) {
 	if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
-	diff(t, "TestSample", string(g.pt.Bytes()), filepath.Join("testdata", "sample.want"))
+
+	var sb strings.Builder
+
+	// Don't format. Format can change with Go version.
+	gofmt := false
+	year := 2018
+	if err := g.commit(gofmt, year, &sb); err != nil {
+		t.Fatal(err)
+	}
+	diff(t, "TestSample", sb.String(), filepath.Join("testdata", "sample.want"))
 }

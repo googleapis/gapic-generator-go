@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"go/format"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -99,11 +100,10 @@ func main() {
 					}
 
 					gen.reset()
-					gen.imports[gen.clientPkg] = true
 					if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
 						log.Fatal(errors.E(err, "value set: %q", vs))
 					}
-					if err := gen.commit(!*nofmt); err != nil {
+					if err := gen.commit(!*nofmt, time.Now().Year(), os.Stdout); err != nil {
 						log.Fatal(errors.E(err, "can't commit value set: %q", vs))
 					}
 				}
@@ -130,7 +130,7 @@ func (g *generator) reset() {
 	}
 }
 
-func (g *generator) commit(gofmt bool) error {
+func (g *generator) commit(gofmt bool, year int, w io.Writer) error {
 	// We'll gofmt unless user asks us to not, so no need to think too hard about sorting
 	// "correctly". We just want a deterministic output here.
 	var imports []pbinfo.ImportSpec
@@ -154,7 +154,7 @@ func (g *generator) commit(gofmt bool) error {
 	firstNonStd := sort.Search(len(imports), func(i int) bool { return strings.IndexByte(imports[i].Path, '.') >= 0 })
 
 	var file bytes.Buffer
-	fmt.Fprintf(&file, license.Apache, time.Now().Year())
+	fmt.Fprintf(&file, license.Apache, year)
 	file.WriteString("package main\n")
 	file.WriteString("import(\n")
 	for i, imp := range imports {
@@ -174,11 +174,12 @@ func (g *generator) commit(gofmt bool) error {
 		}
 		b = b2
 	}
-	_, err := os.Stdout.Write(b)
+	_, err := w.Write(b)
 	return err
 }
 
 func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleValueSet) error {
+	g.imports[g.clientPkg] = true
 	serv := g.descInfo.Serv["."+ifaceName]
 	if serv == nil {
 		return errors.E(nil, "can't find service: %q", ifaceName)
