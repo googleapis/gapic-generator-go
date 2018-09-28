@@ -2,6 +2,7 @@
 type CallOptions struct {
 	Zip []gax.CallOption
 	Zap []gax.CallOption
+	Smack []gax.CallOption
 }
 
 func defaultClientOptions() []option.ClientOption {
@@ -12,21 +13,30 @@ func defaultClientOptions() []option.ClientOption {
 }
 
 func defaultCallOptions() *CallOptions {
+	backoff := gax.Backoff{
+		Initial: 100 * time.Millisecond,
+		Max: time.Minute,
+		Multiplier: 1.3,
+	}
 	retry := []gax.CallOption{
 		gax.WithRetry(func() gax.Retryer {
 			return gax.OnCodes([]codes.Code{
 				codes.Internal,
 				codes.Unavailable,
-			}, gax.Backoff{
-				Initial: 100 * time.Millisecond,
-				Max: time.Minute,
-				Multiplier: 1.3,
-			})
+			}, backoff)
 		}),
 	}
 
 	return &CallOptions{
 		Zip: retry,
+		Zap: []gax.CallOption{
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.NotFound,
+					codes.Canceled,
+				}, backoff)
+			}),
+		},
 	}
 }
 

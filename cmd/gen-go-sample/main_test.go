@@ -52,6 +52,7 @@ func TestSample(t *testing.T) {
 		Field: []*descriptor.FieldDescriptorProto{
 			{Name: proto.String("a"), TypeName: proto.String("AType")},
 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+			{Name: proto.String("e"), TypeName: proto.String("EType")},
 		},
 	}
 	aType := &descriptor.DescriptorProto{
@@ -59,6 +60,12 @@ func TestSample(t *testing.T) {
 		Field: []*descriptor.FieldDescriptorProto{
 			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
 			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
+		},
+	}
+	eType := &descriptor.EnumDescriptorProto{
+		Name: proto.String("EType"),
+		Value: []*descriptor.EnumValueDescriptorProto{
+			{Name: proto.String("FOO")},
 		},
 	}
 
@@ -90,9 +97,13 @@ func TestSample(t *testing.T) {
 				inType:         file,
 				aType:          file,
 			},
+			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
+				eType: aType,
+			},
 			Type: map[string]pbinfo.ProtoType{
 				"InputType": inType,
 				"AType":     aType,
+				"EType":     eType,
 			},
 		},
 	}
@@ -104,6 +115,7 @@ func TestSample(t *testing.T) {
 				`a.x = 42`,
 				`a.y = 3.14159`,
 				`b = "foobar"`,
+				`e = FOO`,
 			},
 		},
 	}

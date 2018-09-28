@@ -25,6 +25,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
 var updateGolden = flag.Bool("update_golden", false, "update golden files")
@@ -54,16 +55,24 @@ func TestClientOpt(t *testing.T) {
 		Method: []*descriptor.MethodDescriptorProto{
 			{Name: proto.String("Zip"), Options: &descriptor.MethodOptions{}},
 			{Name: proto.String("Zap"), Options: &descriptor.MethodOptions{}},
+			{Name: proto.String("Smack"), Options: &descriptor.MethodOptions{}},
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
 	if err := proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.bar.com")); err != nil {
 		t.Fatal(err)
 	}
+
+	// Test some annotations
 	if err := proto.SetExtension(serv.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: "/zip",
 		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := proto.SetExtension(serv.Method[1].Options, annotations.E_Retry, &annotations.Retry{
+		Codes: []code.Code{code.Code_NOT_FOUND, code.Code_CANCELLED},
 	}); err != nil {
 		t.Fatal(err)
 	}

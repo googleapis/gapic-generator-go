@@ -33,6 +33,7 @@ req := &foopb.InputType{
 		Y: 3.14159,
 },
 	B: "foobar",
+	E: foopb.AType_FOO,
 }
 	resp, err := c.MyMethod(ctx, req)
 	if err != nil {
