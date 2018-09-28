@@ -475,6 +475,7 @@ func camelToSnake(s string) string {
 	return sb.String()
 }
 
+// snakeToCamel converts snake_case and SNAKE_CASE to CamelCase.
 func snakeToCamel(s string) string {
 	var sb strings.Builder
 	up := true
@@ -485,7 +486,7 @@ func snakeToCamel(s string) string {
 			sb.WriteRune(unicode.ToUpper(r))
 			up = false
 		} else {
-			sb.WriteRune(r)
+			sb.WriteRune(unicode.ToLower(r))
 		}
 	}
 	return sb.String()
