@@ -34,10 +34,15 @@ import (
 // initType treats a type in a way similar to how Go treats them,
 // so that it's easy to generate initialization code.
 type initType struct {
-	// If the type is a message or enum, desc describes the type.
-	// If the type is a primitive, primValid reports whether the token is valid for the type.
-	desc      pbinfo.ProtoType
-	primValid func(string) bool
+	// If the type is a message, desc describes the type.
+	// If the type is a leaf value, valValid reports whether the token is valid for the type.
+	desc     pbinfo.ProtoType
+	valValid func(string) bool
+
+	// valFmt, if not nil, post-processes values to be included into init struct.
+	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
+	// to deal with enums and oneofs. Time will tell.
+	valFmt func(*generator, string) (string, error)
 }
 
 // initTree represents a node in the initialization tree.
@@ -76,28 +81,31 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 			continue
 		}
 
-		if tn := f.GetTypeName(); tn != "" {
-			typ := info.Type[f.GetTypeName()]
-			if typ == nil {
-				return nil, errors.E(nil, "cannot find descriptor of %q", f.GetTypeName())
-			}
-			v.typ.desc = typ
-		} else {
+		if tn := f.GetTypeName(); tn == "" {
+			// We're a primitive type.
+
 			// Since the tokens are given to us by scanner, they must already be a valid token of some type,
 			// no need to check exhaustively.
 			switch f.GetType() {
 			case descriptor.FieldDescriptorProto_TYPE_BOOL:
-				v.typ.primValid = func(s string) bool { return s == "true" || s == "false" }
+				v.typ.valValid = func(s string) bool { return s == "true" || s == "false" }
 			case descriptor.FieldDescriptorProto_TYPE_BYTES, descriptor.FieldDescriptorProto_TYPE_STRING:
-				v.typ.primValid = func(s string) bool { return s[0] == '"' }
+				v.typ.valValid = func(s string) bool { return s[0] == '"' }
 			case descriptor.FieldDescriptorProto_TYPE_DOUBLE, descriptor.FieldDescriptorProto_TYPE_FLOAT:
-				v.typ.primValid = func(s string) bool { return s == "inf" || s == "nan" || strings.Trim(s, "+-.0123456789") == "" }
+				v.typ.valValid = func(s string) bool { return s == "inf" || s == "nan" || strings.Trim(s, "+-.0123456789") == "" }
 			default:
-				v.typ.primValid = func(s string) bool { return strings.Trim(s, "0123456789") == "" }
+				v.typ.valValid = func(s string) bool { return strings.Trim(s, "0123456789") == "" }
 			}
+		} else if typ := info.Type[tn]; typ == nil {
+			return nil, errors.E(nil, "cannot find descriptor of %q", f.GetTypeName())
+		} else if enum, ok := typ.(*descriptor.EnumDescriptorProto); ok {
+			v.typ.valValid, v.typ.valFmt = describeEnum(info, enum)
+		} else {
+			// type is a message
+			v.typ.desc = typ
 		}
 	}
-	if v.typ.desc == nil && v.typ.primValid == nil {
+	if v.typ.desc == nil && v.typ.valValid == nil {
 		return nil, errors.E(nil, "type %q does not have field %q", t.typ.desc.GetName(), k)
 	}
 
@@ -158,7 +166,6 @@ func (t *initTree) Parse(txt string, info pbinfo.Info) error {
 	}
 
 	// TODO(pongad): handle resource names
-	// TODO(pongad): properly validate and print enums
 	// TODO(pongad): properly print oneof fields
 equal:
 	switch r := sc.Scan(); r {
@@ -166,12 +173,12 @@ equal:
 		if lv := t.leafVal; lv != "" {
 			return report(errors.E(nil, "value already set to %q", lv))
 		}
-		if t.typ.primValid == nil {
-			return report(errors.E(nil, "not a primitive field"))
+		if t.typ.valValid == nil {
+			return report(errors.E(nil, "not a leaf field"))
 		}
 
 		tok := sc.TokenText()
-		if !t.typ.primValid(tok) {
+		if !t.typ.valValid(tok) {
 			// TODO(pongad): we should probably tell user what type the field is.
 			return report(errors.E(nil, "invalid value for type: %q", tok))
 		}
@@ -197,6 +204,13 @@ func (t *initTree) Print(w io.Writer, g *generator) error {
 
 func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	if v := t.leafVal; v != "" {
+		if vf := t.typ.valFmt; vf != nil {
+			v2, err := vf(g, v)
+			if err != nil {
+				return err
+			}
+			v = v2
+		}
 		w.WriteString(v)
 		return nil
 	}
