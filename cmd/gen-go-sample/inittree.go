@@ -99,44 +99,7 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		} else if typ := info.Type[tn]; typ == nil {
 			return nil, errors.E(nil, "cannot find descriptor of %q", f.GetTypeName())
 		} else if enum, ok := typ.(*descriptor.EnumDescriptorProto); ok {
-			v.typ.valValid = func(s string) bool {
-				for _, enumVal := range enum.Value {
-					if s == enumVal.GetName() {
-						return true
-					}
-				}
-				return false
-			}
-
-			// TODO(pongad): we probably need this for nested messages too.
-			v.typ.valFmt = func(g *generator, s string) (string, error) {
-				var element pbinfo.ProtoType = enum
-				var topElement pbinfo.ProtoType
-				var parts []string
-
-				for ; element != nil; element = info.ParentElement[element] {
-					parts = append(parts, element.GetName())
-					topElement = element
-				}
-
-				// An enum is scoped using C++ rule. If MessageType contains EnumType,
-				// then elements are accessed as MessageType.Element, not MessageType.EnumType.Element.
-				// TODO(pongad): figure out what happens with top-level enum.
-				parts = parts[1:]
-
-				// We made array in [child, parent, grandparent] order, we want grandparent fist.
-				for i := 0; i < len(parts)/2; i++ {
-					parts[i], parts[len(parts)-1-i] = parts[len(parts)-1-i], parts[i]
-				}
-
-				impSpec, err := info.ImportSpec(topElement)
-				if err != nil {
-					return "", err
-				}
-				g.imports[impSpec] = true
-
-				return impSpec.Name + "." + strings.Join(parts, "_") + "_" + s, nil
-			}
+			v.typ.valValid, v.typ.valFmt = describeEnum(info, enum)
 		} else {
 			// type is a message
 			v.typ.desc = typ
