@@ -18,6 +18,7 @@ package main
 import(
  "context"
  "fmt"
+ "log"
 foo "path/to/client/foo"
 foopb "path/to/pb/foo"
 )
@@ -25,7 +26,10 @@ foopb "path/to/pb/foo"
 
 func sampleMyMethod() {
 	ctx := context.Background()
-	c := foo.NewClient(ctx)
+	c, err := foo.NewClient(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 req := &foopb.InputType{
 	A: &foopb.AType{
