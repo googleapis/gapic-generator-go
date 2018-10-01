@@ -41,7 +41,7 @@ type initType struct {
 
 	// valFmt, if not nil, post-processes values to be included into init struct.
 	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
-	// to deal with enums and oneofs. Time will tell.
+	// to deal with enums and bytes. Time will tell.
 	valFmt func(*generator, string) (string, error)
 }
 
@@ -166,7 +166,6 @@ func (t *initTree) Parse(txt string, info pbinfo.Info) error {
 	}
 
 	// TODO(pongad): handle resource names
-	// TODO(pongad): properly print oneof fields
 equal:
 	switch r := sc.Scan(); r {
 	case scanner.Int, scanner.Float, scanner.String, scanner.Ident:
@@ -222,15 +221,39 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	}
 	g.imports[impSpec] = true
 
+	// map field name to oneof name
+	var oneofs map[string]string
+	if msg, ok := desc.(*descriptor.DescriptorProto); ok {
+		oneofs = map[string]string{}
+		for _, f := range msg.Field {
+			if f.OneofIndex != nil {
+				oneofs[f.GetName()] = msg.OneofDecl[*f.OneofIndex].GetName()
+			}
+		}
+	}
+
 	fmt.Fprintf(w, "&%s.%s{\n", impSpec.Name, desc.GetName())
 	for i, k := range t.keys {
 		for i := 0; i < ind; i++ {
 			w.WriteByte('\t')
 		}
-		snakeToCapCamel(w, k)
+
+		var closeBrace bool
+		if oneof, ok := oneofs[k]; ok {
+			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToCapCamel(oneof), impSpec.Name, desc.GetName(), snakeToCapCamel(k))
+			closeBrace = true
+			ind++
+		}
+		w.WriteString(snakeToCapCamel(k))
+
 		w.WriteString(": ")
 		if err := t.vals[i].print(w, g, ind+1); err != nil {
 			return err
+		}
+
+		if closeBrace {
+			ind--
+			w.WriteString(",\n}")
 		}
 		w.WriteString(",\n")
 	}
@@ -238,16 +261,18 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	return nil
 }
 
-func snakeToCapCamel(w *bufio.Writer, s string) {
+func snakeToCapCamel(s string) string {
+	var sb strings.Builder
 	cap := true
 	for _, r := range s {
 		if r == '_' {
 			cap = true
 		} else if cap {
 			cap = false
-			w.WriteRune(unicode.ToUpper(r))
+			sb.WriteRune(unicode.ToUpper(r))
 		} else {
-			w.WriteRune(r)
+			sb.WriteRune(r)
 		}
 	}
+	return sb.String()
 }
