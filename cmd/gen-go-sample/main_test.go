@@ -49,10 +49,14 @@ func diff(t *testing.T, name, got, goldenFile string) {
 func TestSample(t *testing.T) {
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
+		OneofDecl: []*descriptor.OneofDescriptorProto{
+			{Name: proto.String("Group")},
+		},
 		Field: []*descriptor.FieldDescriptorProto{
 			{Name: proto.String("a"), TypeName: proto.String("AType")},
 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 			{Name: proto.String("e"), TypeName: proto.String("EType")},
+			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
 		},
 	}
 	aType := &descriptor.DescriptorProto{
@@ -116,6 +120,7 @@ func TestSample(t *testing.T) {
 				`a.y = 3.14159`,
 				`b = "foobar"`,
 				`e = FOO`,
+				`f = "in a oneof"`,
 			},
 		},
 	}
