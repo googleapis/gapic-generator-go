@@ -205,6 +205,18 @@ func TestGenMethod(t *testing.T) {
 			OutputType: proto.String(".my.pkg.PageOutputType"),
 		},
 		{
+			Name:            proto.String("ServerThings"),
+			InputType:       proto.String(".my.pkg.InputType"),
+			OutputType:      proto.String(".my.pkg.OutputType"),
+			ServerStreaming: proto.Bool(true),
+		},
+		{
+			Name:            proto.String("ClientThings"),
+			InputType:       proto.String(".my.pkg.InputType"),
+			OutputType:      proto.String(".my.pkg.OutputType"),
+			ClientStreaming: proto.Bool(true),
+		},
+		{
 			Name:            proto.String("BidiThings"),
 			InputType:       proto.String(".my.pkg.InputType"),
 			OutputType:      proto.String(".my.pkg.OutputType"),
