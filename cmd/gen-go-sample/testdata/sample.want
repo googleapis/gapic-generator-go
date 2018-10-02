@@ -31,9 +31,12 @@ req := &foopb.InputType{
 	A: &foopb.AType{
 		X: 42,
 		Y: 3.14159,
-},
+	},
 	B: "foobar",
 	E: foopb.AType_FOO,
+	Group: &foopb.InputType_F{
+		F: "in a oneof",
+	},
 }
 	resp, err := c.MyMethod(ctx, req)
 	if err != nil {
