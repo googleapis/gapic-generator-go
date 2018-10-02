@@ -194,7 +194,7 @@ equal:
 
 func (t *initTree) Print(w io.Writer, g *generator) error {
 	bw := bufio.NewWriter(w)
-	err := t.print(bw, g, 1)
+	err := t.print(bw, g, 0)
 	if err2 := bw.Flush(); err == nil {
 		err = err2
 	}
@@ -232,17 +232,21 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		}
 	}
 
-	fmt.Fprintf(w, "&%s.%s{\n", impSpec.Name, desc.GetName())
-	for i, k := range t.keys {
-		for i := 0; i < ind; i++ {
+	indent := func(j int) {
+		for i := 0; i < j; i++ {
 			w.WriteByte('\t')
 		}
+	}
+
+	fmt.Fprintf(w, "&%s.%s{\n", impSpec.Name, desc.GetName())
+	for i, k := range t.keys {
+		indent(ind + 1)
 
 		var closeBrace bool
 		if oneof, ok := oneofs[k]; ok {
 			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToCapCamel(oneof), impSpec.Name, desc.GetName(), snakeToCapCamel(k))
 			closeBrace = true
-			ind++
+			indent(ind + 2)
 		}
 		w.WriteString(snakeToCapCamel(k))
 
@@ -252,11 +256,13 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		}
 
 		if closeBrace {
-			ind--
-			w.WriteString(",\n}")
+			w.WriteString(",\n")
+			indent(ind + 1)
+			w.WriteByte('}')
 		}
 		w.WriteString(",\n")
 	}
+	indent(ind)
 	w.WriteString("}")
 	return nil
 }
