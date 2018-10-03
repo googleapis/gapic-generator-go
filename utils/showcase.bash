@@ -16,11 +16,16 @@
 
 set -e
 
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+	echo >&2 "don't source; execute the script instead"
+	return
+fi
+
 # Setup a test workspace. We gitignore this.
 rm -rf showcase-testdir
 mkdir showcase-testdir/
 
-pushd showcase-testdir
+cd showcase-testdir
 go mod init showcase-test
 
 protoc \
@@ -47,11 +52,12 @@ curl -sSL https://raw.githubusercontent.com/googleapis/gapic-generator/753ff9d8a
 # where OUT is the directory passed to protoc. Prior to Go 1.11, we set OUT=$GOPATH/src.
 # This works well because that's where we expect to find the package a/b/c.
 #
-# This plays badly with modules however. If our module name is $MODULE, and we set $OUT to the module root,
-# we generate the files to $OUT/a/b/c, but the import path of this package would actually be $MODULE/a/b/c.
-# We have to rewrite imports to keep this working.
+# This plays badly with modules however. In `go mod init` above, we set our module name to "showcase-test",
+# and set module root to showcase-testdir (because that's where the file is). If we set OUT=showcase-testdir,
+# we generate the files to showcase-testdir/a/b/c, but the import path of this package would actually be showcase-testdir/a/b/c,
+# not a/b/c as expected from the previous paragraph. We have to rewrite imports to keep this working.
 #
-# We copy this behavior from protoc-gen-go, so they're probably having the same problem. Therefore...
+# We copy this behavior from protoc-gen-go, so they're probably having the same problem with modules. Therefore...
 # TODO(pongad): figure out what protoc-gen-go is doing to solve this then do the same thing.
 find -name '*.go' | xargs sed -i 's,cloud.google.com/go/internal/version,showcase-test/&,g'
 find -name '*.go' | xargs sed -i 's,cloud.google.com/go/showcase/apiv1alpha2,showcase-test/&,g'
