@@ -84,12 +84,12 @@ func TestSample(t *testing.T) {
 	}
 	file := &descriptor.FileDescriptorProto{
 		Options: &descriptor.FileOptions{
-			GoPackage: proto.String("path/to/pb/foo;foo"),
+			GoPackage: proto.String("path.to/pb/foo;foo"),
 		},
 	}
 
 	g := generator{
-		clientPkg: pbinfo.ImportSpec{Path: "path/to/client/foo", Name: "foo"},
+		clientPkg: pbinfo.ImportSpec{Path: "path.to/client/foo", Name: "foo"},
 		imports:   map[pbinfo.ImportSpec]bool{},
 		descInfo: pbinfo.Info{
 			Serv: map[string]*descriptor.ServiceDescriptorProto{

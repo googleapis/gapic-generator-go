@@ -19,8 +19,9 @@ import(
  "context"
  "fmt"
  "log"
-foo "path/to/client/foo"
-foopb "path/to/pb/foo"
+
+foo "path.to/client/foo"
+foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
