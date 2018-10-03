@@ -37,7 +37,13 @@ type SampleValueSet struct {
 }
 
 type SampleParameter struct {
-	Defaults []string
+	Defaults   []string
+	Attributes []SampleAttribute
+}
+
+type SampleAttribute struct {
+	Parameter      string
+	SampleArgument bool `yaml:"sample_argument"`
 }
 
 type GAPICSample struct {

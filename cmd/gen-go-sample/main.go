@@ -101,10 +101,10 @@ func main() {
 
 					gen.reset()
 					if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
-						log.Fatal(errors.E(err, "value set: %q", vs))
+						log.Fatal(errors.E(err, "value set: %q", vs.ID))
 					}
 					if err := gen.commit(!*nofmt, time.Now().Year(), os.Stdout); err != nil {
-						log.Fatal(errors.E(err, "can't commit value set: %q", vs))
+						log.Fatal(errors.E(err, "can't commit value set: %q", vs.ID))
 					}
 				}
 			}
@@ -196,18 +196,6 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		return errors.E(nil, "service %q doesn't have method %q", serv.GetName(), methName)
 	}
 
-	p := g.pt.Printf
-
-	p("// [START %s]", regTag)
-	p("")
-
-	p("func sample%s() {", methName)
-	p("  ctx := context.Background()")
-	p("  c := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
-	p("")
-	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-
-	// TODO(pongad): properly create the request.
 	inType := g.descInfo.Type[meth.GetInputType()]
 	if inType == nil {
 		return errors.E(nil, "can't find input type %q", meth.GetInputType())
@@ -217,14 +205,67 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		return errors.E(err, "can't import input type: %q", inType)
 	}
 
+	var (
+		argNames []string
+		argTrees []*initTree
+	)
+
 	itree := initTree{
 		typ: initType{desc: inType},
 	}
 	for _, def := range valSet.Parameters.Defaults {
-		if err := itree.Parse(def, g.descInfo); err != nil {
+		if err := itree.parseInit(def, g.descInfo); err != nil {
 			return errors.E(err, "can't set default value: %q", def)
 		}
 	}
+	for i, attr := range valSet.Parameters.Attributes {
+		if !attr.SampleArgument {
+			continue
+		}
+		name := fmt.Sprintf("arg%d", i)
+		subTree, err := itree.parseSampleArgPath(attr.Parameter, g.descInfo, name)
+		if err != nil {
+			return errors.E(err, "can't set sample function argument: %q", attr.Parameter)
+		}
+
+		argNames = append(argNames, name)
+		argTrees = append(argTrees, subTree)
+	}
+
+	p := g.pt.Printf
+
+	p("// [START %s]", regTag)
+	p("")
+
+	var argStr string
+	if len(argNames) > 0 {
+		argStr = strings.Join(argNames, ",") + " string"
+	}
+
+	p("func sample%s(%s) {", methName, argStr)
+	p("  ctx := context.Background()")
+	p("  c := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
+	p("")
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+
+	for i, name := range argNames {
+		var sb strings.Builder
+		fmt.Fprintf(&sb, "// %s := ", name)
+		if err := argTrees[i].Print(&sb, g); err != nil {
+			return err
+		}
+		s := sb.String()
+		s = strings.Replace(s, "\n", "\n//", -1)
+
+		w := g.pt.Writer()
+		if _, err := w.Write([]byte(s)); err != nil {
+			return err
+		}
+		if _, err := w.Write([]byte{'\n'}); err != nil {
+			return err
+		}
+	}
+
 	{
 		w := g.pt.Writer()
 
@@ -254,11 +295,25 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	p("")
 
 	p("func main() {")
-	p("  sample%s()", methName)
+	p("  flag.Parse()")
+	p("  sample%s(%s)", methName, flagArgs(len(argNames)))
 	p("}")
 	p("")
 
 	g.imports[inSpec] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "flag"}] = true
 	return nil
+}
+
+func flagArgs(n int) string {
+	if n == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	for i := 0; i < n; i++ {
+		fmt.Fprintf(&sb, ", flag.Arg(%d)", i)
+	}
+	return sb.String()[2:]
 }

@@ -57,7 +57,7 @@ func TestTree(t *testing.T) {
 		typ: initType{desc: info.Type["RootType"]},
 	}
 	for _, s := range specs {
-		if err := root.Parse(s, info); err != nil {
+		if err := root.parseInit(s, info); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -106,7 +106,7 @@ testcase:
 	} {
 		root := initTree{typ: initType{desc: info.Type["RootType"]}}
 		for _, txt := range tst {
-			if root.Parse(txt, info) != nil {
+			if root.parseInit(txt, info) != nil {
 				continue testcase
 			}
 		}
