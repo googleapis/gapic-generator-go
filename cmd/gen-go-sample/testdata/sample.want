@@ -17,6 +17,7 @@
 package main
 import(
  "context"
+ "flag"
  "fmt"
  "log"
 
@@ -25,16 +26,17 @@ foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleMyMethod() {
+func sampleMyMethod(arg0 string) {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+// arg0 := 42
 req := &foopb.InputType{
 	A: &foopb.AType{
-		X: 42,
+		X: arg0,
 		Y: 3.14159,
 	},
 	B: "foobar",
@@ -53,6 +55,7 @@ req := &foopb.InputType{
 // [END awesome_region]
 
 func main() {
-	sampleMyMethod()
+	flag.Parse()
+	sampleMyMethod(flag.Arg(0))
 }
 
