@@ -117,56 +117,22 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 // Just do simple structs for now.
 // TODO(pongad): allow map and array index.
 //
-// spec = ident { '.' ident } [ '=' value ] .
-func (t *initTree) Parse(txt string, info pbinfo.Info) error {
-	var sc scanner.Scanner
-
+// spec = path [ '=' value ] .
+func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 	// The first ident is treated specially to be a member of the root.
 	// Since we know the root is a struct, a dot is the only legal token anyway,
 	// so just insert a dot here so we don't need to treat the first token specially.
-	sc.Init(strings.NewReader("." + txt))
-	sc.Mode = scanner.ScanIdents | scanner.ScanInts | scanner.ScanFloats | scanner.ScanStrings
+	sc, report := initScanner("." + txt)
 
-	// Scanner reports error by calling sc.Error; we save the error so we always report
-	// the first.
-	var err error
-	report := func(e error) error {
-		if err == nil {
-			err = e
-		}
-		return err
+	t, r, err := t.parsePath(sc, info)
+	if err != nil {
+		return report(err)
 	}
-	sc.Error = func(_ *scanner.Scanner, msg string) {
-		e := errors.E(nil, msg)
-		e = errors.E(e, "while scaning: %q", txt)
-		report(e)
-	}
-
-	for {
-		switch sc.Scan() {
-		case '=':
-			goto equal
-		case scanner.EOF:
-			// TODO: set t.leafVal to zero value of type.
-			return report(nil)
-
-		case '.':
-			if sc.Scan() != scanner.Ident {
-				return report(errors.E(nil, "expected ident, found %q", sc.TokenText()))
-			}
-			if t2, err := t.get(sc.TokenText(), info); err != nil {
-				return report(err)
-			} else {
-				t = t2
-			}
-
-		default:
-			return report(errors.E(nil, "unexpected %q", sc.TokenText()))
-		}
+	if r != '=' {
+		return report(errors.E(nil, "expected '='"))
 	}
 
 	// TODO(pongad): handle resource names
-equal:
 	switch r := sc.Scan(); r {
 	case scanner.Int, scanner.Float, scanner.String, scanner.Ident:
 		if lv := t.leafVal; lv != "" {
@@ -189,7 +155,66 @@ equal:
 	if sc.Scan() != scanner.EOF {
 		return report(errors.E(nil, "expected EOF, found %q", sc.TokenText()))
 	}
-	return err
+	return report(nil)
+}
+
+func (t *initTree) parseSampleArgPath(txt string, info pbinfo.Info, varName string) (*initTree, error) {
+	sc, report := initScanner("." + txt)
+	t, _, err := t.parsePath(sc, info)
+	if err != nil {
+		return nil, report(err)
+	}
+
+	var cp initTree
+	cp = *t
+	*t = initTree{leafVal: varName}
+
+	return &cp, report(nil)
+}
+
+// parsePath parses a path as defined below. It returns the subtree specified by the path,
+// the last scanned token, and any error.
+//
+// path = ident { '.' ident } .
+func (t *initTree) parsePath(sc *scanner.Scanner, info pbinfo.Info) (*initTree, rune, error) {
+	for {
+		switch r := sc.Scan(); r {
+		case '.':
+			if r := sc.Scan(); r != scanner.Ident {
+				return nil, r, errors.E(nil, "expected ident, found %q", sc.TokenText())
+			}
+			if t2, err := t.get(sc.TokenText(), info); err != nil {
+				return nil, 0, err
+			} else {
+				t = t2
+			}
+
+		default:
+			return t, r, nil
+		}
+	}
+}
+
+func initScanner(s string) (*scanner.Scanner, func(error) error) {
+	var sc scanner.Scanner
+	sc.Init(strings.NewReader(s))
+	sc.Mode = scanner.ScanIdents | scanner.ScanInts | scanner.ScanFloats | scanner.ScanStrings
+
+	// Scanner reports error by calling sc.Error; we save the error so we always report
+	// the first.
+	var err error
+	report := func(e error) error {
+		if err == nil {
+			err = e
+		}
+		return err
+	}
+	sc.Error = func(_ *scanner.Scanner, msg string) {
+		e := errors.E(nil, msg)
+		e = errors.E(e, "while scaning: %q", s)
+		report(e)
+	}
+	return &sc, report
 }
 
 func (t *initTree) Print(w io.Writer, g *generator) error {

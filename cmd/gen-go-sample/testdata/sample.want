@@ -17,19 +17,21 @@
 package main
 import(
  "context"
+ "flag"
  "fmt"
 foo "path/to/client/foo"
 foopb "path/to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleMyMethod() {
+func sampleMyMethod(arg0 string) {
 	ctx := context.Background()
 	c := foo.NewClient(ctx)
 
+// arg0 := 42
 req := &foopb.InputType{
 	A: &foopb.AType{
-		X: 42,
+		X: arg0,
 		Y: 3.14159,
 	},
 	B: "foobar",
@@ -48,6 +50,7 @@ req := &foopb.InputType{
 // [END awesome_region]
 
 func main() {
-	sampleMyMethod()
+	flag.Parse()
+	sampleMyMethod(flag.Arg(0))
 }
 

@@ -122,6 +122,9 @@ func TestSample(t *testing.T) {
 				`e = FOO`,
 				`f = "in a oneof"`,
 			},
+			Attributes: []SampleAttribute{
+				{"a.x", true},
+			},
 		},
 	}
 	if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err != nil {
