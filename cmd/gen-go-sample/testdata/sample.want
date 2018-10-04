@@ -19,14 +19,19 @@ import(
  "context"
  "flag"
  "fmt"
-foo "path/to/client/foo"
-foopb "path/to/pb/foo"
+ "log"
+
+foo "path.to/client/foo"
+foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
 func sampleMyMethod(arg0 string) {
 	ctx := context.Background()
-	c := foo.NewClient(ctx)
+	c, err := foo.NewClient(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 // arg0 := 42
 req := &foopb.InputType{
