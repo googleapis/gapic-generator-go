@@ -83,33 +83,39 @@ func main() {
 	<-donec
 	<-donec
 
-	// TODO: split some parts of this loop into functions, so we can idiomatically
-	// chain errors.
 	for _, iface := range gen.gapic.Interfaces {
 		for _, meth := range iface.Methods {
-			valSets := map[string]SampleValueSet{}
-			for _, vs := range meth.SampleValueSets {
-				valSets[vs.ID] = vs
-			}
-
-			for _, sam := range meth.Samples.Standalone {
-				for _, vsID := range sam.ValueSets {
-					vs, ok := valSets[vsID]
-					if !ok {
-						log.Fatal(errors.E(nil, "value set not found: %q", vsID))
-					}
-
-					gen.reset()
-					if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
-						log.Fatal(errors.E(err, "value set: %q", vs.ID))
-					}
-					if err := gen.commit(!*nofmt, time.Now().Year(), os.Stdout); err != nil {
-						log.Fatal(errors.E(err, "can't commit value set: %q", vs.ID))
-					}
-				}
+			if err := genMethodSamples(&gen, iface, meth, *nofmt); err != nil {
+				err = errors.E(err, "generating: %s", iface.Name+"."+meth.Name)
+				log.Fatal(err)
 			}
 		}
 	}
+}
+
+func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, nofmt bool) error {
+	valSets := map[string]SampleValueSet{}
+	for _, vs := range meth.SampleValueSets {
+		valSets[vs.ID] = vs
+	}
+
+	for _, sam := range meth.Samples.Standalone {
+		for _, vsID := range sam.ValueSets {
+			vs, ok := valSets[vsID]
+			if !ok {
+				return errors.E(nil, "value set not found: %q", vsID)
+			}
+
+			gen.reset()
+			if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
+				return err
+			}
+			if err := gen.commit(!nofmt, time.Now().Year(), os.Stdout); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 type generator struct {
