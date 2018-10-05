@@ -15,37 +15,16 @@
 package gengapic
 
 import (
-	"flag"
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/rpc/code"
 )
-
-var updateGolden = flag.Bool("update_golden", false, "update golden files")
-
-func diff(t *testing.T, name, got, goldenFile string) {
-	t.Helper()
-
-	if *updateGolden {
-		if err := ioutil.WriteFile(goldenFile, []byte(got), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	want, err := ioutil.ReadFile(goldenFile)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if diff := cmp.Diff(got, string(want)); diff != "" {
-		t.Errorf("%s: (-got,+want)\n%s", name, diff)
-	}
-}
 
 func TestClientOpt(t *testing.T) {
 	var g generator
@@ -88,7 +67,7 @@ func TestClientOpt(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
 
@@ -133,6 +112,6 @@ func TestClientInit(t *testing.T) {
 
 		g.reset()
 		g.clientInit(tst.serv, tst.servName)
-		diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
