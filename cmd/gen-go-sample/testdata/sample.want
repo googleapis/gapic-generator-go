@@ -26,7 +26,7 @@ foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleMyMethod(arg0 string) {
+func sampleMyMethod(arg0 int64, arg1 string) {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
@@ -34,12 +34,13 @@ func sampleMyMethod(arg0 string) {
 	}
 
 // arg0 := 42
+// arg1 := "foobar"
 req := &foopb.InputType{
 	A: &foopb.AType{
 		X: arg0,
 		Y: 3.14159,
 	},
-	B: "foobar",
+	B: arg1,
 	E: foopb.AType_FOO,
 	Group: &foopb.InputType_F{
 		F: "in a oneof",
@@ -55,7 +56,9 @@ req := &foopb.InputType{
 // [END awesome_region]
 
 func main() {
+	arg0 := flag.Int64("arg0", 42, "")
+	arg1 := flag.String("arg1", "foobar", "")
 	flag.Parse()
-	sampleMyMethod(flag.Arg(0))
+	sampleMyMethod(*arg0, *arg1)
 }
 

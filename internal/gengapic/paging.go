@@ -23,24 +23,6 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
-var primitiveFieldToGoType = [...]string{
-	descriptor.FieldDescriptorProto_TYPE_DOUBLE:   "float64",
-	descriptor.FieldDescriptorProto_TYPE_FLOAT:    "float32",
-	descriptor.FieldDescriptorProto_TYPE_INT64:    "int64",
-	descriptor.FieldDescriptorProto_TYPE_UINT64:   "uint64",
-	descriptor.FieldDescriptorProto_TYPE_INT32:    "int32",
-	descriptor.FieldDescriptorProto_TYPE_FIXED64:  "uint64",
-	descriptor.FieldDescriptorProto_TYPE_FIXED32:  "uint32",
-	descriptor.FieldDescriptorProto_TYPE_BOOL:     "bool",
-	descriptor.FieldDescriptorProto_TYPE_STRING:   "string",
-	descriptor.FieldDescriptorProto_TYPE_BYTES:    "[]byte",
-	descriptor.FieldDescriptorProto_TYPE_UINT32:   "uint32",
-	descriptor.FieldDescriptorProto_TYPE_SFIXED32: "int32",
-	descriptor.FieldDescriptorProto_TYPE_SFIXED64: "int64",
-	descriptor.FieldDescriptorProto_TYPE_SINT32:   "int32",
-	descriptor.FieldDescriptorProto_TYPE_SINT64:   "int64",
-}
-
 // iterType describes iterators used by paging RPCs.
 type iterType struct {
 	iterTypeName, elemTypeName string
@@ -76,11 +58,12 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iter
 		pt.elemTypeName = "[]byte"
 		pt.iterTypeName = "BytesIterator"
 
-	case t < 0 || int(t) >= len(primitiveFieldToGoType) || primitiveFieldToGoType[t] == "":
-		log.Panicf("unrecognized type: %v", t)
-
 	default:
-		pt.elemTypeName = primitiveFieldToGoType[t]
+		pType := pbinfo.PrimToGo[t]
+		if pType == "" {
+			log.Panicf("unrecognized type: %v", t)
+		}
+		pt.elemTypeName = pType
 		pt.iterTypeName = upperFirst(pt.elemTypeName) + "Iterator"
 	}
 	return pt, nil
