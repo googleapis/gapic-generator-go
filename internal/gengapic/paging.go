@@ -59,7 +59,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iter
 		pt.iterTypeName = "BytesIterator"
 
 	default:
-		pType := pbinfo.PrimToGo[t]
+		pType := pbinfo.GoTypeForPrim[t]
 		if pType == "" {
 			log.Panicf("unrecognized type: %v", t)
 		}

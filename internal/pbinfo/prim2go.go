@@ -16,7 +16,7 @@ package pbinfo
 
 import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
-var PrimToGo = map[descriptor.FieldDescriptorProto_Type]string{
+var GoTypeForPrim = map[descriptor.FieldDescriptorProto_Type]string{
 	descriptor.FieldDescriptorProto_TYPE_DOUBLE:   "float64",
 	descriptor.FieldDescriptorProto_TYPE_FLOAT:    "float32",
 	descriptor.FieldDescriptorProto_TYPE_INT64:    "int64",

@@ -247,7 +247,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	if len(argNames) > 0 {
 		var sb strings.Builder
 		for i, n := range argNames {
-			fmt.Fprintf(&sb, ", %s %s", n, pbinfo.PrimToGo[argTrees[i].typ.prim])
+			fmt.Fprintf(&sb, ", %s %s", n, pbinfo.GoTypeForPrim[argTrees[i].typ.prim])
 		}
 		argStr = sb.String()[2:]
 	}
@@ -313,7 +313,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	for i, name := range argNames {
 		// TODO(pongad): some types, like int32, are not supported by flag package.
 		// We have to convert.
-		typ := pbinfo.PrimToGo[argTrees[i].typ.prim]
+		typ := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
 		p(`%s := flag.%s(%q, %s, "")`, name, snakeToCapCamel(typ), name, argTrees[i].leafVal)
 	}
 

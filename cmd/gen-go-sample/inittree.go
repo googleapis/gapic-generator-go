@@ -130,18 +130,18 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 		tok := sc.TokenText()
 
 		if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			eValid, eFmt := describeEnum(info, enum)
-			if !eValid(tok) {
+			validEnum, eFmt := describeEnum(info, enum)
+			if !validEnum(tok) {
 				return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), tok))
 			}
 			t.typ.valFmt = eFmt
 		} else {
 			pType := t.typ.prim
-			pValid := validPrims[t.typ.prim]
-			if pValid == nil {
+			validPrim := validPrims[pType]
+			if validPrim == nil {
 				return report(errors.E(nil, "not a primitive type? %q", pType))
 			}
-			if !pValid(tok) {
+			if !validPrim(tok) {
 				return report(errors.E(nil, "invalid value for type %q: %q", pType, tok))
 			}
 		}
