@@ -51,6 +51,11 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 }
 
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
+	if m.GetClientStreaming() != m.GetServerStreaming() {
+		// TODO(pongad): implement this correctly.
+		return nil
+	}
+
 	p := g.printf
 
 	inType := g.descInfo.Type[m.GetInputType()]

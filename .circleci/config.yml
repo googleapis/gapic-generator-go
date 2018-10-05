@@ -7,3 +7,11 @@ jobs:
       - checkout
       - run: go test -mod=readonly ./...
       - run: find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
+      # Install protoc, showcase.bash needs it
+      - run: >
+          mkdir protobuf &&
+          curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip > protobuf/protoc.zip &&
+          unzip -d protobuf protobuf/protoc.zip &&
+          export PATH=$PATH:$(pwd)/protobuf/bin &&
+          go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic &&
+          ./utils/showcase.bash
