@@ -34,10 +34,10 @@ import (
 // initType treats a type in a way similar to how Go treats them,
 // so that it's easy to generate initialization code.
 type initType struct {
-	// If the type is a message, desc describes the type.
-	// If the type is a leaf value, valValid reports whether the token is valid for the type.
-	desc     pbinfo.ProtoType
-	valValid func(string) bool
+	// If the type is a protobuf "compound type", desc describes the type.
+	// If the type is a primitive, prim tells us what the type is.
+	desc pbinfo.ProtoType
+	prim descriptor.FieldDescriptorProto_Type
 
 	// valFmt, if not nil, post-processes values to be included into init struct.
 	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
@@ -83,29 +83,17 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 
 		if tn := f.GetTypeName(); tn == "" {
 			// We're a primitive type.
-
-			// Since the tokens are given to us by scanner, they must already be a valid token of some type,
-			// no need to check exhaustively.
-			switch f.GetType() {
-			case descriptor.FieldDescriptorProto_TYPE_BOOL:
-				v.typ.valValid = func(s string) bool { return s == "true" || s == "false" }
-			case descriptor.FieldDescriptorProto_TYPE_BYTES, descriptor.FieldDescriptorProto_TYPE_STRING:
-				v.typ.valValid = func(s string) bool { return s[0] == '"' }
-			case descriptor.FieldDescriptorProto_TYPE_DOUBLE, descriptor.FieldDescriptorProto_TYPE_FLOAT:
-				v.typ.valValid = func(s string) bool { return s == "inf" || s == "nan" || strings.Trim(s, "+-.0123456789") == "" }
-			default:
-				v.typ.valValid = func(s string) bool { return strings.Trim(s, "0123456789") == "" }
-			}
+			v.typ.prim = f.GetType()
 		} else if typ := info.Type[tn]; typ == nil {
 			return nil, errors.E(nil, "cannot find descriptor of %q", f.GetTypeName())
-		} else if enum, ok := typ.(*descriptor.EnumDescriptorProto); ok {
-			v.typ.valValid, v.typ.valFmt = describeEnum(info, enum)
 		} else {
 			// type is a message
 			v.typ.desc = typ
 		}
+
+		break
 	}
-	if v.typ.desc == nil && v.typ.valValid == nil {
+	if v.typ.desc == nil && v.typ.prim == 0 {
 		return nil, errors.E(nil, "type %q does not have field %q", t.typ.desc.GetName(), k)
 	}
 
@@ -138,16 +126,27 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 		if lv := t.leafVal; lv != "" {
 			return report(errors.E(nil, "value already set to %q", lv))
 		}
-		if t.typ.valValid == nil {
-			return report(errors.E(nil, "not a leaf field"))
-		}
 
 		tok := sc.TokenText()
-		if !t.typ.valValid(tok) {
-			// TODO(pongad): we should probably tell user what type the field is.
-			return report(errors.E(nil, "invalid value for type: %q", tok))
+
+		if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
+			validEnum, eFmt := describeEnum(info, enum)
+			if !validEnum(tok) {
+				return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), tok))
+			}
+			t.typ.valFmt = eFmt
+		} else {
+			pType := t.typ.prim
+			validPrim := validPrims[pType]
+			if validPrim == nil {
+				return report(errors.E(nil, "not a primitive type? %q", pType))
+			}
+			if !validPrim(tok) {
+				return report(errors.E(nil, "invalid value for type %q: %q", pType, tok))
+			}
 		}
 		t.leafVal = tok
+
 	default:
 		return report(errors.E(nil, "expected value, found %q", sc.TokenText()))
 	}
