@@ -46,7 +46,7 @@ func Diff(t *testing.T, name, got, goldenFile string) {
 
 	gotLines := strings.Split(got, "\n")
 	wantLines := strings.Split(want, "\n")
-	t.Errorf("%s: (-got,+want)\n%s", name, lcsDiff(gotLines, wantLines))
+	t.Errorf("%s: (+got,-want)\n%s", name, lcsDiff(wantLines, gotLines))
 }
 
 func lcsDiff(aLines, bLines []string) string {

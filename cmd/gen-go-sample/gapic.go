@@ -34,6 +34,7 @@ type GAPICMethod struct {
 type SampleValueSet struct {
 	ID         string
 	Parameters SampleParameter
+	OnSuccess  []OutSpec `yaml:"on_success"`
 }
 
 type SampleParameter struct {
@@ -51,4 +52,9 @@ type GAPICSample struct {
 
 	// TODO(pongad): Does this mean multiple samples have the same tag?
 	RegionTag string `yaml:"region_tag"`
+}
+
+type OutSpec struct {
+	Define string
+	Print  []string
 }

@@ -112,7 +112,7 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 	// so just insert a dot here so we don't need to treat the first token specially.
 	sc, report := initScanner("." + txt)
 
-	t, r, err := t.parsePath(sc, info)
+	t, r, err := t.parsePathRest(sc, info)
 	if err != nil {
 		return report(err)
 	}
@@ -159,7 +159,7 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 
 func (t *initTree) parseSampleArgPath(txt string, info pbinfo.Info, varName string) (*initTree, error) {
 	sc, report := initScanner("." + txt)
-	t, _, err := t.parsePath(sc, info)
+	t, _, err := t.parsePathRest(sc, info)
 	if err != nil {
 		return nil, report(err)
 	}
@@ -171,11 +171,11 @@ func (t *initTree) parseSampleArgPath(txt string, info pbinfo.Info, varName stri
 	return &cp, report(nil)
 }
 
-// parsePath parses a path as defined below. It returns the subtree specified by the path,
+// parsePathRest parses a path as defined below. It returns the subtree specified by the path,
 // the last scanned token, and any error.
 //
-// path = ident { '.' ident } .
-func (t *initTree) parsePath(sc *scanner.Scanner, info pbinfo.Info) (*initTree, rune, error) {
+// path = { '.' ident } .
+func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTree, rune, error) {
 	for {
 		switch r := sc.Scan(); r {
 		case '.':
@@ -213,6 +213,11 @@ func initScanner(s string) (*scanner.Scanner, func(error) error) {
 		e = errors.E(e, "while scaning: %q", s)
 		report(e)
 	}
+
+	sc.IsIdentRune = func(r rune, i int) bool {
+		return unicode.IsLetter(r) || r == '_' || i == 0 && r == '$' || i > 0 && unicode.IsDigit(r)
+	}
+
 	return &sc, report
 }
 
@@ -268,11 +273,11 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 
 		var closeBrace bool
 		if oneof, ok := oneofs[k]; ok {
-			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToCapCamel(oneof), impSpec.Name, desc.GetName(), snakeToCapCamel(k))
+			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToPascal(oneof), impSpec.Name, desc.GetName(), snakeToPascal(k))
 			closeBrace = true
 			indent(ind + 2)
 		}
-		w.WriteString(snakeToCapCamel(k))
+		w.WriteString(snakeToPascal(k))
 
 		w.WriteString(": ")
 		if err := t.vals[i].print(w, g, ind+1); err != nil {
@@ -291,9 +296,25 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	return nil
 }
 
-func snakeToCapCamel(s string) string {
+func snakeToPascal(s string) string {
 	var sb strings.Builder
 	cap := true
+	for _, r := range s {
+		if r == '_' {
+			cap = true
+		} else if cap {
+			cap = false
+			sb.WriteRune(unicode.ToUpper(r))
+		} else {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
+}
+
+func snakeToCamel(s string) string {
+	var sb strings.Builder
+	cap := false
 	for _, r := range s {
 		if r == '_' {
 			cap = true

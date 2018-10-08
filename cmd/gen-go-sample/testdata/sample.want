@@ -50,7 +50,10 @@ req := &foopb.InputType{
 	if err != nil {
 		// TODO: Handle error.
 	}
-	fmt.Println(resp)
+
+outA := resp.A
+fmt.Printf("x = %v\n", resp.A.X)
+fmt.Printf("y = %v\n", outA.Y)
 }
 
 // [END awesome_region]
