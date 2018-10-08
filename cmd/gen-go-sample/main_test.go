@@ -103,6 +103,7 @@ func TestSample(t *testing.T) {
 			},
 			Attributes: []SampleAttribute{
 				{"a.x", true},
+				{"b", true},
 			},
 		},
 	}
