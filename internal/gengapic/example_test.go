@@ -21,6 +21,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
 
 func TestExample(t *testing.T) {
@@ -126,7 +127,7 @@ func TestExample(t *testing.T) {
 	} {
 		g.reset()
 		g.genExampleFile(serv, tst.pkgName)
-		diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
 

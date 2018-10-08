@@ -15,36 +15,15 @@
 package main
 
 import (
-	"flag"
-	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
-
-var updateGolden = flag.Bool("update_golden", false, "update golden files")
-
-func diff(t *testing.T, name, got, goldenFile string) {
-	t.Helper()
-
-	if *updateGolden {
-		if err := ioutil.WriteFile(goldenFile, []byte(got), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	want, err := ioutil.ReadFile(goldenFile)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if diff := cmp.Diff(got, string(want)); diff != "" {
-		t.Errorf("%s: (-got,+want)\n%s", name, diff)
-	}
-}
 
 func TestSample(t *testing.T) {
 	inType := &descriptor.DescriptorProto{
@@ -140,5 +119,5 @@ func TestSample(t *testing.T) {
 	if err := g.commit(gofmt, year, &sb); err != nil {
 		t.Fatal(err)
 	}
-	diff(t, "TestSample", sb.String(), filepath.Join("testdata", "sample.want"))
+	txtdiff.Diff(t, "TestSample", sb.String(), filepath.Join("testdata", "sample.want"))
 }
