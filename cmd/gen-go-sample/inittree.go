@@ -171,10 +171,11 @@ func (t *initTree) parseSampleArgPath(txt string, info pbinfo.Info, varName stri
 	return &cp, report(nil)
 }
 
-// parsePathRest parses a path as defined below. It returns the subtree specified by the path,
-// the last scanned token, and any error.
+// parsePathRest parses pathRest, an "unrooted" path, as defined below.
+// It returns the subtree specified by the path, the last scanned token, and any error.
 //
-// path = { '.' ident } .
+// path = ident pathRest .
+// pathRest = { '.' ident } .
 func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTree, rune, error) {
 	for {
 		switch r := sc.Scan(); r {

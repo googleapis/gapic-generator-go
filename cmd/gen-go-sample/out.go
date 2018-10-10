@@ -65,7 +65,7 @@ func (st *symTab) get(s string) (initType, bool) {
 	return initType{}, false
 }
 
-func writeOutSpec(out OutSpec, st *symTab, info pbinfo.Info, w *bufio.Writer) error {
+func writeOutputSpec(out OutputSpec, st *symTab, info pbinfo.Info, w *bufio.Writer) error {
 	used := 0
 	var err error
 
@@ -79,10 +79,10 @@ func writeOutSpec(out OutSpec, st *symTab, info pbinfo.Info, w *bufio.Writer) er
 	}
 
 	if used == 0 {
-		return errors.E(nil, "OutSpec not defined")
+		return errors.E(nil, "OutputSpec not defined")
 	}
 	if used > 1 {
-		return errors.E(nil, "OutSpec cannot be defined multiple times: %v", out)
+		return errors.E(nil, "OutputSpec cannot be defined multiple times: %v", out)
 	}
 	return err
 }
@@ -173,6 +173,7 @@ func writePrint(pFmt string, pArgs []string, st *symTab, info pbinfo.Info, w *bu
 	return nil
 }
 
+// writePathRest writes an "unrooted" path, printing index and fields, but not the left-most identifier.
 func writePathRest(it *initTree, w *bufio.Writer) {
 	// TODO(pongad): This doesn't handle oneofs properly.
 	for len(it.keys) > 0 {

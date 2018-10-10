@@ -107,7 +107,7 @@ func TestSample(t *testing.T) {
 				{"b", true},
 			},
 		},
-		OnSuccess: []OutSpec{
+		OnSuccess: []OutputSpec{
 			{Define: "out_a = $resp.a"},
 			{Print: []string{"x = %s", "$resp.a.x"}},
 			{Print: []string{"y = %s", "out_a.y"}},

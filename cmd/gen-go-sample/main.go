@@ -309,7 +309,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 
 		bw := bufio.NewWriter(g.pt.Writer())
 		for _, out := range valSet.OnSuccess {
-			if err := writeOutSpec(out, st, g.descInfo, bw); err != nil {
+			if err := writeOutputSpec(out, st, g.descInfo, bw); err != nil {
 				return err
 			}
 		}

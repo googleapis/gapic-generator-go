@@ -34,7 +34,7 @@ type GAPICMethod struct {
 type SampleValueSet struct {
 	ID         string
 	Parameters SampleParameter
-	OnSuccess  []OutSpec `yaml:"on_success"`
+	OnSuccess  []OutputSpec `yaml:"on_success"`
 }
 
 type SampleParameter struct {
@@ -54,7 +54,7 @@ type GAPICSample struct {
 	RegionTag string `yaml:"region_tag"`
 }
 
-type OutSpec struct {
+type OutputSpec struct {
 	Define string
 	Print  []string
 }
