@@ -253,15 +253,14 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		argStr = sb.String()[2:]
 	}
 
-	p("func sample%s(%s) {", methName, argStr)
+	p("func sample%s(%s) error {", methName, argStr)
 	p("  ctx := context.Background()")
 	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
 	p("  if err != nil {")
-	p("    log.Fatal(err)")
+	p("    return err")
 	p("  }")
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "log"}] = true
 
 	for i, name := range argNames {
 		var sb strings.Builder
@@ -298,7 +297,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	// TODO(pongad): handle non-unary
 	p("  resp, err := c.%s(ctx, req)", methName)
 	p("  if err != nil {")
-	p("    // TODO: Handle error.")
+	p("    return err")
 	p("  }")
 	p("")
 
@@ -318,6 +317,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		}
 	}
 
+	p("return nil")
 	p("}")
 	p("")
 	p("// [END %s]", regTag)

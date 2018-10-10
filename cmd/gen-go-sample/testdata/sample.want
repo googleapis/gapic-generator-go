@@ -19,18 +19,17 @@ import(
  "context"
  "flag"
  "fmt"
- "log"
 
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleMyMethod(arg0 int64, arg1 string) {
+func sampleMyMethod(arg0 int64, arg1 string) error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 // arg0 := 42
@@ -48,12 +47,13 @@ req := &foopb.InputType{
 }
 	resp, err := c.MyMethod(ctx, req)
 	if err != nil {
-		// TODO: Handle error.
+		return err
 	}
 
 outA := resp.A
 fmt.Printf("x = %v\n", resp.A.X)
 fmt.Printf("y = %v\n", outA.Y)
+	return nil
 }
 
 // [END awesome_region]
