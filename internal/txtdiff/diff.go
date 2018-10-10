@@ -24,6 +24,8 @@ import (
 
 var updateGolden = flag.Bool("update_golden", false, "update golden files")
 
+// Diff is a test helper, testing got against contents of goldenFile. If they do not match,
+// Diff fails the test, reporting the diff.
 func Diff(t *testing.T, name, got, goldenFile string) {
 	t.Helper()
 
@@ -46,10 +48,10 @@ func Diff(t *testing.T, name, got, goldenFile string) {
 
 	gotLines := strings.Split(got, "\n")
 	wantLines := strings.Split(want, "\n")
-	t.Errorf("%s: (-got,+want)\n%s", name, lcsDiff(gotLines, wantLines))
+	t.Errorf("%s: (+got,-want)\n%s", name, lcsDiff(gotLines, '+', wantLines, '-'))
 }
 
-func lcsDiff(aLines, bLines []string) string {
+func lcsDiff(aLines []string, aSign rune, bLines []string, bSign rune) string {
 	// Algorithm is described by https://en.wikipedia.org/wiki/Longest_common_subsequence_problem.
 
 	// We require O(n^2) space to memoize LCS. This is not great, however
@@ -80,7 +82,7 @@ func lcsDiff(aLines, bLines []string) string {
 
 	// The article uses recursion. I think iteration is more clear.
 	var diff []string
-	var sign []byte
+	var sign []rune
 
 	i := len(aLines) - 1
 	j := len(bLines) - 1
@@ -92,18 +94,18 @@ func lcsDiff(aLines, bLines []string) string {
 			j--
 		} else if j > 0 && (i == 0 || c[i][j-1] >= c[i-1][j]) {
 			diff = append(diff, bLines[j])
-			sign = append(sign, '+')
+			sign = append(sign, bSign)
 			j--
 		} else if i > 0 && (j == 0 || c[i][j-1] < c[i-1][j]) {
 			diff = append(diff, aLines[i])
-			sign = append(sign, '-')
+			sign = append(sign, aSign)
 			i--
 		}
 	}
 
 	var sb strings.Builder
 	for i := len(diff) - 1; i >= 0; i-- {
-		sb.WriteByte(sign[i])
+		sb.WriteRune(sign[i])
 		sb.WriteByte(' ')
 		sb.WriteString(diff[i])
 		sb.WriteByte('\n')

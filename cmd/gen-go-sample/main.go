@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -299,9 +300,23 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	p("  if err != nil {")
 	p("    // TODO: Handle error.")
 	p("  }")
+	p("")
 
-	// TODO(pongad): handle output printing
-	p("  fmt.Println(resp)")
+	{
+		st := newSymTab(nil)
+		st.universe["$resp"] = true
+		st.scope["$resp"] = initType{desc: g.descInfo.Type[meth.GetOutputType()]}
+
+		bw := bufio.NewWriter(g.pt.Writer())
+		for _, out := range valSet.OnSuccess {
+			if err := writeOutputSpec(out, st, g.descInfo, bw); err != nil {
+				return err
+			}
+		}
+		if err := bw.Flush(); err != nil {
+			return err
+		}
+	}
 
 	p("}")
 	p("")
@@ -314,7 +329,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		// TODO(pongad): some types, like int32, are not supported by flag package.
 		// We have to convert.
 		typ := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
-		p(`%s := flag.%s(%q, %s, "")`, name, snakeToCapCamel(typ), name, argTrees[i].leafVal)
+		p(`%s := flag.%s(%q, %s, "")`, name, snakeToPascal(typ), name, argTrees[i].leafVal)
 	}
 
 	p("  flag.Parse()")

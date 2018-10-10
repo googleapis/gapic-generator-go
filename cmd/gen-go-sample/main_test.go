@@ -56,8 +56,9 @@ func TestSample(t *testing.T) {
 		Name: proto.String("FooService"),
 		Method: []*descriptor.MethodDescriptorProto{
 			{
-				Name:      proto.String("MyMethod"),
-				InputType: inType.Name,
+				Name:       proto.String("MyMethod"),
+				InputType:  inType.Name,
+				OutputType: inType.Name,
 			},
 		},
 	}
@@ -105,6 +106,11 @@ func TestSample(t *testing.T) {
 				{"a.x", true},
 				{"b", true},
 			},
+		},
+		OnSuccess: []OutputSpec{
+			{Define: "out_a = $resp.a"},
+			{Print: []string{"x = %s", "$resp.a.x"}},
+			{Print: []string{"y = %s", "out_a.y"}},
 		},
 	}
 	if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err != nil {
