@@ -16,7 +16,6 @@ package main
 
 import (
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -26,6 +25,10 @@ import (
 )
 
 func TestSample(t *testing.T) {
+	labelp := func(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
+		return &l
+	}
+
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
 		OneofDecl: []*descriptor.OneofDescriptorProto{
@@ -36,6 +39,7 @@ func TestSample(t *testing.T) {
 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 			{Name: proto.String("e"), TypeName: proto.String("EType")},
 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
+			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
 		},
 	}
 	aType := &descriptor.DescriptorProto{
@@ -111,19 +115,27 @@ func TestSample(t *testing.T) {
 			{Define: "out_a = $resp.a"},
 			{Print: []string{"x = %s", "$resp.a.x"}},
 			{Print: []string{"y = %s", "out_a.y"}},
+			{
+				Loop: &LoopSpec{
+					Variable:   "r",
+					Collection: "$resp.r",
+					Body: []OutputSpec{
+						{Print: []string{"resp.r contains %s", "r"}},
+					},
+				},
+			},
 		},
 	}
 	if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
 
-	var sb strings.Builder
-
 	// Don't format. Format can change with Go version.
 	gofmt := false
 	year := 2018
-	if err := g.commit(gofmt, year, &sb); err != nil {
+	content, err := g.commit(gofmt, year)
+	if err != nil {
 		t.Fatal(err)
 	}
-	txtdiff.Diff(t, "TestSample", sb.String(), filepath.Join("testdata", "sample.want"))
+	txtdiff.Diff(t, "TestSample", string(content), filepath.Join("testdata", "sample.want"))
 }

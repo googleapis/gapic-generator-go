@@ -25,7 +25,10 @@ if [ -z $COMMON_PROTO ]; then
 	exit 1
 fi
 
+OUT=${OUT:-testdata/out}
+
 ./gen-go-sample $* \
   -clientpkg 'cloud.google.com/go/language/apiv1;language' \
   -gapic "$GOOGLEAPIS/google/cloud/language/v1/language_gapic.yaml" \
+  -o "$OUT" \
   -desc <(protoc -o /dev/stdout --include_imports -I "$COMMON_PROTO" -I "$GOOGLEAPIS" "$GOOGLEAPIS"/google/cloud/language/v1/*.proto)
