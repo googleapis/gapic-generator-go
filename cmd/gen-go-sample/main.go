@@ -109,7 +109,7 @@ func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, no
 
 			gen.reset()
 			if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
-				return err
+				return errors.E(err, "value set: %s", vsID)
 			}
 			if err := gen.commit(!nofmt, time.Now().Year(), os.Stdout); err != nil {
 				return err
@@ -266,7 +266,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		var sb strings.Builder
 		fmt.Fprintf(&sb, "// %s := ", name)
 		if err := argTrees[i].Print(&sb, g); err != nil {
-			return err
+			return errors.E(err, "can't initializing parameter: %s", name)
 		}
 		s := sb.String()
 		s = strings.Replace(s, "\n", "\n//", -1)
@@ -287,7 +287,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 			return err
 		}
 		if err := itree.Print(g.pt.Writer(), g); err != nil {
-			return err
+			return errors.E(err, "can't initializing request object")
 		}
 		if _, err := w.Write([]byte{'\n'}); err != nil {
 			return err
