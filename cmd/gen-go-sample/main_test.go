@@ -107,8 +107,8 @@ func TestSample(t *testing.T) {
 				`f = "in a oneof"`,
 			},
 			Attributes: []SampleAttribute{
-				{"a.x", true},
-				{"b", true},
+				{"a.x", "the_x"},
+				{"b", "the_b"},
 			},
 		},
 		OnSuccess: []OutputSpec{
