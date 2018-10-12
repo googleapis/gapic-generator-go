@@ -50,9 +50,12 @@ req := &foopb.InputType{
 		return err
 	}
 
-outA := resp.A
-fmt.Printf("x = %v\n", resp.A.X)
-fmt.Printf("y = %v\n", outA.Y)
+	outA := resp.GetA()
+	fmt.Printf("x = %v\n", resp.GetA().GetX())
+	fmt.Printf("y = %v\n", outA.GetY())
+	for _, r := range resp.GetR() {
+		fmt.Printf("resp.r contains %v\n", r)
+	}
 	return nil
 }
 

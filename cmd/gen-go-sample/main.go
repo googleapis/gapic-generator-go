@@ -15,15 +15,14 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
 	"go/format"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -42,6 +41,7 @@ func main() {
 	gapicFname := flag.String("gapic", "", "gapic config")
 	clientPkg := flag.String("clientpkg", "", "the package of the client, in format 'url/to/client/pkg;name'")
 	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
+	outDir := flag.String("o", ".", "directory to write samples to")
 	flag.Parse()
 
 	gen := generator{
@@ -81,12 +81,16 @@ func main() {
 		donec <- struct{}{}
 	}()
 
+	if err := os.MkdirAll(*outDir, 0755); err != nil {
+		log.Fatal(err)
+	}
+
 	<-donec
 	<-donec
 
 	for _, iface := range gen.gapic.Interfaces {
 		for _, meth := range iface.Methods {
-			if err := genMethodSamples(&gen, iface, meth, *nofmt); err != nil {
+			if err := genMethodSamples(&gen, iface, meth, *nofmt, *outDir); err != nil {
 				err = errors.E(err, "generating: %s", iface.Name+"."+meth.Name)
 				log.Fatal(err)
 			}
@@ -94,7 +98,7 @@ func main() {
 	}
 }
 
-func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, nofmt bool) error {
+func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, nofmt bool, outDir string) error {
 	valSets := map[string]SampleValueSet{}
 	for _, vs := range meth.SampleValueSets {
 		valSets[vs.ID] = vs
@@ -111,7 +115,13 @@ func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, no
 			if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
 				return err
 			}
-			if err := gen.commit(!nofmt, time.Now().Year(), os.Stdout); err != nil {
+			content, err := gen.commit(!nofmt, time.Now().Year())
+			if err != nil {
+				return err
+			}
+
+			fname := iface.Name + "_" + meth.Name + "_" + vsID + ".go"
+			if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
 				return err
 			}
 		}
@@ -137,7 +147,7 @@ func (g *generator) reset() {
 	}
 }
 
-func (g *generator) commit(gofmt bool, year int, w io.Writer) error {
+func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 	// We'll gofmt unless user asks us to not, so no need to think too hard about sorting
 	// "correctly". We just want a deterministic output here.
 	var imports []pbinfo.ImportSpec
@@ -177,12 +187,11 @@ func (g *generator) commit(gofmt bool, year int, w io.Writer) error {
 	if gofmt {
 		b2, err := format.Source(b)
 		if err != nil {
-			return errors.E(err, "syntax error, run with -nofmt to find out why?")
+			return nil, errors.E(err, "syntax error, run with -nofmt to find out why?")
 		}
 		b = b2
 	}
-	_, err := w.Write(b)
-	return err
+	return b, nil
 }
 
 func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleValueSet) error {
@@ -306,14 +315,15 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		st.universe["$resp"] = true
 		st.scope["$resp"] = initType{desc: g.descInfo.Type[meth.GetOutputType()]}
 
-		bw := bufio.NewWriter(g.pt.Writer())
 		for _, out := range valSet.OnSuccess {
-			if err := writeOutputSpec(out, st, g.descInfo, bw); err != nil {
+			if err := writeOutputSpec(out, st, g); err != nil {
 				return err
 			}
 		}
-		if err := bw.Flush(); err != nil {
-			return err
+
+		if len(valSet.OnSuccess) == 0 {
+			p("fmt.Println(resp)")
+			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		}
 	}
 
@@ -338,7 +348,6 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	p("")
 
 	g.imports[inSpec] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "flag"}] = true
 	return nil
 }
