@@ -333,13 +333,16 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	}
 
 	p("  flag.Parse()")
-	p("  sample%s(%s)", methName, flagArgs(argNames))
+	p("  if err := sample%s(%s); err != nil {", methName, flagArgs(argNames))
+	p("    log.Fatal(err)")
+	p("  }")
 	p("}")
 	p("")
 
 	g.imports[inSpec] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "flag"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "log"}] = true
 	return nil
 }
 
