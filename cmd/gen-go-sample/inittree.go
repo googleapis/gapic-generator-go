@@ -232,6 +232,9 @@ func (t *initTree) Print(w io.Writer, g *generator) error {
 }
 
 func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
+	if prim := t.typ.prim; prim != 0 && t.leafVal == "" {
+		return errors.E(nil, "init value not defined for primitive type: %s", prim)
+	}
 	if v := t.leafVal; v != "" {
 		if vf := t.typ.valFmt; vf != nil {
 			v2, err := vf(g, v)
@@ -245,6 +248,10 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	}
 
 	desc := t.typ.desc
+	if desc == nil {
+		return errors.E(nil, "internal error? value neither primitive nor compound type")
+	}
+
 	impSpec, err := g.descInfo.ImportSpec(desc)
 	if err != nil {
 		return err
