@@ -19,6 +19,7 @@ import(
  "context"
  "flag"
  "fmt"
+ "log"
 
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
@@ -50,9 +51,12 @@ req := &foopb.InputType{
 		return err
 	}
 
-outA := resp.A
-fmt.Printf("x = %v\n", resp.A.X)
-fmt.Printf("y = %v\n", outA.Y)
+	outA := resp.GetA()
+	fmt.Printf("x = %v\n", resp.GetA().GetX())
+	fmt.Printf("y = %v\n", outA.GetY())
+	for _, r := range resp.GetR() {
+		fmt.Printf("resp.r contains %v\n", r)
+	}
 	return nil
 }
 
@@ -62,6 +66,8 @@ func main() {
 	arg0 := flag.Int64("arg0", 42, "")
 	arg1 := flag.String("arg1", "foobar", "")
 	flag.Parse()
-	sampleMyMethod(*arg0, *arg1)
+	if err := sampleMyMethod(*arg0, *arg1); err != nil {
+		log.Fatal(err)
+	}
 }
 

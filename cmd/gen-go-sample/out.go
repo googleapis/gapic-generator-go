@@ -15,8 +15,6 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"strings"
 	"text/scanner"
 
@@ -65,17 +63,30 @@ func (st *symTab) get(s string) (initType, bool) {
 	return initType{}, false
 }
 
-func writeOutputSpec(out OutputSpec, st *symTab, info pbinfo.Info, w *bufio.Writer) error {
+func (st *symTab) put(ident string, typ initType) error {
+	if st.universe[ident] {
+		return errors.E(nil, "variable already defined: %s", ident)
+	}
+	st.universe[ident] = true
+	st.scope[ident] = typ
+	return nil
+}
+
+func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 	used := 0
 	var err error
 
 	if d := out.Define; d != "" {
 		used++
-		err = writeDefine(d, st, info, w)
+		err = writeDefine(d, st, gen)
 	}
 	if p := out.Print; len(p) > 0 {
 		used++
-		err = writePrint(p[0], p[1:], st, info, w)
+		err = writePrint(p[0], p[1:], st, gen)
+	}
+	if l := out.Loop; l != nil {
+		used++
+		err = writeLoop(l, st, gen)
 	}
 
 	if used == 0 {
@@ -87,8 +98,8 @@ func writeOutputSpec(out OutputSpec, st *symTab, info pbinfo.Info, w *bufio.Writ
 	return err
 }
 
-// define = ident '=' ident path .
-func writeDefine(txt string, st *symTab, info pbinfo.Info, w *bufio.Writer) error {
+// define = ident '=' path .
+func writeDefine(txt string, st *symTab, gen *generator) error {
 	sc, report := initScanner(txt)
 
 	if sc.Scan() != scanner.Ident {
@@ -103,82 +114,95 @@ func writeDefine(txt string, st *symTab, info pbinfo.Info, w *bufio.Writer) erro
 	if sc.Scan() != '=' {
 		return report(errors.E(nil, "expecting '=', got %s", sc.TokenText()))
 	}
+
+	path, typ, err := writePath(sc, st, gen.descInfo)
+	if err != nil {
+		return report(err)
+	}
+	gen.pt.Printf("%s := %s", snakeToCamel(lhs), path)
+	return st.put(lhs, typ)
+}
+
+var fmtStrReplacer = strings.NewReplacer("%%", "%%", "%s", "%v")
+
+func writePrint(pFmt string, pArgs []string, st *symTab, gen *generator) error {
+	var sb strings.Builder
+	for _, arg := range pArgs {
+		sb.WriteString(", ")
+
+		sc, report := initScanner(arg)
+		path, _, err := writePath(sc, st, gen.descInfo)
+		if err != nil {
+			return report(nil)
+		}
+		sb.WriteString(path)
+	}
+
+	gen.pt.Printf("fmt.Printf(%q%s)", fmtStrReplacer.Replace(pFmt)+"\n", sb.String())
+	gen.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+
+	return nil
+}
+
+func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
+	p := gen.pt.Printf
+
+	sc, report := initScanner(l.Collection)
+	path, typ, err := writePath(sc, st, gen.descInfo)
+	if err = report(err); err != nil {
+		return err
+	}
+
+	p("for _, %s := range %s {", snakeToCamel(l.Variable), path)
+
+	stInner := newSymTab(st)
+	stInner.put(l.Variable, typ)
+
+	for _, b := range l.Body {
+		if err := writeOutputSpec(b, stInner, gen); err != nil {
+			return err
+		}
+	}
+	p("}")
+	return nil
+}
+
+func writePath(sc *scanner.Scanner, st *symTab, info pbinfo.Info) (string, initType, error) {
 	if sc.Scan() != scanner.Ident {
-		return report(errors.E(nil, "expecting ident, got %s", sc.TokenText()))
+		return "", initType{}, errors.E(nil, "expecting ident, got %s", sc.TokenText())
 	}
 
 	rootVar := sc.TokenText()
 	rootTyp, ok := st.get(rootVar)
 	if !ok {
-		return report(errors.E(nil, "variable not found: %q", rootVar))
+		return "", initType{}, errors.E(nil, "variable not found: %q", rootVar)
 	}
 
 	itRoot := &initTree{typ: rootTyp}
 	itLeaf, _, err := itRoot.parsePathRest(sc, info)
 	if err != nil {
-		return report(err)
+		return "", initType{}, err
 	}
 	if sc.Scan() != scanner.EOF {
-		return report(errors.E(nil, "expected EOF, found %q", sc.TokenText()))
+		return "", initType{}, errors.E(nil, "expected EOF, found %q", sc.TokenText())
 	}
-
-	st.scope[lhs] = itLeaf.typ
-	st.universe[lhs] = true
 
 	if rootVar == "$resp" {
 		rootVar = "resp"
+	} else {
+		rootVar = snakeToCamel(rootVar)
 	}
-	fmt.Fprintf(w, "%s := %s", snakeToCamel(lhs), snakeToCamel(rootVar))
-	writePathRest(itRoot, w)
-	w.WriteByte('\n')
 
-	return report(nil)
-}
+	var sb strings.Builder
+	sb.WriteString(rootVar)
 
-var fmtStrReplacer = strings.NewReplacer("%%", "%%", "%s", "%v")
-
-func writePrint(pFmt string, pArgs []string, st *symTab, info pbinfo.Info, w *bufio.Writer) error {
-	fmt.Fprintf(w, "fmt.Printf(%q", fmtStrReplacer.Replace(pFmt)+"\n")
-
-	for _, arg := range pArgs {
-		w.WriteString(", ")
-
-		sc, report := initScanner(arg)
-		if sc.Scan() != scanner.Ident {
-			return report(errors.E(nil, "expecting ident, got %s", sc.TokenText()))
-		}
-
-		rootVar := sc.TokenText()
-		rootTyp, ok := st.get(rootVar)
-		if !ok {
-			return report(errors.E(nil, "variable not found: %q", rootVar))
-		}
-
-		itRoot := &initTree{typ: rootTyp}
-		_, _, err := itRoot.parsePathRest(sc, info)
-		if err != nil {
-			return report(err)
-		}
-		if sc.Scan() != scanner.EOF {
-			return report(errors.E(nil, "expected EOF, found %q", sc.TokenText()))
-		}
-
-		if rootVar == "$resp" {
-			rootVar = "resp"
-		}
-		w.WriteString(snakeToCamel(rootVar))
-		writePathRest(itRoot, w)
-	}
-	w.WriteString(")\n")
-	return nil
-}
-
-// writePathRest writes an "unrooted" path, printing index and fields, but not the left-most identifier.
-func writePathRest(it *initTree, w *bufio.Writer) {
 	// TODO(pongad): This doesn't handle oneofs properly.
-	for len(it.keys) > 0 {
-		w.WriteRune('.')
-		w.WriteString(snakeToPascal(it.keys[0]))
-		it = it.vals[0]
+	for it := itRoot; len(it.keys) > 0; it = it.vals[0] {
+		// Use Get method instead of direct field access so we properly deal with unset messages.
+		sb.WriteString(".Get")
+		sb.WriteString(snakeToPascal(it.keys[0]))
+		sb.WriteString("()")
 	}
+
+	return sb.String(), itLeaf.typ, nil
 }
