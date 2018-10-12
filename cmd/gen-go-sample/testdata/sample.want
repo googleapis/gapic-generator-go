@@ -19,6 +19,7 @@ import(
  "context"
  "flag"
  "fmt"
+ "log"
 
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
@@ -65,6 +66,8 @@ func main() {
 	arg0 := flag.Int64("arg0", 42, "")
 	arg1 := flag.String("arg1", "foobar", "")
 	flag.Parse()
-	sampleMyMethod(*arg0, *arg1)
+	if err := sampleMyMethod(*arg0, *arg1); err != nil {
+		log.Fatal(err)
+	}
 }
 
