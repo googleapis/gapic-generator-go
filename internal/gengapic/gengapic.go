@@ -145,6 +145,10 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 
 	for _, f := range files {
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
+			if loc.LeadingComments == nil {
+				continue
+			}
+
 			// p is an array with format [f1, i1, f2, i2, ...]
 			// - f1 refers to the protobuf field tag
 			// - if field refer to by f1 is a slice, i1 refers to an element in that slice
@@ -155,9 +159,9 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 			// since the field tag of Method is 2.
 			p := loc.Path
 			switch {
-			case len(p) == 2 && p[0] == 6 && loc.LeadingComments != nil:
+			case len(p) == 2 && p[0] == 6:
 				g.comments[f.Service[p[1]]] = *loc.LeadingComments
-			case len(p) == 4 && p[0] == 6 && p[2] == 2 && loc.LeadingComments != nil:
+			case len(p) == 4 && p[0] == 6 && p[2] == 2:
 				g.comments[f.Service[p[1]].Method[p[3]]] = *loc.LeadingComments
 			}
 		}
