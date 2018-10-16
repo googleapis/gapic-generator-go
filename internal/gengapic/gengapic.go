@@ -155,9 +155,9 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 			// since the field tag of Method is 2.
 			p := loc.Path
 			switch {
-			case len(p) == 2 && p[0] == 6:
+			case len(p) == 2 && p[0] == 6 && loc.LeadingComments != nil:
 				g.comments[f.Service[p[1]]] = *loc.LeadingComments
-			case len(p) == 4 && p[0] == 6 && p[2] == 2:
+			case len(p) == 4 && p[0] == 6 && p[2] == 2 && loc.LeadingComments != nil:
 				g.comments[f.Service[p[1]].Method[p[3]]] = *loc.LeadingComments
 			}
 		}
