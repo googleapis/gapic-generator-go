@@ -145,6 +145,10 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 
 	for _, f := range files {
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
+			if loc.LeadingComments == nil {
+				continue
+			}
+
 			// p is an array with format [f1, i1, f2, i2, ...]
 			// - f1 refers to the protobuf field tag
 			// - if field refer to by f1 is a slice, i1 refers to an element in that slice
