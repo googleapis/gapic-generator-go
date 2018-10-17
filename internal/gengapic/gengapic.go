@@ -70,10 +70,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			}
 		}
 	}
-	if eMeta == nil {
-		return nil, errors.E(nil, "cannot find annotation %q: %v", annotations.E_Metadata.Name, genReq.FileToGenerate)
+	if eMeta != nil {
+		// Without this, the doc is going to be a little bad but this is not an error.
+		g.apiName = strings.Join(eMeta.PackageNamespace, " ") + " " + eMeta.ProductName
 	}
-	g.apiName = strings.Join(eMeta.PackageNamespace, " ") + " " + eMeta.ProductName
 
 	for _, s := range genServs {
 		// TODO(pongad): gapic-generator does not remove the package name here,

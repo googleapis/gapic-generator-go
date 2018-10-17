@@ -232,10 +232,10 @@ methods:
 
 		// Just add this everywhere. Only LRO method will pick it up.
 		if m.Options != nil {
-			lroType := &annotations.LongrunningOperationTypes{
-				Response: "OutputType",
+			lroType := &annotations.OperationData{
+				ResponseType: "OutputType",
 			}
-			proto.SetExtension(m.Options, annotations.E_LongrunningOperationTypes, lroType)
+			proto.SetExtension(m.Options, annotations.E_Operation, lroType)
 		}
 
 		aux := auxTypes{
