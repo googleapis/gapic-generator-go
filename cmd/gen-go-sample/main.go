@@ -317,7 +317,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 
 		for _, out := range valSet.OnSuccess {
 			if err := writeOutputSpec(out, st, g); err != nil {
-				return err
+				return errors.E(err, "cannot write output handling code")
 			}
 		}
 

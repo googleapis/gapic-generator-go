@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"text/scanner"
 	"unicode"
@@ -38,6 +39,8 @@ type initType struct {
 	// If the type is a primitive, prim tells us what the type is.
 	desc pbinfo.ProtoType
 	prim descriptor.FieldDescriptorProto_Type
+
+	repeated bool
 
 	// valFmt, if not nil, post-processes values to be included into init struct.
 	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
@@ -90,6 +93,7 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 			// type is a message
 			v.typ.desc = typ
 		}
+		v.typ.repeated = f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 
 		break
 	}
@@ -100,6 +104,22 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 	t.keys = append(t.keys, k)
 	t.vals = append(t.vals, v)
 	return v, nil
+}
+
+func (t *initTree) index(k string) *initTree {
+	for i, key := range t.keys {
+		if k == key {
+			return t.vals[i]
+		}
+	}
+
+	v := new(initTree)
+	v.typ = t.typ
+	v.typ.repeated = false
+
+	t.keys = append(t.keys, k)
+	t.vals = append(t.vals, v)
+	return v
 }
 
 // Just do simple structs for now.
@@ -117,7 +137,7 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 		return report(err)
 	}
 	if r != '=' {
-		return report(errors.E(nil, "expected '='"))
+		return report(errors.E(nil, "expected '=', got %q", r))
 	}
 
 	// TODO(pongad): handle resource names
@@ -180,6 +200,9 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 	for {
 		switch r := sc.Scan(); r {
 		case '.':
+			if t.typ.repeated {
+				return nil, 0, errors.E(nil, "cannot access member of repeated field")
+			}
 			if r := sc.Scan(); r != scanner.Ident {
 				return nil, r, errors.E(nil, "expected ident, found %q", sc.TokenText())
 			}
@@ -188,6 +211,20 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 			} else {
 				t = t2
 			}
+
+		case '[':
+			if !t.typ.repeated {
+				return nil, 0, errors.E(nil, "cannot index into singular field")
+			}
+			if r := sc.Scan(); r != scanner.Int {
+				return nil, r, errors.E(nil, "expected int, found %q", sc.TokenText())
+			}
+			indVal := sc.TokenText()
+			if r := sc.Scan(); r != ']' {
+				return nil, r, errors.E(nil, "expected ']', found %q", sc.TokenText())
+			}
+
+			t = t.index(indVal)
 
 		default:
 			return t, r, nil
@@ -275,7 +312,41 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		}
 	}
 
-	fmt.Fprintf(w, "&%s.%s{\n", impSpec.Name, desc.GetName())
+	tvals := t.vals
+	writeKey := true
+	if t.typ.repeated {
+		// We allow array elements to be declared in any order,
+		// we reorder it here so we don't need to uglily write the numbers in the
+		// composite literal.
+		tlen := len(t.vals)
+		tvals = make([]*initTree, tlen)
+
+		for i, k := range t.keys {
+			n, err := strconv.Atoi(k)
+			if err != nil {
+				return errors.E(err, "not an array index: %q", k)
+			}
+			if n < 0 {
+				return errors.E(nil, "array index cannot be negative: %d", n)
+			}
+			if n >= tlen {
+				return errors.E(nil, "holes in arrays not allowed; got index %d but length %d", n, tlen)
+			}
+			tvals[n] = t.vals[i]
+		}
+		writeKey = false
+	}
+
+	// TODO(pongad): handle primitive array
+	var typPrefix string
+	switch {
+	case t.typ.repeated:
+		typPrefix = "[]*"
+	default:
+		typPrefix = "&"
+	}
+
+	fmt.Fprintf(w, "%s%s.%s{\n", typPrefix, impSpec.Name, desc.GetName())
 	for i, k := range t.keys {
 		indent(ind + 1)
 
@@ -285,10 +356,13 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 			closeBrace = true
 			indent(ind + 2)
 		}
-		w.WriteString(snakeToPascal(k))
 
-		w.WriteString(": ")
-		if err := t.vals[i].print(w, g, ind+1); err != nil {
+		if writeKey {
+			w.WriteString(snakeToPascal(k))
+			w.WriteString(": ")
+		}
+
+		if err := tvals[i].print(w, g, ind+1); err != nil {
 			return err
 		}
 

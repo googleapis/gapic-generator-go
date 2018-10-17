@@ -155,6 +155,7 @@ func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
 
 	p("for _, %s := range %s {", snakeToCamel(l.Variable), path)
 
+	typ.repeated = false
 	stInner := newSymTab(st)
 	stInner.put(l.Variable, typ)
 
