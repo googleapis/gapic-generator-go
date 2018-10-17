@@ -73,15 +73,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	lroType := lroTypeName(*m.Name)
 	p := g.printf
 
-	eLRO, err := proto.GetExtension(m.Options, annotations.E_LongrunningOperationTypes)
+	eLRO, err := proto.GetExtension(m.Options, annotations.E_Operation)
 	if err != nil {
 		return errors.E(err, "cannot read LRO types")
 	}
-	eLROType := eLRO.(*annotations.LongrunningOperationTypes)
+	eLROType := eLRO.(*annotations.OperationData)
 
 	var respType string
 	{
-		fullName := eLROType.Response
+		fullName := eLROType.ResponseType
 
 		// eLRO.ResponseType is either fully-qualified or in the same package as the method.
 		if strings.IndexByte(fullName, '.') < 0 {
@@ -101,10 +101,10 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		respType = fmt.Sprintf("%s.%s", respSpec.Name, typ.GetName())
 	}
 
-	hasMeta := eLROType.Metadata != ""
+	hasMeta := eLROType.MetadataType != ""
 	var metaType string
 	if hasMeta {
-		fullName := eLROType.Metadata
+		fullName := eLROType.MetadataType
 		if strings.IndexByte(fullName, '.') < 0 {
 			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
 		}
