@@ -43,8 +43,8 @@ type SampleParameter struct {
 }
 
 type SampleAttribute struct {
-	Parameter      string
-	SampleArgument bool `yaml:"sample_argument"`
+	Parameter          string
+	SampleArgumentName string `yaml:"sample_argument_name"`
 }
 
 type GAPICSample struct {

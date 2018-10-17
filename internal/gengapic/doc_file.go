@@ -34,8 +34,11 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p(license.Apache, year)
 	p("")
 
-	p("// Package %s is an auto-generated package for the", pkgName)
-	p("// %s API.", g.apiName)
+	if an := g.apiName; an != "" {
+		p("// Package %s is an auto-generated package for the", pkgName)
+		p("// %s API.", an)
+	}
+
 	p("package %s // import %q", pkgName, pkgPath)
 	p("")
 

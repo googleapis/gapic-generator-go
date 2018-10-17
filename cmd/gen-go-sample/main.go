@@ -234,11 +234,11 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 			return errors.E(err, "can't set default value: %q", def)
 		}
 	}
-	for i, attr := range valSet.Parameters.Attributes {
-		if !attr.SampleArgument {
+	for _, attr := range valSet.Parameters.Attributes {
+		if attr.SampleArgumentName == "" {
 			continue
 		}
-		name := fmt.Sprintf("arg%d", i)
+		name := snakeToCamel(attr.SampleArgumentName)
 		subTree, err := itree.parseSampleArgPath(attr.Parameter, g.descInfo, name)
 		if err != nil {
 			return errors.E(err, "can't set sample function argument: %q", attr.Parameter)

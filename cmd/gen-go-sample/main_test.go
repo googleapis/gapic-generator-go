@@ -43,8 +43,8 @@ func TestSample(t *testing.T) {
 				`a_array[1].y = 3`,
 			},
 			Attributes: []SampleAttribute{
-				{"a.x", true},
-				{"b", true},
+				{"a.x", "the_x"},
+				{"b", "the_b"},
 			},
 		},
 		OnSuccess: []OutputSpec{
