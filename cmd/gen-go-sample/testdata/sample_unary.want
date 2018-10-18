@@ -26,7 +26,7 @@ foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleMyMethod(theX int64, theB string) error {
+func sampleUnaryMethod(theX int64, theB string) error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
@@ -56,7 +56,7 @@ req := &foopb.InputType{
 		},
 	},
 }
-	resp, err := c.MyMethod(ctx, req)
+	resp, err := c.UnaryMethod(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func main() {
 	theX := flag.Int64("theX", 42, "")
 	theB := flag.String("theB", "foobar", "")
 	flag.Parse()
-	if err := sampleMyMethod(*theX, *theB); err != nil {
+	if err := sampleUnaryMethod(*theX, *theB); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -24,8 +25,9 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
 
-func TestSample(t *testing.T) {
+func TestUnary(t *testing.T) {
 	g := initTestGenerator()
+	fmt.Println(g.descInfo.Serv)
 
 	vs := SampleValueSet{
 		ID: "my_value_set",
@@ -62,7 +64,7 @@ func TestSample(t *testing.T) {
 			},
 		},
 	}
-	if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err != nil {
+	if err := g.genSample("foo.FooService", "UnaryMethod", "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
 
@@ -73,7 +75,7 @@ func TestSample(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	txtdiff.Diff(t, "TestSample", string(content), filepath.Join("testdata", "sample.want"))
+	txtdiff.Diff(t, "TestUnary", string(content), filepath.Join("testdata", "sample_unary.want"))
 }
 
 func TestSample_InitError(t *testing.T) {
@@ -106,10 +108,30 @@ func TestSample_InitError(t *testing.T) {
 			},
 		}
 
-		if err := g.genSample("MyService", "MyMethod", "awesome_region", vs); err == nil {
+		if err := g.genSample("foo.FooService", "UnaryMethod", "awesome_region", vs); err == nil {
 			t.Errorf("expected error from init config: %s", tst)
 		}
 	}
+}
+
+func TestPaging(t *testing.T) {
+	g := initTestGenerator()
+
+	vs := SampleValueSet{
+		ID: "my_value_set",
+	}
+	if err := g.genSample("foo.FooService", "PagingMethod", "awesome_region", vs); err != nil {
+		t.Fatal(err)
+	}
+
+	// Don't format. Format can change with Go version.
+	gofmt := false
+	year := 2018
+	content, err := g.commit(gofmt, year)
+	if err != nil {
+		t.Fatal(err)
+	}
+	txtdiff.Diff(t, "TestUnary", string(content), filepath.Join("testdata", "sample_paging.want"))
 }
 
 func initTestGenerator() *generator {
@@ -123,19 +145,12 @@ func initTestGenerator() *generator {
 			{Name: proto.String("Group")},
 		},
 		Field: []*descriptor.FieldDescriptorProto{
-			{Name: proto.String("a"), TypeName: proto.String("AType")},
-			{Name: proto.String("a_array"), TypeName: proto.String("AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
+			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
+			{Name: proto.String("a_array"), TypeName: proto.String(".foo.AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
-			{Name: proto.String("e"), TypeName: proto.String("EType")},
+			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.EType")},
 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
 			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
-		},
-	}
-	aType := &descriptor.DescriptorProto{
-		Name: proto.String("AType"),
-		Field: []*descriptor.FieldDescriptorProto{
-			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
-			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
 		},
 	}
 	eType := &descriptor.EnumDescriptorProto{
@@ -144,14 +159,43 @@ func initTestGenerator() *generator {
 			{Name: proto.String("FOO")},
 		},
 	}
+	aType := &descriptor.DescriptorProto{
+		Name: proto.String("AType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
+			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
+		},
+		EnumType: []*descriptor.EnumDescriptorProto{eType},
+	}
+
+	pageInType := &descriptor.DescriptorProto{
+		Name: proto.String("PageInType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String("AType")},
+			{Name: proto.String("page_size"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT32)},
+			{Name: proto.String("page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+		},
+	}
+	pageOutType := &descriptor.DescriptorProto{
+		Name: proto.String("PageOutType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String("AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
+			{Name: proto.String("next_page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+		},
+	}
 
 	serv := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 		Method: []*descriptor.MethodDescriptorProto{
 			{
-				Name:       proto.String("MyMethod"),
-				InputType:  inType.Name,
-				OutputType: inType.Name,
+				Name:       proto.String("UnaryMethod"),
+				InputType:  proto.String(".foo.InputType"),
+				OutputType: proto.String(".foo.InputType"),
+			},
+			{
+				Name:       proto.String("PagingMethod"),
+				InputType:  proto.String(".foo.PageInType"),
+				OutputType: proto.String(".foo.PageOutType"),
 			},
 		},
 	}
@@ -159,29 +203,14 @@ func initTestGenerator() *generator {
 		Options: &descriptor.FileOptions{
 			GoPackage: proto.String("path.to/pb/foo;foo"),
 		},
+		Package:     proto.String("foo"),
+		Service:     []*descriptor.ServiceDescriptorProto{serv},
+		MessageType: []*descriptor.DescriptorProto{inType, aType, pageInType, pageOutType},
 	}
 
 	return &generator{
 		clientPkg: pbinfo.ImportSpec{Path: "path.to/client/foo", Name: "foo"},
 		imports:   map[pbinfo.ImportSpec]bool{},
-		descInfo: pbinfo.Info{
-			Serv: map[string]*descriptor.ServiceDescriptorProto{
-				".MyService": serv,
-			},
-			ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
-				serv:           file,
-				serv.Method[0]: file,
-				inType:         file,
-				aType:          file,
-			},
-			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
-				eType: aType,
-			},
-			Type: map[string]pbinfo.ProtoType{
-				"InputType": inType,
-				"AType":     aType,
-				"EType":     eType,
-			},
-		},
+		descInfo:  pbinfo.Of([]*descriptor.FileDescriptorProto{file}),
 	}
 }

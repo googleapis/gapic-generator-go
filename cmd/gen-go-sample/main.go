@@ -303,28 +303,15 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		}
 	}
 
-	// TODO(pongad): handle non-unary
-	p("  resp, err := c.%s(ctx, req)", methName)
-	p("  if err != nil {")
-	p("    return err")
-	p("  }")
-	p("")
-
-	{
-		st := newSymTab(nil)
-		st.universe["$resp"] = true
-		st.scope["$resp"] = initType{desc: g.descInfo.Type[meth.GetOutputType()]}
-
-		for _, out := range valSet.OnSuccess {
-			if err := writeOutputSpec(out, st, g); err != nil {
-				return errors.E(err, "cannot write output handling code")
-			}
-		}
-
-		if len(valSet.OnSuccess) == 0 {
-			p("fmt.Println(resp)")
-			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-		}
+	if pf, err2 := pagingField(g.descInfo, meth); err2 != nil {
+		err = err2
+	} else if pf != nil {
+		err = g.paging(meth, pf, valSet)
+	} else {
+		err = g.unary(meth, valSet)
+	}
+	if err != nil {
+		return err
 	}
 
 	p("return nil")
@@ -366,4 +353,63 @@ func flagArgs(names []string) string {
 		fmt.Fprintf(&sb, ", *%s", n)
 	}
 	return sb.String()[2:]
+}
+
+func (g *generator) unary(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet) error {
+	p := g.pt.Printf
+
+	p("resp, err := c.%s(ctx, req)", meth.GetName())
+	p("if err != nil {")
+	p("  return err")
+	p("}")
+	p("")
+
+	return g.handleOut(meth, valSet, initType{desc: g.descInfo.Type[meth.GetOutputType()]})
+}
+
+func (g *generator) paging(meth *descriptor.MethodDescriptorProto, pf *descriptor.FieldDescriptorProto, valSet SampleValueSet) error {
+	p := g.pt.Printf
+
+	p("it := c.%s(ctx, req)", meth.GetName())
+	p("for {")
+	p("  resp, err := it.Next()")
+	p("  if err == iterator.Done {")
+	p("    break")
+	p("  }")
+	p("  if err != nil {")
+	p("    return err")
+	p("  }")
+
+	var typ initType
+	if tn := pf.GetTypeName(); tn != "" {
+		typ = initType{desc: g.descInfo.Type[tn]}
+	} else {
+		typ = initType{prim: pf.GetType()}
+	}
+
+	err := g.handleOut(meth, valSet, typ)
+
+	p("}")
+	p("")
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
+
+	return err
+}
+
+func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet, respTyp initType) error {
+	st := newSymTab(nil)
+	st.universe["$resp"] = true
+	st.scope["$resp"] = respTyp
+
+	for _, out := range valSet.OnSuccess {
+		if err := writeOutputSpec(out, st, g); err != nil {
+			return errors.E(err, "cannot write output handling code")
+		}
+	}
+
+	if len(valSet.OnSuccess) == 0 {
+		g.pt.Printf("fmt.Println(resp)")
+		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	}
+	return nil
 }
