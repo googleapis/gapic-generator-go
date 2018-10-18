@@ -150,11 +150,17 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 		tok := sc.TokenText()
 
 		if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			validEnum, eFmt := describeEnum(info, enum)
-			if !validEnum(tok) {
+			valid := false
+			for _, enumVal := range enum.Value {
+				if tok == enumVal.GetName() {
+					valid = true
+					break
+				}
+			}
+			if !valid {
 				return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), tok))
 			}
-			t.typ.valFmt = eFmt
+			t.typ.valFmt = enumFmt(info, enum)
 		} else {
 			pType := t.typ.prim
 			validPrim := validPrims[pType]

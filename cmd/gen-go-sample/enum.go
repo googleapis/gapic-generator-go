@@ -21,18 +21,8 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
-func describeEnum(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) (valid func(string) bool, format func(*generator, string) (string, error)) {
-	valid = func(s string) bool {
-		for _, enumVal := range enum.Value {
-			if s == enumVal.GetName() {
-				return true
-			}
-		}
-		return false
-	}
-
-	// TODO(pongad): we probably need something like this for nested messages too.
-	format = func(g *generator, s string) (string, error) {
+func enumFmt(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) func(*generator, string) (string, error) {
+	return func(g *generator, s string) (string, error) {
 		var element pbinfo.ProtoType = enum
 		var topElement pbinfo.ProtoType
 		var parts []string
@@ -42,10 +32,14 @@ func describeEnum(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) (valid
 			topElement = element
 		}
 
-		// An enum is scoped using C++ rule. If MessageType contains EnumType,
-		// then elements are accessed as MessageType.Element, not MessageType.EnumType.Element.
-		// TODO(pongad): figure out what happens with top-level enum.
-		parts = parts[1:]
+		if len(parts) > 1 {
+			// An enum is scoped using C++ rule. If MessageType contains EnumType,
+			// then elements are accessed as MessageType.Element, not MessageType.EnumType.Element.
+			//
+			// An exception to this rule is top-level enums, where len(parts)==1; they are qualified by
+			// EnumType.
+			parts = parts[1:]
+		}
 
 		// We made array in [child, parent, grandparent] order, we want grandparent fist.
 		for i := 0; i < len(parts)/2; i++ {
@@ -60,6 +54,4 @@ func describeEnum(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) (valid
 
 		return impSpec.Name + "." + strings.Join(parts, "_") + "_" + s, nil
 	}
-
-	return
 }
