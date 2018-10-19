@@ -117,31 +117,45 @@ type ImportSpec struct {
 	Name, Path string
 }
 
-// ImportSpec reports the ImportSpec for package containing protobuf element e.
-func (in *Info) ImportSpec(e proto.Message) (ImportSpec, error) {
+// NameSpec reports the name and ImportSpec of e.
+//
+// The reported name is the same with how protoc-gen-go refers to e.
+// E.g. if type B is nested under A, then the name of type B is "A_B".
+func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
+	topLvl := e
+	var nameParts []string
+	for e2 := e; e2 != nil; e2 = in.ParentElement[e2] {
+		topLvl = e2
+		nameParts = append(nameParts, e2.GetName())
+	}
+	for i, l := 0, len(nameParts); i < l/2; i++ {
+		nameParts[i], nameParts[l-i-1] = nameParts[l-i-1], nameParts[i]
+	}
+	name := strings.Join(nameParts, "_")
+
 	var eTxt interface{} = e
 	if et, ok := eTxt.(interface{ GetName() string }); ok {
 		eTxt = et.GetName()
 	}
 
-	fdesc := in.ParentFile[e]
+	fdesc := in.ParentFile[topLvl]
 	if fdesc == nil {
-		return ImportSpec{}, errors.E(nil, "can't determine import path for %v; can't find parent file", eTxt)
+		return "", ImportSpec{}, errors.E(nil, "can't determine import path for %v; can't find parent file", eTxt)
 	}
 
 	pkg := fdesc.GetOptions().GetGoPackage()
 	if pkg == "" {
-		return ImportSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", eTxt, fdesc.GetName())
+		return "", ImportSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", eTxt, fdesc.GetName())
 	}
 
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {
-		return ImportSpec{Path: pkg[:p], Name: pkg[p+1:] + "pb"}, nil
+		return name, ImportSpec{Path: pkg[:p], Name: pkg[p+1:] + "pb"}, nil
 	}
 
 	for {
 		p := strings.LastIndexByte(pkg, '/')
 		if p < 0 {
-			return ImportSpec{Path: pkg, Name: pkg + "pb"}, nil
+			return name, ImportSpec{Path: pkg, Name: pkg + "pb"}, nil
 		}
 		elem := pkg[p+1:]
 		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
@@ -149,8 +163,15 @@ func (in *Info) ImportSpec(e proto.Message) (ImportSpec, error) {
 			pkg = pkg[:p]
 			continue
 		}
-		return ImportSpec{Path: pkg, Name: elem + "pb"}, nil
+		return name, ImportSpec{Path: pkg, Name: elem + "pb"}, nil
 	}
+}
+
+// ImportSpec reports the ImportSpec for package containing protobuf element e.
+// Deprecated: Use NameSpec instead.
+func (in *Info) ImportSpec(e ProtoType) (ImportSpec, error) {
+	_, imp, err := in.NameSpec(e)
+	return imp, err
 }
 
 // ReduceServName removes redundant components from the service name.

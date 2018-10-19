@@ -295,7 +295,7 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		return errors.E(nil, "internal error? value neither primitive nor compound type")
 	}
 
-	impSpec, err := g.descInfo.ImportSpec(desc)
+	typName, impSpec, err := g.descInfo.NameSpec(desc)
 	if err != nil {
 		return err
 	}
@@ -352,13 +352,13 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		typPrefix = "&"
 	}
 
-	fmt.Fprintf(w, "%s%s.%s{\n", typPrefix, impSpec.Name, desc.GetName())
+	fmt.Fprintf(w, "%s%s.%s{\n", typPrefix, impSpec.Name, typName)
 	for i, k := range t.keys {
 		indent(ind + 1)
 
 		var closeBrace bool
 		if oneof, ok := oneofs[k]; ok {
-			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToPascal(oneof), impSpec.Name, desc.GetName(), snakeToPascal(k))
+			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToPascal(oneof), impSpec.Name, typName, snakeToPascal(k))
 			closeBrace = true
 			indent(ind + 2)
 		}
