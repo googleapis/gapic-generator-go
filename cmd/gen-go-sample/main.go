@@ -303,11 +303,18 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		}
 	}
 
-	if pf, err2 := pagingField(g.descInfo, meth); err2 != nil {
+	switch pf, err2 := pagingField(g.descInfo, meth); {
+	case err2 != nil:
 		err = err2
-	} else if pf != nil {
+	case pf != nil:
 		err = g.paging(meth, pf, valSet)
-	} else {
+	case meth.GetServerStreaming() || meth.GetClientStreaming():
+		err = errors.E(nil, "streaming methods not supported yet")
+	case meth.GetOutputType() == ".google.protobuf.Empty":
+		err = errors.E(nil, "empty return type not supported yet")
+	case meth.GetOutputType() == ".google.protobuf.Operation":
+		err = errors.E(nil, "LRO not supported yet")
+	default:
 		err = g.unary(meth, valSet)
 	}
 	if err != nil {
