@@ -27,6 +27,7 @@ mkdir showcase-testdir/
 
 cd showcase-testdir
 go mod init showcase-test
+go mod edit -require=github.com/googleapis/gapic-showcase@v0.0.7
 
 protoc \
 	--go_gapic_out . \
