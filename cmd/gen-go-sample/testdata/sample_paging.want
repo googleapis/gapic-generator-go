@@ -21,62 +21,41 @@ import(
  "fmt"
  "log"
 
+ "google.golang.org/api/iterator"
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleMyMethod(theX int64, theB string) error {
+func samplePagingMethod() error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
 		return err
 	}
 
-// theX := 42
-// theB := "foobar"
-req := &foopb.InputType{
-	A: &foopb.AType{
-		X: theX,
-		Y: 3.14159,
-	},
-	B: theB,
-	E: foopb.AType_FOO,
-	Group: &foopb.InputType_F{
-		F: "in a oneof",
-	},
-	AArray: []*foopb.AType{
-		&foopb.AType{
-			X: 0,
-			Y: 1,
-		},
-		&foopb.AType{
-			X: 2,
-			Y: 3,
-		},
-	},
+req := &foopb.PageInType{
 }
-	resp, err := c.MyMethod(ctx, req)
-	if err != nil {
-		return err
+	it := c.PagingMethod(ctx, req)
+	for {
+		resp, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		fmt.Println(resp)
 	}
 
-	outA := resp.GetA()
-	fmt.Printf("x = %v\n", resp.GetA().GetX())
-	fmt.Printf("y = %v\n", outA.GetY())
-	for _, r := range resp.GetR() {
-		fmt.Printf("resp.r contains %v\n", r)
-	}
 	return nil
 }
 
 // [END awesome_region]
 
 func main() {
-	theX := flag.Int64("theX", 42, "")
-	theB := flag.String("theB", "foobar", "")
 	flag.Parse()
-	if err := sampleMyMethod(*theX, *theB); err != nil {
+	if err := samplePagingMethod(); err != nil {
 		log.Fatal(err)
 	}
 }
