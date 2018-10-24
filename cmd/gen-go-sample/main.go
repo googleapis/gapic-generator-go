@@ -271,34 +271,26 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
-	for i, name := range argNames {
-		var sb strings.Builder
-		fmt.Fprintf(&sb, "// %s := ", name)
-		if err := argTrees[i].Print(&sb, g); err != nil {
-			return errors.E(err, "can't initializing parameter: %s", name)
-		}
-		s := sb.String()
-		s = strings.Replace(s, "\n", "\n//", -1)
-
-		w := g.pt.Writer()
-		if _, err := w.Write([]byte(s)); err != nil {
-			return err
-		}
-		if _, err := w.Write([]byte{'\n'}); err != nil {
-			return err
-		}
-	}
-
 	{
-		w := g.pt.Writer()
+		var buf bytes.Buffer
 
-		if _, err := w.Write([]byte("req := ")); err != nil {
-			return err
+		for i, name := range argNames {
+			fmt.Fprintf(&buf, "%s := ", name)
+			if err := argTrees[i].Print(&buf, g); err != nil {
+				return errors.E(err, "can't initializing parameter: %s", name)
+			}
+			buf.WriteByte('\n')
 		}
-		if err := itree.Print(g.pt.Writer(), g); err != nil {
+		prependLines(&buf, "// ")
+
+		buf.WriteString("req := ")
+		if err := itree.Print(&buf, g); err != nil {
 			return errors.E(err, "can't initializing request object")
 		}
-		if _, err := w.Write([]byte{'\n'}); err != nil {
+		buf.WriteByte('\n')
+		prependLines(&buf, "\t")
+
+		if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
 			return err
 		}
 	}
@@ -419,4 +411,14 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet Sam
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	}
 	return nil
+}
+
+func prependLines(b *bytes.Buffer, prefix string) {
+	rep := bytes.Replace(b.Bytes(), []byte{'\n'}, []byte("\n"+prefix), -1)
+	b.Reset()
+	b.WriteString(prefix)
+	b.Write(rep)
+
+	// We added the prefix to all newlines, including the ending one, so we overwrote the prefix once.
+	b.Truncate(b.Len() - len(prefix))
 }

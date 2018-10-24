@@ -34,8 +34,8 @@ func samplePagingMethod() error {
 		return err
 	}
 
-req := &foopb.PageInType{
-}
+	req := &foopb.PageInType{
+	}
 	it := c.PagingMethod(ctx, req)
 	for {
 		resp, err := it.Next()

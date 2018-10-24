@@ -33,29 +33,29 @@ func sampleUnaryMethod(theX int64, theB string) error {
 		return err
 	}
 
-// theX := 42
-// theB := "foobar"
-req := &foopb.InputType{
-	A: &foopb.AType{
-		X: theX,
-		Y: 3.14159,
-	},
-	B: theB,
-	E: foopb.AType_FOO,
-	Group: &foopb.InputType_F{
-		F: "in a oneof",
-	},
-	AArray: []*foopb.AType{
-		&foopb.AType{
-			X: 0,
-			Y: 1,
+	// theX := 42
+	// theB := "foobar"
+	req := &foopb.InputType{
+		A: &foopb.AType{
+			X: theX,
+			Y: 3.14159,
 		},
-		&foopb.AType{
-			X: 2,
-			Y: 3,
+		B: theB,
+		E: foopb.AType_FOO,
+		Group: &foopb.InputType_F{
+			F: "in a oneof",
 		},
-	},
-}
+		AArray: []*foopb.AType{
+			&foopb.AType{
+				X: 0,
+				Y: 1,
+			},
+			&foopb.AType{
+				X: 2,
+				Y: 3,
+			},
+		},
+	}
 	resp, err := c.UnaryMethod(ctx, req)
 	if err != nil {
 		return err
