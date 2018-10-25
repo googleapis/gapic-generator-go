@@ -21,6 +21,13 @@ Installation
 `go get github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic`.
 If you are using Go 1.11 and see error `cannot find main module`, see this [FAQ page](https://github.com/golang/go/wiki/Modules#why-does-installing-a-tool-via-go-get-fail-with-error-cannot-find-main-module).
 
+Or to install from source:
+```
+git pull https://github.com/googleapis/gapic-generator-go.git
+cd gapic-generator-go
+go install ./cmd/protoc-gen-go_gapic
+```
+
 The generator works as a `protoc` plugin, get `protoc` from [google/protobuf](https://github.com/protocolbuffers/protobuf).
 
 Invocation
