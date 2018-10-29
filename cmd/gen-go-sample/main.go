@@ -285,7 +285,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 
 		buf.WriteString("req := ")
 		if err := itree.Print(&buf, g); err != nil {
-			return errors.E(err, "can't initializing request object")
+			return errors.E(err, "can't initialize request object")
 		}
 		buf.WriteByte('\n')
 		prependLines(&buf, "\t")
@@ -413,12 +413,25 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet Sam
 	return nil
 }
 
+// prependLines adds prefix to every line in b. A line is defined as a possibly empty run
+// of non-newlines terminated by a newline character.
+// If b doesn't end with a newline, prependLines panics.
 func prependLines(b *bytes.Buffer, prefix string) {
-	rep := bytes.Replace(b.Bytes(), []byte{'\n'}, []byte("\n"+prefix), -1)
+	if b.Len() == 0 {
+		return
+	}
+	if b.Bytes()[b.Len()-1] != '\n' {
+		panic(errors.E(nil, "prependLines: must end with newline"))
+	}
+	// Don't split with b.Bytes, we have to make a copy of the content since we're overwriting the buffer.
+	lines := strings.SplitAfter(b.String(), "\n")
 	b.Reset()
-	b.WriteString(prefix)
-	b.Write(rep)
-
-	// We added the prefix to all newlines, including the ending one, so we overwrote the prefix once.
-	b.Truncate(b.Len() - len(prefix))
+	for _, l := range lines {
+		// When splitting, we have an empty string after the last newline, ignore it.
+		if l == "" {
+			continue
+		}
+		b.WriteString(prefix)
+		b.WriteString(l)
+	}
 }
