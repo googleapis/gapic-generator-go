@@ -277,7 +277,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		for i, name := range argNames {
 			fmt.Fprintf(&buf, "%s := ", name)
 			if err := argTrees[i].Print(&buf, g); err != nil {
-				return errors.E(err, "can't initializing parameter: %s", name)
+				return errors.E(err, "can't initialize parameter: %s", name)
 			}
 			buf.WriteByte('\n')
 		}
@@ -423,7 +423,7 @@ func prependLines(b *bytes.Buffer, prefix string) {
 	if b.Bytes()[b.Len()-1] != '\n' {
 		panic(errors.E(nil, "prependLines: must end with newline"))
 	}
-	// Don't split with b.Bytes, we have to make a copy of the content since we're overwriting the buffer.
+	// Don't split with b.Bytes; we have to make a copy of the content since we're overwriting the buffer.
 	lines := strings.SplitAfter(b.String(), "\n")
 	b.Reset()
 	for _, l := range lines {
