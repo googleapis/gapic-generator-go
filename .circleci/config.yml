@@ -6,7 +6,10 @@ jobs:
     steps:
       - checkout
       - run: go test -mod=readonly ./...
-      - run: find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
+      - run:
+          name: Check license
+          command: |
+            find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
       # Install protoc, showcase.bash needs it
       - run:
           name: Run Showcase

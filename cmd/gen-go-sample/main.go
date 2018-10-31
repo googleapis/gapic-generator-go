@@ -295,20 +295,20 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		}
 	}
 
-	switch pf, err2 := pagingField(g.descInfo, meth); {
-	case err2 != nil:
-		err = err2
-	case pf != nil:
-		err = g.paging(meth, pf, valSet)
-	case meth.GetServerStreaming() || meth.GetClientStreaming():
-		err = errors.E(nil, "streaming methods not supported yet")
-	case meth.GetOutputType() == ".google.protobuf.Empty":
-		err = errors.E(nil, "empty return type not supported yet")
-	case meth.GetOutputType() == ".google.protobuf.Operation":
+	if meth.GetOutputType() == ".google.protobuf.Empty" {
+		err = g.emptyOut(meth, valSet)
+	} else if meth.GetOutputType() == ".google.protobuf.Operation" {
 		err = errors.E(nil, "LRO not supported yet")
-	default:
+	} else if meth.GetServerStreaming() || meth.GetClientStreaming() {
+		err = errors.E(nil, "streaming methods not supported yet")
+	} else if pf, err2 := pagingField(g.descInfo, meth); err2 != nil {
+		err = errors.E(err2, "can't determine whether method is paging")
+	} else if pf != nil {
+		err = g.paging(meth, pf, valSet)
+	} else {
 		err = g.unary(meth, valSet)
 	}
+
 	if err != nil {
 		return err
 	}
@@ -363,7 +363,18 @@ func (g *generator) unary(meth *descriptor.MethodDescriptorProto, valSet SampleV
 	p("}")
 	p("")
 
-	return g.handleOut(meth, valSet, initType{desc: g.descInfo.Type[meth.GetOutputType()]})
+	return g.handleOut(meth, valSet, &initType{desc: g.descInfo.Type[meth.GetOutputType()]})
+}
+
+func (g *generator) emptyOut(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet) error {
+	p := g.pt.Printf
+
+	p("if err := c.%s(ctx, req); err != nil {", meth.GetName())
+	p("  return err")
+	p("}")
+	p("")
+
+	return g.handleOut(meth, valSet, nil)
 }
 
 func (g *generator) paging(meth *descriptor.MethodDescriptorProto, pf *descriptor.FieldDescriptorProto, valSet SampleValueSet) error {
@@ -386,7 +397,7 @@ func (g *generator) paging(meth *descriptor.MethodDescriptorProto, pf *descripto
 		typ = initType{prim: pf.GetType()}
 	}
 
-	err := g.handleOut(meth, valSet, typ)
+	err := g.handleOut(meth, valSet, &typ)
 
 	p("}")
 	p("")
@@ -395,10 +406,12 @@ func (g *generator) paging(meth *descriptor.MethodDescriptorProto, pf *descripto
 	return err
 }
 
-func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet, respTyp initType) error {
+func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet, respTyp *initType) error {
 	st := newSymTab(nil)
-	st.universe["$resp"] = true
-	st.scope["$resp"] = respTyp
+	if respTyp != nil {
+		st.universe["$resp"] = true
+		st.scope["$resp"] = *respTyp
+	}
 
 	for _, out := range valSet.OnSuccess {
 		if err := writeOutputSpec(out, st, g); err != nil {
@@ -406,7 +419,7 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet Sam
 		}
 	}
 
-	if len(valSet.OnSuccess) == 0 {
+	if respTyp != nil && len(valSet.OnSuccess) == 0 {
 		g.pt.Printf("fmt.Println(resp)")
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	}

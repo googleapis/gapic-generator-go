@@ -202,7 +202,7 @@ func TestIterTypeOf(t *testing.T) {
 		got, err := g.iterTypeOf(tst.field)
 		if err != nil {
 			t.Error(err)
-		} else if diff := cmp.Diff(tst.want, got, cmp.AllowUnexported(got, pbinfo.ImportSpec{})); diff != "" {
+		} else if diff := cmp.Diff(tst.want, got, cmp.AllowUnexported(got)); diff != "" {
 			t.Errorf("%d: (got=-, want=+):\n%s", i, diff)
 		}
 	}
