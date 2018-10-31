@@ -33,8 +33,8 @@ func sampleEmptyMethod() error {
 		return err
 	}
 
-req := &foopb.PageInType{
-}
+	req := &foopb.PageInType{
+	}
 	if err := c.EmptyMethod(ctx, req); err != nil {
 		return err
 	}
