@@ -43,10 +43,14 @@ func TestUnary(t *testing.T) {
 				`a_array[0].y = 1`,
 				`a_array[1].x = 2`,
 				`a_array[1].y = 3`,
+
+				`resource_field%foo="myfoo"`,
+				`resource_field%bar="mybar"`,
 			},
 			Attributes: []SampleAttribute{
 				{"a.x", "the_x"},
 				{"b", "the_b"},
+				{"resource_field%foo", "the_foo"},
 			},
 		},
 		OnSuccess: []OutputSpec{
@@ -64,7 +68,12 @@ func TestUnary(t *testing.T) {
 			},
 		},
 	}
-	if err := g.genSample("foo.FooService", "UnaryMethod", "awesome_region", vs); err != nil {
+
+	methConf := GAPICMethod{
+		Name:              "UnaryMethod",
+		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
+	}
+	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
 
@@ -101,7 +110,7 @@ func TestSample_InitError(t *testing.T) {
 			},
 		}
 
-		if err := g.genSample("foo.FooService", "UnaryMethod", "awesome_region", vs); err == nil {
+		if err := g.genSample("foo.FooService", GAPICMethod{Name: "UnaryMethod"}, "awesome_region", vs); err == nil {
 			t.Errorf("expected error from init config: %s", tst)
 		}
 	}
@@ -115,7 +124,7 @@ func TestPaging(t *testing.T) {
 	vs := SampleValueSet{
 		ID: "my_value_set",
 	}
-	if err := g.genSample("foo.FooService", "PagingMethod", "awesome_region", vs); err != nil {
+	if err := g.genSample("foo.FooService", GAPICMethod{Name: "PagingMethod"}, "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
@@ -128,7 +137,7 @@ func TestEmpty(t *testing.T) {
 	vs := SampleValueSet{
 		ID: "my_value_set",
 	}
-	if err := g.genSample("foo.FooService", "EmptyMethod", "awesome_region", vs); err != nil {
+	if err := g.genSample("foo.FooService", GAPICMethod{Name: "EmptyMethod"}, "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_empty.want"))
@@ -151,6 +160,7 @@ func initTestGenerator() *generator {
 			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.EType")},
 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
 			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
+			{Name: proto.String("resource_field"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 		},
 	}
 	eType := &descriptor.EnumDescriptorProto{
@@ -217,6 +227,11 @@ func initTestGenerator() *generator {
 		clientPkg: pbinfo.ImportSpec{Path: "path.to/client/foo", Name: "foo"},
 		imports:   map[pbinfo.ImportSpec]bool{},
 		descInfo:  pbinfo.Of([]*descriptor.FileDescriptorProto{file}),
+		gapic: GAPICConfig{
+			Collections: []ResourceName{
+				{EntityName: "foobar_thing", NamePattern: "foos/{foo}/bars/{bar}"},
+			},
+		},
 	}
 }
 
