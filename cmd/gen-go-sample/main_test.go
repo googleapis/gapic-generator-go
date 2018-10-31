@@ -26,6 +26,8 @@ import (
 )
 
 func TestUnary(t *testing.T) {
+	t.Parallel()
+
 	g := initTestGenerator()
 	fmt.Println(g.descInfo.Serv)
 
@@ -68,14 +70,7 @@ func TestUnary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Don't format. Format can change with Go version.
-	gofmt := false
-	year := 2018
-	content, err := g.commit(gofmt, year)
-	if err != nil {
-		t.Fatal(err)
-	}
-	txtdiff.Diff(t, "TestUnary", string(content), filepath.Join("testdata", "sample_unary.want"))
+	compare(t, g, filepath.Join("testdata", "sample_unary.want"))
 }
 
 func TestSample_InitError(t *testing.T) {
@@ -115,6 +110,8 @@ func TestSample_InitError(t *testing.T) {
 }
 
 func TestPaging(t *testing.T) {
+	t.Parallel()
+
 	g := initTestGenerator()
 
 	vs := SampleValueSet{
@@ -123,15 +120,20 @@ func TestPaging(t *testing.T) {
 	if err := g.genSample("foo.FooService", "PagingMethod", "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
+	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
+}
 
-	// Don't format. Format can change with Go version.
-	gofmt := false
-	year := 2018
-	content, err := g.commit(gofmt, year)
-	if err != nil {
+func TestEmpty(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	vs := SampleValueSet{
+		ID: "my_value_set",
+	}
+	if err := g.genSample("foo.FooService", "EmptyMethod", "awesome_region", vs); err != nil {
 		t.Fatal(err)
 	}
-	txtdiff.Diff(t, "TestUnary", string(content), filepath.Join("testdata", "sample_paging.want"))
+	compare(t, g, filepath.Join("testdata", "sample_empty.want"))
 }
 
 func initTestGenerator() *generator {
@@ -197,6 +199,11 @@ func initTestGenerator() *generator {
 				InputType:  proto.String(".foo.PageInType"),
 				OutputType: proto.String(".foo.PageOutType"),
 			},
+			{
+				Name:       proto.String("EmptyMethod"),
+				InputType:  proto.String(".foo.PageInType"),
+				OutputType: proto.String(".google.protobuf.Empty"),
+			},
 		},
 	}
 	file := &descriptor.FileDescriptorProto{
@@ -213,4 +220,17 @@ func initTestGenerator() *generator {
 		imports:   map[pbinfo.ImportSpec]bool{},
 		descInfo:  pbinfo.Of([]*descriptor.FileDescriptorProto{file}),
 	}
+}
+
+func compare(t *testing.T, g *generator, goldenPath string) {
+	t.Helper()
+
+	// Don't format. Format can change with Go version.
+	gofmt := false
+	year := 2018
+	content, err := g.commit(gofmt, year)
+	if err != nil {
+		t.Fatal(err)
+	}
+	txtdiff.Diff(t, t.Name(), string(content), goldenPath)
 }
