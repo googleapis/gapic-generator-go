@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -29,7 +28,6 @@ func TestUnary(t *testing.T) {
 	t.Parallel()
 
 	g := initTestGenerator()
-	fmt.Println(g.descInfo.Serv)
 
 	vs := SampleValueSet{
 		ID: "my_value_set",

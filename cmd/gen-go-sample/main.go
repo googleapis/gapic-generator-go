@@ -271,34 +271,26 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
-	for i, name := range argNames {
-		var sb strings.Builder
-		fmt.Fprintf(&sb, "// %s := ", name)
-		if err := argTrees[i].Print(&sb, g); err != nil {
-			return errors.E(err, "can't initializing parameter: %s", name)
-		}
-		s := sb.String()
-		s = strings.Replace(s, "\n", "\n//", -1)
-
-		w := g.pt.Writer()
-		if _, err := w.Write([]byte(s)); err != nil {
-			return err
-		}
-		if _, err := w.Write([]byte{'\n'}); err != nil {
-			return err
-		}
-	}
-
 	{
-		w := g.pt.Writer()
+		var buf bytes.Buffer
 
-		if _, err := w.Write([]byte("req := ")); err != nil {
-			return err
+		for i, name := range argNames {
+			fmt.Fprintf(&buf, "%s := ", name)
+			if err := argTrees[i].Print(&buf, g); err != nil {
+				return errors.E(err, "can't initialize parameter: %s", name)
+			}
+			buf.WriteByte('\n')
 		}
-		if err := itree.Print(g.pt.Writer(), g); err != nil {
-			return errors.E(err, "can't initializing request object")
+		prependLines(&buf, "// ")
+
+		buf.WriteString("req := ")
+		if err := itree.Print(&buf, g); err != nil {
+			return errors.E(err, "can't initialize request object")
 		}
-		if _, err := w.Write([]byte{'\n'}); err != nil {
+		buf.WriteByte('\n')
+		prependLines(&buf, "\t")
+
+		if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
 			return err
 		}
 	}
@@ -432,4 +424,27 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet Sam
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	}
 	return nil
+}
+
+// prependLines adds prefix to every line in b. A line is defined as a possibly empty run
+// of non-newlines terminated by a newline character.
+// If b doesn't end with a newline, prependLines panics.
+func prependLines(b *bytes.Buffer, prefix string) {
+	if b.Len() == 0 {
+		return
+	}
+	if b.Bytes()[b.Len()-1] != '\n' {
+		panic(errors.E(nil, "prependLines: must end with newline"))
+	}
+	// Don't split with b.Bytes; we have to make a copy of the content since we're overwriting the buffer.
+	lines := strings.SplitAfter(b.String(), "\n")
+	b.Reset()
+	for _, l := range lines {
+		// When splitting, we have an empty string after the last newline, ignore it.
+		if l == "" {
+			continue
+		}
+		b.WriteString(prefix)
+		b.WriteString(l)
+	}
 }
