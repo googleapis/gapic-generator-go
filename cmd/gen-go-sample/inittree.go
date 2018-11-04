@@ -37,8 +37,9 @@ import (
 type initType struct {
 	// If the type is a protobuf "compound type", desc describes the type.
 	// If the type is a primitive, prim tells us what the type is.
-	desc pbinfo.ProtoType
-	prim descriptor.FieldDescriptorProto_Type
+	desc    pbinfo.ProtoType
+	namePat *namePattern
+	prim    descriptor.FieldDescriptorProto_Type
 
 	repeated bool
 
@@ -71,11 +72,24 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		}
 	}
 
+	if np := t.typ.namePat; np != nil {
+		if _, ok := np.pos[k]; !ok {
+			return nil, errors.E(nil, "resource name has no component: %q", k)
+		}
+
+		v := new(initTree)
+		v.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
+
+		t.keys = append(t.keys, k)
+		t.vals = append(t.vals, v)
+		return v, nil
+	}
+
 	var fields []*descriptor.FieldDescriptorProto
 	if msg, ok := t.typ.desc.(*descriptor.DescriptorProto); ok {
 		fields = msg.Field
 	} else {
-		return nil, errors.E(nil, "type does not have fields: %T", t.typ.desc)
+		return nil, errors.E(nil, "not a message type: %T", t.typ.desc)
 	}
 
 	v := new(initTree)
@@ -205,13 +219,21 @@ func (t *initTree) parseSampleArgPath(txt string, info pbinfo.Info, varName stri
 func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTree, rune, error) {
 	for {
 		switch r := sc.Scan(); r {
-		case '.':
+		case '.', '%':
 			if t.typ.repeated {
 				return nil, 0, errors.E(nil, "cannot access member of repeated field")
 			}
 			if r := sc.Scan(); r != scanner.Ident {
 				return nil, r, errors.E(nil, "expected ident, found %q", sc.TokenText())
 			}
+
+			if r == '.' && t.typ.desc == nil {
+				return nil, r, errors.E(nil, "field is not a message")
+			}
+			if r == '%' && t.typ.namePat == nil {
+				return nil, r, errors.E(nil, "field is not a resource name")
+			}
+
 			if t2, err := t.get(sc.TokenText(), info); err != nil {
 				return nil, 0, err
 			} else {
@@ -275,6 +297,7 @@ func (t *initTree) Print(w io.Writer, g *generator) error {
 }
 
 func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
+	// TODO(pongad): method is getting long; split and test
 	if prim := t.typ.prim; prim != 0 && t.leafVal == "" {
 		return errors.E(nil, "init value not defined for primitive type: %s", prim)
 	}
@@ -287,6 +310,25 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 			v = v2
 		}
 		w.WriteString(v)
+		return nil
+	}
+
+	if np := t.typ.namePat; np != nil {
+		fmt.Fprintf(w, "fmt.Sprintf(%q", np.fmtSpec())
+
+		for i := 1; i < len(np.pieces); i += 2 {
+			placeHolder := np.pieces[i]
+			val, err := t.get(placeHolder, g.descInfo)
+			if err != nil {
+				return err
+			}
+
+			// leafVal strings are already quoted.
+			fmt.Fprintf(w, ", %s", val.leafVal)
+		}
+
+		w.WriteByte(')')
+		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		return nil
 	}
 

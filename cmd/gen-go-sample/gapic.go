@@ -15,7 +15,8 @@
 package main
 
 type GAPICConfig struct {
-	Interfaces []GAPICInterface
+	Interfaces  []GAPICInterface
+	Collections []ResourceName
 }
 
 type GAPICInterface struct {
@@ -29,6 +30,9 @@ type GAPICMethod struct {
 	Samples         struct {
 		Standalone []GAPICSample
 	}
+
+	// map[fieldName]ResourceName.EntityName
+	FieldNamePatterns map[string]string `yaml:"field_name_patterns"`
 }
 
 type SampleValueSet struct {
@@ -64,4 +68,9 @@ type LoopSpec struct {
 	Collection string
 	Variable   string
 	Body       []OutputSpec
+}
+
+type ResourceName struct {
+	EntityName  string `yaml:"entity_name"`
+	NamePattern string `yaml:"name_pattern"`
 }

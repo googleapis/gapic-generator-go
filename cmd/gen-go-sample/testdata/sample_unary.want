@@ -26,7 +26,7 @@ foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleUnaryMethod(theX int64, theB string) error {
+func sampleUnaryMethod(theX int64, theB string, theFoo string) error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
@@ -35,7 +35,9 @@ func sampleUnaryMethod(theX int64, theB string) error {
 
 	// theX := 42
 	// theB := "foobar"
+	// theFoo := "myfoo"
 	req := &foopb.InputType{
+		ResourceField: fmt.Sprintf("foos/%s/bars/%s", theFoo, "mybar"),
 		A: &foopb.AType{
 			X: theX,
 			Y: 3.14159,
@@ -75,8 +77,9 @@ func sampleUnaryMethod(theX int64, theB string) error {
 func main() {
 	theX := flag.Int64("theX", 42, "")
 	theB := flag.String("theB", "foobar", "")
+	theFoo := flag.String("theFoo", "myfoo", "")
 	flag.Parse()
-	if err := sampleUnaryMethod(*theX, *theB); err != nil {
+	if err := sampleUnaryMethod(*theX, *theB, *theFoo); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -112,7 +112,7 @@ func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, no
 			}
 
 			gen.reset()
-			if err := gen.genSample(iface.Name, meth.Name, sam.RegionTag, vs); err != nil {
+			if err := gen.genSample(iface.Name, meth, sam.RegionTag, vs); err != nil {
 				return errors.E(err, "value set: %s", vsID)
 			}
 			content, err := gen.commit(!nofmt, time.Now().Year())
@@ -194,7 +194,9 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 	return b, nil
 }
 
-func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleValueSet) error {
+func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag string, valSet SampleValueSet) error {
+	// TODO(pongad): This method's error cases are not well tested. Split and test.
+
 	g.imports[g.clientPkg] = true
 	serv := g.descInfo.Serv["."+ifaceName]
 	if serv == nil {
@@ -203,13 +205,13 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 
 	var meth *descriptor.MethodDescriptorProto
 	for _, m := range serv.GetMethod() {
-		if m.GetName() == methName {
+		if m.GetName() == methConf.Name {
 			meth = m
 			break
 		}
 	}
 	if meth == nil {
-		return errors.E(nil, "service %q doesn't have method %q", serv.GetName(), methName)
+		return errors.E(nil, "service %q doesn't have method %q", serv.GetName(), methConf.Name)
 	}
 
 	inType := g.descInfo.Type[meth.GetInputType()]
@@ -229,11 +231,44 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	itree := initTree{
 		typ: initType{desc: inType},
 	}
+
+	// Set up resource names. We need this info when setting up request object.
+	for field, entName := range methConf.FieldNamePatterns {
+		var pat string
+		for _, col := range g.gapic.Collections {
+			if col.EntityName == entName {
+				pat = col.NamePattern
+				break
+			}
+		}
+		if pat == "" {
+			return errors.E(nil, "undefined resource name: %q", entName)
+		}
+
+		namePat, err := parseNamePattern(pat)
+		if err != nil {
+			return err
+		}
+
+		subTree, err := itree.get(field, g.descInfo)
+		if err != nil {
+			return errors.E(err, "cannot set up resource name: %q", entName)
+		}
+		if typ := subTree.typ; typ.prim != descriptor.FieldDescriptorProto_TYPE_STRING {
+			return errors.E(err, "cannot set up resource name for %q, need field to be string, got %v", field, typ)
+		}
+		subTree.typ.prim = 0
+		subTree.typ.namePat = &namePat
+	}
+
+	// Set up request object.
 	for _, def := range valSet.Parameters.Defaults {
 		if err := itree.parseInit(def, g.descInfo); err != nil {
 			return errors.E(err, "can't set default value: %q", def)
 		}
 	}
+
+	// Some parts of request object are from arguments.
 	for _, attr := range valSet.Parameters.Attributes {
 		if attr.SampleArgumentName == "" {
 			continue
@@ -262,7 +297,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 		argStr = sb.String()[2:]
 	}
 
-	p("func sample%s(%s) error {", methName, argStr)
+	p("func sample%s(%s) error {", meth.GetName(), argStr)
 	p("  ctx := context.Background()")
 	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
 	p("  if err != nil {")
@@ -329,7 +364,7 @@ func (g *generator) genSample(ifaceName, methName, regTag string, valSet SampleV
 	}
 
 	p("  flag.Parse()")
-	p("  if err := sample%s(%s); err != nil {", methName, flagArgs(argNames))
+	p("  if err := sample%s(%s); err != nil {", meth.GetName(), flagArgs(argNames))
 	p("    log.Fatal(err)")
 	p("  }")
 	p("}")
