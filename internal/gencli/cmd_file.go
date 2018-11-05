@@ -15,6 +15,7 @@ import (
 )
 {{$methodCmdVar := (print .Method "Cmd")}}
 {{$fromFileVar := (print .Method "FromFile")}}
+{{$serviceCmdVar := (print .Service "Cmd")}}
 {{ range .Flags }}
 {{ (.GenFlagVar) }}
 {{ end }}
@@ -23,7 +24,7 @@ var {{ $fromFileVar }} string
 {{ end }}
 
 func init() {
-	rootCmd.AddCommand({{ $methodCmdVar }})
+	{{ $serviceCmdVar }}.AddCommand({{ $methodCmdVar }})
 	{{ range .Flags }}
 	{{ $methodCmdVar }}.Flags().{{ (.GenFlag ) }}
 	{{ end }}
@@ -35,7 +36,7 @@ func init() {
 var {{$methodCmdVar}} = &cobra.Command{
   Use:   "{{ .MethodCmd }}",
   {{ if (ne .ShortDesc "") }}Short: "{{ .ShortDesc }}",{{ end }}
-	{{ if (ne .LongDesc "") }}Long: {{ .LongDesc }},{{ end }}
+	{{ if (ne .LongDesc "") }}Long: "{{ .LongDesc }}",{{ end }}
 	PreRun: func(cmd *cobra.Command, args []string) {
 		{{ if .Flags }}
 		if {{ $fromFileVar }} == "" {

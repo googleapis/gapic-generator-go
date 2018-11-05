@@ -8,6 +8,10 @@ import (
 const (
 	// ExpectedParams is the number of expected plugin parameters
 	ExpectedParams = 3
+
+	// ShortDescMax is the maximum length accepted for
+	// the Short usage docs
+	ShortDescMax = 50
 )
 
 func parseParameters(params *string) (rootDir string, pbDir string, gapicDir string, err error) {
@@ -44,6 +48,18 @@ func parseParameters(params *string) (rootDir string, pbDir string, gapicDir str
 	return
 }
 
+func toShortUsage(cmt string) string {
+	if len(cmt) > ShortDescMax {
+		sep := strings.LastIndex(cmt, " ")
+		if sep == -1 || sep > ShortDescMax {
+			sep = ShortDescMax
+		}
+		cmt = cmt[:sep] + "..."
+	}
+
+	return cmt
+}
+
 func strContains(a []string, s string) bool {
 	for _, as := range a {
 		if as == s {
@@ -51,8 +67,4 @@ func strContains(a []string, s string) bool {
 		}
 	}
 	return false
-}
-
-func extractMessageName(name string) string {
-	return name[strings.LastIndex(name, ".")+1:]
 }

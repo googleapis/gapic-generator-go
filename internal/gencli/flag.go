@@ -63,11 +63,9 @@ func (f *Flag) GenFlag() string {
 			defaultVal = "false"
 		case "string":
 			defaultVal = `""`
-		case "int32":
+		case "int32", "int64", "int", "uint32", "uint64":
 			defaultVal = "0"
-		case "int":
-			defaultVal = "0"
-		case "float64":
+		case "float32", "float64":
 			defaultVal = "0.0"
 		case "[]byte":
 			defaultVal = "[]byte{}"

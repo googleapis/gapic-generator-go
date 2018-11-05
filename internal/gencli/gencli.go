@@ -10,7 +10,7 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
-	"golang.org/x/tools/imports"
+	goimport "golang.org/x/tools/imports"
 )
 
 const (
@@ -47,6 +47,17 @@ const (
 	RequiredStr = "Required"
 )
 
+// Command intermediate representation of a RPC/Method as a CLI command
+type Command struct {
+	Service          string
+	Method           string
+	MethodCmd        string
+	InputMessageType string
+	Flags            []*Flag
+	ShortDesc        string
+	LongDesc         string
+}
+
 // Gen is the main entry point for code generation of a command line utility
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var g gcli
@@ -62,23 +73,21 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	// gather services, message types and field comments for generation
 	for _, f := range genReq.ProtoFile {
-		g.parseFieldComments(f)
-
 		if strContains(genReq.FileToGenerate, f.GetName()) {
 			g.services = append(g.services, f.Service...)
 		}
 	}
 
-	// write main.go
-	g.genMainFile()
-
 	// write root.go
 	g.genRootCmdFile(root)
+
+	// generate Service-level subcommands
+	g.genServiceCmdFiles()
 
 	// build commands from proto
 	g.buildCommands()
 
-	// generate command files
+	// generate Method-level subcommand files
 	g.genCommands()
 
 	return &g.response, nil
@@ -99,28 +108,40 @@ func (g *gcli) init(f []*descriptor.FileDescriptorProto) {
 }
 
 func (g *gcli) buildCommands() {
+	// TODO(ndietz) weird result for names containing acronyms
+	// i.e. SearchByID -> [Search, By, I, D]
 	camelCaseRegex := regexp.MustCompile("[A-Z]+[a-z]*")
 
+	// build commands for desird services
 	for _, srv := range g.services {
-		for _, rpc := range srv.GetMethod() {
+		for _, mthd := range srv.GetMethod() {
 			cmd := Command{}
 
 			// parse Service name for base subcommand
 			cmd.Service = pbinfo.ReduceServName(srv.GetName(), "")
 
 			// build input fields into flags if not Empty
-			if rpc.GetInputType() != EmptyProtoType {
-				cmd.InputMessage = rpc.GetInputType()
-				msg := g.descInfo.Type[cmd.InputMessage].(*descriptor.DescriptorProto)
+			if mthd.GetInputType() != EmptyProtoType {
+				cmd.InputMessageType = mthd.GetInputType()
 
-				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(rpc.GetName(), msg, "")...)
+				msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
+				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(mthd.GetName(), msg, "")...)
 			}
 
-			cmd.Method = rpc.GetName()
+			cmd.Method = mthd.GetName()
 
 			// format Method into command line form
-			rpcSplit := camelCaseRegex.FindAllString(rpc.GetName(), -1)
-			cmd.MethodCmd = strings.ToLower(strings.Join(rpcSplit, "-"))
+			methodSplit := camelCaseRegex.FindAllString(mthd.GetName(), -1)
+			cmd.MethodCmd = strings.ToLower(strings.Join(methodSplit, "-"))
+
+			// add any available comment as usage
+			key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], mthd)
+			if cmt, ok := g.descInfo.Comments[key]; ok {
+				cmt = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
+
+				cmd.LongDesc = cmt
+				cmd.ShortDesc = toShortUsage(cmt)
+			}
 
 			g.commands = append(g.commands, &cmd)
 		}
@@ -134,7 +155,9 @@ func (g *gcli) buildFieldFlags(method string, msg *descriptor.DescriptorProto, p
 		fieldType := field.GetType()
 		required := false
 
-		if cmt, ok := g.comments[msg.GetName()+"."+field.GetName()]; ok {
+		// evaluate field comments for API behavior
+		if cmt, ok := g.descInfo.Comments[pbinfo.BuildFieldCommentKey(msg, field)]; ok {
+			// output-only fields are not added as input flags
 			if strings.Contains(cmt, OutputOnlyStr) {
 				continue
 			}
@@ -146,6 +169,7 @@ func (g *gcli) buildFieldFlags(method string, msg *descriptor.DescriptorProto, p
 
 		repeated := field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 
+		// expand singular nested message fields into dot-notation input flags
 		if fieldType == descriptor.FieldDescriptorProto_TYPE_MESSAGE && !repeated {
 			// recursively add nested message fields
 			nested := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
@@ -165,6 +189,7 @@ func (g *gcli) buildFieldFlags(method string, msg *descriptor.DescriptorProto, p
 			Required: required,
 		}
 
+		// compose Method-scoped variable name for template use
 		flag.ComposeFlagVarName(method)
 
 		flags = append(flags, &flag)
@@ -173,35 +198,13 @@ func (g *gcli) buildFieldFlags(method string, msg *descriptor.DescriptorProto, p
 	return flags
 }
 
-func (g *gcli) parseFieldComments(f *descriptor.FileDescriptorProto) {
-	for _, loc := range f.GetSourceCodeInfo().GetLocation() {
-		if loc.LeadingComments == nil {
-			continue
-		}
-
-		// loc points to a Field's SourceCode
-		if len(loc.Path) == SourceSubItemPathLength &&
-			loc.Path[SourceItemTypePathIndex] == SourceMessageTypePathValue &&
-			loc.Path[SourceSubItemTypePathIndex] == SourceFieldTypePathValue {
-			// make map key
-			key := f.MessageType[loc.Path[SourceMessagePathIndex]].GetName() +
-				"." +
-				f.MessageType[loc.Path[SourceMessagePathIndex]].Field[loc.Path[SourceFieldPathIndex]].GetName()
-
-			// add new Field comments
-			if _, ok := g.comments[key]; !ok {
-				g.comments[key] = *loc.LeadingComments
-			}
-		}
-	}
-}
-
 func (g *gcli) addGoFile(name string) {
 	file := &plugin.CodeGeneratorResponse_File{
 		Name: proto.String(name),
 	}
 
-	data, err := imports.Process(*file.Name, g.pt.Bytes(), nil)
+	// format and prune unused imports in generatd code
+	data, err := goimport.Process(*file.Name, g.pt.Bytes(), nil)
 	if err != nil {
 		errStr := fmt.Sprintf("Error in formatting output: %s", err.Error())
 		g.response.Error = &errStr
