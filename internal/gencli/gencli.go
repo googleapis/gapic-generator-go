@@ -5,10 +5,12 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
+	"golang.org/x/tools/imports"
 )
 
 const (
@@ -194,9 +196,19 @@ func (g *gcli) parseFieldComments(f *descriptor.FileDescriptorProto) {
 	}
 }
 
-func addImports(pbDir string, gapicDir string, pt *printer.P) {
-	pt.Printf("package main\n\nimport (\n")
-	pt.Printf("pb \"%s\"\n", pbDir)
-	pt.Printf("gapic \"%s\"\n", gapicDir)
-	pt.Printf("docopt \"github.com/docopt/docopt-go\"\n)\n\n")
+func (g *gcli) addGoFile(name string) {
+	file := &plugin.CodeGeneratorResponse_File{
+		Name: proto.String(name),
+	}
+
+	data, err := imports.Process(*file.Name, g.pt.Bytes(), nil)
+	if err != nil {
+		errStr := fmt.Sprintf("Error in formatting output: %s", err.Error())
+		g.response.Error = &errStr
+		return
+	}
+
+	file.Content = proto.String(string(data))
+
+	g.response.File = append(g.response.File, file)
 }

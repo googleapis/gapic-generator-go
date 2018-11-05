@@ -2,9 +2,6 @@ package gencli
 
 import (
 	"text/template"
-
-	"github.com/golang/protobuf/proto"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
 const (
@@ -62,10 +59,7 @@ func (g *gcli) genCommands() {
 		g.pt.Reset()
 		template.Must(template.New("cmd").Parse(CmdTemplate)).Execute(g.pt.Writer(), cmd)
 
-		g.response.File = append(g.response.File, &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(cmd.MethodCmd + ".go"),
-			Content: proto.String(g.pt.String()),
-		})
+		g.addGoFile(cmd.MethodCmd + ".go")
 
 		g.pt.Reset()
 	}

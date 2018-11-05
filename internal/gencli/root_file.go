@@ -1,11 +1,8 @@
 package gencli
 
 import (
-	"text/template"
 	"strings"
-
-	"github.com/golang/protobuf/proto"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"text/template"
 )
 
 const (
@@ -48,10 +45,7 @@ func (g *gcli) genRootCmdFile(root string) {
 		ShortDesc: "Root command of " + root,
 	})
 
-	g.response.File = append(g.response.File, &plugin.CodeGeneratorResponse_File{
-		Name:    proto.String("root.go"),
-		Content: proto.String(g.pt.String()),
-	})
+	g.addGoFile("root.go")
 
 	g.pt.Reset()
 }
