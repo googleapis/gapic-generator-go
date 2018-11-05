@@ -72,7 +72,9 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 	if eMeta != nil {
 		// Without this, the doc is going to be a little bad but this is not an error.
-		g.apiName = strings.Join(eMeta.PackageNamespace, " ") + " " + eMeta.ProductName
+		nameParts := append([]string(nil), eMeta.PackageNamespace...)
+		nameParts = append(nameParts, eMeta.ProductName)
+		g.apiName = strings.Join(nameParts, " ")
 	}
 
 	for _, s := range genServs {

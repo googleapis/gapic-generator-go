@@ -29,14 +29,6 @@ func defaultFooCallOptions() *FooCallOptions {
 
 	return &FooCallOptions{
 		Zip: retry,
-		Zap: []gax.CallOption{
-			gax.WithRetry(func() gax.Retryer {
-				return gax.OnCodes([]codes.Code{
-					codes.NotFound,
-					codes.Canceled,
-				}, backoff)
-			}),
-		},
 	}
 }
 

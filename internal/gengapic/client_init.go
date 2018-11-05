@@ -75,17 +75,6 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				continue
 			}
 
-			eRetry, err := proto.GetExtension(m.GetOptions(), annotations.E_Retry)
-			if err != proto.ErrMissingExtension {
-				if err != nil {
-					return errors.E(err, "cannot read retry annotation")
-				}
-				if codes := eRetry.(*annotations.Retry).Codes; len(codes) > 0 {
-					overrideRetry = append(overrideRetry, methodCode{m.GetName(), codes})
-				}
-				continue
-			}
-
 			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 			if err == proto.ErrMissingExtension {
 				continue

@@ -23,7 +23,6 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
 func TestClientOpt(t *testing.T) {
@@ -47,11 +46,6 @@ func TestClientOpt(t *testing.T) {
 		Pattern: &annotations.HttpRule_Get{
 			Get: "/zip",
 		},
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if err := proto.SetExtension(serv.Method[1].Options, annotations.E_Retry, &annotations.Retry{
-		Codes: []code.Code{code.Code_NOT_FOUND, code.Code_CANCELLED},
 	}); err != nil {
 		t.Fatal(err)
 	}
