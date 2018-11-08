@@ -9,14 +9,14 @@ import (
 
 const (
 	// ExpectedParams is the number of expected plugin parameters
-	ExpectedParams = 3
+	ExpectedParams = 2
 
 	// ShortDescMax is the maximum length accepted for
 	// the Short usage docs
 	ShortDescMax = 50
 )
 
-func parseParameters(params *string) (rootDir string, pbDir string, gapicDir string, err error) {
+func parseParameters(params *string) (rootDir string, gapicDir string, err error) {
 	if params == nil {
 		err = fmt.Errorf("Missing required parameters. See usage")
 		return
@@ -36,8 +36,6 @@ func parseParameters(params *string) (rootDir string, pbDir string, gapicDir str
 		}
 
 		switch str[:sepNdx] {
-		case "grpc":
-			pbDir = str[sepNdx+1:]
 		case "gapic":
 			gapicDir = str[sepNdx+1:]
 		case "root":
@@ -52,8 +50,8 @@ func parseParameters(params *string) (rootDir string, pbDir string, gapicDir str
 
 func toShortUsage(cmt string) string {
 	if len(cmt) > ShortDescMax {
-		sep := strings.LastIndex(cmt, " ")
-		if sep == -1 || sep > ShortDescMax {
+		sep := strings.LastIndex(cmt[:ShortDescMax], " ")
+		if sep == -1 {
 			sep = ShortDescMax
 		}
 		cmt = cmt[:sep] + "..."
@@ -71,7 +69,7 @@ func strContains(a []string, s string) bool {
 	return false
 }
 
-func putImports(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
+func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 	if _, ok := imports[pkg.Path]; !ok {
 		imports[pkg.Path] = pkg
 	}

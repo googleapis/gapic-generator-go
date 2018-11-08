@@ -72,7 +72,7 @@ type NestedMessage struct {
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var g gcli
 
-	root, _, gapicPkg, err := parseParameters(genReq.Parameter)
+	root, gapicPkg, err := parseParameters(genReq.Parameter)
 	if err != nil {
 		errStr := fmt.Sprintf("Error in parsing params: %s", err.Error())
 		g.response.Error = &errStr
@@ -80,22 +80,25 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	g.init(genReq.ProtoFile)
-	putImports(g.imports,
+	putImport(g.imports,
 		&pbinfo.ImportSpec{Name: "gapic", Path: gapicPkg})
 
-	// gather services, message types and field comments for generation
+	// gather services for generation
 	for _, f := range genReq.ProtoFile {
 		if strContains(genReq.FileToGenerate, f.GetName()) {
+			// gather imports for target proto gRPC libs
 			if goPkg := f.GetOptions().GetGoPackage(); goPkg != "" {
+				var pkgSpec pbinfo.ImportSpec
 
 				if sep := strings.LastIndex(goPkg, ";"); sep != -1 {
-					putImports(g.imports, &pbinfo.ImportSpec{Name: goPkg[sep+1:] + "pb", Path: goPkg[:sep]})
+					pkgSpec.Name = goPkg[sep+1:] + "pb"
+					pkgSpec.Path = goPkg[:sep]
 				} else {
-					putImports(g.imports, &pbinfo.ImportSpec{
-						Name: goPkg[strings.LastIndexByte(goPkg, '/')+1:] + "pb",
-						Path: goPkg,
-					})
+					pkgSpec.Name = goPkg[strings.LastIndexByte(goPkg, '/')+1:] + "pb"
+					pkgSpec.Path = goPkg
 				}
+
+				putImport(g.imports, &pkgSpec)
 			}
 
 			g.services = append(g.services, f.Service...)
@@ -146,7 +149,7 @@ func (g *gcli) buildCommands() {
 
 			// copy top level imports
 			for _, val := range g.imports {
-				putImports(cmd.Imports, val)
+				putImport(cmd.Imports, val)
 			}
 
 			// parse Service name for base subcommand
@@ -167,12 +170,15 @@ func (g *gcli) buildCommands() {
 				// gather necessary imports for input message
 				_, pkg, err := g.descInfo.NameSpec(msg)
 				if err != nil {
-					errStr := fmt.Sprintf("Error getting import for message: %s", err.Error())
+					errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
 					g.response.Error = &errStr
 					continue
 				}
-				putImports(cmd.Imports, &pkg)
-				cmd.InputMessage = fmt.Sprintf("%s.%s", pkg.Name, cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
+				putImport(cmd.Imports, &pkg)
+
+				cmd.InputMessage = fmt.Sprintf("%s.%s",
+					pkg.Name,
+					cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
 
 				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "")...)
 			}
@@ -208,7 +214,13 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 				continue
 			}
 
+			cmt = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
 			flag.Required = strings.Contains(cmt, RequiredStr)
+			if flag.Required {
+				cmt = cmt[strings.Index(cmt, RequiredStr)+1:]
+			}
+
+			flag.Usage = cmt
 		}
 
 		// expand singular nested message fields into dot-notation input flags
@@ -222,7 +234,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 				g.response.Error = &errStr
 				continue
 			}
-			putImports(cmd.Imports, &pkg)
+			putImport(cmd.Imports, &pkg)
 
 			flag.MessageImport = pkg
 			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
