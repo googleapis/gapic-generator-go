@@ -59,6 +59,8 @@ type Command struct {
 	LongDesc         string
 	Imports          map[string]*pbinfo.ImportSpec
 	NestedMessages   []*NestedMessage
+	EnvPrefix        string
+	OutputType       string
 }
 
 // NestedMessage represents a nested message that will need to be initialized
@@ -78,6 +80,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.response.Error = &errStr
 		return &g.response, err
 	}
+	g.Root = root
 
 	g.init(genReq.ProtoFile)
 	putImport(g.imports,
@@ -106,7 +109,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	// write root.go
-	g.genRootCmdFile(root)
+	g.genRootCmdFile()
 
 	// generate Service-level subcommands
 	g.genServiceCmdFiles()
@@ -128,6 +131,7 @@ type gcli struct {
 	pt       printer.P
 	descInfo pbinfo.Info
 	imports  map[string]*pbinfo.ImportSpec
+	Root     string
 }
 
 func (g *gcli) init(f []*descriptor.FileDescriptorProto) {
@@ -156,31 +160,34 @@ func (g *gcli) buildCommands() {
 			cmd.Service = pbinfo.ReduceServName(srv.GetName(), "")
 
 			cmd.Method = mthd.GetName()
+			cmd.InputMessageType = mthd.GetInputType()
 
 			// format Method into command line form
 			methodSplit := camelCaseRegex.FindAllString(mthd.GetName(), -1)
 			cmd.MethodCmd = strings.ToLower(strings.Join(methodSplit, "-"))
 
+			// gather necessary imports for input message
+			msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
+			_, pkg, err := g.descInfo.NameSpec(msg)
+			if err != nil {
+				errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
+				g.response.Error = &errStr
+				continue
+			}
+			putImport(cmd.Imports, &pkg)
+
+			cmd.InputMessage = fmt.Sprintf("%s.%s",
+				pkg.Name,
+				cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
+
 			// build input fields into flags if not Empty
 			if mthd.GetInputType() != EmptyProtoType {
-				cmd.InputMessageType = mthd.GetInputType()
-
-				msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
-
-				// gather necessary imports for input message
-				_, pkg, err := g.descInfo.NameSpec(msg)
-				if err != nil {
-					errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
-					g.response.Error = &errStr
-					continue
-				}
-				putImport(cmd.Imports, &pkg)
-
-				cmd.InputMessage = fmt.Sprintf("%s.%s",
-					pkg.Name,
-					cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
-
 				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "")...)
+			}
+
+			// capture output type for template formatting reasons
+			if out := mthd.GetOutputType(); out != EmptyProtoType {
+				cmd.OutputType = out
 			}
 
 			// add any available comment as usage

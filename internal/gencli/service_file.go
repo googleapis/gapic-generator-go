@@ -10,19 +10,21 @@ import (
 const (
 
 	// ServiceTemplate is the template string for generated {service}.go
-	ServiceTemplate = `package main
+	ServiceTemplate = `{{ $serviceCmdVar := (print .Service "Cmd") }}
+package main
 
 import (
 	"fmt"
 	"os"
 
+	"google.golang.org/api/option"
+	"google.golang.org/grpc"
 	"golang.org/x/net/context"
 	"github.com/spf13/cobra"
 	{{ range $key, $pkg := .Imports}}
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
 	{{ end }}
 )
-{{ $serviceCmdVar := (print .Service "Cmd") }}
 
 var client *gapic.{{.Service}}Client
 var ctx context.Context
@@ -36,8 +38,22 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 	{{ if (ne .ShortDesc "") }}Short: "{{ .ShortDesc }}",{{ end }}
 	{{ if (ne .LongDesc "") }}Long: {{ .LongDesc }},{{ end }}
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		var opts []option.ClientOption
+
+		if address := os.Getenv("{{.EnvPrefix}}_ADDRESS"); address != "" {
+			opts = append(opts, option.WithEndpoint(address))
+
+			if Insecure {
+				conn, err := grpc.Dial(address, grpc.WithInsecure())
+				if err != nil {
+					return err
+				}
+				opts = append(opts, option.WithGRPCConn(conn))
+			}
+		}
+
 		ctx = context.Background()
-		client, err = gapic.New{{.Service}}Client(ctx)
+		client, err = gapic.New{{.Service}}Client(ctx, opts...)
 		return
 	},
 }
@@ -55,6 +71,7 @@ func (g *gcli) genServiceCmdFiles() {
 			MethodCmd: strings.ToLower(name),
 			ShortDesc: "Sub-command for Service: " + name,
 			Imports:   g.imports,
+			EnvPrefix: strings.ToUpper(g.Root + "_" + name),
 		}
 
 		// add any available comment as usage

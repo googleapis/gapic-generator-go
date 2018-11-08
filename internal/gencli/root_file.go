@@ -17,9 +17,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Verbose bool
+var Verbose, Insecure bool
 
 func init() {
+	rootCmd.PersistentFlags().BoolVar(&Insecure, "insecure", false, "Make insecure client connection. Must be used with {{.EnvPrefix}}_ADDRESS.")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Print verbose output")
 }
 
@@ -42,11 +43,12 @@ func main() {
 `
 )
 
-func (g *gcli) genRootCmdFile(root string) {
+func (g *gcli) genRootCmdFile() {
 	g.pt.Reset()
 	template.Must(template.New("root").Parse(RootTemplate)).Execute(g.pt.Writer(), Command{
-		MethodCmd: strings.ToLower(root),
-		ShortDesc: "Root command of " + root,
+		MethodCmd: strings.ToLower(g.Root),
+		ShortDesc: "Root command of " + g.Root,
+		EnvPrefix: strings.ToUpper(g.Root + "_{SERVICE}"),
 	})
 
 	g.addGoFile("root.go")

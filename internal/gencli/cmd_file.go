@@ -22,9 +22,9 @@ import (
 	{{ end }}
 )
 
+var {{ $inputVar }} {{ .InputMessage }}
 {{ if .Flags }}
 var {{ $fromFileVar }} string
-var {{ $inputVar }} {{ .InputMessage }}
 {{ range .Flags }}
 {{ if and ( .IsMessage ) .Repeated }}
 {{ ( .GenRepeatedMessageFlagVar $inputVar) }}
@@ -77,6 +77,12 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 		{{ end }}
 		fmt.Println("Hello, from {{ .Method }}")
+		{{ if (eq .OutputType "") }}
+		err = client.{{ .Method }}(ctx, &{{ $inputVar }})
+		{{ else }}
+		resp, err := client.{{ .Method }}(ctx, &{{ $inputVar }})
+		fmt.Println(resp)
+		{{ end }}
 		return err
   },
 }
