@@ -3,6 +3,8 @@ package gencli
 import (
 	"fmt"
 	"strings"
+
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 const (
@@ -67,4 +69,10 @@ func strContains(a []string, s string) bool {
 		}
 	}
 	return false
+}
+
+func putImports(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
+	if _, ok := imports[pkg.Path]; !ok {
+		imports[pkg.Path] = pkg
+	}
 }

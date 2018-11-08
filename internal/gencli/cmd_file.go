@@ -6,27 +6,39 @@ import (
 
 const (
 	// CmdTemplate is the template for a cobra subcommand
-	CmdTemplate = `package main
-
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-)
+	CmdTemplate = `{{$inputVar := (print .Method "Input")}}
 {{$methodCmdVar := (print .Method "Cmd")}}
 {{$fromFileVar := (print .Method "FromFile")}}
 {{$serviceCmdVar := (print .Service "Cmd")}}
-{{ range .Flags }}
-{{ (.GenFlagVar) }}
-{{ end }}
+package main
+
+import (
+	"fmt"
+	"encoding/json"
+
+	"github.com/spf13/cobra"
+	{{ range $key, $pkg := .Imports}}
+	{{ $pkg.Name }} "{{ $pkg.Path }}"
+	{{ end }}
+)
+
 {{ if .Flags }}
 var {{ $fromFileVar }} string
+var {{ $inputVar }} {{ .InputMessage }}
+{{ range .Flags }}
+{{ if and ( .IsMessage ) .Repeated }}
+{{ ( .GenRepeatedMessageFlagVar $inputVar) }}
+{{ end }}
+{{ end }}
 {{ end }}
 
 func init() {
 	{{ $serviceCmdVar }}.AddCommand({{ $methodCmdVar }})
+	{{ range .NestedMessages }}
+	{{ $inputVar }}.{{ .FieldName }} = new({{ .FieldType }})
+	{{ end }}
 	{{ range .Flags }}
-	{{ $methodCmdVar }}.Flags().{{ (.GenFlag ) }}
+	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $inputVar) }}
 	{{ end }}
 	{{ if .Flags }}
 	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "")
@@ -48,11 +60,27 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		{{ end }}
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-    fmt.Println("Hello, from {{ .Method }}")
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		{{ range .Flags }}
+		{{ if and ( .IsMessage ) .Repeated }}
+		{{ $sliceAccessor := (print $inputVar "." ( .InputFieldName )) }}
+		// unmarshal JSON strings into slice of structs
+		for _, item := range {{ $inputVar }}{{ ( .InputFieldName ) }} {
+			tmp := {{ .MessageImport.Name }}.{{ .Message }}{}
+			err = json.Unmarshal([]byte(item), &tmp)
+			if err != nil {
+				return
+			}
+
+			{{ $sliceAccessor }} = append({{ $sliceAccessor }}, &tmp)
+		}
+		{{ end }}
+		{{ end }}
+		fmt.Println("Hello, from {{ .Method }}")
+		return err
   },
 }
-	`
+`
 )
 
 func (g *gcli) genCommands() {

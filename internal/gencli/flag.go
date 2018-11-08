@@ -10,49 +10,35 @@ import (
 
 // Flag is used to represent fields as flags
 type Flag struct {
-	Name     string
-	VarName  string
-	Type     descriptor.FieldDescriptorProto_Type
-	Repeated bool
-	Required bool
-	Usage    string
+	Name          string
+	Type          descriptor.FieldDescriptorProto_Type
+	Message       string
+	Repeated      bool
+	Required      bool
+	Usage         string
+	MessageImport pbinfo.ImportSpec
 }
 
-// ComposeFlagVarName composes the variable name for the generated flag
-func (f *Flag) ComposeFlagVarName(method string) {
-	f.VarName = strings.Replace(method+strings.Title(f.Name), ".", "", -1)
+// GenRepeatedMessageFlagVar generates the Go variable to store repeated Message string values
+func (f *Flag) GenRepeatedMessageFlagVar(inputVar string) string {
+	return fmt.Sprintf("var %s%s []string", inputVar, f.InputFieldName())
 }
 
-// GenFlagVar generates the Go variable to store the flag value
-func (f *Flag) GenFlagVar() string {
-	str := "var " + f.VarName
-	typeStr := pbinfo.GoTypeForPrim[f.Type]
-
-	if f.Repeated {
-		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			return str + " string // JSON to be parsed"
-		} else if strings.Contains(typeStr, "int") {
-			typeStr = "int"
-		}
-
-		str += " []" + typeStr
-	} else {
-		str += " " + typeStr
-	}
-
-	return str
+// IsMessage is a template helper that reports if the flag is a message type
+func (f *Flag) IsMessage() bool {
+	return f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE
 }
 
 // GenFlag generates the pflag API call for this flag
-func (f *Flag) GenFlag() string {
+func (f *Flag) GenFlag(inputVar string) string {
 	var str, defaultVal string
 	typeStr := pbinfo.GoTypeForPrim[f.Type]
 	flagType := strings.Title(typeStr)
 
 	if f.Repeated {
-		if strings.Contains(typeStr, "int") {
-			flagType = "Int"
-			typeStr = "int"
+		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			// repeated Messages are entered as JSON strings and unmarshaled into the Message type later
+			return fmt.Sprintf(`StringArrayVar(&%s%s, "%s", []string{}, "%s")`, inputVar, f.InputFieldName(), f.Name, f.Usage)
 		}
 
 		flagType += "Slice"
@@ -75,7 +61,7 @@ func (f *Flag) GenFlag() string {
 		}
 	}
 
-	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, flagType, f.VarName, f.Name, defaultVal, f.Usage)
+	str = fmt.Sprintf(`%sVar(&%s.%s, "%s", %s, "%s")`, flagType, inputVar, f.InputFieldName(), f.Name, defaultVal, f.Usage)
 
 	return str
 }
@@ -83,4 +69,14 @@ func (f *Flag) GenFlag() string {
 // GenRequired generates the code to mark the flag as required
 func (f *Flag) GenRequired() string {
 	return fmt.Sprintf(`cmd.MarkFlagRequired("%s")`, f.Name)
+}
+
+// InputFieldName converts the field name into the Go struct property name
+func (f *Flag) InputFieldName() string {
+	split := strings.Split(f.Name, "_")
+	for ndx, tkn := range split {
+		split[ndx] = strings.Title(tkn)
+	}
+
+	return strings.Join(split, "")
 }

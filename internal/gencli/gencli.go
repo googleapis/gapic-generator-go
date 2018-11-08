@@ -53,16 +53,26 @@ type Command struct {
 	Method           string
 	MethodCmd        string
 	InputMessageType string
+	InputMessage     string
 	Flags            []*Flag
 	ShortDesc        string
 	LongDesc         string
+	Imports          map[string]*pbinfo.ImportSpec
+	NestedMessages   []*NestedMessage
+}
+
+// NestedMessage represents a nested message that will need to be initialized
+// in the generated code
+type NestedMessage struct {
+	FieldName string
+	FieldType string
 }
 
 // Gen is the main entry point for code generation of a command line utility
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var g gcli
 
-	root, _, _, err := parseParameters(genReq.Parameter)
+	root, _, gapicPkg, err := parseParameters(genReq.Parameter)
 	if err != nil {
 		errStr := fmt.Sprintf("Error in parsing params: %s", err.Error())
 		g.response.Error = &errStr
@@ -70,10 +80,24 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	g.init(genReq.ProtoFile)
+	putImports(g.imports,
+		&pbinfo.ImportSpec{Name: "gapic", Path: gapicPkg})
 
 	// gather services, message types and field comments for generation
 	for _, f := range genReq.ProtoFile {
 		if strContains(genReq.FileToGenerate, f.GetName()) {
+			if goPkg := f.GetOptions().GetGoPackage(); goPkg != "" {
+
+				if sep := strings.LastIndex(goPkg, ";"); sep != -1 {
+					putImports(g.imports, &pbinfo.ImportSpec{Name: goPkg[sep+1:] + "pb", Path: goPkg[:sep]})
+				} else {
+					putImports(g.imports, &pbinfo.ImportSpec{
+						Name: goPkg[strings.LastIndexByte(goPkg, '/')+1:] + "pb",
+						Path: goPkg,
+					})
+				}
+			}
+
 			g.services = append(g.services, f.Service...)
 		}
 	}
@@ -100,11 +124,13 @@ type gcli struct {
 	response plugin.CodeGeneratorResponse
 	pt       printer.P
 	descInfo pbinfo.Info
+	imports  map[string]*pbinfo.ImportSpec
 }
 
 func (g *gcli) init(f []*descriptor.FileDescriptorProto) {
 	g.comments = make(map[string]string)
 	g.descInfo = pbinfo.Of(f)
+	g.imports = make(map[string]*pbinfo.ImportSpec)
 }
 
 func (g *gcli) buildCommands() {
@@ -116,23 +142,40 @@ func (g *gcli) buildCommands() {
 	for _, srv := range g.services {
 		for _, mthd := range srv.GetMethod() {
 			cmd := Command{}
+			cmd.Imports = make(map[string]*pbinfo.ImportSpec)
+
+			// copy top level imports
+			for _, val := range g.imports {
+				putImports(cmd.Imports, val)
+			}
 
 			// parse Service name for base subcommand
 			cmd.Service = pbinfo.ReduceServName(srv.GetName(), "")
-
-			// build input fields into flags if not Empty
-			if mthd.GetInputType() != EmptyProtoType {
-				cmd.InputMessageType = mthd.GetInputType()
-
-				msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
-				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(mthd.GetName(), msg, "")...)
-			}
 
 			cmd.Method = mthd.GetName()
 
 			// format Method into command line form
 			methodSplit := camelCaseRegex.FindAllString(mthd.GetName(), -1)
 			cmd.MethodCmd = strings.ToLower(strings.Join(methodSplit, "-"))
+
+			// build input fields into flags if not Empty
+			if mthd.GetInputType() != EmptyProtoType {
+				cmd.InputMessageType = mthd.GetInputType()
+
+				msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
+
+				// gather necessary imports for input message
+				_, pkg, err := g.descInfo.NameSpec(msg)
+				if err != nil {
+					errStr := fmt.Sprintf("Error getting import for message: %s", err.Error())
+					g.response.Error = &errStr
+					continue
+				}
+				putImports(cmd.Imports, &pkg)
+				cmd.InputMessage = fmt.Sprintf("%s.%s", pkg.Name, cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
+
+				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "")...)
+			}
 
 			// add any available comment as usage
 			key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], mthd)
@@ -148,12 +191,15 @@ func (g *gcli) buildCommands() {
 	}
 }
 
-func (g *gcli) buildFieldFlags(method string, msg *descriptor.DescriptorProto, prefix string) []*Flag {
+func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, prefix string) []*Flag {
 	var flags []*Flag
 
 	for _, field := range msg.GetField() {
-		fieldType := field.GetType()
-		required := false
+		flag := Flag{
+			Name:     prefix + field.GetName(),
+			Type:     field.GetType(),
+			Repeated: field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+		}
 
 		// evaluate field comments for API behavior
 		if cmt, ok := g.descInfo.Comments[pbinfo.BuildFieldCommentKey(msg, field)]; ok {
@@ -162,35 +208,36 @@ func (g *gcli) buildFieldFlags(method string, msg *descriptor.DescriptorProto, p
 				continue
 			}
 
-			if strings.Contains(cmt, RequiredStr) {
-				required = true
-			}
+			flag.Required = strings.Contains(cmt, RequiredStr)
 		}
-
-		repeated := field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 
 		// expand singular nested message fields into dot-notation input flags
-		if fieldType == descriptor.FieldDescriptorProto_TYPE_MESSAGE && !repeated {
-			// recursively add nested message fields
+		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
 			nested := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
-			flags = append(flags, g.buildFieldFlags(method, nested, prefix+field.GetName()+".")...)
-			continue
-		}
 
-		name := field.GetName()
-		if prefix != "" {
-			name = prefix + name
-		}
+			// gather necessary imports for nested messages
+			_, pkg, err := g.descInfo.NameSpec(nested)
+			if err != nil {
+				errStr := fmt.Sprintf("Error getting import for message: %s", err.Error())
+				g.response.Error = &errStr
+				continue
+			}
+			putImports(cmd.Imports, &pkg)
 
-		flag := Flag{
-			Name:     name,
-			Type:     fieldType,
-			Repeated: repeated,
-			Required: required,
-		}
+			flag.MessageImport = pkg
+			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
 
-		// compose Method-scoped variable name for template use
-		flag.ComposeFlagVarName(method)
+			// recursively add singular, nested message fields
+			if !flag.Repeated {
+				cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
+					FieldName: flag.InputFieldName(),
+					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
+				})
+
+				flags = append(flags, g.buildFieldFlags(cmd, nested, prefix+field.GetName()+".")...)
+				continue
+			}
+		}
 
 		flags = append(flags, &flag)
 	}
