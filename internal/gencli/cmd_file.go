@@ -76,12 +76,23 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		{{ end }}
 		{{ end }}
-		fmt.Println("Hello, from {{ .Method }}")
 		{{ if (eq .OutputType "") }}
 		err = client.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else }}
 		resp, err := client.{{ .Method }}(ctx, &{{ $inputVar }})
+		{{ if .ServerStreaming }}
+		var item *{{ .OutputType }}
+		for err == nil {
+			item, err = resp.Recv()
+			fmt.Println(item)
+		}
+
+		if err == io.EOF {
+			return nil
+		}
+		{{ else }}
 		fmt.Println(resp)
+		{{ end }}
 		{{ end }}
 		return err
   },

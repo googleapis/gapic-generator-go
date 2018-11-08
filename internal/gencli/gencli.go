@@ -61,6 +61,7 @@ type Command struct {
 	NestedMessages   []*NestedMessage
 	EnvPrefix        string
 	OutputType       string
+	ServerStreaming  bool
 }
 
 // NestedMessage represents a nested message that will need to be initialized
@@ -187,7 +188,19 @@ func (g *gcli) buildCommands() {
 
 			// capture output type for template formatting reasons
 			if out := mthd.GetOutputType(); out != EmptyProtoType {
-				cmd.OutputType = out
+				// gather necessary imports for output message
+				msg := g.descInfo.Type[out].(*descriptor.DescriptorProto)
+				_, pkg, err := g.descInfo.NameSpec(msg)
+				if err != nil {
+					errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
+					g.response.Error = &errStr
+					continue
+				}
+				putImport(cmd.Imports, &pkg)
+
+				cmd.ServerStreaming = mthd.GetServerStreaming()
+
+				cmd.OutputType = pkg.Name + "." + out[strings.LastIndex(out, ".")+1:]
 			}
 
 			// add any available comment as usage
