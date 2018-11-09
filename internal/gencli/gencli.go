@@ -62,6 +62,8 @@ type Command struct {
 	EnvPrefix        string
 	OutputType       string
 	ServerStreaming  bool
+	ClientStreaming  bool
+	Paged            bool
 }
 
 // NestedMessage represents a nested message that will need to be initialized
@@ -149,23 +151,35 @@ func (g *gcli) buildCommands() {
 	// build commands for desird services
 	for _, srv := range g.services {
 		for _, mthd := range srv.GetMethod() {
-			cmd := Command{}
-			cmd.Imports = make(map[string]*pbinfo.ImportSpec)
+			cmd := Command{
+				Imports:          make(map[string]*pbinfo.ImportSpec),
+				Service:          pbinfo.ReduceServName(srv.GetName(), ""),
+				Method:           mthd.GetName(),
+				InputMessageType: mthd.GetInputType(),
+				ServerStreaming:  mthd.GetServerStreaming(),
+				ClientStreaming:  mthd.GetClientStreaming(),
+				MethodCmd: strings.ToLower(strings.Join(
+					camelCaseRegex.FindAllString(mthd.GetName(), -1), "-")),
+			}
+
+			// TODO(ndietz) take this out and support
+			if cmd.ServerStreaming && cmd.ClientStreaming {
+				continue
+			}
 
 			// copy top level imports
 			for _, val := range g.imports {
 				putImport(cmd.Imports, val)
 			}
 
-			// parse Service name for base subcommand
-			cmd.Service = pbinfo.ReduceServName(srv.GetName(), "")
+			// add any available comment as usage
+			key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], mthd)
+			if cmt, ok := g.descInfo.Comments[key]; ok {
+				cmt = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
 
-			cmd.Method = mthd.GetName()
-			cmd.InputMessageType = mthd.GetInputType()
-
-			// format Method into command line form
-			methodSplit := camelCaseRegex.FindAllString(mthd.GetName(), -1)
-			cmd.MethodCmd = strings.ToLower(strings.Join(methodSplit, "-"))
+				cmd.LongDesc = cmt
+				cmd.ShortDesc = toShortUsage(cmt)
+			}
 
 			// gather necessary imports for input message
 			msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
@@ -182,7 +196,7 @@ func (g *gcli) buildCommands() {
 				cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
 
 			// build input fields into flags if not Empty
-			if mthd.GetInputType() != EmptyProtoType {
+			if cmd.InputMessageType != EmptyProtoType && !cmd.ClientStreaming {
 				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "")...)
 			}
 
@@ -190,6 +204,31 @@ func (g *gcli) buildCommands() {
 			if out := mthd.GetOutputType(); out != EmptyProtoType {
 				// gather necessary imports for output message
 				msg := g.descInfo.Type[out].(*descriptor.DescriptorProto)
+
+				// buildFieldFlags identifies if a Method is paged
+				if cmd.Paged {
+					var f *descriptor.FieldDescriptorProto
+
+					// find repeated field in paged response
+					for _, f = range msg.GetField() {
+
+						if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+							break
+						}
+					}
+
+					// primitive type
+					if fType := f.GetType(); fType != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+						cmd.OutputType = pbinfo.GoTypeForPrim[fType]
+						g.commands = append(g.commands, &cmd)
+						continue
+					}
+
+					// set message being evaluated to the repeated type
+					out = f.GetTypeName()
+					msg = g.descInfo.Type[f.GetTypeName()].(*descriptor.DescriptorProto)
+				}
+
 				_, pkg, err := g.descInfo.NameSpec(msg)
 				if err != nil {
 					errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
@@ -198,18 +237,7 @@ func (g *gcli) buildCommands() {
 				}
 				putImport(cmd.Imports, &pkg)
 
-				cmd.ServerStreaming = mthd.GetServerStreaming()
-
 				cmd.OutputType = pkg.Name + "." + out[strings.LastIndex(out, ".")+1:]
-			}
-
-			// add any available comment as usage
-			key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], mthd)
-			if cmt, ok := g.descInfo.Comments[key]; ok {
-				cmt = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
-
-				cmd.LongDesc = cmt
-				cmd.ShortDesc = toShortUsage(cmt)
 			}
 
 			g.commands = append(g.commands, &cmd)
@@ -221,6 +249,11 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	var flags []*Flag
 
 	for _, field := range msg.GetField() {
+		// TODO(ndietz) remove and add support for oneof
+		if field.OneofIndex != nil {
+			continue
+		}
+
 		flag := Flag{
 			Name:     prefix + field.GetName(),
 			Type:     field.GetType(),
@@ -269,6 +302,14 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 				flags = append(flags, g.buildFieldFlags(cmd, nested, prefix+field.GetName()+".")...)
 				continue
 			}
+		}
+
+		if name := field.GetName(); name == "page_token" || name == "page_size" {
+			cmd.Paged = true
+			putImport(cmd.Imports, &pbinfo.ImportSpec{
+				Name: "iterator",
+				Path: "google.golang.org/api/iterator",
+			})
 		}
 
 		flags = append(flags, &flag)

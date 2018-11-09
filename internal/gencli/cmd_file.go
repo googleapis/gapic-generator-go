@@ -9,11 +9,11 @@ const (
 	CmdTemplate = `{{$inputVar := (print .Method "Input")}}
 {{$methodCmdVar := (print .Method "Cmd")}}
 {{$fromFileVar := (print .Method "FromFile")}}
-{{$serviceCmdVar := (print .Service "Cmd")}}
+{{$serviceCmdVar := (print .Service "ServiceCmd")}}
 package main
 
 import (
-	"fmt"
+	"io/ioutil"
 	"encoding/json"
 
 	"github.com/spf13/cobra"
@@ -23,12 +23,12 @@ import (
 )
 
 var {{ $inputVar }} {{ .InputMessage }}
-{{ if .Flags }}
+{{ if and .Flags ( not .ClientStreaming ) }}
 var {{ $fromFileVar }} string
+{{ end }}
 {{ range .Flags }}
 {{ if and ( .IsMessage ) .Repeated }}
-{{ ( .GenRepeatedMessageFlagVar $inputVar) }}
-{{ end }}
+var {{ ( .GenRepeatedMessageVarName $inputVar) }} []string
 {{ end }}
 {{ end }}
 
@@ -40,8 +40,8 @@ func init() {
 	{{ range .Flags }}
 	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $inputVar) }}
 	{{ end }}
-	{{ if .Flags }}
-	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "")
+	{{ if and .Flags ( not .ClientStreaming ) }}
+	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "Absolute path to JSON file containing request payload")
 	{{ end }}
 }
 
@@ -65,7 +65,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ if and ( .IsMessage ) .Repeated }}
 		{{ $sliceAccessor := (print $inputVar "." ( .InputFieldName )) }}
 		// unmarshal JSON strings into slice of structs
-		for _, item := range {{ $inputVar }}{{ ( .InputFieldName ) }} {
+		for _, item := range {{ ( .GenRepeatedMessageVarName $inputVar) }} {
 			tmp := {{ .MessageImport.Name }}.{{ .Message }}{}
 			err = json.Unmarshal([]byte(item), &tmp)
 			if err != nil {
@@ -76,11 +76,30 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		{{ end }}
 		{{ end }}
-		{{ if (eq .OutputType "") }}
+		{{ if and .Flags ( not .ClientStreaming ) }}
+		if {{ $fromFileVar }} != "" {
+			data, err := ioutil.ReadFile({{ $fromFileVar }})
+			if err != nil {
+				return err
+			}
+
+			err = json.Unmarshal(data, &{{ $inputVar }})
+			if err != nil {
+				return err
+			}
+		}
+		{{ end }}
+		{{ if and (eq .OutputType "") ( not .ClientStreaming ) }}
 		err = client.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else }}
+		{{ if and ( not .ClientStreaming ) ( not .Paged ) }}
 		resp, err := client.{{ .Method }}(ctx, &{{ $inputVar }})
-		{{ if .ServerStreaming }}
+		{{ else if .Paged }}
+		iter := client.{{ .Method }}(ctx, &{{ $inputVar }})
+		{{ else }}
+		resp, err := client.{{ .Method }}(ctx)
+		{{ end }}
+		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
 		var item *{{ .OutputType }}
 		for err == nil {
 			item, err = resp.Recv()
@@ -89,6 +108,39 @@ var {{$methodCmdVar}} = &cobra.Command{
 
 		if err == io.EOF {
 			return nil
+		}
+		{{ else if and .ClientStreaming ( not .ServerStreaming ) }}
+		fmt.Println("Client stream open. Close with blank line.")
+		scanner := bufio.NewScanner(os.Stdin)
+    for err == nil && scanner.Scan() {
+				input := scanner.Text()
+				if input == "" {
+					break
+				}
+        err = json.Unmarshal([]byte(input), &{{ $inputVar }})
+				if err != nil {
+					return err
+				}
+				
+				err = resp.Send(&{{ $inputVar }})
+    }
+    if err := scanner.Err(); err != nil {
+        return err
+    }
+		
+		srvResp, err := resp.CloseAndRecv()
+		fmt.Println(srvResp)
+		{{ else if and .ClientStreaming .ServerStreaming }}
+		{{ else if .Paged }}
+		var page *{{ .OutputType }}
+		for err == nil {
+			page, err = iter.Next()
+
+			if err == iterator.Done {
+				return nil
+			}
+
+			fmt.Println(page)
 		}
 		{{ else }}
 		fmt.Println(resp)

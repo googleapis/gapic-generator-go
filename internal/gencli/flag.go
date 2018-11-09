@@ -19,9 +19,9 @@ type Flag struct {
 	MessageImport pbinfo.ImportSpec
 }
 
-// GenRepeatedMessageFlagVar generates the Go variable to store repeated Message string values
-func (f *Flag) GenRepeatedMessageFlagVar(inputVar string) string {
-	return fmt.Sprintf("var %s%s []string", inputVar, f.InputFieldName())
+// GenRepeatedMessageVarName generates the Go variable to store repeated Message string values
+func (f *Flag) GenRepeatedMessageVarName(inputVar string) string {
+	return inputVar + strings.Replace(f.InputFieldName(), ".", "", -1)
 }
 
 // IsMessage is a template helper that reports if the flag is a message type
@@ -37,8 +37,9 @@ func (f *Flag) GenFlag(inputVar string) string {
 
 	if f.Repeated {
 		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			field := f.GenRepeatedMessageVarName(inputVar)
 			// repeated Messages are entered as JSON strings and unmarshaled into the Message type later
-			return fmt.Sprintf(`StringArrayVar(&%s%s, "%s", []string{}, "%s")`, inputVar, f.InputFieldName(), f.Name, f.Usage)
+			return fmt.Sprintf(`StringArrayVar(&%s, "%s", []string{}, "%s")`, field, f.Name, f.Usage)
 		}
 
 		flagType += "Slice"

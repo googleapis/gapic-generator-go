@@ -10,7 +10,7 @@ import (
 const (
 
 	// ServiceTemplate is the template string for generated {service}.go
-	ServiceTemplate = `{{ $serviceCmdVar := (print .Service "Cmd") }}
+	ServiceTemplate = `{{ $serviceCmdVar := (print .Service "ServiceCmd") }}
 package main
 
 import (
@@ -36,7 +36,7 @@ func init() {
 var {{ $serviceCmdVar }} = &cobra.Command{
 	Use:   "{{ .MethodCmd }}",
 	{{ if (ne .ShortDesc "") }}Short: "{{ .ShortDesc }}",{{ end }}
-	{{ if (ne .LongDesc "") }}Long: {{ .LongDesc }},{{ end }}
+	{{ if (ne .LongDesc "") }}Long: "{{ .LongDesc }}",{{ end }}
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		var opts []option.ClientOption
 
@@ -85,7 +85,7 @@ func (g *gcli) genServiceCmdFiles() {
 
 		t.Execute(g.pt.Writer(), cmd)
 
-		g.addGoFile(cmd.MethodCmd + ".go")
+		g.addGoFile(cmd.MethodCmd + "_service" + ".go")
 
 		g.pt.Reset()
 	}
