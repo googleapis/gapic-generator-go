@@ -64,13 +64,15 @@ type Command struct {
 	ServerStreaming  bool
 	ClientStreaming  bool
 	Paged            bool
+	OneOfTypes       map[string]*Flag
 }
 
 // NestedMessage represents a nested message that will need to be initialized
 // in the generated code
 type NestedMessage struct {
-	FieldName string
-	FieldType string
+	FieldName    string
+	FieldType    string
+	IsOneOfField bool
 }
 
 // Gen is the main entry point for code generation of a command line utility
@@ -158,6 +160,7 @@ func (g *gcli) buildCommands() {
 				InputMessageType: mthd.GetInputType(),
 				ServerStreaming:  mthd.GetServerStreaming(),
 				ClientStreaming:  mthd.GetClientStreaming(),
+				OneOfTypes:       make(map[string]*Flag),
 				MethodCmd: strings.ToLower(strings.Join(
 					camelCaseRegex.FindAllString(mthd.GetName(), -1), "-")),
 			}
@@ -197,7 +200,9 @@ func (g *gcli) buildCommands() {
 
 			// build input fields into flags if not Empty
 			if cmd.InputMessageType != EmptyProtoType && !cmd.ClientStreaming {
-				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "")...)
+				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "", false)...)
+				g.buidOneOfTypeFlags(&cmd, msg)
+				cmd.Flags = append(cmd.Flags, g.buildOneOfFlags(&cmd, msg, "")...)
 			}
 
 			// capture output type for template formatting reasons
@@ -245,19 +250,34 @@ func (g *gcli) buildCommands() {
 	}
 }
 
-func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, prefix string) []*Flag {
+func (g *gcli) buidOneOfTypeFlags(cmd *Command, msg *descriptor.DescriptorProto) {
+	for _, field := range msg.GetOneofDecl() {
+		flag := Flag{
+			Name:   field.GetName(),
+			Type:   descriptor.FieldDescriptorProto_TYPE_STRING,
+			OneOfs: make(map[string]*Flag),
+		}
+
+		cmd.OneOfTypes[field.GetName()] = &flag
+	}
+}
+
+func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, prefix string) []*Flag {
 	var flags []*Flag
 
 	for _, field := range msg.GetField() {
-		// TODO(ndietz) remove and add support for oneof
-		if field.OneofIndex != nil {
+		if field.OneofIndex == nil {
 			continue
 		}
 
+		oneOfField := msg.GetOneofDecl()[field.GetOneofIndex()].GetName()
+		oneOfPrefix := prefix + oneOfField + "."
+
 		flag := Flag{
-			Name:     prefix + field.GetName(),
-			Type:     field.GetType(),
-			Repeated: field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+			Name:         oneOfPrefix + field.GetName(),
+			Type:         field.GetType(),
+			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+			IsOneOfField: true,
 		}
 
 		// evaluate field comments for API behavior
@@ -267,13 +287,71 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 				continue
 			}
 
-			cmt = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
-			flag.Required = strings.Contains(cmt, RequiredStr)
-			if flag.Required {
-				cmt = cmt[strings.Index(cmt, RequiredStr)+1:]
+			flag.Usage = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
+			flag.Required = strings.Contains(flag.Usage, RequiredStr)
+		}
+
+		// expand singular nested message fields into dot-notation input flags
+		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			nested := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+
+			// gather necessary imports for nested messages
+			_, pkg, err := g.descInfo.NameSpec(nested)
+			if err != nil {
+				errStr := fmt.Sprintf("Error getting import for message: %s", err.Error())
+				g.response.Error = &errStr
+				continue
+			}
+			putImport(cmd.Imports, &pkg)
+
+			flag.MessageImport = pkg
+			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
+
+			// recursively add singular, nested message fields
+			cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
+				FieldName:    flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
+				FieldType:    fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
+				IsOneOfField: true,
+			})
+
+			flags = append(flags, g.buildFieldFlags(cmd, nested, oneOfPrefix+field.GetName()+".", true)...)
+
+			cmd.OneOfTypes[oneOfField].OneOfs[field.GetName()] = &flag
+			continue
+		}
+
+		flags = append(flags, &flag)
+		cmd.OneOfTypes[oneOfField].OneOfs[field.GetName()] = &flag
+	}
+
+	return flags
+}
+
+func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, prefix string, isOneOf bool) []*Flag {
+	var flags []*Flag
+
+	for _, field := range msg.GetField() {
+		// TODO(ndietz) remove and add support for oneof
+		if field.OneofIndex != nil {
+			continue
+		}
+
+		flag := Flag{
+			Name:         prefix + field.GetName(),
+			Type:         field.GetType(),
+			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+			IsOneOfField: isOneOf,
+		}
+
+		// evaluate field comments for API behavior
+		if cmt, ok := g.descInfo.Comments[pbinfo.BuildFieldCommentKey(msg, field)]; ok {
+			// output-only fields are not added as input flags
+			if strings.Contains(cmt, OutputOnlyStr) {
+				continue
 			}
 
-			flag.Usage = cmt
+			flag.Usage = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
+			flag.Required = strings.Contains(flag.Usage, RequiredStr)
 		}
 
 		// expand singular nested message fields into dot-notation input flags
@@ -294,12 +372,19 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 			// recursively add singular, nested message fields
 			if !flag.Repeated {
-				cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
-					FieldName: flag.InputFieldName(),
-					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
-				})
+				n := &NestedMessage{
+					FieldName:    "." + flag.InputFieldName(),
+					FieldType:    fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
+					IsOneOfField: isOneOf,
+				}
 
-				flags = append(flags, g.buildFieldFlags(cmd, nested, prefix+field.GetName()+".")...)
+				if isOneOf {
+					n.FieldName = flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName()
+				}
+
+				cmd.NestedMessages = append(cmd.NestedMessages, n)
+
+				flags = append(flags, g.buildFieldFlags(cmd, nested, prefix+field.GetName()+".", isOneOf)...)
 				continue
 			}
 		}

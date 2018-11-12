@@ -17,11 +17,27 @@ type Flag struct {
 	Required      bool
 	Usage         string
 	MessageImport pbinfo.ImportSpec
+	OneOfs        map[string]*Flag
+	IsOneOfField  bool
 }
 
 // GenRepeatedMessageVarName generates the Go variable to store repeated Message string values
 func (f *Flag) GenRepeatedMessageVarName(inputVar string) string {
 	return inputVar + strings.Replace(f.InputFieldName(), ".", "", -1)
+}
+
+func (f *Flag) GenOneOfVarName(inputVar string) string {
+	// EchoInput & response.error.message --> EchoInputResponseError
+	name := f.Name
+	if strings.Count(f.Name, ".") > 1 {
+		name = f.Name[:strings.LastIndex(f.Name, ".")]
+	}
+
+	for _, tkn := range strings.Split(name, ".") {
+		inputVar += strings.Title(tkn)
+	}
+
+	return inputVar
 }
 
 // IsMessage is a template helper that reports if the flag is a message type
@@ -62,7 +78,16 @@ func (f *Flag) GenFlag(inputVar string) string {
 		}
 	}
 
-	str = fmt.Sprintf(`%sVar(&%s.%s, "%s", %s, "%s")`, flagType, inputVar, f.InputFieldName(), f.Name, defaultVal, f.Usage)
+	var name string
+	if f.IsOneOfField {
+		name = f.GenOneOfVarName(inputVar) + "." + f.OneOfInputFieldName()
+	} else if len(f.OneOfs) > 1 {
+		name = inputVar + f.InputFieldName()
+	} else {
+		name = inputVar + "." + f.InputFieldName()
+	}
+
+	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, flagType, name, f.Name, defaultVal, f.Usage)
 
 	return str
 }
@@ -70,6 +95,16 @@ func (f *Flag) GenFlag(inputVar string) string {
 // GenRequired generates the code to mark the flag as required
 func (f *Flag) GenRequired() string {
 	return fmt.Sprintf(`cmd.MarkFlagRequired("%s")`, f.Name)
+}
+
+func (f *Flag) OneOfInputFieldName() string {
+	split := strings.Split(f.Name, "_")
+	for ndx, tkn := range split {
+		split[ndx] = strings.Title(tkn)
+	}
+	name := strings.Join(split, "")
+
+	return name[strings.Index(name, ".")+1:]
 }
 
 // InputFieldName converts the field name into the Go struct property name

@@ -1,6 +1,7 @@
 package gencli
 
 import (
+	"strings"
 	"text/template"
 )
 
@@ -13,7 +14,7 @@ const (
 package main
 
 import (
-	"io/ioutil"
+	"os"
 	"encoding/json"
 
 	"github.com/spf13/cobra"
@@ -26,6 +27,12 @@ var {{ $inputVar }} {{ .InputMessage }}
 {{ if and .Flags ( not .ClientStreaming ) }}
 var {{ $fromFileVar }} string
 {{ end }}
+{{ range $key, $val := .OneOfTypes }}
+var {{ $inputVar }}{{ ($val.InputFieldName) }} string
+{{ range $oneOfKey, $oneOfVal := $val.OneOfs}}
+var {{($oneOfVal.GenOneOfVarName $inputVar)}} {{$.InputMessage}}_{{ ( title $oneOfKey ) }}
+{{ end }}
+{{ end }}
 {{ range .Flags }}
 {{ if and ( .IsMessage ) .Repeated }}
 var {{ ( .GenRepeatedMessageVarName $inputVar) }} []string
@@ -35,10 +42,13 @@ var {{ ( .GenRepeatedMessageVarName $inputVar) }} []string
 func init() {
 	{{ $serviceCmdVar }}.AddCommand({{ $methodCmdVar }})
 	{{ range .NestedMessages }}
-	{{ $inputVar }}.{{ .FieldName }} = new({{ .FieldType }})
+	{{ $inputVar }}{{ .FieldName }} = new({{ .FieldType }})
 	{{ end }}
 	{{ range .Flags }}
 	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $inputVar) }}
+	{{ end }}
+	{{ range $key, $val := .OneOfTypes }}
+	{{ $methodCmdVar }}.Flags().{{ ($val.GenFlag $inputVar) }}
 	{{ end }}
 	{{ if and .Flags ( not .ClientStreaming ) }}
 	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "Absolute path to JSON file containing request payload")
@@ -61,9 +71,33 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		{{ if and .Flags ( not .ClientStreaming ) }}
+		if {{ $fromFileVar }} != "" {
+			data, err := os.Open({{ $fromFileVar }})
+			if err != nil {
+				return err
+			}
+
+			err = jsonpb.Unmarshal(data, &{{ $inputVar }})
+			if err != nil {
+				return err
+			}
+		} {{ if .OneOfTypes }} else {
+			{{ range $key, $val := .OneOfTypes }}
+			switch {{ $inputVar }}{{ (.InputFieldName) }} {
+			{{ range $oneOfKey, $oneOfVal := .OneOfs }}
+			case "{{$oneOfKey}}":
+				{{$inputVar}}.{{($val.InputFieldName)}} = &{{($oneOfVal.GenOneOfVarName $inputVar)}}
+			{{ end }}
+			default:
+				return fmt.Errorf("Missing oneof choice for {{ .Name }}")
+			}
+			{{end}}
+		}
+		{{ end }}
+		{{ end }}
 		{{ range .Flags }}
 		{{ if and ( .IsMessage ) .Repeated }}
-		{{ $sliceAccessor := (print $inputVar "." ( .InputFieldName )) }}
 		// unmarshal JSON strings into slice of structs
 		for _, item := range {{ ( .GenRepeatedMessageVarName $inputVar) }} {
 			tmp := {{ .MessageImport.Name }}.{{ .Message }}{}
@@ -72,22 +106,15 @@ var {{$methodCmdVar}} = &cobra.Command{
 				return
 			}
 
+			{{ if .IsOneOfField }}
+			{{ $sliceAccessor := (print ( .GenOneOfVarName $inputVar) "." ( .OneOfInputFieldName )) }}
 			{{ $sliceAccessor }} = append({{ $sliceAccessor }}, &tmp)
+			{{ else }}
+			{{ $sliceAccessor := (print $inputVar "." ( .InputFieldName )) }}
+			{{ $sliceAccessor }} = append({{ $sliceAccessor }}, &tmp)
+			{{ end }}
 		}
 		{{ end }}
-		{{ end }}
-		{{ if and .Flags ( not .ClientStreaming ) }}
-		if {{ $fromFileVar }} != "" {
-			data, err := ioutil.ReadFile({{ $fromFileVar }})
-			if err != nil {
-				return err
-			}
-
-			err = json.Unmarshal(data, &{{ $inputVar }})
-			if err != nil {
-				return err
-			}
-		}
 		{{ end }}
 		{{ if and (eq .OutputType "") ( not .ClientStreaming ) }}
 		err = client.{{ .Method }}(ctx, &{{ $inputVar }})
@@ -117,7 +144,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 				if input == "" {
 					break
 				}
-        err = json.Unmarshal([]byte(input), &{{ $inputVar }})
+        err = jsonpb.UnmarshalString(input, &{{ $inputVar }})
 				if err != nil {
 					return err
 				}
@@ -153,9 +180,15 @@ var {{$methodCmdVar}} = &cobra.Command{
 )
 
 func (g *gcli) genCommands() {
+	helpers := make(template.FuncMap)
+	helpers["title"] = strings.Title
+
+	t := template.Must(template.New("cmd").Funcs(helpers).Parse(CmdTemplate))
+
 	for _, cmd := range g.commands {
 		g.pt.Reset()
-		template.Must(template.New("cmd").Parse(CmdTemplate)).Execute(g.pt.Writer(), cmd)
+
+		t.Execute(g.pt.Writer(), cmd)
 
 		g.addGoFile(cmd.MethodCmd + ".go")
 
