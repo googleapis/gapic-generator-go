@@ -71,7 +71,7 @@ func (g *gcli) genServiceCmdFiles() {
 			MethodCmd: strings.ToLower(name),
 			ShortDesc: "Sub-command for Service: " + name,
 			Imports:   g.imports,
-			EnvPrefix: strings.ToUpper(g.Root + "_" + name),
+			EnvPrefix: strings.ToUpper(g.root + "_" + name),
 		}
 
 		// add any available comment as usage

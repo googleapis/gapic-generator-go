@@ -22,72 +22,65 @@ type Flag struct {
 }
 
 // GenRepeatedMessageVarName generates the Go variable to store repeated Message string values
-func (f *Flag) GenRepeatedMessageVarName(inputVar string) string {
-	return inputVar + strings.Replace(f.InputFieldName(), ".", "", -1)
+func (f *Flag) GenRepeatedMessageVarName(in string) string {
+	return in + strings.Replace(f.InputFieldName(), ".", "", -1)
 }
 
-func (f *Flag) GenOneOfVarName(inputVar string) string {
-	// EchoInput & response.error.message --> EchoInputResponseError
+// GenOneOfVarName generates the variable name for a oneof entry type
+func (f *Flag) GenOneOfVarName(in string) string {
 	name := f.Name
 	if strings.Count(f.Name, ".") > 1 {
 		name = f.Name[:strings.LastIndex(f.Name, ".")]
 	}
 
 	for _, tkn := range strings.Split(name, ".") {
-		inputVar += strings.Title(tkn)
+		in += strings.Title(tkn)
 	}
 
-	return inputVar
-}
-
-// IsMessage is a template helper that reports if the flag is a message type
-func (f *Flag) IsMessage() bool {
-	return f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE
+	return in
 }
 
 // GenFlag generates the pflag API call for this flag
-func (f *Flag) GenFlag(inputVar string) string {
-	var str, defaultVal string
-	typeStr := pbinfo.GoTypeForPrim[f.Type]
-	flagType := strings.Title(typeStr)
+func (f *Flag) GenFlag(in string) string {
+	var str, def string
+	tStr := pbinfo.GoTypeForPrim[f.Type]
+	fType := strings.Title(tStr)
 
 	if f.Repeated {
 		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			field := f.GenRepeatedMessageVarName(inputVar)
+			field := f.GenRepeatedMessageVarName(in)
 			// repeated Messages are entered as JSON strings and unmarshaled into the Message type later
 			return fmt.Sprintf(`StringArrayVar(&%s, "%s", []string{}, "%s")`, field, f.Name, f.Usage)
 		}
 
-		flagType += "Slice"
-		defaultVal = "[]" + typeStr + "{}"
+		fType += "Slice"
+		def = "[]" + tStr + "{}"
 	} else {
-		switch typeStr {
+		switch tStr {
 		case "bool":
-			defaultVal = "false"
+			def = "false"
 		case "string":
-			defaultVal = `""`
+			def = `""`
 		case "int32", "int64", "int", "uint32", "uint64":
-			defaultVal = "0"
+			def = "0"
 		case "float32", "float64":
-			defaultVal = "0.0"
+			def = "0.0"
 		case "[]byte":
-			defaultVal = "[]byte{}"
-			flagType = "BytesHex"
+			def = "[]byte{}"
+			fType = "BytesHex"
 		default:
 			return ""
 		}
 	}
 
-	var name string
+	name := in + "." + f.InputFieldName()
 	if f.IsOneOfField {
-		name = f.GenOneOfVarName(inputVar) + "." + f.OneOfInputFieldName()
-	} else if len(f.OneOfs) > 1 {
-		name = inputVar + f.InputFieldName()
-	} else {
-		name = inputVar + "." + f.InputFieldName()
+		name = f.GenOneOfVarName(in) + "." + f.OneOfInputFieldName()
+	} else if len(f.OneOfs) > 0 {
+		name = in + f.InputFieldName()
 	}
 
-	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, flagType, name, f.Name, defaultVal, f.Usage)
+	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, fType, name, f.Name, def, f.Usage)
 
 	return str
 }
@@ -97,12 +90,15 @@ func (f *Flag) GenRequired() string {
 	return fmt.Sprintf(`cmd.MarkFlagRequired("%s")`, f.Name)
 }
 
+// IsMessage is a template helper that reports if the flag is a message type
+func (f *Flag) IsMessage() bool {
+	return f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE
+}
+
+// OneOfInputFieldName converts the field name into the Go struct property
+// name for a oneof field, which excludes the oneof definition name
 func (f *Flag) OneOfInputFieldName() string {
-	split := strings.Split(f.Name, "_")
-	for ndx, tkn := range split {
-		split[ndx] = strings.Title(tkn)
-	}
-	name := strings.Join(split, "")
+	name := f.InputFieldName()
 
 	return name[strings.Index(name, ".")+1:]
 }

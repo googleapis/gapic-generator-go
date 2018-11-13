@@ -14,10 +14,12 @@ const (
 package main
 
 import (
-	"os"
 	"encoding/json"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/golang/protobuf/jsonpb"
 	{{ range $key, $pkg := .Imports}}
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
 	{{ end }}
@@ -27,7 +29,7 @@ var {{ $inputVar }} {{ .InputMessage }}
 {{ if and .Flags ( not .ClientStreaming ) }}
 var {{ $fromFileVar }} string
 {{ end }}
-{{ range $key, $val := .OneOfTypes }}
+{{ range $key, $val := .OneOfSelectors }}
 var {{ $inputVar }}{{ ($val.InputFieldName) }} string
 {{ range $oneOfKey, $oneOfVal := $val.OneOfs}}
 var {{($oneOfVal.GenOneOfVarName $inputVar)}} {{$.InputMessage}}_{{ ( title $oneOfKey ) }}
@@ -47,7 +49,7 @@ func init() {
 	{{ range .Flags }}
 	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $inputVar) }}
 	{{ end }}
-	{{ range $key, $val := .OneOfTypes }}
+	{{ range $key, $val := .OneOfSelectors }}
 	{{ $methodCmdVar }}.Flags().{{ ($val.GenFlag $inputVar) }}
 	{{ end }}
 	{{ if and .Flags ( not .ClientStreaming ) }}
@@ -63,7 +65,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ if .Flags }}
 		if {{ $fromFileVar }} == "" {
 			{{ range .Flags }}
-			{{ if .Required }}
+			{{ if and .Required ( not .IsOneOfField ) }}
 			{{ ( .GenRequired ) }}
 			{{ end }}
 			{{ end }}
@@ -82,8 +84,8 @@ var {{$methodCmdVar}} = &cobra.Command{
 			if err != nil {
 				return err
 			}
-		} {{ if .OneOfTypes }} else {
-			{{ range $key, $val := .OneOfTypes }}
+		} {{ if .OneOfSelectors }} else {
+			{{ range $key, $val := .OneOfSelectors }}
 			switch {{ $inputVar }}{{ (.InputFieldName) }} {
 			{{ range $oneOfKey, $oneOfVal := .OneOfs }}
 			case "{{$oneOfKey}}":
@@ -116,7 +118,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		{{ end }}
 		{{ end }}
-		{{ if and (eq .OutputType "") ( not .ClientStreaming ) }}
+		{{ if and (eq .OutputMessageType "") ( not .ClientStreaming ) }}
 		err = client.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else }}
 		{{ if and ( not .ClientStreaming ) ( not .Paged ) }}
@@ -127,7 +129,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		resp, err := client.{{ .Method }}(ctx)
 		{{ end }}
 		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
-		var item *{{ .OutputType }}
+		var item *{{ .OutputMessageType }}
 		for err == nil {
 			item, err = resp.Recv()
 			fmt.Println(item)
@@ -159,7 +161,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		fmt.Println(srvResp)
 		{{ else if and .ClientStreaming .ServerStreaming }}
 		{{ else if .Paged }}
-		var page *{{ .OutputType }}
+		var page *{{ .OutputMessageType }}
 		for err == nil {
 			page, err = iter.Next()
 

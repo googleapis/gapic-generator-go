@@ -17,28 +17,6 @@ const (
 	// EmptyProtoType is the type name for the Empty message type
 	EmptyProtoType = ".google.protobuf.Empty"
 
-	// SourceSubItemPathLength the length of a source code path
-	// referencing a sub-item of a Message or Service
-	SourceSubItemPathLength = 4
-	// SourceMessageTypePathValue the value that indicates a
-	// source code path belongs to a Message
-	SourceMessageTypePathValue = 4
-	// SourceMessagePathIndex the index of a source code path
-	// referncing a specific Message
-	SourceMessagePathIndex = 1
-	// SourceFieldPathIndex the index of a source code path
-	// referencing a specific Field
-	SourceFieldPathIndex = 3
-	// SourceFieldTypePathValue represents the value associated
-	// with the Field type in the source code path
-	SourceFieldTypePathValue = 2
-	// SourceItemTypePathIndex the index of the source code
-	// item path type
-	SourceItemTypePathIndex = 0
-	// SourceSubItemTypePathIndex the index of the sub-item type
-	// in a source code path
-	SourceSubItemTypePathIndex = 2
-
 	// OutputOnlyStr represents the comment-level string that
 	// indicates a field is only present as output, never input
 	OutputOnlyStr = "Output only"
@@ -49,68 +27,38 @@ const (
 
 // Command intermediate representation of a RPC/Method as a CLI command
 type Command struct {
-	Service          string
-	Method           string
-	MethodCmd        string
-	InputMessageType string
-	InputMessage     string
-	Flags            []*Flag
-	ShortDesc        string
-	LongDesc         string
-	Imports          map[string]*pbinfo.ImportSpec
-	NestedMessages   []*NestedMessage
-	EnvPrefix        string
-	OutputType       string
-	ServerStreaming  bool
-	ClientStreaming  bool
-	Paged            bool
-	OneOfTypes       map[string]*Flag
+	Service           string
+	Method            string
+	MethodCmd         string
+	InputMessageType  string
+	InputMessage      string
+	Flags             []*Flag
+	ShortDesc         string
+	LongDesc          string
+	Imports           map[string]*pbinfo.ImportSpec
+	NestedMessages    []*NestedMessage
+	EnvPrefix         string
+	OutputMessageType string
+	ServerStreaming   bool
+	ClientStreaming   bool
+	Paged             bool
+	OneOfSelectors    map[string]*Flag
 }
 
 // NestedMessage represents a nested message that will need to be initialized
 // in the generated code
 type NestedMessage struct {
-	FieldName    string
-	FieldType    string
-	IsOneOfField bool
+	FieldName string
+	FieldType string
 }
 
 // Gen is the main entry point for code generation of a command line utility
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var g gcli
 
-	root, gapicPkg, err := parseParameters(genReq.Parameter)
+	err := g.init(genReq)
 	if err != nil {
-		errStr := fmt.Sprintf("Error in parsing params: %s", err.Error())
-		g.response.Error = &errStr
 		return &g.response, err
-	}
-	g.Root = root
-
-	g.init(genReq.ProtoFile)
-	putImport(g.imports,
-		&pbinfo.ImportSpec{Name: "gapic", Path: gapicPkg})
-
-	// gather services for generation
-	for _, f := range genReq.ProtoFile {
-		if strContains(genReq.FileToGenerate, f.GetName()) {
-			// gather imports for target proto gRPC libs
-			if goPkg := f.GetOptions().GetGoPackage(); goPkg != "" {
-				var pkgSpec pbinfo.ImportSpec
-
-				if sep := strings.LastIndex(goPkg, ";"); sep != -1 {
-					pkgSpec.Name = goPkg[sep+1:] + "pb"
-					pkgSpec.Path = goPkg[:sep]
-				} else {
-					pkgSpec.Name = goPkg[strings.LastIndexByte(goPkg, '/')+1:] + "pb"
-					pkgSpec.Path = goPkg
-				}
-
-				putImport(g.imports, &pkgSpec)
-			}
-
-			g.services = append(g.services, f.Service...)
-		}
 	}
 
 	// write root.go
@@ -130,19 +78,60 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 type gcli struct {
 	comments map[string]string
-	services []*descriptor.ServiceDescriptorProto
 	commands []*Command
-	response plugin.CodeGeneratorResponse
-	pt       printer.P
 	descInfo pbinfo.Info
 	imports  map[string]*pbinfo.ImportSpec
-	Root     string
+	pt       printer.P
+	response plugin.CodeGeneratorResponse
+	root     string
+	services []*descriptor.ServiceDescriptorProto
 }
 
-func (g *gcli) init(f []*descriptor.FileDescriptorProto) {
+func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 	g.comments = make(map[string]string)
-	g.descInfo = pbinfo.Of(f)
+	g.descInfo = pbinfo.Of(req.ProtoFile)
 	g.imports = make(map[string]*pbinfo.ImportSpec)
+
+	root, gapic, err := parseParameters(req.Parameter)
+	if err != nil {
+		errStr := fmt.Sprintf("Error in parsing params: %s", err.Error())
+		g.response.Error = &errStr
+		return err
+	}
+	g.root = root
+
+	putImport(g.imports, &pbinfo.ImportSpec{
+		Name: "gapic",
+		Path: gapic,
+	})
+
+	// gather services & imports for generation
+	for _, f := range req.ProtoFile {
+		if strContains(req.FileToGenerate, f.GetName()) {
+			pkg := f.GetOptions().GetGoPackage()
+			if pkg == "" {
+				errStr := fmt.Sprintf("Error missing Go package option for: %s", f.GetName())
+				g.response.Error = &errStr
+				return err
+			}
+
+			spec := pbinfo.ImportSpec{
+				Name: pkg[strings.LastIndexByte(pkg, '/')+1:] + "pb",
+				Path: pkg,
+			}
+
+			if sep := strings.LastIndex(pkg, ";"); sep != -1 {
+				spec.Name = pkg[sep+1:] + "pb"
+				spec.Path = pkg[:sep]
+			}
+
+			putImport(g.imports, &spec)
+
+			g.services = append(g.services, f.Service...)
+		}
+	}
+
+	return nil
 }
 
 func (g *gcli) buildCommands() {
@@ -160,7 +149,7 @@ func (g *gcli) buildCommands() {
 				InputMessageType: mthd.GetInputType(),
 				ServerStreaming:  mthd.GetServerStreaming(),
 				ClientStreaming:  mthd.GetClientStreaming(),
-				OneOfTypes:       make(map[string]*Flag),
+				OneOfSelectors:   make(map[string]*Flag),
 				MethodCmd: strings.ToLower(strings.Join(
 					camelCaseRegex.FindAllString(mthd.GetName(), -1), "-")),
 			}
@@ -171,9 +160,7 @@ func (g *gcli) buildCommands() {
 			}
 
 			// copy top level imports
-			for _, val := range g.imports {
-				putImport(cmd.Imports, val)
-			}
+			copyImports(g.imports, cmd.Imports)
 
 			// add any available comment as usage
 			key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], mthd)
@@ -184,33 +171,26 @@ func (g *gcli) buildCommands() {
 				cmd.ShortDesc = toShortUsage(cmt)
 			}
 
-			// gather necessary imports for input message
+			// add input message import
 			msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
-			_, pkg, err := g.descInfo.NameSpec(msg)
+			pkg, err := g.addImport(&cmd, msg)
 			if err != nil {
-				errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
-				g.response.Error = &errStr
 				continue
 			}
-			putImport(cmd.Imports, &pkg)
 
 			cmd.InputMessage = fmt.Sprintf("%s.%s",
 				pkg.Name,
 				cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
 
-			// build input fields into flags if not Empty
-			if cmd.InputMessageType != EmptyProtoType && !cmd.ClientStreaming {
-				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "", false)...)
-				g.buidOneOfTypeFlags(&cmd, msg)
-				cmd.Flags = append(cmd.Flags, g.buildOneOfFlags(&cmd, msg, "")...)
-			}
+			// build input fields into flags
+			g.buildFlags(&cmd, msg)
 
 			// capture output type for template formatting reasons
 			if out := mthd.GetOutputType(); out != EmptyProtoType {
-				// gather necessary imports for output message
 				msg := g.descInfo.Type[out].(*descriptor.DescriptorProto)
 
 				// buildFieldFlags identifies if a Method is paged
+				// while iterating over the fields
 				if cmd.Paged {
 					var f *descriptor.FieldDescriptorProto
 
@@ -222,9 +202,9 @@ func (g *gcli) buildCommands() {
 						}
 					}
 
-					// primitive type
+					// primitive repeated type
 					if fType := f.GetType(); fType != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-						cmd.OutputType = pbinfo.GoTypeForPrim[fType]
+						cmd.OutputMessageType = pbinfo.GoTypeForPrim[fType]
 						g.commands = append(g.commands, &cmd)
 						continue
 					}
@@ -234,15 +214,12 @@ func (g *gcli) buildCommands() {
 					msg = g.descInfo.Type[f.GetTypeName()].(*descriptor.DescriptorProto)
 				}
 
-				_, pkg, err := g.descInfo.NameSpec(msg)
+				pkg, err := g.addImport(&cmd, msg)
 				if err != nil {
-					errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
-					g.response.Error = &errStr
 					continue
 				}
-				putImport(cmd.Imports, &pkg)
 
-				cmd.OutputType = pkg.Name + "." + out[strings.LastIndex(out, ".")+1:]
+				cmd.OutputMessageType = pkg.Name + "." + out[strings.LastIndex(out, ".")+1:]
 			}
 
 			g.commands = append(g.commands, &cmd)
@@ -250,15 +227,31 @@ func (g *gcli) buildCommands() {
 	}
 }
 
-func (g *gcli) buidOneOfTypeFlags(cmd *Command, msg *descriptor.DescriptorProto) {
+func (g *gcli) buildFlags(cmd *Command, msg *descriptor.DescriptorProto) {
+	if cmd.InputMessageType == EmptyProtoType || cmd.ClientStreaming {
+		return
+	}
+
+	// build oneof type selector flags, stored separately from field flags
+	g.buildOneOfSelectors(cmd, msg)
+
+	// build standard field flags
+	cmd.Flags = append(cmd.Flags, g.buildFieldFlags(cmd, msg, "", false)...)
+
+	// build oneof field flags
+	cmd.Flags = append(cmd.Flags, g.buildOneOfFlags(cmd, msg, "")...)
+}
+
+func (g *gcli) buildOneOfSelectors(cmd *Command, msg *descriptor.DescriptorProto) {
 	for _, field := range msg.GetOneofDecl() {
 		flag := Flag{
-			Name:   field.GetName(),
-			Type:   descriptor.FieldDescriptorProto_TYPE_STRING,
-			OneOfs: make(map[string]*Flag),
+			Name:     field.GetName(),
+			Type:     descriptor.FieldDescriptorProto_TYPE_STRING,
+			OneOfs:   make(map[string]*Flag),
+			Required: true,
 		}
 
-		cmd.OneOfTypes[field.GetName()] = &flag
+		cmd.OneOfSelectors[field.GetName()] = &flag
 	}
 }
 
@@ -266,6 +259,7 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	var flags []*Flag
 
 	for _, field := range msg.GetField() {
+		// standard fields handled by buildFieldFlags
 		if field.OneofIndex == nil {
 			continue
 		}
@@ -293,35 +287,30 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 		// expand singular nested message fields into dot-notation input flags
 		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
 			nested := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
 
-			// gather necessary imports for nested messages
-			_, pkg, err := g.descInfo.NameSpec(nested)
+			// add nested message import
+			pkg, err := g.addImport(cmd, nested)
 			if err != nil {
-				errStr := fmt.Sprintf("Error getting import for message: %s", err.Error())
-				g.response.Error = &errStr
 				continue
 			}
-			putImport(cmd.Imports, &pkg)
+			flag.MessageImport = *pkg
 
-			flag.MessageImport = pkg
-			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
-
-			// recursively add singular, nested message fields
 			cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
-				FieldName:    flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
-				FieldType:    fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
-				IsOneOfField: true,
+				FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
+				FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
 			})
 
+			// recursively add singular, nested message fields
 			flags = append(flags, g.buildFieldFlags(cmd, nested, oneOfPrefix+field.GetName()+".", true)...)
 
-			cmd.OneOfTypes[oneOfField].OneOfs[field.GetName()] = &flag
+			cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
 			continue
 		}
 
 		flags = append(flags, &flag)
-		cmd.OneOfTypes[oneOfField].OneOfs[field.GetName()] = &flag
+		cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
 	}
 
 	return flags
@@ -331,7 +320,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	var flags []*Flag
 
 	for _, field := range msg.GetField() {
-		// TODO(ndietz) remove and add support for oneof
+		// oneof fields handled by buildOneOfFlags
 		if field.OneofIndex != nil {
 			continue
 		}
@@ -356,26 +345,21 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 		// expand singular nested message fields into dot-notation input flags
 		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
 			nested := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
 
-			// gather necessary imports for nested messages
-			_, pkg, err := g.descInfo.NameSpec(nested)
+			// add nested message import
+			pkg, err := g.addImport(cmd, nested)
 			if err != nil {
-				errStr := fmt.Sprintf("Error getting import for message: %s", err.Error())
-				g.response.Error = &errStr
 				continue
 			}
-			putImport(cmd.Imports, &pkg)
-
-			flag.MessageImport = pkg
-			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
+			flag.MessageImport = *pkg
 
 			// recursively add singular, nested message fields
 			if !flag.Repeated {
 				n := &NestedMessage{
-					FieldName:    "." + flag.InputFieldName(),
-					FieldType:    fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
-					IsOneOfField: isOneOf,
+					FieldName: "." + flag.InputFieldName(),
+					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
 				}
 
 				if isOneOf {
@@ -401,6 +385,18 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	}
 
 	return flags
+}
+
+func (g *gcli) addImport(cmd *Command, msg *descriptor.DescriptorProto) (*pbinfo.ImportSpec, error) {
+	_, pkg, err := g.descInfo.NameSpec(msg)
+	if err != nil {
+		errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
+		g.response.Error = &errStr
+		return nil, err
+	}
+	putImport(cmd.Imports, &pkg)
+
+	return &pkg, nil
 }
 
 func (g *gcli) addGoFile(name string) {

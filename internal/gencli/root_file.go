@@ -46,9 +46,9 @@ func main() {
 func (g *gcli) genRootCmdFile() {
 	g.pt.Reset()
 	template.Must(template.New("root").Parse(RootTemplate)).Execute(g.pt.Writer(), Command{
-		MethodCmd: strings.ToLower(g.Root),
-		ShortDesc: "Root command of " + g.Root,
-		EnvPrefix: strings.ToUpper(g.Root + "_{SERVICE}"),
+		MethodCmd: strings.ToLower(g.root),
+		ShortDesc: "Root command of " + g.root,
+		EnvPrefix: strings.ToUpper(g.root + "_{SERVICE}"),
 	})
 
 	g.addGoFile("root.go")

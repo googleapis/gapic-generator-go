@@ -69,6 +69,12 @@ func strContains(a []string, s string) bool {
 	return false
 }
 
+func copyImports(from, to map[string]*pbinfo.ImportSpec) {
+	for _, val := range from {
+		putImport(to, val)
+	}
+}
+
 func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 	if _, ok := imports[pkg.Path]; !ok {
 		imports[pkg.Path] = pkg
