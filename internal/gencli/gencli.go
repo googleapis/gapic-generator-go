@@ -45,6 +45,7 @@ type Command struct {
 	ClientStreaming   bool
 	Paged             bool
 	IsLRO             bool
+	SubCommands       []*Command
 }
 
 // NestedMessage represents a nested message that will need to be initialized
@@ -63,14 +64,17 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		return &g.response, err
 	}
 
+	// build commands from proto
+	g.buildCommands()
+
 	// write root.go
 	g.genRootCmdFile()
 
+	// write completion.go
+	g.genCompletionCmdFile()
+
 	// generate Service-level subcommands
 	g.genServiceCmdFiles()
-
-	// build commands from proto
-	g.buildCommands()
 
 	// generate Method-level subcommand files
 	g.genCommands()
@@ -79,20 +83,22 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 }
 
 type gcli struct {
-	comments map[string]string
-	commands []*Command
-	descInfo pbinfo.Info
-	imports  map[string]*pbinfo.ImportSpec
-	pt       printer.P
-	response plugin.CodeGeneratorResponse
-	root     string
-	services []*descriptor.ServiceDescriptorProto
+	comments    map[string]string
+	commands    []*Command
+	descInfo    pbinfo.Info
+	imports     map[string]*pbinfo.ImportSpec
+	pt          printer.P
+	response    plugin.CodeGeneratorResponse
+	root        string
+	services    []*descriptor.ServiceDescriptorProto
+	subcommands map[string][]*Command
 }
 
 func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 	g.comments = make(map[string]string)
 	g.descInfo = pbinfo.Of(req.ProtoFile)
 	g.imports = make(map[string]*pbinfo.ImportSpec)
+	g.subcommands = make(map[string][]*Command)
 
 	root, gapic, err := parseParameters(req.Parameter)
 	if err != nil {
@@ -211,6 +217,7 @@ func (g *gcli) buildCommands() {
 					if fType := f.GetType(); fType != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
 						cmd.OutputMessageType = pbinfo.GoTypeForPrim[fType]
 						g.commands = append(g.commands, &cmd)
+						g.subcommands[srv.GetName()] = append(g.subcommands[srv.GetName()], &cmd)
 						continue
 					}
 
@@ -228,6 +235,7 @@ func (g *gcli) buildCommands() {
 			}
 
 			g.commands = append(g.commands, &cmd)
+			g.subcommands[srv.GetName()] = append(g.subcommands[srv.GetName()], &cmd)
 		}
 	}
 }

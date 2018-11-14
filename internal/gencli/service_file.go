@@ -28,6 +28,10 @@ import (
 
 var client *gapic.{{.Service}}Client
 var ctx context.Context
+var subcommands []string = []string{
+	{{ range .SubCommands }}"{{ .MethodCmd }}",
+	{{ if .IsLRO }}"poll-{{ .MethodCmd }}",{{ end }}{{ end }}
+}
 
 func init() {
 	rootCmd.AddCommand({{ $serviceCmdVar }})
@@ -37,6 +41,7 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 	Use:   "{{ .MethodCmd }}",
 	{{ if (ne .ShortDesc "") }}Short: "{{ .ShortDesc }}",{{ end }}
 	{{ if (ne .LongDesc "") }}Long: "{{ .LongDesc }}",{{ end }}
+	ValidArgs: subcommands,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		var opts []option.ClientOption
 
@@ -67,11 +72,12 @@ func (g *gcli) genServiceCmdFiles() {
 	for _, srv := range g.services {
 		name := pbinfo.ReduceServName(srv.GetName(), "")
 		cmd := Command{
-			Service:   name,
-			MethodCmd: strings.ToLower(name),
-			ShortDesc: "Sub-command for Service: " + name,
-			Imports:   g.imports,
-			EnvPrefix: strings.ToUpper(g.root + "_" + name),
+			Service:     name,
+			MethodCmd:   strings.ToLower(name),
+			ShortDesc:   "Sub-command for Service: " + name,
+			Imports:     g.imports,
+			EnvPrefix:   strings.ToUpper(g.root + "_" + name),
+			SubCommands: g.subcommands[srv.GetName()],
 		}
 
 		// add any available comment as usage
