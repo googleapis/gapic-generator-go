@@ -11,24 +11,25 @@ const (
 
 	// ServiceTemplate is the template string for generated {service}.go
 	ServiceTemplate = `{{ $serviceCmdVar := (print .Service "ServiceCmd") }}
+{{ $serviceClient := ( print .Service "Client" ) }}
+{{ $serviceSubCommands := (print .Service "SubCommands" )}}
 package main
 
 import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 	"golang.org/x/net/context"
-	"github.com/spf13/cobra"
 	{{ range $key, $pkg := .Imports}}
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
 	{{ end }}
 )
 
-var client *gapic.{{.Service}}Client
-var ctx context.Context
-var subcommands []string = []string{
+var {{ $serviceClient }} *gapic.{{.Service}}Client
+var {{ $serviceSubCommands }} []string = []string{
 	{{ range .SubCommands }}"{{ .MethodCmd }}",
 	{{ if .IsLRO }}"poll-{{ .MethodCmd }}",{{ end }}{{ end }}
 }
@@ -41,7 +42,7 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 	Use:   "{{ .MethodCmd }}",
 	{{ if (ne .ShortDesc "") }}Short: "{{ .ShortDesc }}",{{ end }}
 	{{ if (ne .LongDesc "") }}Long: "{{ .LongDesc }}",{{ end }}
-	ValidArgs: subcommands,
+	ValidArgs: {{ $serviceSubCommands }},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		var opts []option.ClientOption
 
@@ -58,7 +59,7 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 		}
 
 		ctx = context.Background()
-		client, err = gapic.New{{.Service}}Client(ctx, opts...)
+		{{ $serviceClient }}, err = gapic.New{{.Service}}Client(ctx, opts...)
 		return
 	},
 }
@@ -83,7 +84,7 @@ func (g *gcli) genServiceCmdFiles() {
 		// add any available comment as usage
 		key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], srv)
 		if cmt, ok := g.descInfo.Comments[key]; ok {
-			cmt = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
+			cmt = sanitizeComment(cmt)
 
 			cmd.LongDesc = cmt
 			cmd.ShortDesc = toShortUsage(cmt)

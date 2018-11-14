@@ -14,6 +14,7 @@ const (
 {{$fromFileVar := (print .Method "FromFile")}}
 {{$serviceCmdVar := (print .Service "ServiceCmd")}}
 {{$followVar := (print .Method "Follow")}}
+{{ $serviceClient := ( print .Service "Client" ) }}
 package main
 
 import (
@@ -66,13 +67,14 @@ func init() {
 	{{ if .IsLRO }}
 	{{ $methodCmdVar }}.Flags().BoolVar(&{{ $followVar }}, "follow", false, "Block until the long running operation completes")
 
+	{{ $serviceCmdVar }}.AddCommand({{ $pollingCmdVar }})
+
 	{{ $pollingCmdVar }}.Flags().BoolVar(&{{ $followVar }}, "follow", false, "Block until the long running operation completes")
 
 	{{ $pollingCmdVar }}.Flags().StringVar(&{{$pollingOperationVar}}, "operation", "", "Required. Operation name to poll for")
 
 	{{ $pollingCmdVar }}.MarkFlagRequired("operation")
 
-	{{ $serviceCmdVar }}.AddCommand({{ $pollingCmdVar }})
 	{{ end }}
 }
 
@@ -141,14 +143,16 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 		{{ end }}
 		{{ if and (eq .OutputMessageType "") ( not .ClientStreaming ) }}
-		err = client.{{ .Method }}(ctx, &{{ $inputVar }})
+		err = {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else }}
 		{{ if and ( not .ClientStreaming ) ( not .Paged ) }}
-		resp, err := client.{{ .Method }}(ctx, &{{ $inputVar }})
-		{{ else if .Paged }}
-		iter := client.{{ .Method }}(ctx, &{{ $inputVar }})
+		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
+		{{ else if and .Paged ( not .IsLRO )}}
+		iter := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
+		{{ else if ( not .IsLRO )}}
+		stream, err := {{ $serviceClient }}.{{ .Method }}(ctx)
 		{{ else }}
-		stream, err := client.{{ .Method }}(ctx)
+		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ end }}
 		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
 		var item *{{ .OutputMessageType }}
@@ -188,7 +192,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		{{ if not .IsLRO }}fmt.Println(resp.String()){{end}}
 		{{ else if and .ClientStreaming .ServerStreaming }}
-		{{ else if .Paged }}
+		{{ else if and .Paged (not .IsLRO ) }}
 		var page *{{ .OutputMessageType }}
 		for err == nil {
 			page, err = iter.Next()
@@ -228,7 +232,7 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 	Use: "poll-{{ .MethodCmd }}",
 	Short: "Poll the status of a {{ .Method }}Operation by name",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		op := client.{{ .Method }}Operation({{ $pollingOperationVar }})
+		op := {{ $serviceClient }}.{{ .Method }}Operation({{ $pollingOperationVar }})
 		msg := fmt.Sprintf("Operation %s not done", op.Name())
 
 		if {{ $followVar }} {

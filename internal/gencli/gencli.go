@@ -173,7 +173,7 @@ func (g *gcli) buildCommands() {
 			// add any available comment as usage
 			key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], mthd)
 			if cmt, ok := g.descInfo.Comments[key]; ok {
-				cmt = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
+				cmt = sanitizeComment(cmt)
 
 				cmd.LongDesc = cmt
 				cmd.ShortDesc = toShortUsage(cmt)
@@ -294,7 +294,7 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 				continue
 			}
 
-			flag.Usage = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
+			flag.Usage = sanitizeComment(cmt)
 			flag.Required = strings.Contains(flag.Usage, RequiredStr)
 		}
 
@@ -352,7 +352,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 				continue
 			}
 
-			flag.Usage = strings.TrimSpace(strings.Replace(cmt, "\n", " ", -1))
+			flag.Usage = sanitizeComment(cmt)
 			flag.Required = strings.Contains(flag.Usage, RequiredStr)
 		}
 

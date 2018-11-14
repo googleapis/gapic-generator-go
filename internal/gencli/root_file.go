@@ -15,9 +15,11 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 var Verbose, Insecure bool
+var ctx context.Context
 
 func init() {
 	rootCmd.PersistentFlags().BoolVar(&Insecure, "insecure", false, "Make insecure client connection. Must be used with {{.EnvPrefix}}_ADDRESS.")

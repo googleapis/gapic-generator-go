@@ -60,6 +60,13 @@ func toShortUsage(cmt string) string {
 	return cmt
 }
 
+func sanitizeComment(cmt string) string {
+	cmt = strings.Replace(cmt, "\\", `\\`, -1)
+	cmt = strings.Replace(cmt, "\n", " ", -1)
+	cmt = strings.TrimSpace(cmt)
+	return cmt
+}
+
 func strContains(a []string, s string) bool {
 	for _, as := range a {
 		if as == s {
