@@ -12,7 +12,8 @@ const (
 	// ServiceTemplate is the template string for generated {service}.go
 	ServiceTemplate = `{{ $serviceCmdVar := (print .Service "ServiceCmd") }}
 {{ $serviceClient := ( print .Service "Client" ) }}
-{{ $serviceSubCommands := (print .Service "SubCommands" )}}
+{{ $serviceSubCommands := (print .Service "SubCommands" ) }}
+{{ $serviceConfig := (print .Service "Config" ) }}
 package main
 
 import (
@@ -20,14 +21,17 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
 	{{ range $key, $pkg := .Imports}}
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
 	{{ end }}
 )
 
+var {{ $serviceConfig }} *viper.Viper
 var {{ $serviceClient }} *gapic.{{.Service}}Client
 var {{ $serviceSubCommands }} []string = []string{
 	{{ range .SubCommands }}"{{ .MethodCmd }}",
@@ -36,6 +40,26 @@ var {{ $serviceSubCommands }} []string = []string{
 
 func init() {
 	rootCmd.AddCommand({{ $serviceCmdVar }})
+
+	{{ $serviceConfig }} = viper.New()
+	{{ $serviceConfig }}.SetEnvPrefix("{{ .EnvPrefix }}")
+	{{ $serviceConfig }}.AutomaticEnv()
+
+	{{ $serviceCmdVar }}.PersistentFlags().Bool("insecure", false, "Make insecure client connection. Or use {{.EnvPrefix}}_INSECURE. Must be used with \"address\" option")
+	{{ $serviceConfig }}.BindPFlag("insecure", {{ $serviceCmdVar }}.PersistentFlags().Lookup("insecure"))
+	{{ $serviceConfig }}.BindEnv("insecure")
+
+	{{ $serviceCmdVar }}.PersistentFlags().String("address", "", "Set API address used by client. Or use {{.EnvPrefix}}_ADDRESS.")
+	{{ $serviceConfig }}.BindPFlag("address", {{ $serviceCmdVar }}.PersistentFlags().Lookup("address"))
+	{{ $serviceConfig }}.BindEnv("address")
+
+	{{ $serviceCmdVar }}.PersistentFlags().String("token", "", "Set Bearer token used by the client. Or use {{.EnvPrefix}}_TOKEN.")
+	{{ $serviceConfig }}.BindPFlag("token", {{ $serviceCmdVar }}.PersistentFlags().Lookup("token"))
+	{{ $serviceConfig }}.BindEnv("token")
+
+	{{ $serviceCmdVar }}.PersistentFlags().String("api_key", "", "Set API Key used by the client. Or use {{.EnvPrefix}}_API_KEY.")
+	{{ $serviceConfig }}.BindPFlag("api_key", {{ $serviceCmdVar }}.PersistentFlags().Lookup("api_key"))
+	{{ $serviceConfig }}.BindEnv("api_key")
 }
 
 var {{ $serviceCmdVar }} = &cobra.Command{
@@ -46,16 +70,33 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		var opts []option.ClientOption
 
-		if address := os.Getenv("{{.EnvPrefix}}_ADDRESS"); address != "" {
+		address := {{ $serviceConfig }}.GetString("address")
+		if address != "" {
 			opts = append(opts, option.WithEndpoint(address))
+		}
 
-			if Insecure {
-				conn, err := grpc.Dial(address, grpc.WithInsecure())
-				if err != nil {
-					return err
-				}
-				opts = append(opts, option.WithGRPCConn(conn))
+		if {{ $serviceConfig }}.GetBool("insecure"){
+			if address == "" {
+				return fmt.Errorf("Missing address to use with insecure connection")
 			}
+
+			conn, err := grpc.Dial(address, grpc.WithInsecure())
+			if err != nil {
+				return err
+			}
+			opts = append(opts, option.WithGRPCConn(conn))
+		}
+
+		if token := {{ $serviceConfig }}.GetString("token"); token != "" {
+			opts = append(opts, option.WithTokenSource(oauth2.StaticTokenSource(
+				&oauth2.Token{
+					AccessToken: token,
+					TokenType:   "Bearer",
+				})))
+		}
+
+		if key := {{ $serviceConfig }}.GetString("api_key"); key != "" {
+			opts = append(opts, option.WithAPIKey(key))
 		}
 
 		ctx = context.Background()

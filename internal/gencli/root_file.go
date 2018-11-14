@@ -18,11 +18,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-var Verbose, Insecure bool
+var Verbose bool
 var ctx context.Context
 
 func init() {
-	rootCmd.PersistentFlags().BoolVar(&Insecure, "insecure", false, "Make insecure client connection. Must be used with {{.EnvPrefix}}_ADDRESS.")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Print verbose output")
 }
 
@@ -47,13 +46,13 @@ func main() {
 
 func (g *gcli) genRootCmdFile() {
 	g.pt.Reset()
+	name := strings.ToLower(g.root)
 	template.Must(template.New("root").Parse(RootTemplate)).Execute(g.pt.Writer(), Command{
-		MethodCmd: strings.ToLower(g.root),
+		MethodCmd: name,
 		ShortDesc: "Root command of " + g.root,
-		EnvPrefix: strings.ToUpper(g.root + "_{SERVICE}"),
 	})
 
-	g.addGoFile("root.go")
+	g.addGoFile(name + ".go")
 
 	g.pt.Reset()
 }
