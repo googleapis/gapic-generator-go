@@ -16,7 +16,8 @@ import (
 const (
 	// EmptyProtoType is the type name for the Empty message type
 	EmptyProtoType = ".google.protobuf.Empty"
-
+	// LROProtoType is the type name for the LRO message type
+	LROProtoType = ".google.longrunning.Operation"
 	// OutputOnlyStr represents the comment-level string that
 	// indicates a field is only present as output, never input
 	OutputOnlyStr = "Output only"
@@ -32,17 +33,18 @@ type Command struct {
 	MethodCmd         string
 	InputMessageType  string
 	InputMessage      string
-	Flags             []*Flag
 	ShortDesc         string
 	LongDesc          string
 	Imports           map[string]*pbinfo.ImportSpec
+	Flags             []*Flag
+	OneOfSelectors    map[string]*Flag
 	NestedMessages    []*NestedMessage
 	EnvPrefix         string
 	OutputMessageType string
 	ServerStreaming   bool
 	ClientStreaming   bool
 	Paged             bool
-	OneOfSelectors    map[string]*Flag
+	IsLRO             bool
 }
 
 // NestedMessage represents a nested message that will need to be initialized
@@ -186,7 +188,10 @@ func (g *gcli) buildCommands() {
 			g.buildFlags(&cmd, msg)
 
 			// capture output type for template formatting reasons
-			if out := mthd.GetOutputType(); out != EmptyProtoType {
+			if out := mthd.GetOutputType(); out == LROProtoType {
+				cmd.IsLRO = true
+				cmd.OutputMessageType = out
+			} else if out != EmptyProtoType {
 				msg := g.descInfo.Type[out].(*descriptor.DescriptorProto)
 
 				// buildFieldFlags identifies if a Method is paged

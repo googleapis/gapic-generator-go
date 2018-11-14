@@ -9,8 +9,11 @@ const (
 	// CmdTemplate is the template for a cobra subcommand
 	CmdTemplate = `{{$inputVar := (print .Method "Input")}}
 {{$methodCmdVar := (print .Method "Cmd")}}
+{{$pollingCmdVar := (print .Method "PollCmd")}}
+{{$pollingOperationVar := (print .Method "PollOperation")}}
 {{$fromFileVar := (print .Method "FromFile")}}
 {{$serviceCmdVar := (print .Service "ServiceCmd")}}
+{{$followVar := (print .Method "Follow")}}
 package main
 
 import (
@@ -28,6 +31,11 @@ import (
 var {{ $inputVar }} {{ .InputMessage }}
 {{ if and .Flags ( not .ClientStreaming ) }}
 var {{ $fromFileVar }} string
+{{ end }}
+{{ if .IsLRO }}
+var {{ $followVar }} bool 
+
+var {{ $pollingOperationVar }} string
 {{ end }}
 {{ range $key, $val := .OneOfSelectors }}
 var {{ $inputVar }}{{ ($val.InputFieldName) }} string
@@ -55,6 +63,17 @@ func init() {
 	{{ if and .Flags ( not .ClientStreaming ) }}
 	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "Absolute path to JSON file containing request payload")
 	{{ end }}
+	{{ if .IsLRO }}
+	{{ $methodCmdVar }}.Flags().BoolVar(&{{ $followVar }}, "follow", false, "Block until the long running operation completes")
+
+	{{ $pollingCmdVar }}.Flags().BoolVar(&{{ $followVar }}, "follow", false, "Block until the long running operation completes")
+
+	{{ $pollingCmdVar }}.Flags().StringVar(&{{$pollingOperationVar}}, "operation", "", "Required. Operation name to poll for")
+
+	{{ $pollingCmdVar }}.MarkFlagRequired("operation")
+
+	{{ $serviceCmdVar }}.AddCommand({{ $pollingCmdVar }})
+	{{ end }}
 }
 
 var {{$methodCmdVar}} = &cobra.Command{
@@ -62,12 +81,15 @@ var {{$methodCmdVar}} = &cobra.Command{
   {{ if (ne .ShortDesc "") }}Short: "{{ .ShortDesc }}",{{ end }}
 	{{ if (ne .LongDesc "") }}Long: "{{ .LongDesc }}",{{ end }}
 	PreRun: func(cmd *cobra.Command, args []string) {
-		{{ if .Flags }}
+		{{ if or .Flags .OneOfSelectors }}
 		if {{ $fromFileVar }} == "" {
 			{{ range .Flags }}
 			{{ if and .Required ( not .IsOneOfField ) }}
 			{{ ( .GenRequired ) }}
 			{{ end }}
+			{{ end }}
+			{{ range $key, $val := .OneOfSelectors }}
+			{{ ( $val.GenRequired ) }}
 			{{ end }}
 		}
 		{{ end }}
@@ -126,13 +148,16 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ else if .Paged }}
 		iter := client.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else }}
-		resp, err := client.{{ .Method }}(ctx)
+		stream, err := client.{{ .Method }}(ctx)
 		{{ end }}
 		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
 		var item *{{ .OutputMessageType }}
-		for err == nil {
+		for {
 			item, err = resp.Recv()
-			fmt.Println(item)
+			if err != nil {
+				break
+			}
+			fmt.Println(item.String())
 		}
 
 		if err == io.EOF {
@@ -151,33 +176,83 @@ var {{$methodCmdVar}} = &cobra.Command{
 					return err
 				}
 				
-				err = resp.Send(&{{ $inputVar }})
+				err = stream.Send(&{{ $inputVar }})
     }
     if err := scanner.Err(); err != nil {
         return err
     }
 		
-		srvResp, err := resp.CloseAndRecv()
-		fmt.Println(srvResp)
+		resp, err := stream.CloseAndRecv()
+		if err != nil {
+			return err
+		}
+		{{ if not .IsLRO }}fmt.Println(resp.String()){{end}}
 		{{ else if and .ClientStreaming .ServerStreaming }}
 		{{ else if .Paged }}
 		var page *{{ .OutputMessageType }}
 		for err == nil {
 			page, err = iter.Next()
-
-			if err == iterator.Done {
-				return nil
+			if err != nil {
+				break
 			}
 
-			fmt.Println(page)
+			fmt.Println(page.String())
 		}
-		{{ else }}
-		fmt.Println(resp)
+
+		if err == iterator.Done {
+			return nil
+		}
+		{{ else if not .IsLRO }}
+		fmt.Println(resp.String())
+		{{ end }}
+
+		{{ if .IsLRO }}
+		if !{{ $followVar }} {
+			fmt.Printf("Operation name: %s\n", resp.Name())
+			return err
+		}
+
+		result, err := resp.Wait(ctx)
+		if err != nil {
+			return err
+		}
+		fmt.Println(result.String())
 		{{ end }}
 		{{ end }}
 		return err
   },
 }
+
+{{ if .IsLRO }}
+var {{ $pollingCmdVar }} = &cobra.Command{
+	Use: "poll-{{ .MethodCmd }}",
+	Short: "Poll the status of a {{ .Method }}Operation by name",
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		op := client.{{ .Method }}Operation({{ $pollingOperationVar }})
+		msg := fmt.Sprintf("Operation %s not done", op.Name())
+
+		if {{ $followVar }} {
+			resp, err := op.Wait(ctx)
+			if err != nil {
+				return err
+			}
+			fmt.Println(resp.String())
+			return err
+		}
+
+		resp, err := op.Poll(ctx)
+		if err != nil {
+			return err
+		} else if resp != nil {
+			msg = resp.String()
+		}
+
+		fmt.Println(msg)
+
+		return err
+	},
+}
+{{ end }}
 `
 )
 
