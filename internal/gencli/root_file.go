@@ -14,15 +14,17 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
-var Verbose bool
+var Verbose, OutputJSON bool
 var ctx context.Context
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Print verbose output")
+	rootCmd.PersistentFlags().BoolVarP(&OutputJSON, "json", "j", false, "Print JSON output")
 }
 
 var rootCmd = &cobra.Command{
@@ -40,6 +42,28 @@ func Execute() {
 
 func main() {
 	Execute()
+}
+
+func printVerboseInput(srv, mthd string, data interface{}) {
+	fmt.Println("Service:", srv)
+	fmt.Println("Method:", mthd)
+	fmt.Print("Input: ")
+	printMessage(data)
+}
+
+func printMessage(data interface{}) {
+	var s string
+
+	if OutputJSON {
+		d, _ := json.MarshalIndent(data, "", "  ")
+		s = string(d)
+	} else if msg, ok := data.(proto.Message); ok {
+		s = msg.String()
+	} else if page, ok := data.(map[string]interface{}); ok {
+		s = fmt.Sprintf("%v", page)
+	}
+
+	fmt.Println(s)
 }
 `
 )

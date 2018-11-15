@@ -272,6 +272,7 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	var flags []*Flag
 
 	for _, field := range msg.GetField() {
+		var output bool
 		// standard fields handled by buildFieldFlags
 		if field.OneofIndex == nil {
 			continue
@@ -288,14 +289,9 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 		}
 
 		// evaluate field comments for API behavior
-		if cmt, ok := g.descInfo.Comments[pbinfo.BuildFieldCommentKey(msg, field)]; ok {
-			// output-only fields are not added as input flags
-			if strings.Contains(cmt, OutputOnlyStr) {
-				continue
-			}
-
-			flag.Usage = sanitizeComment(cmt)
-			flag.Required = strings.Contains(flag.Usage, RequiredStr)
+		output, flag.Required, flag.Usage = g.getFieldBehavior(msg, field)
+		if output {
+			continue
 		}
 
 		// expand singular nested message fields into dot-notation input flags
@@ -331,6 +327,7 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, prefix string, isOneOf bool) []*Flag {
 	var flags []*Flag
+	var output bool
 
 	for _, field := range msg.GetField() {
 		// oneof fields handled by buildOneOfFlags
@@ -346,14 +343,9 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 		}
 
 		// evaluate field comments for API behavior
-		if cmt, ok := g.descInfo.Comments[pbinfo.BuildFieldCommentKey(msg, field)]; ok {
-			// output-only fields are not added as input flags
-			if strings.Contains(cmt, OutputOnlyStr) {
-				continue
-			}
-
-			flag.Usage = sanitizeComment(cmt)
-			flag.Required = strings.Contains(flag.Usage, RequiredStr)
+		output, flag.Required, flag.Usage = g.getFieldBehavior(msg, field)
+		if output {
+			continue
 		}
 
 		// expand singular nested message fields into dot-notation input flags
@@ -398,6 +390,16 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	}
 
 	return flags
+}
+
+func (g *gcli) getFieldBehavior(msg *descriptor.DescriptorProto, field *descriptor.FieldDescriptorProto) (output bool, required bool, cmt string) {
+	if cmt, ok := g.descInfo.Comments[pbinfo.BuildFieldCommentKey(msg, field)]; ok {
+		cmt = sanitizeComment(cmt)
+		output = strings.Contains(cmt, OutputOnlyStr)
+		required = strings.Contains(cmt, RequiredStr)
+	}
+
+	return
 }
 
 func (g *gcli) addImport(cmd *Command, msg *descriptor.DescriptorProto) (*pbinfo.ImportSpec, error) {

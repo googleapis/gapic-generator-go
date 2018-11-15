@@ -30,7 +30,7 @@ import (
 )
 
 var {{ $inputVar }} {{ .InputMessage }}
-{{ if and .Flags ( not .ClientStreaming ) }}
+{{ if or .Flags .ClientStreaming }}
 var {{ $fromFileVar }} string
 {{ end }}
 {{ if .IsLRO }}
@@ -61,7 +61,7 @@ func init() {
 	{{ range $key, $val := .OneOfSelectors }}
 	{{ $methodCmdVar }}.Flags().{{ ($val.GenFlag $inputVar) }}
 	{{ end }}
-	{{ if and .Flags ( not .ClientStreaming ) }}
+	{{ if or .Flags .ClientStreaming }}
 	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "Absolute path to JSON file containing request payload")
 	{{ end }}
 	{{ if .IsLRO }}
@@ -97,17 +97,19 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		{{ if and .Flags ( not .ClientStreaming ) }}
+		{{ if or .Flags .ClientStreaming }}
+		in := os.Stdin
 		if {{ $fromFileVar }} != "" {
-			data, err := os.Open({{ $fromFileVar }})
+			in, err = os.Open({{ $fromFileVar }})
 			if err != nil {
 				return err
 			}
-
-			err = jsonpb.Unmarshal(data, &{{ $inputVar }})
+			{{ if not .ClientStreaming }}
+			err = jsonpb.Unmarshal(in, &{{ $inputVar }})
 			if err != nil {
 				return err
 			}
+			{{ end }}
 		} {{ if .OneOfSelectors }} else {
 			{{ range $key, $val := .OneOfSelectors }}
 			switch {{ $inputVar }}{{ (.InputFieldName) }} {
@@ -143,15 +145,27 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 		{{ end }}
 		{{ if and (eq .OutputMessageType "") ( not .ClientStreaming ) }}
+		if Verbose {
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+		}
 		err = {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else }}
 		{{ if and ( not .ClientStreaming ) ( not .Paged ) }}
+		if Verbose {
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+		}
 		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else if and .Paged ( not .IsLRO )}}
+		if Verbose {
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+		}
 		iter := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ else if ( not .IsLRO )}}
 		stream, err := {{ $serviceClient }}.{{ .Method }}(ctx)
 		{{ else }}
+		if Verbose {
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+		}
 		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
 		{{ end }}
 		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
@@ -161,15 +175,22 @@ var {{$methodCmdVar}} = &cobra.Command{
 			if err != nil {
 				break
 			}
-			fmt.Println(item.String())
+
+			if Verbose {
+				fmt.Print("Output: ")
+			}
+			printMessage(item)
 		}
 
 		if err == io.EOF {
 			return nil
 		}
 		{{ else if and .ClientStreaming ( not .ServerStreaming ) }}
-		fmt.Println("Client stream open. Close with blank line.")
-		scanner := bufio.NewScanner(os.Stdin)
+		if Verbose {
+			fmt.Println("Client stream open. Close with blank line.")
+		}
+
+		scanner := bufio.NewScanner(in)
     for err == nil && scanner.Scan() {
 				input := scanner.Text()
 				if input == "" {
@@ -190,29 +211,57 @@ var {{$methodCmdVar}} = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		{{ if not .IsLRO }}fmt.Println(resp.String()){{end}}
+		{{ if not .IsLRO }}
+		if Verbose {
+			fmt.Print("Output: ")
+		}
+		printMessage(resp){{end}}
 		{{ else if and .ClientStreaming .ServerStreaming }}
 		{{ else if and .Paged (not .IsLRO ) }}
-		var page *{{ .OutputMessageType }}
-		for err == nil {
-			page, err = iter.Next()
-			if err != nil {
-				break
+		// get requested page
+		page, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				fmt.Println("No more results")
+				return nil
 			}
 
-			fmt.Println(page.String())
+			return err
 		}
 
-		if err == iterator.Done {
-			return nil
+		data := make(map[string]interface{})
+		data["page"] = page
+
+		//get next page token
+		_, err = iter.Next()
+		if err != nil && err != iterator.Done {
+			return err
 		}
+		data["nextToken"] = iter.PageInfo().Token
+
+		if Verbose {
+			fmt.Print("Output: ")
+		}
+		printMessage(data)
 		{{ else if not .IsLRO }}
-		fmt.Println(resp.String())
+		if Verbose {
+			fmt.Print("Output: ")
+		}
+		printMessage(resp)
 		{{ end }}
 
 		{{ if .IsLRO }}
 		if !{{ $followVar }} {
-			fmt.Printf("Operation name: %s\n", resp.Name())
+			var s interface{}
+			s = resp.Name()
+
+			if OutputJSON {
+				d := make(map[string]string)
+				d["operation"] = resp.Name()
+				s = d
+			}
+
+			printMessage(s)
 			return err
 		}
 
@@ -220,7 +269,11 @@ var {{$methodCmdVar}} = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println(result.String())
+
+		if Verbose {
+			fmt.Print("Output: ")
+		}
+		printMessage(result)
 		{{ end }}
 		{{ end }}
 		return err
@@ -233,14 +286,17 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 	Short: "Poll the status of a {{ .Method }}Operation by name",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		op := {{ $serviceClient }}.{{ .Method }}Operation({{ $pollingOperationVar }})
-		msg := fmt.Sprintf("Operation %s not done", op.Name())
 
 		if {{ $followVar }} {
 			resp, err := op.Wait(ctx)
 			if err != nil {
 				return err
 			}
-			fmt.Println(resp.String())
+
+			if Verbose {
+				fmt.Print("Output: ")
+			}
+			printMessage(resp)
 			return err
 		}
 
@@ -248,10 +304,15 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 		if err != nil {
 			return err
 		} else if resp != nil {
-			msg = resp.String()
+			if Verbose {
+				fmt.Print("Output: ")
+			}
+
+			printMessage(resp)
+			return
 		}
 
-		fmt.Println(msg)
+		fmt.Println(fmt.Sprintf("Operation %s not done", op.Name()))
 
 		return err
 	},
