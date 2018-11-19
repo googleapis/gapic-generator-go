@@ -296,8 +296,18 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 		// expand singular nested message fields into dot-notation input flags
 		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
-			nested := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+			t := field.GetTypeName()
+			last := strings.LastIndex(t, ".")
+			flag.Message = t[last+1:]
+
+			// check if it is a message nested type
+			if strings.Contains(t, msg.GetName()) {
+				pre := t[:last]
+				parent := pre[strings.LastIndex(pre, ".")+1:]
+				flag.Message = parent + "_" + flag.Message
+			}
+
+			nested := g.descInfo.Type[t].(*descriptor.DescriptorProto)
 
 			// add nested message import
 			pkg, err := g.addImport(cmd, nested)
@@ -350,8 +360,18 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 		// expand singular nested message fields into dot-notation input flags
 		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			flag.Message = field.GetTypeName()[strings.LastIndex(field.GetTypeName(), ".")+1:]
-			nested := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+			t := field.GetTypeName()
+			last := strings.LastIndex(t, ".")
+			flag.Message = t[last+1:]
+
+			// check if it is a message nested type
+			if strings.Contains(t, msg.GetName()) {
+				pre := t[:last]
+				parent := pre[strings.LastIndex(pre, ".")+1:]
+				flag.Message = parent + "_" + flag.Message
+			}
+
+			nested := g.descInfo.Type[t].(*descriptor.DescriptorProto)
 
 			// add nested message import
 			pkg, err := g.addImport(cmd, nested)
