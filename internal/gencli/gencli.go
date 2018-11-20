@@ -246,89 +246,92 @@ func (g *gcli) buildFlags(cmd *Command, msg *descriptor.DescriptorProto) {
 		return
 	}
 
-	// build oneof type selector flags, stored separately from field flags
-	g.buildOneOfSelectors(cmd, msg)
-
-	// build standard field flags
+	// build field flags
 	cmd.Flags = append(cmd.Flags, g.buildFieldFlags(cmd, msg, "", false)...)
-
-	// build oneof field flags
-	cmd.Flags = append(cmd.Flags, g.buildOneOfFlags(cmd, msg, "")...)
 }
 
-func (g *gcli) buildOneOfSelectors(cmd *Command, msg *descriptor.DescriptorProto) {
+func (g *gcli) buildOneOfSelectors(cmd *Command, msg *descriptor.DescriptorProto, prefix string) {
 	for _, field := range msg.GetOneofDecl() {
 		flag := Flag{
-			Name:     field.GetName(),
+			Name:     prefix + field.GetName(),
 			Type:     descriptor.FieldDescriptorProto_TYPE_STRING,
 			OneOfs:   make(map[string]*Flag),
 			Required: true,
 		}
 
-		cmd.OneOfSelectors[field.GetName()] = &flag
+		if _, ok := cmd.OneOfSelectors[field.GetName()]; !ok {
+			cmd.OneOfSelectors[field.GetName()] = &flag
+		}
 	}
 }
 
-func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, prefix string) []*Flag {
-	var flags []*Flag
+func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, field *descriptor.FieldDescriptorProto, prefix string, isNested bool) (flags []*Flag) {
+	var output bool
 
-	for _, field := range msg.GetField() {
-		var output bool
-		// standard fields handled by buildFieldFlags
-		if field.OneofIndex == nil {
-			continue
-		}
+	oneOfField := msg.GetOneofDecl()[field.GetOneofIndex()].GetName()
+	oneOfPrefix := prefix + oneOfField + "."
 
-		oneOfField := msg.GetOneofDecl()[field.GetOneofIndex()].GetName()
-		oneOfPrefix := prefix + oneOfField + "."
-
-		flag := Flag{
-			Name:         oneOfPrefix + field.GetName(),
-			Type:         field.GetType(),
-			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
-			IsOneOfField: true,
-		}
-
-		// evaluate field comments for API behavior
-		output, flag.Required, flag.Usage = g.getFieldBehavior(msg, field)
-		if output {
-			continue
-		}
-
-		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
-
-		if flag.IsMessage() || flag.IsEnum() {
-			flag.Message = parseMessageName(field, msg)
-
-			nested := g.descInfo.Type[field.GetTypeName()]
-
-			// add nested type import
-			pkg, err := g.addImport(cmd, nested)
-			if err != nil {
-				continue
-			}
-			flag.MessageImport = *pkg
-
-			if flag.IsMessage() {
-				cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
-					FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
-					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
-				})
-
-				p := oneOfPrefix + field.GetName() + "."
-				m := nested.(*descriptor.DescriptorProto)
-
-				// recursively add singular, nested message fields
-				flags = append(flags, g.buildFieldFlags(cmd, m, p, true)...)
-
-				cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
-				continue
-			}
-		}
-
-		flags = append(flags, &flag)
-		cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
+	flag := Flag{
+		Name:         oneOfPrefix + field.GetName(),
+		Type:         field.GetType(),
+		Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+		IsOneOfField: true,
+		IsNested:     isNested,
 	}
+
+	// evaluate field comments for API behavior
+	output, flag.Required, flag.Usage = g.getFieldBehavior(msg, field)
+	if output {
+		return
+	}
+
+	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
+
+	// construct oneof gRPC struct type info
+	m := msg
+	if !isNested {
+		m = g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
+	}
+
+	parent, err := g.getImport(m)
+	if err != nil {
+		return
+	}
+	flag.Message = m.GetName()[strings.LastIndex(m.GetName(), ".")+1:]
+	flag.MessageImport = *parent
+
+	// handle oneof message or enum fields
+	if flag.IsMessage() || flag.IsEnum() {
+		flag.Message = parseMessageName(field, msg)
+
+		nested := g.descInfo.Type[field.GetTypeName()]
+
+		// add nested type import
+		pkg, err := g.addImport(cmd, nested)
+		if err != nil {
+			return
+		}
+		flag.MessageImport = *pkg
+
+		if flag.IsMessage() {
+			cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
+				FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
+				FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
+			})
+
+			p := oneOfPrefix + field.GetName() + "."
+			m := nested.(*descriptor.DescriptorProto)
+
+			// recursively add singular, nested message fields
+			flags = append(flags, g.buildFieldFlags(cmd, m, p, true)...)
+
+			cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
+			return
+		}
+	}
+
+	cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
+	flags = append(flags, &flag)
 
 	return flags
 }
@@ -338,8 +341,9 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	var output bool
 
 	for _, field := range msg.GetField() {
-		// oneof fields handled by buildOneOfFlags
 		if field.OneofIndex != nil {
+			g.buildOneOfSelectors(cmd, msg, prefix)
+			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, !strings.Contains(cmd.InputMessage, msg.GetName()))...)
 			continue
 		}
 
@@ -414,16 +418,25 @@ func (g *gcli) getFieldBehavior(msg *descriptor.DescriptorProto, field *descript
 	return
 }
 
-func (g *gcli) addImport(cmd *Command, t pbinfo.ProtoType) (*pbinfo.ImportSpec, error) {
+func (g *gcli) getImport(t pbinfo.ProtoType) (*pbinfo.ImportSpec, error) {
 	_, pkg, err := g.descInfo.NameSpec(t)
 	if err != nil {
 		errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
 		g.response.Error = &errStr
 		return nil, err
 	}
-	putImport(cmd.Imports, &pkg)
 
 	return &pkg, nil
+}
+
+func (g *gcli) addImport(cmd *Command, t pbinfo.ProtoType) (*pbinfo.ImportSpec, error) {
+	pkg, err := g.getImport(t)
+	if err != nil {
+		return nil, err
+	}
+	putImport(cmd.Imports, pkg)
+
+	return pkg, nil
 }
 
 func (g *gcli) addGoFile(name string) {

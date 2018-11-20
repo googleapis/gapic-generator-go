@@ -103,3 +103,12 @@ func parseMessageName(field *descriptor.FieldDescriptorProto, msg *descriptor.De
 
 	return
 }
+
+func title(name string) string {
+	split := strings.Split(name, "_")
+	for ndx, tkn := range split {
+		split[ndx] = strings.Title(tkn)
+	}
+
+	return strings.Join(split, "")
+}

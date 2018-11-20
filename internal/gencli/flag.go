@@ -19,6 +19,7 @@ type Flag struct {
 	MessageImport pbinfo.ImportSpec
 	OneOfs        map[string]*Flag
 	IsOneOfField  bool
+	IsNested      bool
 }
 
 // GenRepeatedMessageVarName generates the Go variable to store repeated Message string values
@@ -28,8 +29,8 @@ func (f *Flag) GenRepeatedMessageVarName(in string) string {
 
 // GenOneOfVarName generates the variable name for a oneof entry type
 func (f *Flag) GenOneOfVarName(in string) string {
-	name := f.Name
-	if strings.Count(f.Name, ".") > 1 {
+	name := f.InputFieldName()
+	if !f.IsNested && strings.Count(f.Name, ".") > 1 {
 		name = f.Name[:strings.LastIndex(f.Name, ".")]
 	}
 
@@ -86,7 +87,7 @@ func (f *Flag) GenFlag(in string) string {
 	if f.IsOneOfField {
 		name = f.GenOneOfVarName(in) + "." + f.OneOfInputFieldName()
 	} else if len(f.OneOfs) > 0 {
-		name = in + f.InputFieldName()
+		name = f.GenOneOfVarName(in)
 	} else if f.IsEnum() {
 		name = f.GenEnumVarName(in)
 	}
@@ -115,8 +116,13 @@ func (f *Flag) IsEnum() bool {
 // name for a oneof field, which excludes the oneof definition name
 func (f *Flag) OneOfInputFieldName() string {
 	name := f.InputFieldName()
+	ndx := strings.Index(name, ".")
 
-	return name[strings.Index(name, ".")+1:]
+	if f.IsNested {
+		ndx = strings.LastIndex(name, ".")
+	}
+
+	return name[ndx+1:]
 }
 
 // InputFieldName converts the field name into the Go struct property name

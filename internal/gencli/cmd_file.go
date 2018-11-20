@@ -1,7 +1,6 @@
 package gencli
 
 import (
-	"strings"
 	"text/template"
 )
 
@@ -39,9 +38,9 @@ var {{ $followVar }} bool
 var {{ $pollingOperationVar }} string
 {{ end }}
 {{ range $key, $val := .OneOfSelectors }}
-var {{ $inputVar }}{{ ($val.InputFieldName) }} string
+var {{ ( $val.GenOneOfVarName $inputVar ) }} string
 {{ range $oneOfKey, $oneOfVal := $val.OneOfs}}
-var {{($oneOfVal.GenOneOfVarName $inputVar)}} {{$.InputMessage}}_{{ ( title $oneOfKey ) }}
+var {{($oneOfVal.GenOneOfVarName $inputVar)}} {{if $oneOfVal.IsNested }}{{ $oneOfVal.MessageImport.Name }}.{{ $oneOfVal.Message }}{{ else }}{{ $.InputMessage }}{{ end }}_{{ ( title $oneOfKey ) }}
 {{ end }}
 {{ end }}
 {{ range .Flags }}
@@ -115,7 +114,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		} {{ if or .OneOfSelectors .HasEnums }} else {
 			{{ if .OneOfSelectors }}
 			{{ range $key, $val := .OneOfSelectors }}
-			switch {{ $inputVar }}{{ (.InputFieldName) }} {
+			switch {{ ( .GenOneOfVarName $inputVar ) }} {
 			{{ range $oneOfKey, $oneOfVal := .OneOfs }}
 			case "{{$oneOfKey}}":
 				{{$inputVar}}.{{($val.InputFieldName)}} = &{{($oneOfVal.GenOneOfVarName $inputVar)}}
@@ -334,7 +333,7 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 
 func (g *gcli) genCommands() {
 	helpers := make(template.FuncMap)
-	helpers["title"] = strings.Title
+	helpers["title"] = title
 
 	t := template.Must(template.New("cmd").Funcs(helpers).Parse(CmdTemplate))
 
