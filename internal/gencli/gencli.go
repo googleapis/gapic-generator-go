@@ -45,6 +45,7 @@ type Command struct {
 	ClientStreaming   bool
 	Paged             bool
 	IsLRO             bool
+	HasEnums          bool
 	SubCommands       []*Command
 }
 
@@ -294,38 +295,35 @@ func (g *gcli) buildOneOfFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			continue
 		}
 
-		// expand singular nested message fields into dot-notation input flags
-		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			t := field.GetTypeName()
-			last := strings.LastIndex(t, ".")
-			flag.Message = t[last+1:]
+		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
-			// check if it is a message nested type
-			if strings.Contains(t, msg.GetName()) {
-				pre := t[:last]
-				parent := pre[strings.LastIndex(pre, ".")+1:]
-				flag.Message = parent + "_" + flag.Message
-			}
+		if flag.IsMessage() || flag.IsEnum() {
+			flag.Message = parseMessageName(field, msg)
 
-			nested := g.descInfo.Type[t].(*descriptor.DescriptorProto)
+			nested := g.descInfo.Type[field.GetTypeName()]
 
-			// add nested message import
+			// add nested type import
 			pkg, err := g.addImport(cmd, nested)
 			if err != nil {
 				continue
 			}
 			flag.MessageImport = *pkg
 
-			cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
-				FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
-				FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
-			})
+			if flag.IsMessage() {
+				cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
+					FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
+					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
+				})
 
-			// recursively add singular, nested message fields
-			flags = append(flags, g.buildFieldFlags(cmd, nested, oneOfPrefix+field.GetName()+".", true)...)
+				p := oneOfPrefix + field.GetName() + "."
+				m := nested.(*descriptor.DescriptorProto)
 
-			cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
-			continue
+				// recursively add singular, nested message fields
+				flags = append(flags, g.buildFieldFlags(cmd, m, p, true)...)
+
+				cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
+				continue
+			}
 		}
 
 		flags = append(flags, &flag)
@@ -358,20 +356,12 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			continue
 		}
 
-		// expand singular nested message fields into dot-notation input flags
-		if flag.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			t := field.GetTypeName()
-			last := strings.LastIndex(t, ".")
-			flag.Message = t[last+1:]
+		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
-			// check if it is a message nested type
-			if strings.Contains(t, msg.GetName()) {
-				pre := t[:last]
-				parent := pre[strings.LastIndex(pre, ".")+1:]
-				flag.Message = parent + "_" + flag.Message
-			}
+		if flag.IsMessage() || flag.IsEnum() {
+			flag.Message = parseMessageName(field, msg)
 
-			nested := g.descInfo.Type[t].(*descriptor.DescriptorProto)
+			nested := g.descInfo.Type[field.GetTypeName()]
 
 			// add nested message import
 			pkg, err := g.addImport(cmd, nested)
@@ -381,7 +371,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			flag.MessageImport = *pkg
 
 			// recursively add singular, nested message fields
-			if !flag.Repeated {
+			if !flag.Repeated && !flag.IsEnum() {
 				n := &NestedMessage{
 					FieldName: "." + flag.InputFieldName(),
 					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
@@ -393,7 +383,9 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 				cmd.NestedMessages = append(cmd.NestedMessages, n)
 
-				flags = append(flags, g.buildFieldFlags(cmd, nested, prefix+field.GetName()+".", isOneOf)...)
+				p := prefix + field.GetName() + "."
+				m := nested.(*descriptor.DescriptorProto)
+				flags = append(flags, g.buildFieldFlags(cmd, m, p, isOneOf)...)
 				continue
 			}
 		}
@@ -422,8 +414,8 @@ func (g *gcli) getFieldBehavior(msg *descriptor.DescriptorProto, field *descript
 	return
 }
 
-func (g *gcli) addImport(cmd *Command, msg *descriptor.DescriptorProto) (*pbinfo.ImportSpec, error) {
-	_, pkg, err := g.descInfo.NameSpec(msg)
+func (g *gcli) addImport(cmd *Command, t pbinfo.ProtoType) (*pbinfo.ImportSpec, error) {
+	_, pkg, err := g.descInfo.NameSpec(t)
 	if err != nil {
 		errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
 		g.response.Error = &errStr

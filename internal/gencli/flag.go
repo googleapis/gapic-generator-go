@@ -40,10 +40,19 @@ func (f *Flag) GenOneOfVarName(in string) string {
 	return in
 }
 
+// GenEnumVarName generates the variable name for a enum property
+func (f *Flag) GenEnumVarName(in string) string {
+	return in + strings.Replace(f.InputFieldName(), ".", "", -1)
+}
+
 // GenFlag generates the pflag API call for this flag
 func (f *Flag) GenFlag(in string) string {
 	var str, def string
+
 	tStr := pbinfo.GoTypeForPrim[f.Type]
+	if f.IsEnum() {
+		tStr = "string"
+	}
 	fType := strings.Title(tStr)
 
 	if f.Repeated {
@@ -78,6 +87,8 @@ func (f *Flag) GenFlag(in string) string {
 		name = f.GenOneOfVarName(in) + "." + f.OneOfInputFieldName()
 	} else if len(f.OneOfs) > 0 {
 		name = in + f.InputFieldName()
+	} else if f.IsEnum() {
+		name = f.GenEnumVarName(in)
 	}
 
 	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, fType, name, f.Name, def, f.Usage)
@@ -93,6 +104,11 @@ func (f *Flag) GenRequired() string {
 // IsMessage is a template helper that reports if the flag is a message type
 func (f *Flag) IsMessage() bool {
 	return f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE
+}
+
+// IsEnum is a template helper that reports if the flag is of an enum type
+func (f *Flag) IsEnum() bool {
+	return f.Type == descriptor.FieldDescriptorProto_TYPE_ENUM
 }
 
 // OneOfInputFieldName converts the field name into the Go struct property

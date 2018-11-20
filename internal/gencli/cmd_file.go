@@ -47,6 +47,8 @@ var {{($oneOfVal.GenOneOfVarName $inputVar)}} {{$.InputMessage}}_{{ ( title $one
 {{ range .Flags }}
 {{ if and ( .IsMessage ) .Repeated }}
 var {{ ( .GenRepeatedMessageVarName $inputVar) }} []string
+{{ else if ( .IsEnum ) }}
+var {{ ( .GenEnumVarName $inputVar ) }} string
 {{ end }}
 {{ end }}
 
@@ -110,7 +112,8 @@ var {{$methodCmdVar}} = &cobra.Command{
 				return err
 			}
 			{{ end }}
-		} {{ if .OneOfSelectors }} else {
+		} {{ if or .OneOfSelectors .HasEnums }} else {
+			{{ if .OneOfSelectors }}
 			{{ range $key, $val := .OneOfSelectors }}
 			switch {{ $inputVar }}{{ (.InputFieldName) }} {
 			{{ range $oneOfKey, $oneOfVal := .OneOfs }}
@@ -120,7 +123,15 @@ var {{$methodCmdVar}} = &cobra.Command{
 			default:
 				return fmt.Errorf("Missing oneof choice for {{ .Name }}")
 			}
-			{{end}}
+			{{ end }}
+			{{ end }}
+			{{ if .HasEnums }}
+			{{ range .Flags }}
+			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}
+			{{ $inputVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ ( .GenEnumVarName $inputVar ) }})])
+			{{ end }} 
+			{{ end }}
+			{{ end }}
 		}
 		{{ end }}
 		{{ end }}
