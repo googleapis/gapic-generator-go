@@ -201,7 +201,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 
 		scanner := bufio.NewScanner(in)
-    for err == nil && scanner.Scan() {
+    for scanner.Scan() {
 				input := scanner.Text()
 				if input == "" {
 					break
@@ -212,8 +212,11 @@ var {{$methodCmdVar}} = &cobra.Command{
 				}
 				
 				err = stream.Send(&{{ $inputVar }})
+				if err != nil {
+					return err
+				}
     }
-    if err := scanner.Err(); err != nil {
+    if err = scanner.Err(); err != nil {
         return err
     }
 		
