@@ -163,11 +163,6 @@ func (g *gcli) buildCommands() {
 					camelCaseRegex.FindAllString(mthd.GetName(), -1), "-")),
 			}
 
-			// TODO(ndietz) take this out and support
-			if cmd.ServerStreaming && cmd.ClientStreaming {
-				continue
-			}
-
 			// copy top level imports
 			copyImports(g.imports, cmd.Imports)
 
@@ -192,7 +187,9 @@ func (g *gcli) buildCommands() {
 				cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
 
 			// build input fields into flags
-			g.buildFlags(&cmd, msg)
+			if cmd.InputMessageType != EmptyProtoType && !cmd.ClientStreaming {
+				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "", false)...)
+			}
 
 			// capture output type for template formatting reasons
 			if out := mthd.GetOutputType(); out == LROProtoType {
@@ -239,15 +236,6 @@ func (g *gcli) buildCommands() {
 			g.subcommands[srv.GetName()] = append(g.subcommands[srv.GetName()], &cmd)
 		}
 	}
-}
-
-func (g *gcli) buildFlags(cmd *Command, msg *descriptor.DescriptorProto) {
-	if cmd.InputMessageType == EmptyProtoType || cmd.ClientStreaming {
-		return
-	}
-
-	// build field flags
-	cmd.Flags = append(cmd.Flags, g.buildFieldFlags(cmd, msg, "", false)...)
 }
 
 func (g *gcli) buildOneOfSelectors(cmd *Command, msg *descriptor.DescriptorProto, prefix string) {

@@ -11,6 +11,7 @@ const (
 {{$pollingCmdVar := (print .Method "PollCmd")}}
 {{$pollingOperationVar := (print .Method "PollOperation")}}
 {{$fromFileVar := (print .Method "FromFile")}}
+{{$outFileVar := (print .Method "OutFile")}}
 {{$serviceCmdVar := (print .Service "ServiceCmd")}}
 {{$followVar := (print .Method "Follow")}}
 {{ $serviceClient := ( print .Service "Client" ) }}
@@ -31,6 +32,9 @@ import (
 var {{ $inputVar }} {{ .InputMessage }}
 {{ if or .Flags .ClientStreaming }}
 var {{ $fromFileVar }} string
+{{ end }}
+{{ if and .ServerStreaming .ClientStreaming }}
+var {{ $outFileVar }} string
 {{ end }}
 {{ if .IsLRO }}
 var {{ $followVar }} bool 
@@ -64,6 +68,10 @@ func init() {
 	{{ end }}
 	{{ if or .Flags .ClientStreaming }}
 	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "Absolute path to JSON file containing request payload")
+	{{ end }}
+	{{ if and .ClientStreaming .ServerStreaming }}
+	{{ $methodCmdVar }}.Flags().StringVar(&{{ $outFileVar }}, "out_file", "", "Absolute path to a file to pipe output to")
+	{{ $methodCmdVar }}.MarkFlagRequired("out_file")
 	{{ end }}
 	{{ if .IsLRO }}
 	{{ $methodCmdVar }}.Flags().BoolVar(&{{ $followVar }}, "follow", false, "Block until the long running operation completes")
@@ -195,7 +203,31 @@ var {{$methodCmdVar}} = &cobra.Command{
 		if err == io.EOF {
 			return nil
 		}
-		{{ else if and .ClientStreaming ( not .ServerStreaming ) }}
+		{{ else if .ClientStreaming }}
+		{{ if .ServerStreaming }}
+		out, err := os.OpenFile({{ $outFileVar}}, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+		if err != nil {
+			return err
+		}
+
+		// start background stream receive
+		go func() {
+			var res *{{ .OutputMessageType }}
+			for {
+				res, err = stream.Recv()
+				if err != nil {
+					return
+				}
+
+				str := res.String()
+				if OutputJSON {
+					d, _ := json.MarshalIndent(res, "", "  ")
+					str = string(d)
+				}
+				fmt.Fprintln(out, str)
+			}
+		}()
+		{{ end }}
 		if Verbose {
 			fmt.Println("Client stream open. Close with blank line.")
 		}
@@ -219,7 +251,9 @@ var {{$methodCmdVar}} = &cobra.Command{
     if err = scanner.Err(); err != nil {
         return err
     }
-		
+		{{ if .ServerStreaming }}
+		err = stream.CloseSend()
+		{{ else }}
 		resp, err := stream.CloseAndRecv()
 		if err != nil {
 			return err
@@ -228,8 +262,9 @@ var {{$methodCmdVar}} = &cobra.Command{
 		if Verbose {
 			fmt.Print("Output: ")
 		}
-		printMessage(resp){{end}}
-		{{ else if and .ClientStreaming .ServerStreaming }}
+		printMessage(resp)
+		{{ end }}
+		{{ end }}
 		{{ else if and .Paged (not .IsLRO ) }}
 		// get requested page
 		page, err := iter.Next()
