@@ -29,6 +29,8 @@ const (
 {{$serviceCmdVar := (print .Service "ServiceCmd")}}
 {{$followVar := (print .Method "Follow")}}
 {{ $serviceClient := ( print .Service "Client" ) }}
+// AUTO-GENERATED CODE. DO NOT EDIT.
+
 package main
 
 import (
@@ -63,9 +65,9 @@ var {{($oneOfVal.GenOneOfVarName $inputVar)}} {{if $oneOfVal.IsNested }}{{ $oneO
 {{ end }}
 {{ range .Flags }}
 {{ if and ( .IsMessage ) .Repeated }}
-var {{ ( .GenRepeatedMessageVarName $inputVar) }} []string
+var {{ ( .GenOtherVarName $inputVar) }} []string
 {{ else if ( .IsEnum ) }}
-var {{ ( .GenEnumVarName $inputVar ) }} string
+var {{ ( .GenOtherVarName $inputVar ) }} string
 {{ end }}
 {{ end }}
 
@@ -149,7 +151,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			{{ if .HasEnums }}
 			{{ range .Flags }}
 			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}
-			{{ $inputVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ ( .GenEnumVarName $inputVar ) }})])
+			{{ $inputVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ ( .GenOtherVarName $inputVar ) }})])
 			{{ end }} 
 			{{ end }}
 			{{ end }}
@@ -159,7 +161,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ range .Flags }}
 		{{ if and ( .IsMessage ) .Repeated }}
 		// unmarshal JSON strings into slice of structs
-		for _, item := range {{ ( .GenRepeatedMessageVarName $inputVar) }} {
+		for _, item := range {{ ( .GenOtherVarName $inputVar) }} {
 			tmp := {{ .MessageImport.Name }}.{{ .Message }}{}
 			err = json.Unmarshal([]byte(item), &tmp)
 			if err != nil {

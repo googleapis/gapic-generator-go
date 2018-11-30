@@ -1,0 +1,82 @@
+// AUTO-GENERATED CODE. DO NOT EDIT.
+
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+
+	"github.com/golang/protobuf/jsonpb"
+	todopb "github.com/googleapis/todo/generated"
+	"github.com/spf13/cobra"
+)
+
+var CopyTodosInput todopb.Todo
+
+var CopyTodosFromFile string
+
+func init() {
+	TodoServiceCmd.AddCommand(CopyTodosCmd)
+
+	CopyTodosCmd.Flags().StringVar(&CopyTodosFromFile, "from_file", "", "Absolute path to JSON file containing request payload")
+
+}
+
+var CopyTodosCmd = &cobra.Command{
+	Use:   "copy-todos",
+	Short: "stream several todos to create",
+
+	PreRun: func(cmd *cobra.Command, args []string) {
+
+	},
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+		in := os.Stdin
+		if CopyTodosFromFile != "" {
+			in, err = os.Open(CopyTodosFromFile)
+			if err != nil {
+				return err
+			}
+
+		}
+
+		stream, err := TodoClient.CopyTodos(ctx)
+
+		if Verbose {
+			fmt.Println("Client stream open. Close with blank line.")
+		}
+
+		scanner := bufio.NewScanner(in)
+		for scanner.Scan() {
+			input := scanner.Text()
+			if input == "" {
+				break
+			}
+			err = jsonpb.UnmarshalString(input, &CopyTodosInput)
+			if err != nil {
+				return err
+			}
+
+			err = stream.Send(&CopyTodosInput)
+			if err != nil {
+				return err
+			}
+		}
+		if err = scanner.Err(); err != nil {
+			return err
+		}
+
+		resp, err := stream.CloseAndRecv()
+		if err != nil {
+			return err
+		}
+
+		if Verbose {
+			fmt.Print("Output: ")
+		}
+		printMessage(resp)
+
+		return err
+	},
+}

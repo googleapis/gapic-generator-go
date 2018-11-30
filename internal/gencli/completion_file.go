@@ -21,7 +21,9 @@ import (
 
 const (
 	// CompletionTemplate is the template string for the bash completion generation command
-	CompletionTemplate = `package main
+	CompletionTemplate = `// AUTO-GENERATED CODE. DO NOT EDIT.
+	
+	package main
 
 	import (
 		"os"

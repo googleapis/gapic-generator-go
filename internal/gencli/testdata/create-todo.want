@@ -1,0 +1,79 @@
+// AUTO-GENERATED CODE. DO NOT EDIT.
+
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/golang/protobuf/jsonpb"
+	todopb "github.com/googleapis/todo/generated"
+	"github.com/spf13/cobra"
+)
+
+var CreateTodoInput todopb.Todo
+
+var CreateTodoFromFile string
+
+var CreateTodoInputPriority string
+
+func init() {
+	TodoServiceCmd.AddCommand(CreateTodoCmd)
+
+	CreateTodoCmd.Flags().StringVar(&CreateTodoInput.Task, "task", "", "task to complete")
+
+	CreateTodoCmd.Flags().BoolVar(&CreateTodoInput.Done, "done", false, "task completion status")
+
+	CreateTodoCmd.Flags().StringVar(&CreateTodoInputPriority, "priority", "", "importance of the task")
+
+	CreateTodoCmd.Flags().StringVar(&CreateTodoFromFile, "from_file", "", "Absolute path to JSON file containing request payload")
+
+}
+
+var CreateTodoCmd = &cobra.Command{
+	Use:   "create-todo",
+	Short: "creates a todo entry",
+	Long:  "creates a todo entry for the user to track",
+	PreRun: func(cmd *cobra.Command, args []string) {
+
+		if CreateTodoFromFile == "" {
+
+			cmd.MarkFlagRequired("task")
+
+		}
+
+	},
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+		in := os.Stdin
+		if CreateTodoFromFile != "" {
+			in, err = os.Open(CreateTodoFromFile)
+			if err != nil {
+				return err
+			}
+
+			err = jsonpb.Unmarshal(in, &CreateTodoInput)
+			if err != nil {
+				return err
+			}
+
+		} else {
+
+			CreateTodoInput.Priority = todopb.Priority(todopb.Priority_value[strings.ToUpper(CreateTodoInputPriority)])
+
+		}
+
+		if Verbose {
+			printVerboseInput("Todo", "CreateTodo", &CreateTodoInput)
+		}
+		resp, err := TodoClient.CreateTodo(ctx, &CreateTodoInput)
+
+		if Verbose {
+			fmt.Print("Output: ")
+		}
+		printMessage(resp)
+
+		return err
+	},
+}

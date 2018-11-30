@@ -22,7 +22,9 @@ import (
 const (
 
 	// RootTemplate is the template string for generated root.go
-	RootTemplate = `package main
+	RootTemplate = `// AUTO-GENERATED CODE. DO NOT EDIT.
+	
+package main
 
 import (
 	"fmt"
@@ -44,7 +46,7 @@ func init() {
 var rootCmd = &cobra.Command{
 	Use:   "{{ .MethodCmd }}",
 	{{ if (ne .ShortDesc "") }}Short: "{{ .ShortDesc }}",{{ end }}
-	{{ if (ne .LongDesc "") }}Long: {{ .LongDesc }},{{ end }}
+	{{ if (ne .LongDesc "") }}Long: "{{ .LongDesc }}",{{ end }}
 }
 
 func Execute() {

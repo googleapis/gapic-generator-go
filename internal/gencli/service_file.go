@@ -28,6 +28,8 @@ const (
 {{ $serviceClient := ( print .Service "Client" ) }}
 {{ $serviceSubCommands := (print .Service "SubCommands" ) }}
 {{ $serviceConfig := (print .Service "Config" ) }}
+// AUTO-GENERATED CODE. DO NOT EDIT.
+	
 package main
 
 import (

@@ -36,8 +36,8 @@ type Flag struct {
 	IsNested      bool
 }
 
-// GenRepeatedMessageVarName generates the Go variable to store repeated Message string values
-func (f *Flag) GenRepeatedMessageVarName(in string) string {
+// GenOtherVarName generates the Go variable to store repeated Message & Enum string values
+func (f *Flag) GenOtherVarName(in string) string {
 	return in + strings.Replace(f.InputFieldName(), ".", "", -1)
 }
 
@@ -55,11 +55,6 @@ func (f *Flag) GenOneOfVarName(in string) string {
 	return in
 }
 
-// GenEnumVarName generates the variable name for a enum property
-func (f *Flag) GenEnumVarName(in string) string {
-	return in + strings.Replace(f.InputFieldName(), ".", "", -1)
-}
-
 // GenFlag generates the pflag API call for this flag
 func (f *Flag) GenFlag(in string) string {
 	var str, def string
@@ -72,7 +67,7 @@ func (f *Flag) GenFlag(in string) string {
 
 	if f.Repeated {
 		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			field := f.GenRepeatedMessageVarName(in)
+			field := f.GenOtherVarName(in)
 			// repeated Messages are entered as JSON strings and unmarshaled into the Message type later
 			return fmt.Sprintf(`StringArrayVar(&%s, "%s", []string{}, "%s")`, field, f.Name, f.Usage)
 		}
@@ -103,7 +98,7 @@ func (f *Flag) GenFlag(in string) string {
 	} else if len(f.OneOfs) > 0 {
 		name = f.GenOneOfVarName(in)
 	} else if f.IsEnum() {
-		name = f.GenEnumVarName(in)
+		name = f.GenOtherVarName(in)
 	}
 
 	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, fType, name, f.Name, def, f.Usage)
