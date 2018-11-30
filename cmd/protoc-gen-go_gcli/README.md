@@ -19,14 +19,14 @@ Examples used in the following documentation are drawn from the [Kiosk API](http
 ### Install the plugin
 
 ```
-go get github.com/noahdietz/gapic-generator-go/cmd/protoc-gen-go_gcli
+go get github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gcli
 ```
 
 Or install from source
 ```
-mkdir -p $GOPATH/src/github.com/noahdietz
-cd $GOPATH/src/github.com/noahdietz
-git clone https://github.com/noahdietz/gapic-generator-go.git
+mkdir -p $GOPATH/src/github.com/googleapis
+cd $GOPATH/src/github.com/googleapis
+git clone https://github.com/googleapis/gapic-generator-go.git
 cd gapic-generator-go/cmd/protoc-gen-go_gcli
 go get
 go install

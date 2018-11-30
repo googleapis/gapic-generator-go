@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-# Usage: COMMON_PROTO=path/to/api-common-protos GOOGLEAPIS=path/to/googleapis [OUT=out/dir] ./test.sh
+# Usage: COMMON_PROTO=path/to/api-common-protos [OUT=out/dir] ./test.sh
 #
 # If OUT is not set, files are written to testdata/out, which is gitignore'd.
 # To integration test, set OUT=$GOPATH/src. The script will overwrite old files,
@@ -23,63 +23,43 @@
 #
 # We need proto annotations that's not stable yet. Use the input-contract branch of both repos.
 
-# silence pushd & popd
-pushd () {
-    command pushd "$@" > /dev/null
-}
-
-popd () {
-    command popd "$@" > /dev/null
-}
-
 set -e
 
-if [ -z $GOOGLEAPIS ]; then
-	echo >&2 "need GOOGLEAPIS variable"
-	exit 1
-fi
 if [ -z $COMMON_PROTO ]; then
 	echo >&2 "need COMMON_PROTO variable"
 	exit 1
 fi
 
 OUT=${OUT:-$(pwd)/testdata}
-KIOSK_PROTOS=${KIOSK_PROTOS:-$GOOGLEAPIS/kiosk/protos}
-SHOW_PROTOS=${SHOW_PROTOS:-$GOOGLEAPIS/gapic-showcase/schema}
-LANG_PROTOS=${LANG_PROTOS:-$GOOGLEAPIS/googleapis/google/cloud/language/v1}
+KIOSK_PROTOS=${KIOSK_PROTOS:-$GOPATH/src/github.com/googleapis/kiosk/protos}
+SHOW_PROTOS=${SHOW_PROTOS:-$GOPATH/src/github.com/googleapis/gapic-showcase/schema}
+
+KIOSK_GAPIC=${KIOSK_GAPIC:-github.com/googleapis/kiosk/kioskgapic}
+SHOWCASE_GAPIC=${SHOWCASE_GAPIC:-github.com/googleapis/gapic-showcase/showgapic}
 
 mkdir -p "$OUT/kiosk"
 mkdir -p "$OUT/showcase"
-mkdir -p "$OUT/language"
 
 generate() {
-	protoc -I "$COMMON_PROTO" -I "$GOOGLEAPIS" $*
+	protoc -I "$COMMON_PROTO" $*
 }
 
 generate -I $KIOSK_PROTOS \
- --go_gcli_out $OUT/kiosk \
- --go_gcli_opt 'gapic:github.com/googleapis/kiosk/kioskgapic' \
- --go_gcli_opt 'root:testkctl' \
- $KIOSK_PROTOS/kiosk.proto
+  --go_gcli_out $OUT/kiosk \
+  --go_gcli_opt "gapic:$KIOSK_GAPIC" \
+  --go_gcli_opt 'root:testkctl' \
+  $KIOSK_PROTOS/kiosk.proto
 
 generate -I $SHOW_PROTOS \
   --go_gcli_out $OUT/showcase \
-  --go_gcli_opt 'gapic:github.com/googleapis/gapic-showcase/showgapic' \
+  --go_gcli_opt "gapic:$SHOWCASE_GAPIC" \
   --go_gcli_opt 'root:testshowctl' \
   $SHOW_PROTOS/*.proto
-
-generate -I $LANG_PROTOS \
-  --go_gcli_out $OUT/language \
-  --go_gcli_opt 'gapic:github.com/googleapis/googleapis/google/cloud/language/v1/gapic' \
-  --go_gcli_opt 'root:testlang' \
-  $LANG_PROTOS/*.proto
 
 d=$(pwd)
 cd $OUT/kiosk
 go build
 cd ../showcase
-go build
-cd ../language
 go build
 cd $d
 
