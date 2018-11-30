@@ -266,13 +266,58 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("// the `x-goog-api-client` header passed on each request. Intended for")
 		p("// use by Google-written clients.")
 		p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", servName)
-		p(`  kv := append([]string{"gl-go", version.Go()}, keyval...)`)
-		p(`  kv = append(kv, "gapic", version.Repo, "gax", gax.Version, "grpc", grpc.Version)`)
+		p(`  kv := append([]string{"gl-go", versionGo()}, keyval...)`)
+		p(`  kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)`)
 		p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
 		p("}")
 		p("")
+	}
 
-		g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/internal/version"}] = true
+	// versionGo
+	{
+		p("// versionGo returns the Go runtime version. The returned string")
+		p("// has no whitespace, suitable for reporting in header.")
+		p("func versionGo() string {")
+		p(`  const develPrefix = "devel +"`)
+		p("")
+		p("  s := runtime.Version()")
+		p("  if strings.HasPrefix(s, develPrefix) {")
+		p("    s = s[len(develPrefix):]")
+		p("    if p := strings.IndexFunc(s, unicode.IsSpace); p >= 0 {")
+		p("      s = s[:p]")
+		p("    }")
+		p("    return s")
+		p("  }")
+		p("")
+		p("  notSemverRune := func(r rune) bool {")
+		p(`    return strings.IndexRune("0123456789.", r) < 0`)
+		p("  }")
+		p("")
+		p(`  if strings.HasPrefix(s, "go1") {`)
+		p("    s = s[2:]")
+		p("    var prerelease string")
+		p("    if p := strings.IndexFunc(s, notSemverRune); p >= 0 {")
+		p("      s, prerelease = s[:p], s[p:]")
+		p("    }")
+		p(`    if strings.HasSuffix(s, ".") {`)
+		p(`      s += "0"`)
+		p(`    } else if strings.Count(s, ".") < 2 {`)
+		p(`      s += ".0"`)
+		p("    }")
+		p(`    if prerelease != "" {`)
+		p(`      s += "-" + prerelease`)
+		p("    }")
+		p("    return s")
+		p("  }")
+		p(`  return "UNKNOWN"`)
+		p("}")
+		p("")
+		p(`const versionClient = "UNKNOWN"`)
+		p("")
+
+		g.imports[pbinfo.ImportSpec{Path: "runtime"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "unicode"}] = true
 	}
 	return nil
 }
