@@ -9,8 +9,9 @@ import (
 	"os"
 
 	"github.com/golang/protobuf/jsonpb"
-	todopb "github.com/googleapis/todo/generated"
 	"github.com/spf13/cobra"
+
+	todopb "github.com/googleapis/todo/generated"
 )
 
 var ManageTodosInput todopb.Todo
