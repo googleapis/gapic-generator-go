@@ -98,8 +98,8 @@ func copyImports(from, to map[string]*pbinfo.ImportSpec) {
 }
 
 func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
-	if _, ok := imports[pkg.Path]; !ok {
-		imports[pkg.Path] = pkg
+	if _, ok := imports[pkg.Name]; !ok {
+		imports[pkg.Name] = pkg
 	}
 }
 
