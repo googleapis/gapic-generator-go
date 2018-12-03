@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	// CmdTemplate is the template for a cobra subcommand
-	CmdTemplate = `{{$inputVar := (print .Method "Input")}}
+	// cmdTemplate is the template for a cobra subcommand
+	cmdTemplate = `{{$inputVar := (print .Method "Input")}}
 {{$methodCmdVar := (print .Method "Cmd")}}
 {{$pollingCmdVar := (print .Method "PollCmd")}}
 {{$pollingOperationVar := (print .Method "PollOperation")}}
@@ -389,7 +389,7 @@ func (g *gcli) genCommands() {
 	helpers := make(template.FuncMap)
 	helpers["title"] = title
 
-	t := template.Must(template.New("cmd").Funcs(helpers).Parse(CmdTemplate))
+	t := template.Must(template.New("cmd").Funcs(helpers).Parse(cmdTemplate))
 
 	for _, cmd := range g.commands {
 		g.pt.Reset()
@@ -397,7 +397,5 @@ func (g *gcli) genCommands() {
 		t.Execute(g.pt.Writer(), cmd)
 
 		g.addGoFile(cmd.MethodCmd + ".go")
-
-		g.pt.Reset()
 	}
 }

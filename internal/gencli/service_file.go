@@ -23,8 +23,8 @@ import (
 
 const (
 
-	// ServiceTemplate is the template string for generated {service}.go
-	ServiceTemplate = `{{ $serviceCmdVar := (print .Service "ServiceCmd") }}
+	// serviceTemplate is the template string for generated {service}.go
+	serviceTemplate = `{{ $serviceCmdVar := (print .Service "ServiceCmd") }}
 {{ $serviceClient := ( print .Service "Client" ) }}
 {{ $serviceSubCommands := (print .Service "SubCommands" ) }}
 {{ $serviceConfig := (print .Service "Config" ) }}
@@ -124,10 +124,11 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 )
 
 func (g *gcli) genServiceCmdFiles() {
-	g.pt.Reset()
-	t := template.Must(template.New("service").Parse(ServiceTemplate))
+	t := template.Must(template.New("service").Parse(serviceTemplate))
 
 	for _, srv := range g.services {
+		g.pt.Reset()
+
 		name := pbinfo.ReduceServName(srv.GetName(), "")
 		cmd := Command{
 			Service:     name,
@@ -150,7 +151,5 @@ func (g *gcli) genServiceCmdFiles() {
 		t.Execute(g.pt.Writer(), cmd)
 
 		g.addGoFile(cmd.MethodCmd + "_service" + ".go")
-
-		g.pt.Reset()
 	}
 }

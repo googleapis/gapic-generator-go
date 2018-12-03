@@ -1,4 +1,4 @@
-# protoc-gen-go_gcli
+# protoc-gen-gcli
 
 A `protoc` plugin that generates CLIs in Go for APIs described with protocol buffers.
 
@@ -19,7 +19,7 @@ Examples used in the following documentation are drawn from the [Kiosk API](http
 ### Install the plugin
 
 ```
-go get github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gcli
+go get github.com/googleapis/gapic-generator-go/cmd/protoc-gen-gcli
 ```
 
 Or install from source
@@ -27,8 +27,7 @@ Or install from source
 mkdir -p $GOPATH/src/github.com/googleapis
 cd $GOPATH/src/github.com/googleapis
 git clone https://github.com/googleapis/gapic-generator-go.git
-cd gapic-generator-go/cmd/protoc-gen-go_gcli
-go get
+cd gapic-generator-go/cmd/protoc-gen-gcli
 go install
 ```
 
@@ -36,9 +35,9 @@ go install
 
 ```
 protoc api.proto \
-  --go_gcli_out [OUTPUT DIR] \
-  --go_gcli_opt "root:[ROOT COMMAND]" \
-  --go_gcli_opt "gapic:[GAPIC IMPORT]"
+  --gcli_out [OUTPUT DIR] \
+  --gcli_opt "root:[ROOT COMMAND]" \
+  --gcli_opt "gapic:[GAPIC IMPORT]"
 ```
 
 #### Options explained

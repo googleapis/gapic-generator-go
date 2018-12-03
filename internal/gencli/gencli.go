@@ -345,7 +345,10 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	for _, field := range msg.GetField() {
 		if field.OneofIndex != nil {
 			g.buildOneOfSelectors(cmd, msg, prefix)
-			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, isNestedOneOf(cmd.InputMessage, msg.GetName()))...)
+
+			in := cmd.InputMessage[strings.LastIndex(cmd.InputMessage, ".")+1:]
+			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, in != msg.GetName())...)
+
 			continue
 		}
 

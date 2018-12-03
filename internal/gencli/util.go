@@ -126,9 +126,3 @@ func title(name string) string {
 
 	return strings.Join(split, "")
 }
-
-func isNestedOneOf(in, cur string) bool {
-	in = in[strings.LastIndex(in, ".")+1:]
-
-	return in != cur
-}
