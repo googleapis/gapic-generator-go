@@ -21,8 +21,7 @@ import (
 
 const (
 	// completionTemplate is the template string for the bash completion generation command
-	completionTemplate = `// AUTO-GENERATED CODE. DO NOT EDIT.
-	
+	completionTemplate = `
 	package main
 
 	import (
@@ -53,6 +52,8 @@ const (
 
 func (g *gcli) genCompletionCmdFile() {
 	g.pt.Reset()
+
+	g.pt.Printf("// Code generated. DO NOT EDIT.\n")
 	template.Must(template.New("comp").Parse(completionTemplate)).Execute(g.pt.Writer(), Command{
 		MethodCmd: strings.ToLower(g.root),
 	})

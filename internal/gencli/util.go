@@ -120,8 +120,8 @@ func parseMessageName(field *descriptor.FieldDescriptorProto, msg *descriptor.De
 
 func title(name string) string {
 	split := strings.Split(name, "_")
-	for ndx, tkn := range split {
-		split[ndx] = strings.Title(tkn)
+	for i, s := range split {
+		split[i] = strings.Title(s)
 	}
 
 	return strings.Join(split, "")

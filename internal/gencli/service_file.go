@@ -28,8 +28,6 @@ const (
 {{ $serviceClient := ( print .Service "Client" ) }}
 {{ $serviceSubCommands := (print .Service "SubCommands" ) }}
 {{ $serviceConfig := (print .Service "Config" ) }}
-// AUTO-GENERATED CODE. DO NOT EDIT.
-	
 package main
 
 import (
@@ -128,6 +126,8 @@ func (g *gcli) genServiceCmdFiles() {
 
 	for _, srv := range g.services {
 		g.pt.Reset()
+
+		g.pt.Printf("// Code generated. DO NOT EDIT.\n")
 
 		name := pbinfo.ReduceServName(srv.GetName(), "")
 		cmd := Command{

@@ -29,8 +29,6 @@ const (
 {{$serviceCmdVar := (print .Service "ServiceCmd")}}
 {{$followVar := (print .Method "Follow")}}
 {{ $serviceClient := ( print .Service "Client" ) }}
-// AUTO-GENERATED CODE. DO NOT EDIT.
-
 package main
 
 import (
@@ -393,6 +391,8 @@ func (g *gcli) genCommands() {
 
 	for _, cmd := range g.commands {
 		g.pt.Reset()
+
+		g.pt.Printf("// Code generated. DO NOT EDIT.\n")
 
 		t.Execute(g.pt.Writer(), cmd)
 

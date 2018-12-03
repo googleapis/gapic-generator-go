@@ -22,8 +22,7 @@ import (
 const (
 
 	// rootTemplate is the template string for generated root.go
-	rootTemplate = `// AUTO-GENERATED CODE. DO NOT EDIT.
-	
+	rootTemplate = `
 package main
 
 import (
@@ -86,6 +85,9 @@ func printMessage(data interface{}) {
 
 func (g *gcli) genRootCmdFile() {
 	g.pt.Reset()
+
+	g.pt.Printf("// Code generated. DO NOT EDIT.\n")
+
 	name := strings.ToLower(g.root)
 	template.Must(template.New("root").Parse(rootTemplate)).Execute(g.pt.Writer(), Command{
 		MethodCmd: name,
