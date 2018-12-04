@@ -490,9 +490,7 @@ func (g *gcli) addComments(f *descriptor.FileDescriptorProto, loc *descriptor.So
 		return
 	}
 
-	if _, ok := g.comments[key]; !ok {
-		g.comments[key] = *loc.LeadingComments
-	}
+	g.comments[key] = *loc.LeadingComments
 }
 
 func (g *gcli) addGoFile(name string) {

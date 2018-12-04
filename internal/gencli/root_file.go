@@ -35,7 +35,7 @@ import (
 )
 
 var Verbose, OutputJSON bool
-var ctx context.Context
+var ctx = context.Background()
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Print verbose output")

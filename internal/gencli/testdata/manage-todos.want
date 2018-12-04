@@ -14,8 +14,6 @@ import (
 	todopb "github.com/googleapis/todo/generated"
 )
 
-var ManageTodosInput todopb.Todo
-
 var ManageTodosFromFile string
 
 var ManageTodosOutFile string
@@ -45,6 +43,7 @@ var ManageTodosCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+			defer in.Close()
 
 		}
 
@@ -77,6 +76,7 @@ var ManageTodosCmd = &cobra.Command{
 			fmt.Println("Client stream open. Close with blank line.")
 		}
 
+		var ManageTodosInput todopb.Todo
 		scanner := bufio.NewScanner(in)
 		for scanner.Scan() {
 			input := scanner.Text()

@@ -42,8 +42,8 @@ import (
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
 	{{ end }}
 )
-
-var {{ $inputVar }} {{ .InputMessage }}
+{{ if not .ClientStreaming }}
+var {{ $inputVar }} {{ .InputMessage }}{{ end }}
 {{ if or .Flags .ClientStreaming }}
 var {{ $fromFileVar }} string
 {{ end }}
@@ -127,6 +127,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			if err != nil {
 				return err
 			}
+			defer in.Close()
 			{{ if not .ClientStreaming }}
 			err = jsonpb.Unmarshal(in, &{{ $inputVar }})
 			if err != nil {
@@ -246,6 +247,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			fmt.Println("Client stream open. Close with blank line.")
 		}
 
+		var {{ $inputVar }} {{ .InputMessage }}
 		scanner := bufio.NewScanner(in)
     for scanner.Scan() {
 				input := scanner.Text()

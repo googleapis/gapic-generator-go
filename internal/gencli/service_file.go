@@ -113,7 +113,6 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 			opts = append(opts, option.WithAPIKey(key))
 		}
 
-		ctx = context.Background()
 		{{ $serviceClient }}, err = gapic.New{{.Service}}Client(ctx, opts...)
 		return
 	},

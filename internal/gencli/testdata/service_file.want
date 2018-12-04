@@ -7,7 +7,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
@@ -81,7 +80,6 @@ var TodoServiceCmd = &cobra.Command{
 			opts = append(opts, option.WithAPIKey(key))
 		}
 
-		ctx = context.Background()
 		TodoClient, err = gapic.NewTodoClient(ctx, opts...)
 		return
 	},

@@ -13,8 +13,6 @@ import (
 	todopb "github.com/googleapis/todo/generated"
 )
 
-var CopyTodosInput todopb.Todo
-
 var CopyTodosFromFile string
 
 func init() {
@@ -39,6 +37,7 @@ var CopyTodosCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+			defer in.Close()
 
 		}
 
@@ -48,6 +47,7 @@ var CopyTodosCmd = &cobra.Command{
 			fmt.Println("Client stream open. Close with blank line.")
 		}
 
+		var CopyTodosInput todopb.Todo
 		scanner := bufio.NewScanner(in)
 		for scanner.Scan() {
 			input := scanner.Text()

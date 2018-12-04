@@ -47,6 +47,7 @@ var WatchTodoCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+			defer in.Close()
 
 			err = jsonpb.Unmarshal(in, &WatchTodoInput)
 			if err != nil {

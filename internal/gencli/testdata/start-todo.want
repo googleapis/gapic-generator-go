@@ -60,6 +60,7 @@ var StartTodoCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+			defer in.Close()
 
 			err = jsonpb.Unmarshal(in, &StartTodoInput)
 			if err != nil {

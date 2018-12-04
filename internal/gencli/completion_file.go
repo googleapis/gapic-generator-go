@@ -38,13 +38,13 @@ const (
 	var completionCmd = &cobra.Command{
 		Use:   "completion",
 		Short: "Emits bash a completion for {{ .MethodCmd }}",
-		Long: ` + "`Enable bash completion like so:\n" +
-		"Linux:\n" +
-		"  source <({{ .MethodCmd }} completion)\n" +
-		"Mac:\n" +
-		"  brew install bash-completion\n" +
-		"  {{ .MethodCmd }} completion > $(brew --prefix)/etc/bash_completion.d/{{ .MethodCmd }}`,\n" +
-		`Run: func(cmd *cobra.Command, args []string) {
+		Long: {{ .BackTick }}Enable bash completion like so:
+		Linux:
+			source <({{ .MethodCmd }} completion)
+		Mac:
+			brew install bash-completion
+			{{ .MethodCmd }} completion > $(brew --prefix)/etc/bash_completion.d/{{ .MethodCmd }}{{ .BackTick }},
+		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenBashCompletion(os.Stdout)
 		},
 	}`
@@ -54,8 +54,12 @@ func (g *gcli) genCompletionCmdFile() {
 	g.pt.Reset()
 
 	g.pt.Printf("// Code generated. DO NOT EDIT.\n")
-	template.Must(template.New("comp").Parse(completionTemplate)).Execute(g.pt.Writer(), Command{
+	template.Must(template.New("comp").Parse(completionTemplate)).Execute(g.pt.Writer(), struct {
+		MethodCmd string
+		BackTick  string
+	}{
 		MethodCmd: strings.ToLower(g.root),
+		BackTick:  "`",
 	})
 
 	g.addGoFile("completion.go")
