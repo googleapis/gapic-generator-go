@@ -140,8 +140,7 @@ func (g *gcli) genServiceCmdFiles() {
 		}
 
 		// add any available comment as usage
-		key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], srv)
-		if cmt, ok := g.descInfo.Comments[key]; ok {
+		if cmt, ok := g.comments[srv]; ok {
 			cmt = sanitizeComment(cmt)
 
 			cmd.LongDesc = cmt

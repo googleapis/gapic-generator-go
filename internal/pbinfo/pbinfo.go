@@ -55,8 +55,6 @@ type Info struct {
 	// Maps service names to their descriptors.
 	Serv map[string]*descriptor.ServiceDescriptorProto
 
-	// Maps element names to their comments
-	Comments map[string]string
 }
 
 // Of creates Info from given protobuf files.
@@ -66,7 +64,6 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 		ParentElement: map[ProtoType]ProtoType{},
 		Type:          map[string]ProtoType{},
 		Serv:          map[string]*descriptor.ServiceDescriptorProto{},
-		Comments:      map[string]string{},
 	}
 
 	for _, f := range files {
@@ -94,15 +91,6 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 		for _, s := range f.Service {
 			fullyQualifiedName := fmt.Sprintf(".%s.%s", f.GetPackage(), s.GetName())
 			info.Serv[fullyQualifiedName] = s
-		}
-
-		// Comments
-		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
-			if loc.LeadingComments == nil {
-				continue
-			}
-
-			addComments(info.Comments, f, loc)
 		}
 	}
 

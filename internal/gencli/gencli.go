@@ -98,7 +98,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 }
 
 type gcli struct {
-	comments    map[string]string
+	comments    map[proto.Message]string
 	commands    []*Command
 	descInfo    pbinfo.Info
 	imports     map[string]*pbinfo.ImportSpec
@@ -110,7 +110,7 @@ type gcli struct {
 }
 
 func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
-	g.comments = make(map[string]string)
+	g.comments = make(map[proto.Message]string)
 	g.descInfo = pbinfo.Of(req.ProtoFile)
 	g.imports = make(map[string]*pbinfo.ImportSpec)
 	g.subcommands = make(map[string][]*Command)
@@ -150,6 +150,15 @@ func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 
 			putImport(g.imports, &spec)
 
+			// Comments
+			for _, loc := range f.GetSourceCodeInfo().GetLocation() {
+				if loc.LeadingComments == nil {
+					continue
+				}
+
+				g.addComments(f, loc)
+			}
+
 			g.services = append(g.services, f.Service...)
 		}
 	}
@@ -181,8 +190,7 @@ func (g *gcli) buildCommands() {
 			copyImports(g.imports, cmd.Imports)
 
 			// add any available comment as usage
-			key := pbinfo.BuildElementCommentKey(g.descInfo.ParentFile[srv], mthd)
-			if cmt, ok := g.descInfo.Comments[key]; ok {
+			if cmt, ok := g.comments[mthd]; ok {
 				cmt = sanitizeComment(cmt)
 
 				cmd.LongDesc = cmt
@@ -414,7 +422,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 }
 
 func (g *gcli) getFieldBehavior(msg *descriptor.DescriptorProto, field *descriptor.FieldDescriptorProto) (output bool, required bool, cmt string) {
-	if cmt, ok := g.descInfo.Comments[pbinfo.BuildFieldCommentKey(msg, field)]; ok {
+	if cmt, ok := g.comments[field]; ok {
 		cmt = sanitizeComment(cmt)
 		output = strings.Contains(cmt, OutputOnlyStr)
 		required = strings.Contains(cmt, RequiredStr)
@@ -442,6 +450,49 @@ func (g *gcli) addImport(cmd *Command, t pbinfo.ProtoType) (*pbinfo.ImportSpec, 
 	putImport(cmd.Imports, pkg)
 
 	return pkg, nil
+}
+
+func (g *gcli) addComments(f *descriptor.FileDescriptorProto, loc *descriptor.SourceCodeInfo_Location) {
+	var key proto.Message
+	p := loc.Path
+
+	switch {
+	// Service comment
+	case len(p) == 2 && p[0] == 6:
+		key = f.Service[p[1]]
+
+	// Method comment
+	case len(p) == 4 && p[0] == 6 && p[2] == 2:
+		key = f.Service[p[1]].Method[p[3]]
+
+	// Message comment
+	case len(p) == 2 && p[0] == 4:
+		key = f.MessageType[p[1]]
+
+	// Field comment
+	case len(p) == 4 && p[0] == 4 && p[2] == 2:
+		key = f.MessageType[p[1]].Field[p[3]]
+
+	// Extension comment
+	case len(p) == 2 && p[0] == 7:
+		key = f.Extension[p[1]]
+
+	// Enum comment
+	case len(p) == 2 && p[0] == 5:
+		key = f.EnumType[p[1]]
+
+	// Enum Value comment
+	case len(p) == 4 && p[0] == 5 && p[2] == 2:
+		key = f.EnumType[p[1]].Value[p[3]]
+
+	// TODO(ndietz): this is an incomplete mapping of comments
+	default:
+		return
+	}
+
+	if _, ok := g.comments[key]; !ok {
+		g.comments[key] = *loc.LeadingComments
+	}
 }
 
 func (g *gcli) addGoFile(name string) {
