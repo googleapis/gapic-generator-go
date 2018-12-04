@@ -54,6 +54,7 @@ type Info struct {
 
 	// Maps service names to their descriptors.
 	Serv map[string]*descriptor.ServiceDescriptorProto
+
 }
 
 // Of creates Info from given protobuf files.
