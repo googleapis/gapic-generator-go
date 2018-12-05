@@ -111,10 +111,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		Content: proto.String(g.pt.String()),
 	})
 
-	g.reset()
-	g.clientUtils()
-	g.commit(filepath.Join(outDir, "util.go"), pkgName)
-
 	return &g.resp, nil
 }
 

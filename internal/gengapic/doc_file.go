@@ -43,9 +43,16 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("")
 
 	p("import (")
+	p("%s%q", "\t", "runtime")
+	p("%s%q", "\t", "strings")
+	p("%s%q", "\t", "unicode")
+	p("")
 	p("%s%q", "\t", "golang.org/x/net/context")
 	p("%s%q", "\t", "google.golang.org/grpc/metadata")
 	p(")")
+	p("")
+
+	p("const versionClient = %q", "UNKNOWN")
 	p("")
 
 	p("func insertMetadata(ctx context.Context, mds ...metadata.MD) context.Context {")
@@ -68,6 +75,48 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	}
 	p("  }")
 	p("}")
+
+	// versionGo
+	{
+		p("")
+		p("// versionGo returns the Go runtime version. The returned string")
+		p("// has no whitespace, suitable for reporting in header.")
+		p("func versionGo() string {")
+		p("  const develPrefix = %q", "devel +")
+		p("")
+		p("  s := runtime.Version()")
+		p("  if strings.HasPrefix(s, develPrefix) {")
+		p("    s = s[len(develPrefix):]")
+		p("    if p := strings.IndexFunc(s, unicode.IsSpace); p >= 0 {")
+		p("      s = s[:p]")
+		p("    }")
+		p("    return s")
+		p("  }")
+		p("")
+		p("  notSemverRune := func(r rune) bool {")
+		p("    return strings.IndexRune(%q, r) < 0", "0123456789.")
+		p("  }")
+		p("")
+		p("  if strings.HasPrefix(s, %q) {", "go1")
+		p("    s = s[2:]")
+		p("    var prerelease string")
+		p("    if p := strings.IndexFunc(s, notSemverRune); p >= 0 {")
+		p("      s, prerelease = s[:p], s[p:]")
+		p("    }")
+		p("    if strings.HasSuffix(s, %q) {", ".")
+		p("      s += %q", "0")
+		p("    } else if strings.Count(s, %q) < 2 {", ".")
+		p("      s += %q", ".0")
+		p("    }")
+		p("    if prerelease != %q {", "")
+		p("      s += %q + prerelease", "-")
+		p("    }")
+		p("    return s")
+		p("  }")
+		p("  return %q", "UNKNOWN")
+		p("}")
+		p("")
+	}
 }
 
 func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
