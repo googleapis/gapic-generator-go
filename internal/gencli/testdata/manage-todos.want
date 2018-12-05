@@ -73,7 +73,7 @@ var ManageTodosCmd = &cobra.Command{
 		}()
 
 		if Verbose {
-			fmt.Println("Client stream open. Close with blank line.")
+			fmt.Println("Client stream open. Close with ctrl+D.")
 		}
 
 		var ManageTodosInput todopb.Todo
@@ -81,7 +81,7 @@ var ManageTodosCmd = &cobra.Command{
 		for scanner.Scan() {
 			input := scanner.Text()
 			if input == "" {
-				break
+				continue
 			}
 			err = jsonpb.UnmarshalString(input, &ManageTodosInput)
 			if err != nil {

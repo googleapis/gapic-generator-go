@@ -244,7 +244,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}()
 		{{ end }}
 		if Verbose {
-			fmt.Println("Client stream open. Close with blank line.")
+			fmt.Println("Client stream open. Close with ctrl+D.")
 		}
 
 		var {{ $inputVar }} {{ .InputMessage }}
@@ -252,7 +252,7 @@ var {{$methodCmdVar}} = &cobra.Command{
     for scanner.Scan() {
 				input := scanner.Text()
 				if input == "" {
-					break
+					continue
 				}
         err = jsonpb.UnmarshalString(input, &{{ $inputVar }})
 				if err != nil {
