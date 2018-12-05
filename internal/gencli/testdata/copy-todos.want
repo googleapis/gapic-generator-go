@@ -44,7 +44,7 @@ var CopyTodosCmd = &cobra.Command{
 		stream, err := TodoClient.CopyTodos(ctx)
 
 		if Verbose {
-			fmt.Println("Client stream open. Close with blank line.")
+			fmt.Println("Client stream open. Close with ctrl+D.")
 		}
 
 		var CopyTodosInput todopb.Todo
@@ -52,7 +52,7 @@ var CopyTodosCmd = &cobra.Command{
 		for scanner.Scan() {
 			input := scanner.Text()
 			if input == "" {
-				break
+				continue
 			}
 			err = jsonpb.UnmarshalString(input, &CopyTodosInput)
 			if err != nil {
