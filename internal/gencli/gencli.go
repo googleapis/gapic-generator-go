@@ -355,7 +355,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			g.buildOneOfSelectors(cmd, msg, prefix)
 
 			// check if we've recursed into a nested message's oneof
-			isInNested := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto) != msg
+			isInNested := g.descInfo.Type[cmd.InputMessageType] != msg
 
 			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, isInNested)...)
 
@@ -517,8 +517,8 @@ func (g *gcli) prepareMessageName(field *descriptor.FieldDescriptorProto) string
 	f := g.descInfo.Type[field.GetTypeName()]
 	name := f.GetName()
 
-	// check if it is a nested type
-	if p, ok := g.descInfo.ParentElement[f]; ok {
+	// prepend parent name for nested message types
+	for p, ok := g.descInfo.ParentElement[f]; ok; p, ok = g.descInfo.ParentElement[p] {
 		name = p.GetName() + "_" + name
 	}
 
