@@ -312,7 +312,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, fie
 
 	// handle oneof message or enum fields
 	if flag.IsMessage() || flag.IsEnum() {
-		flag.Message = parseMessageName(field, msg)
+		flag.Message = g.prepareMessageName(field)
 
 		nested := g.descInfo.Type[field.GetTypeName()]
 
@@ -354,8 +354,10 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 		if field.OneofIndex != nil {
 			g.buildOneOfSelectors(cmd, msg, prefix)
 
-			in := cmd.InputMessage[strings.LastIndex(cmd.InputMessage, ".")+1:]
-			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, in != msg.GetName())...)
+			// check if we've recursed into a nested message's oneof
+			isInNested := g.descInfo.Type[cmd.InputMessageType] != msg
+
+			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, isInNested)...)
 
 			continue
 		}
@@ -376,7 +378,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
 		if flag.IsMessage() || flag.IsEnum() {
-			flag.Message = parseMessageName(field, msg)
+			flag.Message = g.prepareMessageName(field)
 
 			nested := g.descInfo.Type[field.GetTypeName()]
 
@@ -509,4 +511,16 @@ func (g *gcli) addGoFile(name string) {
 	file.Content = proto.String(string(data))
 
 	g.response.File = append(g.response.File, file)
+}
+
+func (g *gcli) prepareMessageName(field *descriptor.FieldDescriptorProto) string {
+	f := g.descInfo.Type[field.GetTypeName()]
+	name := f.GetName()
+
+	// prepend parent name for nested message types
+	for p, ok := g.descInfo.ParentElement[f]; ok; p, ok = g.descInfo.ParentElement[p] {
+		name = p.GetName() + "_" + name
+	}
+
+	return name
 }

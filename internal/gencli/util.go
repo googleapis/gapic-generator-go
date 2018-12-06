@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
@@ -101,21 +100,6 @@ func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 	if _, ok := imports[pkg.Name]; !ok {
 		imports[pkg.Name] = pkg
 	}
-}
-
-func parseMessageName(field *descriptor.FieldDescriptorProto, msg *descriptor.DescriptorProto) (name string) {
-	t := field.GetTypeName()
-	last := strings.LastIndex(t, ".")
-	name = t[last+1:]
-
-	// check if it is a nested type
-	if strings.Contains(t, msg.GetName()) {
-		pre := t[:last]
-		parent := pre[strings.LastIndex(pre, ".")+1:]
-		name = parent + "_" + name
-	}
-
-	return
 }
 
 func title(name string) string {
