@@ -12,7 +12,6 @@ require (
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
-	golang.org/x/tools v0.0.0-20181201035826-d0ca3933b724
 	google.golang.org/genproto v0.0.0-20180914223249-4b56f30a1fd9
 	gopkg.in/yaml.v2 v2.2.1
 )

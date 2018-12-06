@@ -54,6 +54,7 @@ generate -I $SHOW_PROTOS \
   --gcli_out $OUT/showcase \
   --gcli_opt "gapic:$SHOWCASE_GAPIC" \
   --gcli_opt 'root:testshowctl' \
+  --gcli_opt 'fmt:false' \
   $SHOW_PROTOS/*.proto
 
 d=$(pwd)

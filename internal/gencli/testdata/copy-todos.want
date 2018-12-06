@@ -3,11 +3,6 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/spf13/cobra"
 
 	todopb "github.com/googleapis/todo/generated"

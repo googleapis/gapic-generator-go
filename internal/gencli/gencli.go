@@ -16,7 +16,9 @@ package gencli
 
 import (
 	"fmt"
+	"go/format"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -24,7 +26,6 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
-	goimport "golang.org/x/tools/imports"
 )
 
 const (
@@ -80,7 +81,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	// build commands from proto
-	g.buildCommands()
+	g.genCommands()
 
 	// write root.go
 	g.genRootCmdFile()
@@ -88,18 +89,11 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	// write completion.go
 	g.genCompletionCmdFile()
 
-	// generate Service-level subcommands
-	g.genServiceCmdFiles()
-
-	// generate Method-level subcommand files
-	g.genCommands()
-
 	return &g.response, nil
 }
 
 type gcli struct {
 	comments    map[proto.Message]string
-	commands    []*Command
 	descInfo    pbinfo.Info
 	imports     map[string]*pbinfo.ImportSpec
 	pt          printer.P
@@ -107,6 +101,7 @@ type gcli struct {
 	root        string
 	services    []*descriptor.ServiceDescriptorProto
 	subcommands map[string][]*Command
+	format      bool
 }
 
 func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
@@ -115,41 +110,16 @@ func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 	g.imports = make(map[string]*pbinfo.ImportSpec)
 	g.subcommands = make(map[string][]*Command)
 
-	root, gapic, err := parseParameters(req.Parameter)
+	err := g.parseParameters(req.Parameter)
 	if err != nil {
 		errStr := fmt.Sprintf("Error in parsing params: %s", err.Error())
 		g.response.Error = &errStr
 		return err
 	}
-	g.root = root
-
-	putImport(g.imports, &pbinfo.ImportSpec{
-		Name: "gapic",
-		Path: gapic,
-	})
 
 	// gather services & imports for generation
 	for _, f := range req.ProtoFile {
 		if strContains(req.FileToGenerate, f.GetName()) {
-			pkg := f.GetOptions().GetGoPackage()
-			if pkg == "" {
-				errStr := fmt.Sprintf("Error missing Go package option for: %s", f.GetName())
-				g.response.Error = &errStr
-				return err
-			}
-
-			spec := pbinfo.ImportSpec{
-				Name: pkg[strings.LastIndexByte(pkg, '/')+1:] + "pb",
-				Path: pkg,
-			}
-
-			if sep := strings.LastIndex(pkg, ";"); sep != -1 {
-				spec.Name = pkg[sep+1:] + "pb"
-				spec.Path = pkg[:sep]
-			}
-
-			putImport(g.imports, &spec)
-
 			// Comments
 			for _, loc := range f.GetSourceCodeInfo().GetLocation() {
 				if loc.LeadingComments == nil {
@@ -166,7 +136,7 @@ func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 	return nil
 }
 
-func (g *gcli) buildCommands() {
+func (g *gcli) genCommands() {
 	// TODO(ndietz) weird result for names containing acronyms
 	// i.e. SearchByID -> [Search, By, I, D]
 	camelCaseRegex := regexp.MustCompile("[A-Z]+[a-z]*")
@@ -185,9 +155,6 @@ func (g *gcli) buildCommands() {
 				MethodCmd: strings.ToLower(strings.Join(
 					camelCaseRegex.FindAllString(mthd.GetName(), -1), "-")),
 			}
-
-			// copy top level imports
-			copyImports(g.imports, cmd.Imports)
 
 			// add any available comment as usage
 			if cmt, ok := g.comments[mthd]; ok {
@@ -208,15 +175,46 @@ func (g *gcli) buildCommands() {
 				pkg.Name,
 				cmd.InputMessageType[strings.LastIndex(cmd.InputMessageType, ".")+1:])
 
-			// build input fields into flags
-			if cmd.InputMessageType != EmptyProtoType && !cmd.ClientStreaming {
-				cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "", false)...)
+			if cmd.InputMessageType != EmptyProtoType {
+				// imports handling input
+				putImport(cmd.Imports, &pbinfo.ImportSpec{
+					Name: "os",
+					Path: "os",
+				})
+
+				putImport(cmd.Imports, &pbinfo.ImportSpec{
+					Name: "jsonpb",
+					Path: "github.com/golang/protobuf/jsonpb",
+				})
+
+				if !cmd.ClientStreaming {
+					// build input fields into flags
+					cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "", false)...)
+
+					if cmd.HasEnums {
+						putImport(cmd.Imports, &pbinfo.ImportSpec{
+							Name: "strings",
+							Path: "strings",
+						})
+					}
+				} else {
+					putImport(cmd.Imports, &pbinfo.ImportSpec{
+						Name: "bufio",
+						Path: "bufio",
+					})
+				}
 			}
 
 			// capture output type for template formatting reasons
 			if out := mthd.GetOutputType(); out == LROProtoType {
 				cmd.IsLRO = true
 				cmd.OutputMessageType = out
+
+				// add fmt for verbose printing
+				putImport(cmd.Imports, &pbinfo.ImportSpec{
+					Name: "fmt",
+					Path: "fmt",
+				})
 			} else if out != EmptyProtoType {
 				msg := g.descInfo.Type[out].(*descriptor.DescriptorProto)
 
@@ -227,7 +225,6 @@ func (g *gcli) buildCommands() {
 
 					// find repeated field in paged response
 					for _, f = range msg.GetField() {
-
 						if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 							break
 						}
@@ -236,7 +233,6 @@ func (g *gcli) buildCommands() {
 					// primitive repeated type
 					if fType := f.GetType(); fType != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
 						cmd.OutputMessageType = pbinfo.GoTypeForPrim[fType]
-						g.commands = append(g.commands, &cmd)
 						g.subcommands[srv.GetName()] = append(g.subcommands[srv.GetName()], &cmd)
 						continue
 					}
@@ -244,19 +240,60 @@ func (g *gcli) buildCommands() {
 					// set message being evaluated to the repeated type
 					out = f.GetTypeName()
 					msg = g.descInfo.Type[f.GetTypeName()].(*descriptor.DescriptorProto)
+
+					putImport(cmd.Imports, &pbinfo.ImportSpec{
+						Name: "iterator",
+						Path: "google.golang.org/api/iterator",
+					})
 				}
 
-				pkg, err := g.addImport(&cmd, msg)
+				pkg, err := g.getImport(msg)
 				if err != nil {
 					continue
 				}
 
+				// only need the actual import for server stream unmarshaling
+				if cmd.ServerStreaming && !cmd.ClientStreaming {
+					putImport(cmd.Imports, pkg)
+					putImport(cmd.Imports, &pbinfo.ImportSpec{
+						Name: "io",
+						Path: "io",
+					})
+				}
+
 				cmd.OutputMessageType = pkg.Name + "." + out[strings.LastIndex(out, ".")+1:]
+
+				// add fmt for verbose printing
+				putImport(cmd.Imports, &pbinfo.ImportSpec{
+					Name: "fmt",
+					Path: "fmt",
+				})
 			}
 
-			g.commands = append(g.commands, &cmd)
 			g.subcommands[srv.GetName()] = append(g.subcommands[srv.GetName()], &cmd)
+			g.genCommandFile(&cmd)
 		}
+
+		name := pbinfo.ReduceServName(srv.GetName(), "")
+		cmd := Command{
+			Service:   name,
+			MethodCmd: strings.ToLower(name),
+			ShortDesc: "Sub-command for Service: " + name,
+			Imports: map[string]*pbinfo.ImportSpec{
+				"gapic": g.imports["gapic"],
+			},
+			EnvPrefix:   strings.ToUpper(g.root + "_" + name),
+			SubCommands: g.subcommands[srv.GetName()],
+		}
+
+		// add any available comment as usage
+		if cmt, ok := g.comments[srv]; ok {
+			cmt = sanitizeComment(cmt)
+
+			cmd.LongDesc = cmt
+			cmd.ShortDesc = toShortUsage(cmt)
+		}
+		g.genServiceCmdFile(&cmd)
 	}
 }
 
@@ -411,10 +448,6 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 		if name := field.GetName(); name == "page_token" || name == "page_size" {
 			cmd.Paged = true
-			putImport(cmd.Imports, &pbinfo.ImportSpec{
-				Name: "iterator",
-				Path: "google.golang.org/api/iterator",
-			})
 		}
 
 		flags = append(flags, &flag)
@@ -497,18 +530,21 @@ func (g *gcli) addComments(f *descriptor.FileDescriptorProto, loc *descriptor.So
 
 func (g *gcli) addGoFile(name string) {
 	file := &plugin.CodeGeneratorResponse_File{
-		Name: proto.String(name),
+		Name:    proto.String(name),
+		Content: proto.String(g.pt.String()),
 	}
 
-	// format and prune unused imports in generatd code
-	data, err := goimport.Process(*file.Name, g.pt.Bytes(), nil)
-	if err != nil {
-		errStr := fmt.Sprintf("Error in formatting output: %s", err.Error())
-		g.response.Error = &errStr
-		return
-	}
+	if g.format {
+		// format generated code
+		data, err := format.Source(g.pt.Bytes())
+		if err != nil {
+			errStr := fmt.Sprintf("Error in formatting output: %s", err.Error())
+			g.response.Error = &errStr
+			return
+		}
 
-	file.Content = proto.String(string(data))
+		file.Content = proto.String(string(data))
+	}
 
 	g.response.File = append(g.response.File, file)
 }
@@ -523,4 +559,47 @@ func (g *gcli) prepareMessageName(field *descriptor.FieldDescriptorProto) string
 	}
 
 	return name
+}
+
+func (g *gcli) parseParameters(params *string) (err error) {
+	// by default formatting is enabled
+	g.format = true
+
+	if params == nil {
+		return fmt.Errorf("Missing required parameters. See usage")
+	}
+
+	for _, str := range strings.Split(*params, ",") {
+		sepNdx := strings.Index(str, ":")
+		if sepNdx == -1 {
+			return fmt.Errorf("Unknown parameter: %s", str)
+		}
+
+		switch str[:sepNdx] {
+		case "gapic":
+			putImport(g.imports, &pbinfo.ImportSpec{
+				Name: "gapic",
+				Path: str[sepNdx+1:],
+			})
+		case "root":
+			g.root = str[sepNdx+1:]
+		case "fmt":
+			g.format, err = strconv.ParseBool(str[sepNdx+1:])
+			if err != nil {
+				return
+			}
+		default:
+			return fmt.Errorf("Unknown parameter: %s", str)
+		}
+	}
+
+	if _, ok := g.imports["gapic"]; !ok {
+		return fmt.Errorf("Missing option \"gapic:[import path]\". Got %q", *params)
+	}
+
+	if g.root == "" {
+		return fmt.Errorf("Missing option \"root:[root cmd]\". Got %q", *params)
+	}
+
+	return
 }

@@ -29,7 +29,8 @@ func TestCompletionFile(t *testing.T) {
 	}()
 
 	g := &gcli{
-		root: "Root",
+		root:   "Root",
+		format: true,
 	}
 
 	g.genCompletionCmdFile()
