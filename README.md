@@ -1,7 +1,8 @@
 API Client Generator for Go
 ===========================
 
-[![CircleCI](https://circleci.com/gh/googleapis/gapic-generator-go.svg?style=svg)](https://circleci.com/gh/googleapis/gapic-generator-go)
+[![CircleCI](https://circleci.com/gh/googleapis/gapic-generator-go.svg?style=svg)](https://circleci.com/gh/googleapis/gapic-generator-go) 
+![release level](https://img.shields.io/badge/release%20level-%20beta-blue.svg)
 
 A generator for protocol buffer described APIs for and in Go.
 
