@@ -54,7 +54,7 @@ jobs:
       - run:
           name: Set up authentication to Google Container Registry.
           command: |
-            echo ${GCLOUD_SERVICE_KEY} > ${GOOGLE_APPLICATION_CREDENTIALS}
+            echo ${GCLOUD_SERVICE_KEY} | base64 --decode > ${GOOGLE_APPLICATION_CREDENTIALS}
             docker-credential-gcr configure-docker
       - run:
           name: Tag the Docker image and push it to Google Container Registry.
