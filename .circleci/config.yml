@@ -4,12 +4,12 @@ workflows:
   build_test_publish:
     jobs:
       - build:
-        filters:
-          tags:
+          filters:
+            tags:
               only: /^\d+\.\d+\.\d+$/
       - publish_image:
           requires:
-           - build
+            - build
           filters:
             branches:
               ignore: /.*/
