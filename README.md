@@ -42,6 +42,38 @@ Idiomatically the name is last element of the path but it need not be.
 For instance, the last element of the path might be the package's version, and the package would benefit
 from a more descriptive name.
 
+Docker Wrapper
+--------------
+The generator can also be executed via a Docker container. The image containes `protoc`, the microgenerator
+binary, and the standard API protos.
+
+```bash
+$ docker pull gcr.io/gapic-images/gapic-generator-go
+$ docker run \
+  --rm \
+  --user $UID \
+  --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
+  --mount type=bind,source=$GOPATH/src,destination=/out/ \
+  --env "GO_GAPIC_OPT=<github.com/package/import/path;name>" \
+  gcr.io/gapic-images/gapic-generator-go
+```
+
+Replace `/abs/path/to/protos` with the absolute path to the input protos and `github.com/package/import/path;name`
+with the desired import path & name for the `gapic`, as described in [Invocation](#Invocation).
+
+For convenience, the [gapic.sh](./gapic.sh) script wraps the above `docker` invocation.
+An equivalent invocation using `gapic.sh` is:
+
+```bash
+$ gapic.sh \
+  --go_gapic_opt 'github.com/package/import/path;name' \
+  --image gcr.io/gapic-images/gapic-generator-go
+  --in /abs/path/to/protos \
+  --out $GOPATH/src
+```
+
+Use `gapic.sh --help` to print the usage documentation.
+
 Disclaimer
 ----------
 This generator is currently experimental. Please don't use it for anything mission-critical.
