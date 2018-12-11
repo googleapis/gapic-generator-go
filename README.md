@@ -52,9 +52,9 @@ $ docker pull gcr.io/gapic-images/gapic-generator-go
 $ docker run \
   --rm \
   --user $UID \
-  --mount type=bind,source=/abs/path/to/protos,destination=/in/protos,readonly \
+  --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
   --mount type=bind,source=$GOPATH/src,destination=/out/ \
-  --env "GO_GAPIC_OPT=github.com/package/import/path;name" \
+  --env "GO_GAPIC_OPT=<github.com/package/import/path;name>" \
   gcr.io/gapic-images/gapic-generator-go
 ```
 

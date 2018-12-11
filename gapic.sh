@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+set -e 
 
 CMD="$0"
 
@@ -25,20 +26,23 @@ PROTO_PATH=`pwd`
 
 # Print help and exit.
 function show_help {
-  echo "Usage: $CMD --go_gapic_opt GO_GAPIC_OPT --image IMAGE --in IN_DIR --out OUT_DIR [--path PATH_DIR]"
-  echo ""
-  echo "Required arguments:"
-  echo "      --go_gapic_opt  The import path and name for the generated package"
-  echo "      --image         The Docker image to use. The script will attempt to pull"
-  echo "                      it if it is not present."
-  echo "  -i, --in            A directory containing the protos describing the API"
-  echo "                      to be generated."
-  echo "  -o, --out           Destination directory for the completed client library."
-  echo ""
-  echo "Optional arguments:"
-  echo "  -p, --path   The base import path for the protos. Assumed to be the"
-  echo "               current working directory if unspecified."
-  echo "  -h, --help   This help information."
+  cat << EOF
+Usage: $CMD --go_gapic_opt GO_GAPIC_OPT --image IMAGE --in IN_DIR --out OUT_DIR [--path PATH_DIR]
+
+Required arguments:
+      --go_gapic_opt  The import path and name for the generated package
+      --image         The Docker image to use. The script will attempt to pull
+                      it if it is not present.
+  -i, --in            A directory containing the protos describing the API
+                      to be generated.
+  -o, --out           Destination directory for the completed client library.
+
+Optional arguments:
+  -p, --path   The base import path for the protos. Assumed to be the
+                current working directory if unspecified.
+  -h, --help   This help information.
+EOF
+ 
   exit 0
 }
 
@@ -58,40 +62,35 @@ done
 
 # Ensure that all required options are set.
 if [ -z "$GO_GAPIC_OPT" ] || [ -z "$IMAGE" ] || [ -z "$IN" ] || [ -z "$OUT" ]; then
-  >&2 echo "Required argument missing."
-  >&2 echo "The --go_gapic_opt, --image, --in, and --out arguments are all required."
-  >&2 echo "Run $CMD --help for more information."
+  cat << EOF
+Required argument missing.
+The --go_gapic_opt, --image, --in, and --out arguments are all required.
+Run $CMD --help for more information.
+EOF
+
   exit 64
 fi
 
 # Ensure that the input directory exists (and is a directory).
 if ! [ -d $IN ]; then
-  >&2 echo "Directory does not exist: $IN"
+  cat << EOF
+Directory does not exist: $IN
+EOF
   exit 2
 fi
 
 # Ensure Docker is running and seems healthy.
 # This is mostly a check to bubble useful errors quickly.
-if ! docker ps > /dev/null; then
-  exit $?
-fi
+docker ps > /dev/null
 
 # If the output directory does not exist, create it.
-if ! mkdir -p $OUT ; then
-  exit $?
-fi
+mkdir -p $OUT
 
 # If the output directory is not empty, warn (but continue).
 if [ "$(ls -A $OUT )" ]; then
-  >&2 echo "Warning: Output directory is not empty."
-fi
-
-# If the image is not yet on the machine, pull it.
-if ! docker images $IMAGE > /dev/null; then
-  echo "Image $IMAGE not found; pulling."
-  if ! docker pull $IMAGE; then
-    exit $?
-  fi
+  cat << EOF
+Warning: Output directory is not empty.
+EOF
 fi
 
 # Generate the client library.
@@ -102,4 +101,3 @@ docker run \
   --user $UID \
   --env "GO_GAPIC_OPT=$GO_GAPIC_OPT" \
   $IMAGE
-exit $?
