@@ -46,15 +46,15 @@ generate() {
 
 generate -I $KIOSK_PROTOS \
   --gcli_out $OUT/kiosk \
-  --gcli_opt "gapic:$KIOSK_GAPIC" \
-  --gcli_opt 'root:testkctl' \
+  --gcli_opt "gapic=$KIOSK_GAPIC" \
+  --gcli_opt 'root=testkctl' \
   $KIOSK_PROTOS/kiosk.proto
 
 generate -I $SHOW_PROTOS \
   --gcli_out $OUT/showcase \
-  --gcli_opt "gapic:$SHOWCASE_GAPIC" \
-  --gcli_opt 'root:testshowctl' \
-  --gcli_opt 'fmt:false' \
+  --gcli_opt "gapic=$SHOWCASE_GAPIC" \
+  --gcli_opt 'root=testshowctl' \
+  --gcli_opt 'fmt=false' \
   $SHOW_PROTOS/*.proto
 
 d=$(pwd)

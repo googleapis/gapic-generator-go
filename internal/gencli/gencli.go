@@ -570,7 +570,7 @@ func (g *gcli) parseParameters(params *string) (err error) {
 	}
 
 	for _, str := range strings.Split(*params, ",") {
-		sepNdx := strings.Index(str, ":")
+		sepNdx := strings.Index(str, "=")
 		if sepNdx == -1 {
 			return fmt.Errorf("Unknown parameter: %s", str)
 		}
@@ -594,11 +594,11 @@ func (g *gcli) parseParameters(params *string) (err error) {
 	}
 
 	if _, ok := g.imports["gapic"]; !ok {
-		return fmt.Errorf("Missing option \"gapic:[import path]\". Got %q", *params)
+		return fmt.Errorf("Missing option \"gapic=[import path]\". Got %q", *params)
 	}
 
 	if g.root == "" {
-		return fmt.Errorf("Missing option \"root:[root cmd]\". Got %q", *params)
+		return fmt.Errorf("Missing option \"root=[root cmd]\". Got %q", *params)
 	}
 
 	return
