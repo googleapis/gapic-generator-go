@@ -26,9 +26,11 @@ const (
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -36,6 +38,7 @@ import (
 
 var Verbose, OutputJSON bool
 var ctx = context.Background()
+var marshaler = &jsonpb.Marshaler{Indent: "  "}
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Print verbose output")

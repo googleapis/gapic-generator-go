@@ -16,12 +16,11 @@ package gencli
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
 
@@ -32,25 +31,32 @@ func TestServiceFile(t *testing.T) {
 		}
 	}()
 
-	srv := &descriptor.ServiceDescriptorProto{
-		Name: proto.String("TodoService"),
-	}
+	name := "Todo"
 
 	g := &gcli{
-		root:     "Root",
-		services: []*descriptor.ServiceDescriptorProto{srv},
+		root:   "Root",
+		format: true,
 		imports: map[string]*pbinfo.ImportSpec{
 			"test": &pbinfo.ImportSpec{Name: "proto", Path: "github.com/golang/protobuf/proto"},
 		},
 		subcommands: map[string][]*Command{
-			srv.GetName(): []*Command{
+			name: []*Command{
 				&Command{MethodCmd: "start-todo", IsLRO: true},
 				&Command{MethodCmd: "list-todo"},
 			},
 		},
 	}
 
-	g.genServiceCmdFiles()
+	cmd := Command{
+		Service:     name,
+		MethodCmd:   strings.ToLower(name),
+		ShortDesc:   "Sub-command for Service: " + name,
+		Imports:     g.imports,
+		EnvPrefix:   strings.ToUpper(g.root + "_" + name),
+		SubCommands: g.subcommands[name],
+	}
+
+	g.genServiceCmdFile(&cmd)
 	if g.response.GetError() != "" {
 		t.Errorf("Error generating the service_file: %s", g.response.GetError())
 		return
@@ -59,7 +65,7 @@ func TestServiceFile(t *testing.T) {
 	file := g.response.File[0]
 
 	if file.GetName() != "todo_service.go" {
-		t.Errorf("(%+v).genServiceCmdFiles() = %s, want %s", g, file.GetName(), "todo_service.go")
+		t.Errorf("(%+v).genServiceCmdFile(%+v) = %s, want %s", g, cmd, file.GetName(), "todo_service.go")
 	}
 	txtdiff.Diff(t, "service_file", file.GetContent(), filepath.Join("testdata", "service_file.want"))
 }

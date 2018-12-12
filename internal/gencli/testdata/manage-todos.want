@@ -3,12 +3,6 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
-	"fmt"
-	"os"
-
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/spf13/cobra"
 
 	todopb "github.com/googleapis/todo/generated"
@@ -65,8 +59,7 @@ var ManageTodosCmd = &cobra.Command{
 
 				str := res.String()
 				if OutputJSON {
-					d, _ := json.MarshalIndent(res, "", "  ")
-					str = string(d)
+					str, _ = marshaler.MarshalToString(res)
 				}
 				fmt.Fprintln(out, str)
 			}

@@ -143,45 +143,51 @@ func TestCommandFile(t *testing.T) {
 
 	for _, tst := range []struct {
 		g                *gcli
+		cmd              *Command
 		name, goldenPath string
 	}{
 		{
 			g: &gcli{
-				commands: []*Command{createTodoCmd},
+				format: true,
 			},
+			cmd:        createTodoCmd,
 			name:       "create-todo",
 			goldenPath: filepath.Join("testdata", "create-todo.want"),
 		},
 		{
 			g: &gcli{
-				commands: []*Command{startTodoCmd},
+				format: true,
 			},
+			cmd:        startTodoCmd,
 			name:       "start-todo",
 			goldenPath: filepath.Join("testdata", "start-todo.want"),
 		},
 		{
 			g: &gcli{
-				commands: []*Command{copyTodosCmd},
+				format: true,
 			},
+			cmd:        copyTodosCmd,
 			name:       "copy-todos",
 			goldenPath: filepath.Join("testdata", "copy-todos.want"),
 		},
 		{
 			g: &gcli{
-				commands: []*Command{watchTodosCmd},
+				format: true,
 			},
+			cmd:        watchTodosCmd,
 			name:       "watch-todo",
 			goldenPath: filepath.Join("testdata", "watch-todo.want"),
 		},
 		{
 			g: &gcli{
-				commands: []*Command{manageTodosCmd},
+				format: true,
 			},
+			cmd:        manageTodosCmd,
 			name:       "manage-todos",
 			goldenPath: filepath.Join("testdata", "manage-todos.want"),
 		},
 	} {
-		tst.g.genCommands()
+		tst.g.genCommandFile(tst.cmd)
 		if tst.g.response.GetError() != "" {
 			t.Errorf("Error generating the command file %s: %s", tst.name, tst.g.response.GetError())
 			return

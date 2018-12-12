@@ -32,12 +32,7 @@ const (
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
-	"github.com/golang/protobuf/jsonpb"
 	{{ range $key, $pkg := .Imports}}
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
 	{{ end }}
@@ -162,7 +157,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		// unmarshal JSON strings into slice of structs
 		for _, item := range {{ ( .GenOtherVarName $inputVar) }} {
 			tmp := {{ .MessageImport.Name }}.{{ .Message }}{}
-			err = json.Unmarshal([]byte(item), &tmp)
+			err = jsonpb.UnmarshalString(item, &tmp)
 			if err != nil {
 				return
 			}
@@ -236,8 +231,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 
 				str := res.String()
 				if OutputJSON {
-					d, _ := json.MarshalIndent(res, "", "  ")
-					str = string(d)
+					str, _ = marshaler.MarshalToString(res)
 				}
 				fmt.Fprintln(out, str)
 			}
@@ -385,19 +379,21 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 `
 )
 
-func (g *gcli) genCommands() {
+var cmdTemplateCompiled *template.Template
+
+func init() {
 	helpers := make(template.FuncMap)
 	helpers["title"] = title
 
-	t := template.Must(template.New("cmd").Funcs(helpers).Parse(cmdTemplate))
+	cmdTemplateCompiled = template.Must(template.New("cmd").Funcs(helpers).Parse(cmdTemplate))
+}
 
-	for _, cmd := range g.commands {
-		g.pt.Reset()
+func (g *gcli) genCommandFile(cmd *Command) {
+	g.pt.Reset()
 
-		g.pt.Printf("// Code generated. DO NOT EDIT.\n")
+	g.pt.Printf("// Code generated. DO NOT EDIT.\n")
 
-		t.Execute(g.pt.Writer(), cmd)
+	cmdTemplateCompiled.Execute(g.pt.Writer(), cmd)
 
-		g.addGoFile(cmd.MethodCmd + ".go")
-	}
+	g.addGoFile(cmd.MethodCmd + ".go")
 }

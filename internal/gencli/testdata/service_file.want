@@ -10,6 +10,8 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
+
+	proto "github.com/golang/protobuf/proto"
 )
 
 var TodoConfig *viper.Viper

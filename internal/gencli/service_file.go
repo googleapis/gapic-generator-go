@@ -15,10 +15,7 @@
 package gencli
 
 import (
-	"strings"
 	"text/template"
-
-	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 const (
@@ -32,13 +29,11 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
-	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	{{ range $key, $pkg := .Imports}}
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
@@ -120,34 +115,19 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 `
 )
 
-func (g *gcli) genServiceCmdFiles() {
-	t := template.Must(template.New("service").Parse(serviceTemplate))
+var serviceTemplateCompiled *template.Template
 
-	for _, srv := range g.services {
-		g.pt.Reset()
+func init() {
+	serviceTemplateCompiled = template.Must(template.New("service").Parse(serviceTemplate))
+}
 
-		g.pt.Printf("// Code generated. DO NOT EDIT.\n")
+func (g *gcli) genServiceCmdFile(cmd *Command) {
 
-		name := pbinfo.ReduceServName(srv.GetName(), "")
-		cmd := Command{
-			Service:     name,
-			MethodCmd:   strings.ToLower(name),
-			ShortDesc:   "Sub-command for Service: " + name,
-			Imports:     g.imports,
-			EnvPrefix:   strings.ToUpper(g.root + "_" + name),
-			SubCommands: g.subcommands[srv.GetName()],
-		}
+	g.pt.Reset()
 
-		// add any available comment as usage
-		if cmt, ok := g.comments[srv]; ok {
-			cmt = sanitizeComment(cmt)
+	g.pt.Printf("// Code generated. DO NOT EDIT.\n")
 
-			cmd.LongDesc = cmt
-			cmd.ShortDesc = toShortUsage(cmt)
-		}
+	serviceTemplateCompiled.Execute(g.pt.Writer(), cmd)
 
-		t.Execute(g.pt.Writer(), cmd)
-
-		g.addGoFile(cmd.MethodCmd + "_service" + ".go")
-	}
+	g.addGoFile(cmd.MethodCmd + "_service" + ".go")
 }
