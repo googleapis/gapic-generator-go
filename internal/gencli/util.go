@@ -55,9 +55,12 @@ func strContains(a []string, s string) bool {
 }
 
 func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
-	if _, ok := imports[pkg.Name]; !ok {
-		imports[pkg.Name] = pkg
+	key := pkg.Name
+	if key == "" {
+		key = pkg.Path
 	}
+
+	imports[key] = pkg
 }
 
 func title(name string) string {

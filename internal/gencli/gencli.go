@@ -178,12 +178,10 @@ func (g *gcli) genCommands() {
 			if cmd.InputMessageType != EmptyProtoType {
 				// imports handling input
 				putImport(cmd.Imports, &pbinfo.ImportSpec{
-					Name: "os",
 					Path: "os",
 				})
 
 				putImport(cmd.Imports, &pbinfo.ImportSpec{
-					Name: "jsonpb",
 					Path: "github.com/golang/protobuf/jsonpb",
 				})
 
@@ -193,13 +191,11 @@ func (g *gcli) genCommands() {
 
 					if cmd.HasEnums {
 						putImport(cmd.Imports, &pbinfo.ImportSpec{
-							Name: "strings",
 							Path: "strings",
 						})
 					}
 				} else {
 					putImport(cmd.Imports, &pbinfo.ImportSpec{
-						Name: "bufio",
 						Path: "bufio",
 					})
 				}
@@ -212,7 +208,6 @@ func (g *gcli) genCommands() {
 
 				// add fmt for verbose printing
 				putImport(cmd.Imports, &pbinfo.ImportSpec{
-					Name: "fmt",
 					Path: "fmt",
 				})
 			} else if out != EmptyProtoType {
@@ -242,7 +237,6 @@ func (g *gcli) genCommands() {
 					msg = g.descInfo.Type[f.GetTypeName()].(*descriptor.DescriptorProto)
 
 					putImport(cmd.Imports, &pbinfo.ImportSpec{
-						Name: "iterator",
 						Path: "google.golang.org/api/iterator",
 					})
 				}
@@ -256,7 +250,6 @@ func (g *gcli) genCommands() {
 				if cmd.ServerStreaming && !cmd.ClientStreaming {
 					putImport(cmd.Imports, pkg)
 					putImport(cmd.Imports, &pbinfo.ImportSpec{
-						Name: "io",
 						Path: "io",
 					})
 				}
@@ -265,7 +258,6 @@ func (g *gcli) genCommands() {
 
 				// add fmt for verbose printing
 				putImport(cmd.Imports, &pbinfo.ImportSpec{
-					Name: "fmt",
 					Path: "fmt",
 				})
 			}
