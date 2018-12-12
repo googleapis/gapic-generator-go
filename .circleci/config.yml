@@ -50,7 +50,7 @@ jobs:
           command: |
             curl -fsSL https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.5.0/docker-credential-gcr_linux_amd64-1.5.0.tar.gz \
               | tar xz --to-stdout ./docker-credential-gcr \
-              > /usr/bin/docker-credential-gcr && chmod a+x /usr/bin/docker-credential-gcr
+              > bin/docker-credential-gcr && chmod a+x bin/docker-credential-gcr
       - run:
           name: Set up authentication to Google Container Registry.
           command: |
