@@ -10,5 +10,5 @@ COPY protoc-gen-go_gapic /usr/local/bin
 # Define the generator as an entry point.
 ENTRYPOINT protoc --proto_path=/protos/ --proto_path=/in/ \
                   --go_gapic_out=/out/ \
-                  --go_gapic_opt=$GO_GAPIC_OPT \
+                  --go_gapic_opt=$PLUGIN_OPTIONS \
                   `find /in/ -name *.proto`
