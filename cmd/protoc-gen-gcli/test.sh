@@ -25,38 +25,60 @@
 
 set -e
 
-if [ -z $COMMON_PROTO ]; then
-	echo >&2 "need COMMON_PROTO variable"
-	exit 1
-fi
+# setup variables
+GCLI="github.com/googleapis/gapic-generator-go/cmd/protoc-gen-gcli"
+GCLI_SRC=${GCLI_SRC:-$GOPATH/src/$GCLI}
 
-OUT=${OUT:-$(pwd)/testdata}
-KIOSK_PROTOS=${KIOSK_PROTOS:-$GOPATH/src/github.com/googleapis/kiosk/protos}
-SHOW_PROTOS=${SHOW_PROTOS:-$GOPATH/src/github.com/googleapis/gapic-showcase/schema}
+OUT=${OUT:-$GCLI_SRC/testdata}
+KIOSK_PROTOS=${KIOSK_PROTOS:-$GCLI_SRC/testprotos/kiosk}
+SHOW_PROTOS=${SHOW_PROTOS:-$GCLI_SRC/testprotos/showcase}
+COMMON_PROTOS=${COMMON_PROTOS:-$OUT/common}
 
-KIOSK_GAPIC=${KIOSK_GAPIC:-github.com/googleapis/kiosk/kioskgapic}
-SHOWCASE_GAPIC=${SHOWCASE_GAPIC:-github.com/googleapis/gapic-showcase/showgapic}
+KIOSK_GAPIC=${KIOSK_GAPIC:-$GCLI/testdata/kiosk/gapic}
+SHOWCASE_GAPIC=${SHOWCASE_GAPIC:-$GCLI/testdata/showcase/gapic}
 
+# make test output directories
 mkdir -p "$OUT/kiosk"
 mkdir -p "$OUT/showcase"
 
+# download api-common-protos:input-contract branch
+curl -L -O https://github.com/googleapis/api-common-protos/archive/input-contract.zip
+unzip -q input-contract.zip
+rm -f input-contract.zip
+mv -f api-common-protos-input-contract $COMMON_PROTOS
+
+# install gapic microgenerator plugin
+go install "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic"
+
+# install CLI generator plugin
+go install $GCLI
+
 generate() {
-	protoc -I "$COMMON_PROTO" $*
+	protoc -I "$COMMON_PROTOS" $*
 }
 
+# generate kiosk gapic & gcli
 generate -I $KIOSK_PROTOS \
+  --go_out=plugins=grpc:$GOPATH/src \
+  --go_gapic_out $GOPATH/src \
+  --go_gapic_opt $KIOSK_GAPIC';gapic' \
   --gcli_out $OUT/kiosk \
   --gcli_opt "gapic=$KIOSK_GAPIC" \
-  --gcli_opt 'root=testkctl' \
+  --gcli_opt "root=testkctl" \
   $KIOSK_PROTOS/kiosk.proto
 
+# generate gapic-showcase gapic & gcli
 generate -I $SHOW_PROTOS \
+  --go_out=plugins=grpc:$GOPATH/src \
+  --go_gapic_out $GOPATH/src \
+  --go_gapic_opt $SHOWCASE_GAPIC';gapic' \
   --gcli_out $OUT/showcase \
   --gcli_opt "gapic=$SHOWCASE_GAPIC" \
-  --gcli_opt 'root=testshowctl' \
-  --gcli_opt 'fmt=false' \
+  --gcli_opt "root=testshowctl" \
+  --gcli_opt "fmt=false" \
   $SHOW_PROTOS/*.proto
 
+# build each gcli for sanity check
 d=$(pwd)
 cd $OUT/kiosk
 go build
@@ -64,4 +86,5 @@ cd ../showcase
 go build
 cd $d
 
+# clean up
 rm -r $OUT
