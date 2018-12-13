@@ -21,21 +21,15 @@ jobs:
       - image: circleci/golang:1.11
     steps:
       - checkout
-      - run: go test -mod=readonly ./...
+      # Install protoc, gcli sanity tests & showcase.bash need it
       - run:
-          name: Check license
-          command: |
-            find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
-      # Install protoc, showcase.bash needs it
-      - run:
-          name: Run Showcase
+          name: Run tests
           command: |
             mkdir protobuf
             curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip > protobuf/protoc.zip
             unzip -d protobuf protobuf/protoc.zip
             export PATH=$PATH:$(pwd)/protobuf/bin
-            go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
-            ./utils/showcase.bash
+            make circleci
   publish_image:
     docker:
       - image: circleci/golang:1.11
