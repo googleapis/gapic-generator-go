@@ -33,10 +33,11 @@ The generator works as a `protoc` plugin, get `protoc` from [google/protobuf](ht
 
 Invocation
 ----------
-`protoc --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'package/path/url;name' a.proto b.proto`
+`protoc --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
 
 The `go_gapic_opt` flag is necessary because we need to know where to generated file will live.
-The substring before the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
+The substring before the equal sign is the name of this configuration option.
+The substring between the equal sign and the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
 The substring after the semicolon is the name of the package used in the `package` statement.
 Idiomatically the name is last element of the path but it need not be.
 For instance, the last element of the path might be the package's version, and the package would benefit
@@ -54,7 +55,7 @@ $ docker run \
   --user $UID \
   --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
   --mount type=bind,source=$GOPATH/src,destination=/out/ \
-  --env "PLUGIN_OPTIONS=<github.com/package/import/path;name>" \
+  --env "PLUGIN_OPTIONS=go-gapic-package=<github.com/package/import/path;name>" \
   gcr.io/gapic-images/gapic-generator-go
 ```
 

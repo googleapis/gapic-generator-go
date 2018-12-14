@@ -42,8 +42,8 @@ generate() {
 	protoc --go_gapic_out "$OUT" -I "$COMMON_PROTO" -I "$GOOGLEAPIS" $*
 }
 
-generate --go_gapic_opt 'cloud.google.com/go/vision/apiv1;vision' $GOOGLEAPIS/google/cloud/vision/v1/*.proto
-generate --go_gapic_opt 'cloud.google.com/go/speech/apiv1;speech' $GOOGLEAPIS/google/cloud/speech/v1/*.proto
-# generate --go_gapic_opt 'cloud.google.com/go/language/apiv1;language' $GOOGLEAPIS/google/cloud/language/v1/*.proto
-# generate --go_gapic_opt 'cloud.google.com/go/pubsub/apiv1;pubsub' $GOOGLEAPIS/google/pubsub/v1/*.proto
-# generate --go_gapic_opt 'cloud.google.com/go/logging/apiv2;logging' $GOOGLEAPIS/google/logging/v2/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/vision/apiv1;vision' $GOOGLEAPIS/google/cloud/vision/v1/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/speech/apiv1;speech' $GOOGLEAPIS/google/cloud/speech/v1/*.proto
+# generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/language/apiv1;language' $GOOGLEAPIS/google/cloud/language/v1/*.proto
+# generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/pubsub/apiv1;pubsub' $GOOGLEAPIS/google/pubsub/v1/*.proto
+# generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/logging/apiv2;logging' $GOOGLEAPIS/google/logging/v2/*.proto
