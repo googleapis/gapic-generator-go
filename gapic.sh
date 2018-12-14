@@ -18,29 +18,29 @@ CMD="$0"
 
 # Set variables used by this script.
 # All of these are set in options below, and all but $PATH are required.
-GO_GAPIC_OPT=
 IMAGE=
 IN=
 OUT=
+PLUGIN_OPTIONS=
 PROTO_PATH=`pwd`
 
 # Print help and exit.
 function show_help {
   cat << EOF
-Usage: $CMD --go_gapic_opt GO_GAPIC_OPT --image IMAGE --in IN_DIR --out OUT_DIR [--path PATH_DIR]
+Usage: $CMD --image IMAGE --in IN_DIR --out OUT_DIR [--options PLUGIN_OPTIONS --path PATH_DIR]
 
 Required arguments:
-      --go_gapic_opt  The import path and name for the generated package
-      --image         The Docker image to use. The script will attempt to pull
-                      it if it is not present.
-  -i, --in            A directory containing the protos describing the API
-                      to be generated.
-  -o, --out           Destination directory for the completed client library.
+      --image     The Docker image to use. The script will attempt to pull
+                    it if it is not present.
+  -i, --in        A directory containing the protos describing the API
+                    to be generated.
+  -o, --out       Destination directory for the completed client library.
 
 Optional arguments:
-  -p, --path   The base import path for the protos. Assumed to be the
-                current working directory if unspecified.
-  -h, --help   This help information.
+      --options   Options to be passed to the generator plugin
+  -p, --path      The base import path for the protos. Assumed to be the
+                    current working directory if unspecified.
+  -h, --help      This help information.
 EOF
  
   exit 0
@@ -50,10 +50,10 @@ EOF
 while true; do
   case "$1" in
     -h | --help ) show_help ;;
-    --go_gapic_opt ) GO_GAPIC_OPT="$2"; shift 2 ;;
     --image ) IMAGE="$2"; shift 2 ;;
     -i | --in ) IN="$2"; shift 2 ;;
     -o | --out ) OUT="$2"; shift 2 ;;
+    --options ) PLUGIN_OPTIONS="$2"; shift 2 ;;
     -p | --path ) PROTO_PATH=$2; shift 2 ;;
     -- ) shift; break; ;;
     * ) break ;;
@@ -61,10 +61,10 @@ while true; do
 done
 
 # Ensure that all required options are set.
-if [ -z "$GO_GAPIC_OPT" ] || [ -z "$IMAGE" ] || [ -z "$IN" ] || [ -z "$OUT" ]; then
+if [ -z "$IMAGE" ] || [ -z "$IN" ] || [ -z "$OUT" ]; then
   cat << EOF
 Required argument missing.
-The --go_gapic_opt, --image, --in, and --out arguments are all required.
+The --image, --in, and --out arguments are all required.
 Run $CMD --help for more information.
 EOF
 
@@ -99,5 +99,5 @@ docker run \
   --mount type=bind,source=$OUT,destination=/out \
   --rm \
   --user $UID \
-  --env "GO_GAPIC_OPT=$GO_GAPIC_OPT" \
+  --env "PLUGIN_OPTIONS=$PLUGIN_OPTIONS" \
   $IMAGE
