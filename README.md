@@ -49,14 +49,13 @@ The generator can also be executed via a Docker container. The image containes `
 binary, and the standard API protos.
 
 ```bash
-$ docker pull gcr.io/gapic-images/gapic-generator-go
 $ docker run \
   --rm \
   --user $UID \
   --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
   --mount type=bind,source=$GOPATH/src,destination=/out/ \
-  --env "PLUGIN_OPTIONS=go-gapic-package=<github.com/package/import/path;name>" \
-  gcr.io/gapic-images/gapic-generator-go
+  gcr.io/gapic-images/gapic-generator-go \
+  --go-gapic-package "<github.com/package/import/path;name>"
 ```
 
 Replace `/abs/path/to/protos` with the absolute path to the input protos and `github.com/package/import/path;name`
@@ -67,10 +66,10 @@ An equivalent invocation using `gapic.sh` is:
 
 ```bash
 $ gapic.sh \
-  --options 'github.com/package/import/path;name' \
-  --image gcr.io/gapic-images/gapic-generator-go
+  --image gcr.io/gapic-images/gapic-generator-go \
   --in /abs/path/to/protos \
-  --out $GOPATH/src
+  --out $GOPATH/src\ 
+  --go-gapic-package "<github.com/package/import/path;name>"
 ```
 
 Use `gapic.sh --help` to print the usage documentation.
