@@ -26,7 +26,7 @@
 set -e
 
 # setup variables
-GCLI="github.com/googleapis/gapic-generator-go/cmd/protoc-gen-gcli"
+GCLI="github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_cli"
 GCLI_SRC=${GCLI_SRC:-$GOPATH/src/$GCLI}
 
 OUT=${OUT:-$GCLI_SRC/testdata}
@@ -57,28 +57,28 @@ generate() {
 	protoc -I "$COMMON_PROTOS" $*
 }
 
-# generate kiosk gapic & gcli
+# generate kiosk gapic & go_cli
 generate -I $KIOSK_PROTOS \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
   --go_gapic_opt "go-gapic-package=$KIOSK_GAPIC"';gapic' \
-  --gcli_out $OUT/kiosk \
-  --gcli_opt "gapic=$KIOSK_GAPIC" \
-  --gcli_opt "root=testkctl" \
+  --go_cli_out $OUT/kiosk \
+  --go_cli_opt "gapic=$KIOSK_GAPIC" \
+  --go_cli_opt "root=testkctl" \
   $KIOSK_PROTOS/kiosk.proto
 
-# generate gapic-showcase gapic & gcli
+# generate gapic-showcase gapic & go_cli
 generate -I $SHOW_PROTOS \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
   --go_gapic_opt "go-gapic-package=$SHOWCASE_GAPIC"';gapic' \
-  --gcli_out $OUT/showcase \
-  --gcli_opt "gapic=$SHOWCASE_GAPIC" \
-  --gcli_opt "root=testshowctl" \
-  --gcli_opt "fmt=false" \
+  --go_cli_out $OUT/showcase \
+  --go_cli_opt "gapic=$SHOWCASE_GAPIC" \
+  --go_cli_opt "root=testshowctl" \
+  --go_cli_opt "fmt=false" \
   $SHOW_PROTOS/*.proto
 
-# build each gcli for sanity check
+# build each go_cli for sanity check
 d=$(pwd)
 cd $OUT/kiosk
 go build

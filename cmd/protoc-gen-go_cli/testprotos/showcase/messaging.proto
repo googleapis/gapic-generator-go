@@ -23,7 +23,7 @@ import "google/rpc/error_details.proto";
 
 package google.showcase.v1alpha3;
 
-option go_package = "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-gcli/testdata/showcase/generated;showcase"; 
+option go_package = "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_cli/testdata/showcase/generated;showcase"; 
 option java_package = "com.google.showcase.v1alpha3";
 option java_multiple_files = true;
 

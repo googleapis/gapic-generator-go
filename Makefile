@@ -8,9 +8,9 @@ image:
 check-license:
 	find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
 
-test-gcli:
+test-go-cli:
 	go test github.com/googleapis/gapic-generator-go/internal/gencli
-	./cmd/protoc-gen-gcli/test.sh
+	./cmd/protoc-gen-go_cli/test.sh
 
 test-gapic:
 	go test github.com/googleapis/gapic-generator-go/internal/gengapic
@@ -22,4 +22,4 @@ test:
 clean:
 	rm -rf showcase-testdir
 	rm -rf testdata
-	rm -rf cmd/protoc-gen-gcli/testdata	
+	rm -rf cmd/protoc-gen-go_cli/testdata	
