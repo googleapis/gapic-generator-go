@@ -35,22 +35,35 @@ import (
 
 const (
 	// protoc puts a dot in front of name, signaling that the name is fully qualified.
-	emptyType = ".google.protobuf.Empty"
-	lroType   = ".google.longrunning.Operation"
+	emptyType  = ".google.protobuf.Empty"
+	lroType    = ".google.longrunning.Operation"
+	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 )
 
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
-	var pkgPath, pkgName string
+	var pkgPath, pkgName, outDir string
 	if genReq.Parameter == nil {
-		return nil, errors.E(nil, "need parameter in format: client/import/path;packageName")
+		return nil, errors.E(nil, paramError)
 	}
-	if p := strings.IndexByte(*genReq.Parameter, ';'); p < 0 {
-		return nil, errors.E(nil, "need parameter in format: client/import/path;packageName")
-	} else {
-		pkgPath = (*genReq.Parameter)[:p]
-		pkgName = (*genReq.Parameter)[p+1:]
+
+	// parse plugin params, ignoring unknown values
+	for _, s := range strings.Split(*genReq.Parameter, ",") {
+		if e := strings.IndexByte(*genReq.Parameter, '='); e > 0 && s[:e] == "go-gapic-package" {
+			p := strings.IndexByte(*genReq.Parameter, ';')
+
+			if p < 0 {
+				return nil, errors.E(nil, paramError)
+			}
+
+			pkgPath = (*genReq.Parameter)[e+1 : p]
+			pkgName = (*genReq.Parameter)[p+1:]
+			outDir = filepath.FromSlash(pkgPath)
+		}
 	}
-	outDir := filepath.FromSlash(pkgPath)
+
+	if pkgPath == "" || pkgName == "" || outDir == "" {
+		return nil, errors.E(nil, paramError)
+	}
 
 	var g generator
 	g.init(genReq.ProtoFile)

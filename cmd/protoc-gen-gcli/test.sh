@@ -61,7 +61,7 @@ generate() {
 generate -I $KIOSK_PROTOS \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
-  --go_gapic_opt $KIOSK_GAPIC';gapic' \
+  --go_gapic_opt "go-gapic-package=$KIOSK_GAPIC"';gapic' \
   --gcli_out $OUT/kiosk \
   --gcli_opt "gapic=$KIOSK_GAPIC" \
   --gcli_opt "root=testkctl" \
@@ -71,7 +71,7 @@ generate -I $KIOSK_PROTOS \
 generate -I $SHOW_PROTOS \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
-  --go_gapic_opt $SHOWCASE_GAPIC';gapic' \
+  --go_gapic_opt "go-gapic-package=$SHOWCASE_GAPIC"';gapic' \
   --gcli_out $OUT/showcase \
   --gcli_opt "gapic=$SHOWCASE_GAPIC" \
   --gcli_opt "root=testshowctl" \

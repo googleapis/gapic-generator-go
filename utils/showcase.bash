@@ -31,19 +31,9 @@ go mod edit -require=github.com/googleapis/gapic-showcase@v0.0.7
 
 protoc \
 	--go_gapic_out . \
-	--go_gapic_opt 'cloud.google.com/go/showcase/apiv1alpha2;showcase' \
+	--go_gapic_opt 'go-gapic-package=cloud.google.com/go/showcase/apiv1alpha2;showcase' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v0.0.7/gapic-showcase-0.0.7.desc) \
 	google/showcase/v1alpha2/echo.proto
-
-# With Go modules, we're transitioning off version package.
-# For now this hack will keep things passing.
-mkdir -p cloud.google.com/go/internal/version
-cat > cloud.google.com/go/internal/version/version.go <<EOF
-package version
-
-const Repo = "UNKNOWN"
-func Go() string {return "UNKNOWN"}
-EOF
 
 # TODO(pongad): Move this file into this repository once we deprecate the old generator.
 curl -sSL https://raw.githubusercontent.com/googleapis/gapic-generator/753ff9d8a04a59962f3b8c2c06cb79be7df344c8/showcase/go/showcase_integration_test.go \
@@ -60,7 +50,6 @@ curl -sSL https://raw.githubusercontent.com/googleapis/gapic-generator/753ff9d8a
 #
 # We copy this behavior from protoc-gen-go, so they're probably having the same problem with modules. Therefore...
 # TODO(pongad): figure out what protoc-gen-go is doing to solve this then do the same thing.
-find -name '*.go' | xargs sed -i 's,cloud.google.com/go/internal/version,showcase-test/&,g'
 find -name '*.go' | xargs sed -i 's,cloud.google.com/go/showcase/apiv1alpha2,showcase-test/&,g'
 
 curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v0.0.7/gapic-showcase-0.0.7-linux-amd64.tar.gz | tar xz

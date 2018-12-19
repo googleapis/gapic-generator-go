@@ -27,7 +27,7 @@ PROTO_PATH=`pwd`
 # Print help and exit.
 function show_help {
   cat << EOF
-Usage: $CMD --image IMAGE --in IN_DIR --out OUT_DIR [--options PLUGIN_OPTIONS --path PATH_DIR]
+Usage: $CMD --image IMAGE --in IN_DIR --out OUT_DIR [--path PATH_DIR]
 
 Required arguments:
       --image     The Docker image to use. The script will attempt to pull
@@ -37,7 +37,6 @@ Required arguments:
   -o, --out       Destination directory for the completed client library.
 
 Optional arguments:
-      --options   Options to be passed to the generator plugin
   -p, --path      The base import path for the protos. Assumed to be the
                     current working directory if unspecified.
   -h, --help      This help information.
@@ -53,8 +52,8 @@ while true; do
     --image ) IMAGE="$2"; shift 2 ;;
     -i | --in ) IN="$2"; shift 2 ;;
     -o | --out ) OUT="$2"; shift 2 ;;
-    --options ) PLUGIN_OPTIONS="$2"; shift 2 ;;
     -p | --path ) PROTO_PATH=$2; shift 2 ;;
+    --* ) PLUGIN_OPTIONS="$PLUGIN_OPTIONS $1 $2"; shift 2 ;;
     -- ) shift; break; ;;
     * ) break ;;
   esac
@@ -99,5 +98,5 @@ docker run \
   --mount type=bind,source=$OUT,destination=/out \
   --rm \
   --user $UID \
-  --env "PLUGIN_OPTIONS=$PLUGIN_OPTIONS" \
-  $IMAGE
+  $IMAGE \
+  $PLUGIN_OPTIONS
