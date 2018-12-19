@@ -20,7 +20,7 @@ import "google/type/latlng.proto";
 import "google/api/annotations.proto";
 
 option java_multiple_files = true;
-option go_package = "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-gcli/testdata/kiosk/generated;kiosk"; 
+option go_package = "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_cli/testdata/kiosk/generated;kiosk"; 
 
 package kiosk;
 
