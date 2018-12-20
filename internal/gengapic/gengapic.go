@@ -109,7 +109,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if err := g.genExampleFile(s, pkgName); err != nil {
 			return nil, errors.E(err, "example: %s", s.GetName())
 		}
-		g.imports[pbinfo.ImportSpec{Path: pkgPath}] = true
+		g.imports[pbinfo.ImportSpec{Name: pkgName, Path: pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", pkgName+"_test")
 	}
 

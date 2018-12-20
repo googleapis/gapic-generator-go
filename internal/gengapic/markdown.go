@@ -20,6 +20,7 @@ package gengapic
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/golang-commonmark/markdown"
@@ -71,6 +72,7 @@ func (m *mdRenderer) plain(t markdown.Token) {
 	default:
 		// TODO(pongad): When going into production, we should turn this to warn.
 		// In the meantime, it's nice to crash to make sure we see it.
-		log.Panicf("unhandled type: %#v", t)
+		log.SetOutput(os.Stderr)
+		log.Printf("unhandled type: %#v", t)
 	}
 }
