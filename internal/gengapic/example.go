@@ -30,7 +30,7 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 	p("  _ = c")
 	p("}")
 	p("")
-	g.imports[pbinfo.ImportSpec{Path: "golang.org/x/net/context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
 	for _, m := range serv.Method {
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {

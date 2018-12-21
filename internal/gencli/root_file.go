@@ -33,7 +33,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
+	"context"
 )
 
 var Verbose, OutputJSON bool

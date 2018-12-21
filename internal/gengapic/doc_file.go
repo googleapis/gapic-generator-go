@@ -47,7 +47,7 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("%s%q", "\t", "strings")
 	p("%s%q", "\t", "unicode")
 	p("")
-	p("%s%q", "\t", "golang.org/x/net/context")
+	p("%s%q", "\t", "context")
 	p("%s%q", "\t", "google.golang.org/grpc/metadata")
 	p(")")
 	p("")
