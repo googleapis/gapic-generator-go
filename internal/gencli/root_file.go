@@ -26,6 +26,7 @@ const (
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -33,7 +34,6 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
-	"context"
 )
 
 var Verbose, OutputJSON bool
