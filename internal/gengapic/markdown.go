@@ -20,14 +20,17 @@ package gengapic
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/golang-commonmark/markdown"
 )
 
+var linkParser = regexp.MustCompile(`<a href=["'](.+)["']`)
+
 func MDPlain(s string) string {
 	var mdr mdRenderer
-	for _, tok := range markdown.New().Parse([]byte(s)) {
+	for _, tok := range markdown.New(markdown.HTML(true)).Parse([]byte(s)) {
 		mdr.plain(tok)
 	}
 
@@ -68,7 +71,27 @@ func (m *mdRenderer) plain(t markdown.Token) {
 		fmt.Fprintf(&m.sb, " (at %s)", m.linkTargets[l-1])
 		m.linkTargets = m.linkTargets[:l-1]
 
+	case *markdown.HTMLInline:
+		m.html(t)
+
 	default:
 		log.Printf("unhandled type: %T", t)
+	}
+}
+
+func (m *mdRenderer) html(t *markdown.HTMLInline) {
+	// font-based tags like <b> and most closing tags are just ignored entirely
+
+	// write a new line for break tags
+	if t.Content == "<br>" {
+		m.sb.WriteByte('\n')
+	} else if matches := linkParser.FindStringSubmatch(t.Content); len(matches) > 1 {
+		// parse out href
+		m.linkTargets = append(m.linkTargets, matches[1])
+	} else if t.Content == "</a>" {
+		// print link
+		l := len(m.linkTargets)
+		fmt.Fprintf(&m.sb, " (at %s)", m.linkTargets[l-1])
+		m.linkTargets = m.linkTargets[:l-1]
 	}
 }

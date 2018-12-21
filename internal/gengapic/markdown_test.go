@@ -39,6 +39,14 @@ func TestMDPlain(t *testing.T) {
 			in:   "paragraph\n\nanother paragraph",
 			want: "paragraph\n\nanother paragraph",
 		},
+		{
+			in:   "<b>html</b> <a href=\"/link/to/some#thing\">value</a> <br> test",
+			want: "html value (at /link/to/some#thing) \n test",
+		},
+		{
+			in:   "not <actually: html, just some> docs",
+			want: "not <actually: html, just some> docs",
+		},
 	} {
 		got := MDPlain(tst.in)
 		if got != tst.want {
