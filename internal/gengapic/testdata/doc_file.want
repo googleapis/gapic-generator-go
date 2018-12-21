@@ -19,11 +19,11 @@
 package awesome // import "path/to/awesome"
 
 import (
+	"context"
 	"runtime"
 	"strings"
 	"unicode"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
 

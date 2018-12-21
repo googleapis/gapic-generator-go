@@ -238,7 +238,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("")
 
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/transport"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "golang.org/x/net/context"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 	}
 
 	// Connection()
