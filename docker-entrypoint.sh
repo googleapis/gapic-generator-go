@@ -17,11 +17,15 @@
 
 GO_GAPIC_PACKAGE=
 
+# enable extended globbing for flag pattern matching
+shopt -s extglob
+
 # Parse out options.
 while true; do
   case "$1" in
     --go-gapic-package ) GO_GAPIC_PACKAGE="go-gapic-package=$2"; shift 2 ;;
-    -- ) shift; break; ;;
+    --go-gapic* ) echo "Skipping unrecognized go-gapic flag: $1"; shift ;;
+    --* | +([[:word:][:punct:]]) ) shift ;;
     * ) break ;;
   esac
 done
