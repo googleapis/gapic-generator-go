@@ -49,6 +49,13 @@ func TestClientOpt(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+	if err := proto.SetExtension(serv.Method[1].Options, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/zap",
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	for _, tst := range []struct {
 		tstName, servName string
