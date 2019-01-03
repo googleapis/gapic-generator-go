@@ -24,7 +24,7 @@ shopt -s extglob
 while true; do
   case "$1" in
     --go-gapic-package ) GO_GAPIC_PACKAGE="go-gapic-package=$2"; shift 2 ;;
-    --go-gapic* ) echo "Skipping unrecognized go-gapic flag: $1"; shift ;;
+    --go-gapic* ) echo "Skipping unrecognized go-gapic flag: $1" >&2; shift ;;
     --* | +([[:word:][:punct:]]) ) shift ;;
     * ) break ;;
   esac
