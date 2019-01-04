@@ -72,12 +72,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 		for _, m := range serv.GetMethod() {
 			if m.GetOptions() == nil {
-				// Some methods are not annotated, this is not an error.
+				// Some methods are not annotated, this is not an error, give it default/nonidempotent config.
+				nonidempotent = append(nonidempotent, m.GetName())
 				continue
 			}
 
 			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 			if err == proto.ErrMissingExtension {
+				// Give method default/nonidempotent config
+				nonidempotent = append(nonidempotent, m.GetName())
 				continue
 			}
 			if err != nil {

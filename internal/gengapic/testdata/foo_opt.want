@@ -41,6 +41,7 @@ func defaultFooCallOptions() *FooCallOptions {
 	return &FooCallOptions{
 		Zip: idempotent,
 		Zap: nonidempotent,
+		Smack: nonidempotent,
 	}
 }
 

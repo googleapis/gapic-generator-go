@@ -41,6 +41,7 @@ func defaultCallOptions() *CallOptions {
 	return &CallOptions{
 		Zip: idempotent,
 		Zap: nonidempotent,
+		Smack: nonidempotent,
 	}
 }
 

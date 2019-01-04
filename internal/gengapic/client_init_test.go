@@ -33,7 +33,7 @@ func TestClientOpt(t *testing.T) {
 		Method: []*descriptor.MethodDescriptorProto{
 			{Name: proto.String("Zip"), Options: &descriptor.MethodOptions{}},
 			{Name: proto.String("Zap"), Options: &descriptor.MethodOptions{}},
-			{Name: proto.String("Smack"), Options: &descriptor.MethodOptions{}},
+			{Name: proto.String("Smack")},
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
