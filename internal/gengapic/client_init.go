@@ -102,13 +102,13 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			p("  Max: time.Minute,")
 			p("  Multiplier: 1.3,")
 			p("}")
+			p("")
 
 			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
 		}
 
 		if len(idempotent) > 0 {
-			p("")
 			p("idempotent := []gax.CallOption{")
 			p("  gax.WithRetry(func() gax.Retryer {")
 			p("    return gax.OnCodes([]codes.Code{")
