@@ -66,48 +66,70 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			codes  []code.Code
 		}
 
-		var defaultRetry []string
+		var idempotent []string
+		var nonidempotent []string
 		var overrideRetry []methodCode
 
 		for _, m := range serv.GetMethod() {
 			if m.GetOptions() == nil {
-				// Some methods are not annotated, this is not an error.
+				// Some methods are not annotated, this is not an error, give it default/nonidempotent config.
+				nonidempotent = append(nonidempotent, m.GetName())
 				continue
 			}
 
 			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 			if err == proto.ErrMissingExtension {
+				// Give method default/nonidempotent config
+				nonidempotent = append(nonidempotent, m.GetName())
 				continue
 			}
 			if err != nil {
 				return errors.E(err, "cannot read HTTP annotation")
 			}
-			// Generator spec mandates we should only retry on GET, unless there is an override.
+			// Generator spec mandates we bucket methods into idempotent and non-idempotent for retries, unless there is an override.
 			// TODO(pongad): implement the override.
-			if _, ok := eHttp.(*annotations.HttpRule).Pattern.(*annotations.HttpRule_Get); ok {
-				defaultRetry = append(defaultRetry, m.GetName())
+			switch eHttp.(*annotations.HttpRule).Pattern.(type) {
+			case *annotations.HttpRule_Get:
+				idempotent = append(idempotent, m.GetName())
+			default:
+				nonidempotent = append(nonidempotent, m.GetName())
 			}
 		}
 
 		// TODO(pongad): read retry params from somewhere
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 
-		if len(defaultRetry) > 0 || len(overrideRetry) > 0 {
+		if len(idempotent) > 0 || len(nonidempotent) > 0 || len(overrideRetry) > 0 {
 			p("backoff := gax.Backoff{")
 			p("  Initial: 100 * time.Millisecond,")
 			p("  Max: time.Minute,")
 			p("  Multiplier: 1.3,")
 			p("}")
+			p("")
 
 			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
 		}
 
-		if len(defaultRetry) > 0 {
-			p("retry := []gax.CallOption{")
+		if len(idempotent) > 0 {
+			p("idempotent := []gax.CallOption{")
 			p("  gax.WithRetry(func() gax.Retryer {")
 			p("    return gax.OnCodes([]codes.Code{")
+			p("      codes.Aborted,")
 			p("      codes.Internal,")
+			p("      codes.Unavailable,")
+			p("      codes.Unknown,")
+			p("    }, backoff)")
+			p("  }),")
+			p("}")
+			p("")
+
+		}
+
+		if len(nonidempotent) > 0 {
+			p("nonidempotent := []gax.CallOption{")
+			p("  gax.WithRetry(func() gax.Retryer {")
+			p("    return gax.OnCodes([]codes.Code{")
 			p("      codes.Unavailable,")
 			p("    }, backoff)")
 			p("  }),")
@@ -117,8 +139,11 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		}
 
 		p("  return &%sCallOptions{", servName)
-		for _, m := range defaultRetry {
-			p("%s: retry,", m)
+		for _, m := range idempotent {
+			p("%s: idempotent,", m)
+		}
+		for _, m := range nonidempotent {
+			p("%s: nonidempotent,", m)
 		}
 		for _, retry := range overrideRetry {
 			p("%s: []gax.CallOption{", retry.method)
