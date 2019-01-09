@@ -94,7 +94,7 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 		p("  }")
 		p("")
 		p("  notSemverRune := func(r rune) bool {")
-		p("    return strings.IndexRune(%q, r) < 0", "0123456789.")
+		p("    return !strings.ContainsRune(%q, r)", "0123456789.")
 		p("  }")
 		p("")
 		p("  if strings.HasPrefix(s, %q) {", "go1")

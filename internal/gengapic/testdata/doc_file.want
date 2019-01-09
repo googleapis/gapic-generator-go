@@ -63,7 +63,7 @@ func versionGo() string {
 	}
 
 	notSemverRune := func(r rune) bool {
-		return strings.IndexRune("0123456789.", r) < 0
+		return !strings.ContainsRune("0123456789.", r)
 	}
 
 	if strings.HasPrefix(s, "go1") {
