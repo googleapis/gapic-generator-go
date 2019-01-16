@@ -15,8 +15,6 @@
 package gengapic
 
 import (
-	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -153,7 +151,6 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto, config *serviceCo
 	}
 
 	// TODO(ndietz) remove this once oauth scopes annotation is accepted
-	fmt.Fprintf(os.Stderr, "Auth in collectScopes: %+v\n", config.Authentication.Rules[0].Oauth)
 	if len(scopeSet) == 0 && config != nil && config.Authentication != nil {
 		if len(config.Authentication.Rules) > 0 {
 			for _, rule := range config.Authentication.Rules {
