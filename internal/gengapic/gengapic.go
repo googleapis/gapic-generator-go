@@ -65,7 +65,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				pkgPath = s[e+1 : p]
 				pkgName = s[p+1:]
 				outDir = filepath.FromSlash(pkgPath)
-			case "go-gapic-service-config":
+			case "gapic-service-config":
 				f, err := os.Open(s[e+1:])
 				if err != nil {
 					return nil, errors.E(nil, "error opening service config: %v", err)
