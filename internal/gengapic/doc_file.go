@@ -35,16 +35,19 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p(license.Apache, year)
 	p("")
 
-	if an := g.apiName; an != "" {
+	if g.apiName != "" {
 		p("// Package %s is an auto-generated package for the", pkgName)
-		p("// %s.", an)
+		p("// %s.", g.apiName)
 	}
 
 	// TODO(ndietz) figure out how to include this without the service config
 	if g.serviceConfig != nil && g.serviceConfig.Documentation != nil {
 		wrapped := wrapString(g.serviceConfig.Documentation.Summary, 75)
 
-		p("")
+		if len(wrapped) > 0 && g.apiName != "" {
+			p("//")
+		}
+
 		for _, line := range wrapped {
 			p("// %s", strings.TrimSpace(line))
 		}
