@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -36,7 +37,20 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 
 	if an := g.apiName; an != "" {
 		p("// Package %s is an auto-generated package for the", pkgName)
-		p("// %s API.", an)
+		p("// %s.", an)
+	}
+
+	// TODO(ndietz) figure out how to include this without the service config
+	if len(g.serviceConfig) > 0 && g.serviceConfig["documentation"] != nil {
+		if summary := g.serviceConfig["documentation"].(map[interface{}]interface{})["summary"]; summary != nil {
+			wrapped := wrapString(summary.(string), 75)
+
+			p("")
+			p("//")
+			for _, line := range wrapped {
+				p("// %s", strings.TrimSpace(line))
+			}
+		}
 	}
 
 	p("package %s // import %q", pkgName, pkgPath)
@@ -119,9 +133,14 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	}
 }
 
-func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
+func collectScopes(servs []*descriptor.ServiceDescriptorProto, serviceConfig map[string]interface{}) ([]string, error) {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
+		// TODO(ndietz) remove this once oauth scopes annotation is accepted
+		if s.GetOptions() == nil {
+			continue
+		}
+
 		eOauth, err := proto.GetExtension(s.Options, annotations.E_Oauth)
 		if err == proto.ErrMissingExtension {
 			continue
@@ -134,10 +153,47 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error)
 		}
 	}
 
+	// TODO(ndietz) remove this once oauth scopes annotation is accepted
+	if len(scopeSet) == 0 && len(serviceConfig) > 0 && serviceConfig["authentication"] != nil {
+		if rules := serviceConfig["authentication"].(map[interface{}]interface{})["rules"]; rules != nil {
+			for _, rule := range rules.([]interface{}) {
+				if r, ok := rule.(map[interface{}]interface{}); ok && r["selector"] != nil && r["selector"].(string) == "*" {
+					if oauth := r["oauth"]; oauth != nil {
+						if scopeStr := oauth.(map[interface{}]interface{})["canonical_scopes"]; scopeStr != nil {
+							scopes := strings.Split(scopeStr.(string), ",")
+							for _, sc := range scopes {
+								scopeSet[sc] = true
+							}
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
 	var scopes []string
 	for sc := range scopeSet {
 		scopes = append(scopes, sc)
 	}
 	sort.Strings(scopes)
 	return scopes, nil
+}
+
+func wrapString(str string, max int) []string {
+	var lines []string
+	var line string
+
+	split := strings.Split(str, " ")
+	for _, w := range split {
+		if len(line)+len(w)+1 > max {
+			lines = append(lines, line)
+			line = ""
+		}
+
+		line += " " + w
+	}
+	lines = append(lines, line)
+
+	return lines
 }
