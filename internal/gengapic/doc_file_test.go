@@ -24,9 +24,9 @@ import (
 func TestDocFile(t *testing.T) {
 	var g generator
 	g.apiName = "Awesome Foo API"
-	g.serviceConfig = map[string]interface{}{
-		"documentation": map[interface{}]interface{}{
-			"summary": "The Awesome Foo API is really really awesome. It enables the use of Foo with Buz and Baz to acclerate bar.",
+	g.serviceConfig = &serviceConfig{
+		Documentation: &configDocumentation{
+			Summary: "The Awesome Foo API is really really awesome. It enables the use of Foo with Buz and Baz to acclerate bar.",
 		},
 	}
 

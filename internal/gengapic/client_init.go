@@ -46,9 +46,9 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		var host string
 		if eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost); err == nil {
 			host = *eHost.(*string)
-		} else if len(g.serviceConfig) > 0 {
+		} else if g.serviceConfig != nil {
 			// TODO(ndietz) remove this once default_host annotation is acepted
-			host = g.serviceConfig["name"].(string)
+			host = g.serviceConfig.Name
 		} else {
 			return errors.E(err, "cannot read default host")
 		}

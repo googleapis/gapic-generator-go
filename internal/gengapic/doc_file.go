@@ -15,6 +15,8 @@
 package gengapic
 
 import (
+	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -41,15 +43,12 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	}
 
 	// TODO(ndietz) figure out how to include this without the service config
-	if len(g.serviceConfig) > 0 && g.serviceConfig["documentation"] != nil {
-		if summary := g.serviceConfig["documentation"].(map[interface{}]interface{})["summary"]; summary != nil {
-			wrapped := wrapString(summary.(string), 75)
+	if g.serviceConfig != nil && g.serviceConfig.Documentation != nil {
+		wrapped := wrapString(g.serviceConfig.Documentation.Summary, 75)
 
-			p("")
-			p("//")
-			for _, line := range wrapped {
-				p("// %s", strings.TrimSpace(line))
-			}
+		p("")
+		for _, line := range wrapped {
+			p("// %s", strings.TrimSpace(line))
 		}
 	}
 
@@ -133,7 +132,7 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	}
 }
 
-func collectScopes(servs []*descriptor.ServiceDescriptorProto, serviceConfig map[string]interface{}) ([]string, error) {
+func collectScopes(servs []*descriptor.ServiceDescriptorProto, config *serviceConfig) ([]string, error) {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
 		// TODO(ndietz) remove this once oauth scopes annotation is accepted
@@ -154,13 +153,14 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto, serviceConfig map
 	}
 
 	// TODO(ndietz) remove this once oauth scopes annotation is accepted
-	if len(scopeSet) == 0 && len(serviceConfig) > 0 && serviceConfig["authentication"] != nil {
-		if rules := serviceConfig["authentication"].(map[interface{}]interface{})["rules"]; rules != nil {
-			for _, rule := range rules.([]interface{}) {
-				if r, ok := rule.(map[interface{}]interface{}); ok && r["selector"] != nil && r["selector"].(string) == "*" {
-					if oauth := r["oauth"]; oauth != nil {
-						if scopeStr := oauth.(map[interface{}]interface{})["canonical_scopes"]; scopeStr != nil {
-							scopes := strings.Split(scopeStr.(string), ",")
+	fmt.Fprintf(os.Stderr, "Auth in collectScopes: %+v\n", config.Authentication.Rules[0].Oauth)
+	if len(scopeSet) == 0 && config != nil && config.Authentication != nil {
+		if len(config.Authentication.Rules) > 0 {
+			for _, rule := range config.Authentication.Rules {
+				if rule.Selector == "*" {
+					if rule.Oauth != nil {
+						if rule.Oauth.CanonicalScopes != "nil" {
+							scopes := strings.Split(rule.Oauth.CanonicalScopes, ",")
 							for _, sc := range scopes {
 								scopeSet[sc] = true
 							}
@@ -183,6 +183,10 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto, serviceConfig map
 func wrapString(str string, max int) []string {
 	var lines []string
 	var line string
+
+	if str == "" {
+		return lines
+	}
 
 	split := strings.Split(str, " ")
 	for _, w := range split {

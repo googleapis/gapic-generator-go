@@ -17,7 +17,6 @@
 // Package awesome is an auto-generated package for the
 // Awesome Foo API.
 
-//
 // The Awesome Foo API is really really awesome. It enables the use of Foo
 // with Buz and Baz to acclerate bar.
 package awesome // import "path/to/awesome"

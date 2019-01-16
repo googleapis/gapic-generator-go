@@ -107,9 +107,9 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		nameParts := append([]string(nil), eMeta.PackageNamespace...)
 		nameParts = append(nameParts, eMeta.ProductName, "API")
 		g.apiName = strings.Join(nameParts, " ")
-	} else if len(g.serviceConfig) > 0 {
+	} else if g.serviceConfig != nil {
 		// TODO(ndietz) remove this once metadata/packaging annotations are accepted
-		g.apiName = g.serviceConfig["title"].(string)
+		g.apiName = g.serviceConfig.Title
 	}
 
 	for _, s := range genServs {
@@ -174,7 +174,7 @@ type generator struct {
 	apiName string
 
 	// Parsed service config from plugin option
-	serviceConfig map[string]interface{}
+	serviceConfig *serviceConfig
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
