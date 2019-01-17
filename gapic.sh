@@ -94,6 +94,7 @@ fi
 
 # Generate the client library.
 docker run \
+  --mount type=bind,source=${PROTO_PATH},destination=/conf,readonly \
   --mount type=bind,source=${PROTO_PATH}/${IN},destination=/in/${IN},readonly \
   --mount type=bind,source=$OUT,destination=/out \
   --rm \

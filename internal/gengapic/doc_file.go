@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -34,9 +35,22 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p(license.Apache, year)
 	p("")
 
-	if an := g.apiName; an != "" {
+	if g.apiName != "" {
 		p("// Package %s is an auto-generated package for the", pkgName)
-		p("// %s API.", an)
+		p("// %s.", g.apiName)
+	}
+
+	// TODO(ndietz) figure out how to include this without the service config
+	if g.serviceConfig != nil && g.serviceConfig.Documentation != nil {
+		wrapped := wrapString(g.serviceConfig.Documentation.Summary, 75)
+
+		if len(wrapped) > 0 && g.apiName != "" {
+			p("//")
+		}
+
+		for _, line := range wrapped {
+			p("// %s", strings.TrimSpace(line))
+		}
 	}
 
 	p("package %s // import %q", pkgName, pkgPath)
@@ -119,9 +133,14 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	}
 }
 
-func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
+func collectScopes(servs []*descriptor.ServiceDescriptorProto, config *serviceConfig) ([]string, error) {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
+		// TODO(ndietz) remove this once oauth scopes annotation is accepted
+		if s.GetOptions() == nil {
+			continue
+		}
+
 		eOauth, err := proto.GetExtension(s.Options, annotations.E_Oauth)
 		if err == proto.ErrMissingExtension {
 			continue
@@ -134,10 +153,51 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error)
 		}
 	}
 
+	// TODO(ndietz) remove this once oauth scopes annotation is accepted
+	if len(scopeSet) == 0 && config != nil && config.Authentication != nil {
+		if len(config.Authentication.Rules) > 0 {
+			for _, rule := range config.Authentication.Rules {
+				if rule.Selector == "*" {
+					if rule.Oauth != nil {
+						if rule.Oauth.CanonicalScopes != "nil" {
+							scopes := strings.Split(rule.Oauth.CanonicalScopes, ",")
+							for _, sc := range scopes {
+								scopeSet[sc] = true
+							}
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
 	var scopes []string
 	for sc := range scopeSet {
 		scopes = append(scopes, sc)
 	}
 	sort.Strings(scopes)
 	return scopes, nil
+}
+
+func wrapString(str string, max int) []string {
+	var lines []string
+	var line string
+
+	if str == "" {
+		return lines
+	}
+
+	split := strings.Fields(str)
+	for _, w := range split {
+		if len(line)+len(w)+1 > max {
+			lines = append(lines, line)
+			line = ""
+		}
+
+		line += " " + w
+	}
+	lines = append(lines, line)
+
+	return lines
 }

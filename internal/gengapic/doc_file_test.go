@@ -23,7 +23,13 @@ import (
 
 func TestDocFile(t *testing.T) {
 	var g generator
-	g.apiName = "Awesome Foo"
+	g.apiName = "Awesome Foo API"
+	g.serviceConfig = &serviceConfig{
+		Documentation: &configDocumentation{
+			Summary: "The Awesome Foo API is really really awesome. It enables the use of Foo with Buz and Baz to acclerate bar.",
+		},
+	}
+
 	g.genDocFile("path/to/awesome", "awesome", 42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
 	txtdiff.Diff(t, "doc_file", g.pt.String(), filepath.Join("testdata", "doc_file.want"))
 }

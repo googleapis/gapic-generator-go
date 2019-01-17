@@ -43,14 +43,19 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// defaultClientOptions
 	{
-		eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
-		if err != nil {
+		var host string
+		if eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost); err == nil {
+			host = *eHost.(*string)
+		} else if g.serviceConfig != nil {
+			// TODO(ndietz) remove this once default_host annotation is acepted
+			host = g.serviceConfig.Name
+		} else {
 			return errors.E(err, "cannot read default host")
 		}
 
 		p("func default%sClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
-		p(`    option.WithEndpoint("%s:443"),`, *eHost.(*string))
+		p(`    option.WithEndpoint("%s:443"),`, host)
 		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("  }")
 		p("}")
@@ -187,7 +192,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	// client struct
 	{
-		p("// %sClient is a client for interacting with %s API.", servName, g.apiName)
+		p("// %sClient is a client for interacting with %s.", servName, g.apiName)
 		p("//")
 		p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 		p("type %sClient struct {", servName)

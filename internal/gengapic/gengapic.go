@@ -16,12 +16,15 @@ package gengapic
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -42,22 +45,37 @@ const (
 
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var pkgPath, pkgName, outDir string
+	var g generator
+
 	if genReq.Parameter == nil {
 		return nil, errors.E(nil, paramError)
 	}
 
 	// parse plugin params, ignoring unknown values
 	for _, s := range strings.Split(*genReq.Parameter, ",") {
-		if e := strings.IndexByte(*genReq.Parameter, '='); e > 0 && s[:e] == "go-gapic-package" {
-			p := strings.IndexByte(*genReq.Parameter, ';')
+		if e := strings.IndexByte(s, '='); e > 0 {
+			switch s[:e] {
+			case "go-gapic-package":
+				p := strings.IndexByte(s, ';')
 
-			if p < 0 {
-				return nil, errors.E(nil, paramError)
+				if p < 0 {
+					return nil, errors.E(nil, paramError)
+				}
+
+				pkgPath = s[e+1 : p]
+				pkgName = s[p+1:]
+				outDir = filepath.FromSlash(pkgPath)
+			case "gapic-service-config":
+				f, err := os.Open(s[e+1:])
+				if err != nil {
+					return nil, errors.E(nil, "error opening service config: %v", err)
+				}
+
+				err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
+				if err != nil {
+					return nil, errors.E(nil, "error decoding service config: %v", err)
+				}
 			}
-
-			pkgPath = (*genReq.Parameter)[e+1 : p]
-			pkgName = (*genReq.Parameter)[p+1:]
-			outDir = filepath.FromSlash(pkgPath)
 		}
 	}
 
@@ -65,7 +83,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		return nil, errors.E(nil, paramError)
 	}
 
-	var g generator
 	g.init(genReq.ProtoFile)
 
 	var genServs []*descriptor.ServiceDescriptorProto
@@ -83,11 +100,16 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			}
 		}
 	}
+
+	// favor annotations over service config
 	if eMeta != nil {
 		// Without this, the doc is going to be a little bad but this is not an error.
 		nameParts := append([]string(nil), eMeta.PackageNamespace...)
-		nameParts = append(nameParts, eMeta.ProductName)
+		nameParts = append(nameParts, eMeta.ProductName, "API")
 		g.apiName = strings.Join(nameParts, " ")
+	} else if g.serviceConfig != nil {
+		// TODO(ndietz) remove this once metadata/packaging annotations are accepted
+		g.apiName = g.serviceConfig.Title
 	}
 
 	for _, s := range genServs {
@@ -114,7 +136,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	g.reset()
-	scopes, err := collectScopes(genServs)
+	scopes, err := collectScopes(genServs, g.serviceConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -150,6 +172,9 @@ type generator struct {
 
 	// Human-readable name of the API used in docs
 	apiName string
+
+	// Parsed service config from plugin option
+	serviceConfig *serviceConfig
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
