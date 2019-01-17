@@ -188,7 +188,7 @@ func wrapString(str string, max int) []string {
 		return lines
 	}
 
-	split := strings.Split(str, " ")
+	split := strings.Fields(str)
 	for _, w := range split {
 		if len(line)+len(w)+1 > max {
 			lines = append(lines, line)
