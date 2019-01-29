@@ -121,7 +121,6 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			p("  gax.WithRetry(func() gax.Retryer {")
 			p("    return gax.OnCodes([]codes.Code{")
 			p("      codes.Aborted,")
-			p("      codes.Internal,")
 			p("      codes.Unavailable,")
 			p("      codes.Unknown,")
 			p("    }, backoff)")
