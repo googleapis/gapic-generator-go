@@ -23,7 +23,6 @@ func defaultFooCallOptions() *FooCallOptions {
 		gax.WithRetry(func() gax.Retryer {
 			return gax.OnCodes([]codes.Code{
 				codes.Aborted,
-				codes.Internal,
 				codes.Unavailable,
 				codes.Unknown,
 			}, backoff)
