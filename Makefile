@@ -22,4 +22,5 @@ test:
 clean:
 	rm -rf showcase-testdir
 	rm -rf testdata
+	rm -rf cmd/protoc-gen-go_cli/testprotos
 	rm -rf cmd/protoc-gen-go_cli/testdata	

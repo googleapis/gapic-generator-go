@@ -44,8 +44,8 @@ func (f *Flag) GenOtherVarName(in string) string {
 // GenOneOfVarName generates the variable name for a oneof entry type
 func (f *Flag) GenOneOfVarName(in string) string {
 	name := f.InputFieldName()
-	if !f.IsNested && strings.Count(f.Name, ".") > 1 {
-		name = f.Name[:strings.LastIndex(f.Name, ".")]
+	if !f.IsNested && strings.Count(name, ".") > 1 {
+		name = name[:strings.LastIndex(name, ".")]
 	}
 
 	for _, tkn := range strings.Split(name, ".") {
@@ -119,6 +119,11 @@ func (f *Flag) IsMessage() bool {
 // IsEnum is a template helper that reports if the flag is of an enum type
 func (f *Flag) IsEnum() bool {
 	return f.Type == descriptor.FieldDescriptorProto_TYPE_ENUM
+}
+
+// IsBytes is a helper that reports if the flag is of a type bytes
+func (f *Flag) IsBytes() bool {
+	return f.Type == descriptor.FieldDescriptorProto_TYPE_BYTES
 }
 
 // OneOfInputFieldName converts the field name into the Go struct property
