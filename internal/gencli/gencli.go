@@ -401,6 +401,11 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			IsOneOfField: isOneOf,
 		}
 
+		// skip repeated bytes, they end up being [][]byte which isn't a supported pFlag flag
+		if flag.IsBytes() && flag.Repeated {
+			continue
+		}
+
 		// evaluate field comments for API behavior
 		output, flag.Required, flag.Usage = g.getFieldBehavior(msg, field)
 		if output {

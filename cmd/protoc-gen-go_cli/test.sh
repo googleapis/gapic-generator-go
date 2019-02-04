@@ -30,6 +30,7 @@ GCLI="github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_cli"
 GCLI_SRC=${GCLI_SRC:-$GOPATH/src/$GCLI}
 
 OUT=${OUT:-$GCLI_SRC/testdata}
+TESTPROTOS=${TESTPROTOS:-$GCLI_SRC/testprotos}
 KIOSK_PROTOS=${KIOSK_PROTOS:-$GCLI_SRC/testprotos/kiosk}
 SHOW_PROTOS=${SHOW_PROTOS:-$GCLI_SRC/testprotos/showcase}
 COMMON_PROTOS=${COMMON_PROTOS:-$OUT/common}
@@ -41,11 +42,23 @@ SHOWCASE_GAPIC=${SHOWCASE_GAPIC:-$GCLI/testdata/showcase/gapic}
 mkdir -p "$OUT/kiosk"
 mkdir -p "$OUT/showcase"
 
+# make test proto directories
+mkdir -p $KIOSK_PROTOS
+mkdir -p $SHOW_PROTOS
+
 # download api-common-protos:input-contract branch
 curl -L -O https://github.com/googleapis/api-common-protos/archive/input-contract.zip
 unzip -q input-contract.zip
 rm -f input-contract.zip
 mv -f api-common-protos-input-contract $COMMON_PROTOS
+
+# download kiosk proto
+curl -L -O https://raw.githubusercontent.com/googleapis/kiosk/master/protos/kiosk.proto
+mv kiosk.proto $KIOSK_PROTOS/
+
+# download gapic-showcase proto descriptor set
+curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v0.0.10/gapic-showcase-0.0.10.desc
+mv gapic-showcase-0.0.10.desc $SHOW_PROTOS/
 
 # install gapic microgenerator plugin
 go install "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic"
@@ -53,12 +66,9 @@ go install "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic"
 # install CLI generator plugin
 go install $GCLI
 
-generate() {
-	protoc -I "$COMMON_PROTOS" $*
-}
-
 # generate kiosk gapic & go_cli
-generate -I $KIOSK_PROTOS \
+protoc -I $KIOSK_PROTOS \
+  -I $COMMON_PROTOS \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
   --go_gapic_opt "go-gapic-package=$KIOSK_GAPIC"';gapic' \
@@ -68,7 +78,7 @@ generate -I $KIOSK_PROTOS \
   $KIOSK_PROTOS/kiosk.proto
 
 # generate gapic-showcase gapic & go_cli
-generate -I $SHOW_PROTOS \
+protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-0.0.10.desc \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
   --go_gapic_opt "go-gapic-package=$SHOWCASE_GAPIC"';gapic' \
@@ -76,7 +86,10 @@ generate -I $SHOW_PROTOS \
   --go_cli_opt "gapic=$SHOWCASE_GAPIC" \
   --go_cli_opt "root=testshowctl" \
   --go_cli_opt "fmt=false" \
-  $SHOW_PROTOS/*.proto
+  google/showcase/v1alpha3/echo.proto \
+  google/showcase/v1alpha3/identity.proto \
+  google/showcase/v1alpha3/messaging.proto \
+  google/showcase/v1alpha3/testing.proto
 
 # build each go_cli for sanity check
 d=$(pwd)
@@ -88,3 +101,4 @@ cd $d
 
 # clean up
 rm -r $OUT
+rm -r $TESTPROTOS
