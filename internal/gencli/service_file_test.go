@@ -48,12 +48,13 @@ func TestServiceFile(t *testing.T) {
 	}
 
 	cmd := Command{
-		Service:     name,
-		MethodCmd:   strings.ToLower(name),
-		ShortDesc:   "Sub-command for Service: " + name,
-		Imports:     g.imports,
-		EnvPrefix:   strings.ToUpper(g.root + "_" + name),
-		SubCommands: g.subcommands[name],
+		Service:           name,
+		ServiceClientType: name + "Client",
+		MethodCmd:         strings.ToLower(name),
+		ShortDesc:         "Sub-command for Service: " + name,
+		Imports:           g.imports,
+		EnvPrefix:         strings.ToUpper(g.root + "_" + name),
+		SubCommands:       g.subcommands[name],
 	}
 
 	g.genServiceCmdFile(&cmd)

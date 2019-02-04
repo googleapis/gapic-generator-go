@@ -44,6 +44,7 @@ const (
 // Command intermediate representation of a RPC/Method as a CLI command
 type Command struct {
 	Service           string
+	ServiceClientType string
 	Method            string
 	MethodCmd         string
 	InputMessageType  string
@@ -102,6 +103,7 @@ type gcli struct {
 	services    []*descriptor.ServiceDescriptorProto
 	subcommands map[string][]*Command
 	format      bool
+	gapicName   string
 }
 
 func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
@@ -268,9 +270,10 @@ func (g *gcli) genCommands() {
 
 		name := pbinfo.ReduceServName(srv.GetName(), "")
 		cmd := Command{
-			Service:   name,
-			MethodCmd: strings.ToLower(name),
-			ShortDesc: "Sub-command for Service: " + name,
+			Service:           name,
+			ServiceClientType: pbinfo.ReduceServName(srv.GetName(), g.gapicName) + "Client",
+			MethodCmd:         strings.ToLower(name),
+			ShortDesc:         "Sub-command for Service: " + name,
 			Imports: map[string]*pbinfo.ImportSpec{
 				"gapic": g.imports["gapic"],
 			},
@@ -562,21 +565,29 @@ func (g *gcli) parseParameters(params *string) (err error) {
 	}
 
 	for _, str := range strings.Split(*params, ",") {
-		sepNdx := strings.Index(str, "=")
-		if sepNdx == -1 {
+		argSep := strings.Index(str, "=")
+		if argSep == -1 {
 			return fmt.Errorf("Unknown parameter: %s", str)
 		}
 
-		switch str[:sepNdx] {
+		switch str[:argSep] {
 		case "gapic":
+			pkg := str[argSep+1:]
+			pkgSep := strings.Index(pkg, ";")
+			if pkgSep >= 0 {
+				// save the package name for Service name reduction later
+				g.gapicName = pkg[pkgSep+1:]
+				pkg = pkg[:pkgSep]
+			}
+
 			putImport(g.imports, &pbinfo.ImportSpec{
 				Name: "gapic",
-				Path: str[sepNdx+1:],
+				Path: pkg,
 			})
 		case "root":
-			g.root = str[sepNdx+1:]
+			g.root = str[argSep+1:]
 		case "fmt":
-			g.format, err = strconv.ParseBool(str[sepNdx+1:])
+			g.format, err = strconv.ParseBool(str[argSep+1:])
 			if err != nil {
 				return
 			}

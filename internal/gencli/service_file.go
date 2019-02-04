@@ -41,7 +41,7 @@ import (
 )
 
 var {{ $serviceConfig }} *viper.Viper
-var {{ $serviceClient }} *gapic.{{.Service}}Client
+var {{ $serviceClient }} *gapic.{{.ServiceClientType}}
 var {{ $serviceSubCommands }} []string = []string{
 	{{ range .SubCommands }}"{{ .MethodCmd }}",
 	{{ if .IsLRO }}"poll-{{ .MethodCmd }}",{{ end }}{{ end }}
@@ -108,7 +108,7 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 			opts = append(opts, option.WithAPIKey(key))
 		}
 
-		{{ $serviceClient }}, err = gapic.New{{.Service}}Client(ctx, opts...)
+		{{ $serviceClient }}, err = gapic.New{{.ServiceClientType}}(ctx, opts...)
 		return
 	},
 }
