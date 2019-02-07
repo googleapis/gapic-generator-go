@@ -141,14 +141,15 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto, config *serviceCo
 			continue
 		}
 
-		eOauth, err := proto.GetExtension(s.Options, annotations.E_Oauth)
+		eOauthScopes, err := proto.GetExtension(s.Options, annotations.E_OauthScopes)
 		if err == proto.ErrMissingExtension {
 			continue
 		}
 		if err != nil {
 			return nil, errors.E(err, "cannot find scopes for service: %q", s.GetName())
 		}
-		for _, sc := range eOauth.(*annotations.OAuth).Scopes {
+		scopes := strings.Split(*eOauthScopes.(*string), ",")
+		for _, sc := range scopes {
 			scopeSet[sc] = true
 		}
 	}

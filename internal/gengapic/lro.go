@@ -22,7 +22,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/longrunning"
 )
 
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
@@ -73,16 +73,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	lroType := lroTypeName(*m.Name)
 	p := g.printf
 
-	eLRO, err := proto.GetExtension(m.Options, annotations.E_Operation)
+	eLRO, err := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
 	if err != nil {
 		return errors.E(err, "cannot read LRO types")
 	}
-	eLROType := eLRO.(*annotations.OperationData)
+	opInfo := eLRO.(*longrunning.OperationInfo)
+	fullName := opInfo.GetResponseType()
 
 	var respType string
 	{
-		fullName := eLROType.ResponseType
-
 		// eLRO.ResponseType is either fully-qualified or in the same package as the method.
 		if strings.IndexByte(fullName, '.') < 0 {
 			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
@@ -101,10 +100,10 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		respType = fmt.Sprintf("%s.%s", respSpec.Name, typ.GetName())
 	}
 
-	hasMeta := eLROType.MetadataType != ""
+	hasMeta := opInfo.GetMetadataType() != ""
 	var metaType string
 	if hasMeta {
-		fullName := eLROType.MetadataType
+		fullName := opInfo.GetMetadataType()
 		if strings.IndexByte(fullName, '.') < 0 {
 			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
 		}
