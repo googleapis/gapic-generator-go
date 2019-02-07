@@ -1,8 +1,8 @@
 FROM debian:stable-slim
 
 # Add protoc and our common protos.
-COPY --from=gcr.io/gapic-images/api-common-protos:latest /usr/local/bin/protoc /usr/local/bin/protoc
-COPY --from=gcr.io/gapic-images/api-common-protos:latest /protos/ /protos/
+COPY --from=gcr.io/gapic-images/api-common-protos:beta /usr/local/bin/protoc /usr/local/bin/protoc
+COPY --from=gcr.io/gapic-images/api-common-protos:beta /protos/ /protos/
 
 # Add protoc-gen-go_gapic binary
 COPY protoc-gen-go_gapic /usr/local/bin

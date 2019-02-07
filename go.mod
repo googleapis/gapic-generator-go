@@ -13,6 +13,7 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
 	google.golang.org/genproto v0.0.0-20180914223249-4b56f30a1fd9
+	google.golang.org/grpc v1.18.0 // indirect
 	gopkg.in/yaml.v2 v2.2.1
 )
 

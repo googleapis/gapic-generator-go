@@ -22,7 +22,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
-	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/longrunning"
 )
 
 func TestComment(t *testing.T) {
@@ -232,10 +232,10 @@ methods:
 
 		// Just add this everywhere. Only LRO method will pick it up.
 		if m.Options != nil {
-			lroType := &annotations.OperationData{
+			lroType := &longrunning.OperationInfo{
 				ResponseType: "OutputType",
 			}
-			proto.SetExtension(m.Options, annotations.E_Operation, lroType)
+			proto.SetExtension(m.Options, longrunning.E_OperationInfo, lroType)
 		}
 
 		aux := auxTypes{
