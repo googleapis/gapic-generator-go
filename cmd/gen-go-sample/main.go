@@ -358,7 +358,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 
 	p("func main() {")
 
-	for i := 0; i < len(argNames); i++ {
+	for i := range(argNames) {
 		// TODO(pongad): some types, like int32, are not supported by flag package.
 		// We have to convert.
 		typ := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
