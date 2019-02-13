@@ -75,9 +75,9 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string) error {
 // [END awesome_region]
 
 func main() {
-	theX := flag.Int64("theX", 42, "")
-	theB := flag.String("theB", "foobar", "")
-	theFoo := flag.String("theFoo", "myfoo", "")
+	theX := flag.Int64("the_x", 42, "")
+	theB := flag.String("the_b", "foobar", "")
+	theFoo := flag.String("the_foo", "myfoo", "")
 	flag.Parse()
 	if err := sampleUnaryMethod(*theX, *theB, *theFoo); err != nil {
 		log.Fatal(err)
