@@ -47,6 +47,7 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string) error {
 		Group: &foopb.InputType_F{
 			F: "in a oneof",
 		},
+		Bytes: []byte("mybytes"),
 		AArray: []*foopb.AType{
 			&foopb.AType{
 				X: 0,

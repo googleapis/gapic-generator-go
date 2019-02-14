@@ -38,6 +38,7 @@ func TestUnary(t *testing.T) {
 				`b = "foobar"`,
 				`e = FOO`,
 				`f = "in a oneof"`,
+				`bytes = "mybytes"`,
 
 				`a_array[0].x = 0`,
 				`a_array[0].y = 1`,
@@ -48,9 +49,9 @@ func TestUnary(t *testing.T) {
 				`resource_field%bar="mybar"`,
 			},
 			Attributes: []SampleAttribute{
-				{"a.x", "the_x"},
-				{"b", "the_b"},
-				{"resource_field%foo", "the_foo"},
+				{"a.x", "the_x", false},
+				{"b", "the_b", false},
+				{"resource_field%foo", "the_foo", false},
 			},
 		},
 		OnSuccess: []OutputSpec{
@@ -161,6 +162,7 @@ func initTestGenerator() *generator {
 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
 			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
 			{Name: proto.String("resource_field"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+			{Name: proto.String("bytes"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
 		},
 	}
 	eType := &descriptor.EnumDescriptorProto{
