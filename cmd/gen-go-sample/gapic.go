@@ -49,7 +49,7 @@ type SampleParameter struct {
 type SampleAttribute struct {
 	Parameter          string
 	SampleArgumentName string `yaml:"sample_argument_name"`
-	ReadFile bool `yaml:"read_file"`
+	ReadFile           bool   `yaml:"read_file"`
 }
 
 type GAPICSample struct {
