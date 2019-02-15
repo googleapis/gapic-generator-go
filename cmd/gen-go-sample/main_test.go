@@ -49,9 +49,9 @@ func TestUnary(t *testing.T) {
 				`resource_field%bar="mybar"`,
 			},
 			Attributes: []SampleAttribute{
-				{"a.x", "the_x", false},
-				{"b", "the_b", false},
-				{"resource_field%foo", "the_foo", false},
+				{Parameter: "a.x", SampleArgumentName: "the_x"},
+				{Parameter: "b", SampleArgumentName: "the_b"},
+				{Parameter: "resource_field%foo", SampleArgumentName: "the_foo"},
 			},
 		},
 		OnSuccess: []OutputSpec{
