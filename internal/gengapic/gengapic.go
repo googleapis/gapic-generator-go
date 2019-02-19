@@ -24,7 +24,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -95,7 +95,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 		// TODO(pongad): check if first-one-wins is the right strategy here.
 		if ePkg == nil {
-			if em, err := proto.GetExtension(f.GetOptions(), annotations.E_Package); err == nil {
+			if em, err := proto.GetExtension(f.GetOptions(), annotations.E_ClientPackage); err == nil {
 				ePkg = em.(*annotations.Package)
 			}
 		}
