@@ -225,6 +225,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 
 	var (
 		argNames []string
+		flagNames []string
 		argTrees []*initTree
 	)
 
@@ -280,6 +281,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		}
 
 		argNames = append(argNames, name)
+		flagNames = append(flagNames, attr.SampleArgumentName)
 		argTrees = append(argTrees, subTree)
 	}
 
@@ -356,11 +358,11 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 
 	p("func main() {")
 
-	for i, name := range argNames {
+	for i := range(argNames) {
 		// TODO(pongad): some types, like int32, are not supported by flag package.
 		// We have to convert.
 		typ := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
-		p(`%s := flag.%s(%q, %s, "")`, name, snakeToPascal(typ), name, argTrees[i].leafVal)
+		p(`%s := flag.%s(%q, %s, "")`, argNames[i], snakeToPascal(typ), flagNames[i], argTrees[i].leafVal)
 	}
 
 	p("  flag.Parse()")
