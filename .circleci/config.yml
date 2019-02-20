@@ -44,8 +44,9 @@ jobs:
     docker:
       - image: circleci/golang:1.11
     steps:
+      - checkout
       - run:
-          name: Check format
+          name: Check Format
           command: "! go fmt ./... 2>&1 | read"
   publish_image:
     docker:
