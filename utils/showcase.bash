@@ -21,6 +21,8 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	return
 fi
 
+SHOWCASE_SEMVER=0.0.12
+
 pushd showcase
 rm -rf gen
 mkdir gen
@@ -28,7 +30,7 @@ mkdir gen
 protoc \
 	--go_gapic_out ./gen \
 	--go_gapic_opt 'go-gapic-package=cloud.google.com/go/showcase/apiv1alpha3;showcase' \
-	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v0.0.12/gapic-showcase-0.0.12.desc) \
+	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
 	google/showcase/v1alpha3/echo.proto
 
 pushd gen/cloud.google.com/go/showcase
@@ -38,7 +40,7 @@ popd
 hostos=$(go env GOHOSTOS)
 hostarch=$(go env GOHOSTARCH)
 
-curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v0.0.12/gapic-showcase-0.0.12-$hostos-$hostarch.tar.gz | tar xz
+curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER-$hostos-$hostarch.tar.gz | tar xz
 ./gapic-showcase run &
 showcase_pid=$!
 
