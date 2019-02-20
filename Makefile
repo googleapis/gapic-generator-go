@@ -20,7 +20,8 @@ test:
 	./utils/showcase.bash
 
 clean:
-	rm -rf showcase-testdir
 	rm -rf testdata
 	rm -rf cmd/protoc-gen-go_cli/testprotos
 	rm -rf cmd/protoc-gen-go_cli/testdata	
+	rm -rf showcase/gen
+	rm -f showcase/gapic-showcase
