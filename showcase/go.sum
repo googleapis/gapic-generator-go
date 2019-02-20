@@ -10,6 +10,8 @@ github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfb
 github.com/golang/protobuf v1.2.0 h1:P3YflyNX/ehuJFLhxviNdFxQPkGK5cDcApsge1SqnvM=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
+github.com/googleapis/gapic-showcase v0.0.11 h1:9HZ/sPZkCYJyjB1lHm6YY6t/h9Ku7lmq5LPF5ilFr2A=
+github.com/googleapis/gapic-showcase v0.0.11/go.mod h1:wgKpk+nvtqYGm1+T7C3O/t27PwCOOml/PyXqMvi0ysI=
 github.com/googleapis/gax-go v0.0.0-20181219185031-c8a15bac9b9f h1:UagDZv2cTLFNxuFiG5WvbbxtKTwbLWec8QUnFNqS6Ho=
 github.com/googleapis/gax-go v0.0.0-20181219185031-c8a15bac9b9f/go.mod h1:5VvnLYVimBt+hOVlFtJDkYQHVmk4K27qHHioZjPbYAI=
 github.com/googleapis/gax-go/v2 v2.0.2/go.mod h1:LLvjysVCY1JZeum8Z6l8qUty8fiNwE08qbEPm1M08qg=

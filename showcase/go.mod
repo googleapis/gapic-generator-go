@@ -12,5 +12,3 @@ require (
 )
 
 replace cloud.google.com/go/showcase => ./gen/cloud.google.com/go/showcase
-
-replace github.com/googleapis/gapic-showcase => ./gen/github.com/googleapis/gapic-showcase

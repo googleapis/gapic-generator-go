@@ -26,7 +26,6 @@ rm -rf gen
 mkdir gen
 
 protoc \
-  --go_out=plugins=grpc:./gen \
 	--go_gapic_out ./gen \
 	--go_gapic_opt 'go-gapic-package=cloud.google.com/go/showcase/apiv1alpha3;showcase' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v0.0.11/gapic-showcase-0.0.11.desc) \
@@ -34,9 +33,6 @@ protoc \
 
 pushd gen/cloud.google.com/go/showcase
 go mod init cloud.google.com/go/showcase
-popd
-pushd gen/github.com/googleapis/gapic-showcase
-go mod init github.com/googleapis/gapic-showcase
 popd
 
 curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v0.0.11/gapic-showcase-0.0.11-linux-amd64.tar.gz | tar xz
