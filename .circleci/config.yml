@@ -39,6 +39,13 @@ jobs:
             export PATH=$PATH:$(pwd)/protobuf/bin
             go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
             ./utils/showcase.bash
+  format:
+    docker:
+      - image: circleci/golang:1.11
+    steps:
+      - run:
+          name: Check format
+          command: "! go fmt ./... 2>&1 | read"
   publish_image:
     docker:
       - image: circleci/golang:1.11
