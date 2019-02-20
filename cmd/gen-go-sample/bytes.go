@@ -17,6 +17,5 @@ package main
 func bytesFmt() func(*generator, string) (string, error) {
 	return func(_ *generator, s string) (string, error) {
 		return "[]byte(" + s + ")", nil
-
 	}
 }
