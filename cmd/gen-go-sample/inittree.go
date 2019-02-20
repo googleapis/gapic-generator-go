@@ -184,6 +184,9 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 			if !validPrim(tok) {
 				return report(errors.E(nil, "invalid value for type %q: %q", pType, tok))
 			}
+			if t.typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
+				t.typ.valFmt = bytesFmt()
+			}
 		}
 		t.leafVal = tok
 
