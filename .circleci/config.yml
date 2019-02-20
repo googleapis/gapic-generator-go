@@ -7,6 +7,10 @@ workflows:
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
+      - format:
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
       - publish_image:
           requires:
             - build
@@ -26,9 +30,6 @@ jobs:
           name: Check license
           command: |
             find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
-      - run:
-          name: Check format
-          command: "! go fmt ./... 2>&1 | read"
       # Install protoc, showcase.bash needs it
       - run:
           name: Run Showcase
