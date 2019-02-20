@@ -1,4 +1,5 @@
 /testdata/out
 perf.data*
 /cover.prof
-showcase-testdir
+showcase/gen
+showcase/gapic-showcase
