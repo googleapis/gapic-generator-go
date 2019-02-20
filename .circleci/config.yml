@@ -26,6 +26,9 @@ jobs:
           name: Check license
           command: |
             find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
+      - run:
+          name: Check format
+          command: "! go fmt ./... 2>&1 | read"
       # Install protoc, showcase.bash needs it
       - run:
           name: Run Showcase
