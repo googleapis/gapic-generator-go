@@ -7,15 +7,28 @@ workflows:
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
+      - format:
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
       - publish_image:
           requires:
             - build
+            - format
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
 jobs:
+  format:
+    docker:
+      - image: circleci/golang:1.11
+    steps:
+      - checkout
+      - run:
+          name: Check Format
+          command: "! go fmt ./... 2>&1 | read"
   build:
     docker:
       - image: circleci/golang:1.11
