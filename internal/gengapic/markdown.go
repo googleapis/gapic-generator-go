@@ -48,8 +48,8 @@ type mdRenderer struct {
 	listLevel   int
 }
 
-func (m *mdRenderer) plain(tok markdown.Token) {
-	switch t := tok.(type) {
+func (m *mdRenderer) plain(t markdown.Token) {
+	switch t := t.(type) {
 	case *markdown.Inline:
 		for _, c := range t.Children {
 			m.plain(c)
