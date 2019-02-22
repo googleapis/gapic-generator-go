@@ -45,6 +45,7 @@ type mdRenderer struct {
 	// Because the data structure is an array, it's technically possible for the links
 	// to nest, though I'm not sure if that'd be a valid Markdown.
 	linkTargets []string
+	listLevel   int
 }
 
 func (m *mdRenderer) plain(t markdown.Token) {
@@ -59,6 +60,8 @@ func (m *mdRenderer) plain(t markdown.Token) {
 		m.sb.WriteString(t.Content)
 	case *markdown.Softbreak:
 		m.sb.WriteByte('\n')
+		// indent multiple line list items according to list level
+		m.indent()
 
 	case *markdown.ParagraphOpen:
 	case *markdown.ParagraphClose:
@@ -73,6 +76,16 @@ func (m *mdRenderer) plain(t markdown.Token) {
 
 	case *markdown.HTMLInline:
 		m.html(t)
+
+	case *markdown.BulletListOpen:
+		m.listLevel++
+	case *markdown.BulletListClose:
+		m.listLevel--
+
+	case *markdown.ListItemOpen:
+		// indent item content according to list level
+		m.indent()
+	case *markdown.ListItemClose:
 
 	default:
 		log.Printf("unhandled type: %T", t)
@@ -93,5 +106,13 @@ func (m *mdRenderer) html(t *markdown.HTMLInline) {
 		l := len(m.linkTargets)
 		fmt.Fprintf(&m.sb, " (at %s)", m.linkTargets[l-1])
 		m.linkTargets = m.linkTargets[:l-1]
+	}
+}
+
+func (m *mdRenderer) indent() {
+	if m.listLevel > 0 {
+		for l := 0; l < m.listLevel; l++ {
+			m.sb.WriteString("  ")
+		}
 	}
 }
