@@ -73,7 +73,7 @@ jobs:
           name: Tag the Docker image and push it to Google Container Registry.
           command: |
             if [ -n "$CIRCLE_TAG" ]; then
-              export MAJOR=`echo $CIRCLE_TAG | awk -F '.' '{ print $1; }'`
+              export MAJOR=`echo ${CIRCLE_TAG:1} | awk -F '.' '{ print $1; }'`
               export MINOR=`echo $CIRCLE_TAG | awk -F '.' '{ print $2; }'`
               export PATCH=`echo $CIRCLE_TAG | awk -F '.' '{ print $3; }'`
               docker tag gcr.io/gapic-images/gapic-generator-go:latest gcr.io/gapic-images/gapic-generator-go:$MAJOR.$MINOR.$PATCH
