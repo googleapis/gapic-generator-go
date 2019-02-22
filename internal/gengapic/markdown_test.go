@@ -17,7 +17,9 @@
 
 package gengapic
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMDPlain(t *testing.T) {
 	for _, tst := range []struct {
@@ -46,6 +48,18 @@ func TestMDPlain(t *testing.T) {
 		{
 			in:   "not <actually: html, just some> docs",
 			want: "not <actually: html, just some> docs",
+		},
+		{
+			in:   "List:\n- item1\n- item2",
+			want: "List:\n\n  item1\n\n  item2",
+		},
+		{
+			in:   "List:\n* item1\n  * item2",
+			want: "List:\n\n  item1\n\n    item2",
+		},
+		{
+			in:   "List:\n* item1\nabc\n  * item2\n`def`, ghi\n\ndone",
+			want: "List:\n\n  item1\n  abc\n\n    item2\n    def, ghi\n\ndone",
 		},
 	} {
 		got := MDPlain(tst.in)

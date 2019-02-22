@@ -469,8 +469,7 @@ func (g *generator) comment(s string) {
 
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {
-		l = strings.TrimSpace(l)
-		if l == "" {
+		if strings.TrimSpace(l) == "" {
 			g.printf("//")
 		} else {
 			g.printf("// %s", l)
