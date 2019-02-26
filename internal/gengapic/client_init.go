@@ -53,9 +53,13 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			return errors.E(err, "cannot read default host")
 		}
 
+		if !strings.Contains(host, ":") {
+			host += ":443"
+		}
+
 		p("func default%sClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
-		p(`    option.WithEndpoint("%s:443"),`, host)
+		p(`    option.WithEndpoint("%s"),`, host)
 		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("  }")
 		p("}")

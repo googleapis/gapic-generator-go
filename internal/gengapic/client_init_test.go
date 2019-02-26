@@ -57,14 +57,26 @@ func TestClientOpt(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	servHostPort := &descriptor.ServiceDescriptorProto{
+		Method: []*descriptor.MethodDescriptorProto{
+			{Name: proto.String("Smack")},
+		},
+		Options: &descriptor.ServiceOptions{},
+	}
+	if err := proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, proto.String("foo.bar.com:1234")); err != nil {
+		t.Fatal(err)
+	}
+
 	for _, tst := range []struct {
 		tstName, servName string
+		serv              *descriptor.ServiceDescriptorProto
 	}{
-		{tstName: "foo_opt", servName: "Foo"},
-		{tstName: "empty_opt", servName: ""},
+		{tstName: "foo_opt", servName: "Foo", serv: serv},
+		{tstName: "empty_opt", servName: "", serv: serv},
+		{tstName: "host_port_opt", servName: "Bar", serv: servHostPort},
 	} {
 		g.reset()
-		if err := g.clientOptions(serv, tst.servName); err != nil {
+		if err := g.clientOptions(tst.serv, tst.servName); err != nil {
 			t.Error(err)
 			continue
 		}
