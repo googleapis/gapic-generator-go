@@ -15,8 +15,6 @@
 package gengapic
 
 import (
-	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -26,10 +24,6 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/rpc/code"
 )
-
-const defaultPort = 443
-
-var portRegex = regexp.MustCompile(":[0-9]{1,5}$")
 
 func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
@@ -59,8 +53,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			return errors.E(err, "cannot read default host")
 		}
 
-		if !portRegex.MatchString(host) {
-			host = fmt.Sprintf("%s:%d", host, defaultPort)
+		if !strings.Contains(host, ":") {
+			host += ":443"
 		}
 
 		p("func default%sClientOptions() []option.ClientOption {", servName)
