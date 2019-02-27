@@ -31,10 +31,38 @@ go install ./cmd/protoc-gen-go_gapic
 
 The generator works as a `protoc` plugin, get `protoc` from [google/protobuf](https://github.com/protocolbuffers/protobuf).
 
+Configuration
+-------------
+The generator is configured via protobuf annotations found at [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos).
+
+The only *required* annotation to generate a client is the service annotation `google.api.default_host` ([here](https://github.com/googleapis/api-common-protos/blob/master/google/api/client.proto#L29-L38)).
+
+The value of `google.api.default_host` must be just a host name, excluding a scheme. For example,
+```
+import "google/api/client.proto";
+...
+
+service Foo {
+    option (google.api.default_host) = "api.foo.com";
+    ...
+}  
+```
+
+The supported configuration annotations include:
+* File Options
+  * `google.api.package` (experimental): library packaging, metadata and documentation info; found on [api-common-protos:input-contract](https://github.com/googleapis/api-common-protos/tree/input-contract)
+* Service Options
+  * `google.api.default_host`: host name used in the default service client initialization
+  * `google.api.oauth_scopes`: OAuth scopes needed by the client to auth'n/z
+* Method Options
+  * `google.api.http`: when present, the `method` field is used to determine idempotency-based default retry configuration
+  * `google.longrunning.operation_info`: used to determine response type of LRO methods
+
 Invocation
 ----------
-`protoc --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
+`protoc -I $API_COMMON_PROTOS --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
 
+The `$API_COMMON_PROTOS` variable represents a path to the [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos) directory to import the configuration annotations.
 The `go_gapic_opt` flag is necessary because we need to know where to generated file will live.
 The substring before the equal sign is the name of this configuration option.
 The substring between the equal sign and the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
