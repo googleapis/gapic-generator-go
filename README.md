@@ -60,8 +60,9 @@ The supported configuration annotations include:
 
 Invocation
 ----------
-`protoc --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
+`protoc -I $API_COMMON_PROTOS --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
 
+The `$API_COMMON_PROTOS` variable represents a path to the [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos) directory to import the configuration annotations.
 The `go_gapic_opt` flag is necessary because we need to know where to generated file will live.
 The substring before the equal sign is the name of this configuration option.
 The substring between the equal sign and the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
