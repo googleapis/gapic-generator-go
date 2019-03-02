@@ -14,8 +14,80 @@
 
 package main
 
+import (
+	"bytes"
+	"text/scanner"
+
+	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+)
+
 func bytesFmt() func(*generator, string) (string, error) {
 	return func(_ *generator, s string) (string, error) {
 		return "[]byte(" + s + ")", nil
 	}
+}
+
+// The information we need to generate reading all bytes of a file
+// and assign them to a local variable
+type fileInfo struct {
+	// The test of the file name. If it's a string literal, it's already quoted
+	fileName string
+	// The name of the local variable to hold the bytes of the file
+	varName string
+}
+
+// Generate a name for the local variable that hold bytes from a local file. Only
+// used when SampleArgumentName is not provided.
+func fileVarName(param string) (string, error) {
+	// TODO: if there are multiple fields whose values are to be copied from local files,
+	// this method may not generate a unique variable name for all of them, when:
+	// 1) SampleArgumentName are not provided for some or all of thse fields
+	// 2) these fields have the same name
+	// Considering the collision only happens in very rare cases, they are not handled for now
+	sc, _ := initScanner("." + param)
+
+	var varName string
+	for {
+		switch r := sc.Scan(); r {
+		case '%':
+			return "", errors.E(nil, "bad format for bytes field, unexpected '%%'")
+		case '.':
+			if r := sc.Scan(); r != scanner.Ident {
+				return "", errors.E(nil, "expected ident, found %q", sc.TokenText())
+			}
+			varName = sc.TokenText()
+		case '[':
+			if r := sc.Scan(); r != scanner.Int {
+				return "", errors.E(nil, "expected int, found %q", sc.TokenText())
+			}
+			if r := sc.Scan(); r != ']' {
+				return "", errors.E(nil, "expected ']', found %q", sc.TokenText())
+			}
+		case scanner.EOF:
+			return snakeToCamel(varName) + "Content", nil
+		default:
+			return "", errors.E(nil, "unhandled rune: %c", r)
+		}
+	}
+}
+
+func file(info *fileInfo, buf *bytes.Buffer, g *generator) {
+	vname := info.varName
+	fileName := info.fileName
+	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
+	
+	buf.WriteString("file, err := os.Open(")
+	buf.WriteString(fileName)
+	buf.WriteString(")\n")
+	buf.WriteString("if err != nil {\n")
+	buf.WriteString("\tlog.Fatalf(\"Failed to read file: %v\", err)\n")
+	buf.WriteString("}\n")
+	buf.WriteString("defer file.Close()\n")
+	buf.WriteString(vname)
+	buf.WriteString(", err := ioutil.ReadAll(file)\n")
+	buf.WriteString("if err != nil {\n")
+	buf.WriteString("\tlog.Fatalf(\"Failed to read file: %v\", err)\n")
+	buf.WriteString("}\n")
 }

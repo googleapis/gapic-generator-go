@@ -227,6 +227,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		argNames  []string
 		flagNames []string
 		argTrees  []*initTree
+		files     []*fileInfo
 	)
 
 	itree := initTree{
@@ -271,6 +272,40 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 
 	// Some parts of request object are from arguments.
 	for _, attr := range valSet.Parameters.Attributes {
+		if attr.ReadFile {
+			varName, err := fileVarName(attr.Parameter)
+			if err != nil {
+				return errors.E(err, "can't determine variable to store bytes from local file")
+			}
+			if attr.SampleArgumentName != "" {
+				varName = snakeToCamel(attr.SampleArgumentName) + "Content"
+			}
+			subTree, err := itree.parseSampleArgPath(
+				attr.Parameter,
+				g.descInfo,
+				varName,
+			)
+			if err != nil {
+				return errors.E(err, "can't set sample function argument: %q", attr.Parameter)
+			}
+			if subTree.typ.prim != descriptor.FieldDescriptorProto_TYPE_BYTES {
+				return errors.E(nil, "can only assign file contents to bytes field")
+			}
+			subTree.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
+			subTree.typ.valFmt = nil
+			if subTree.leafVal == "" {
+				return errors.E(nil, "default value not given: %q", attr.Parameter)
+			}
+			fileName := subTree.leafVal
+			if attr.SampleArgumentName != "" {
+				fileName = snakeToCamel(attr.SampleArgumentName)
+				argNames = append(argNames, fileName)
+				flagNames = append(flagNames, attr.SampleArgumentName)
+				argTrees = append(argTrees, subTree)
+			}
+			files = append(files, &fileInfo{fileName, varName})
+			continue
+		}
 		if attr.SampleArgumentName == "" {
 			continue
 		}
@@ -319,6 +354,10 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			buf.WriteByte('\n')
 		}
 		prependLines(&buf, "// ")
+
+		for _, info := range files {
+			file(info, &buf, g)
+		}
 
 		buf.WriteString("req := ")
 		if err := itree.Print(&buf, g); err != nil {

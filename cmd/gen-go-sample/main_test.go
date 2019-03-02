@@ -39,6 +39,8 @@ func TestUnary(t *testing.T) {
 				`e = FOO`,
 				`f = "in a oneof"`,
 				`bytes = "mybytes"`,
+				`file_default = "path/to/local/file/default.txt"`,
+				`file_arg = "path/to/local/file/arg.txt"`,
 
 				`a_array[0].x = 0`,
 				`a_array[0].y = 1`,
@@ -52,6 +54,8 @@ func TestUnary(t *testing.T) {
 				{Parameter: "a.x", SampleArgumentName: "the_x"},
 				{Parameter: "b", SampleArgumentName: "the_b"},
 				{Parameter: "resource_field%foo", SampleArgumentName: "the_foo"},
+				{Parameter: "file_default", ReadFile: true},
+				{Parameter: "file_arg", SampleArgumentName: "file_arg", ReadFile: true},
 			},
 		},
 		OnSuccess: []OutputSpec{
@@ -160,6 +164,8 @@ func initTestGenerator() *generator {
 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.EType")},
 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
+			{Name: proto.String("file_default"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
+			{Name: proto.String("file_arg"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
 			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
 			{Name: proto.String("resource_field"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 			{Name: proto.String("bytes"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},

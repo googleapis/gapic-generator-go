@@ -19,6 +19,8 @@ import(
  "context"
  "flag"
  "fmt"
+ "io"
+ "io/ioutil"
  "log"
 
 foo "path.to/client/foo"
@@ -26,7 +28,7 @@ foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleUnaryMethod(theX int64, theB string, theFoo string) error {
+func sampleUnaryMethod(theX int64, theB string, theFoo string, fileArg string) error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
@@ -36,6 +38,25 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string) error {
 	// theX := 42
 	// theB := "foobar"
 	// theFoo := "myfoo"
+	// fileArg := "path/to/local/file/arg.txt"
+	file, err := os.Open("path/to/local/file/default.txt")
+	if err != nil {
+		log.Fatalf("Failed to read file: %v", err)
+	}
+	defer file.Close()
+	fileDefaultContent, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatalf("Failed to read file: %v", err)
+	}
+	file, err := os.Open(fileArg)
+	if err != nil {
+		log.Fatalf("Failed to read file: %v", err)
+	}
+	defer file.Close()
+	fileArgContent, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatalf("Failed to read file: %v", err)
+	}
 	req := &foopb.InputType{
 		ResourceField: fmt.Sprintf("foos/%s/bars/%s", theFoo, "mybar"),
 		A: &foopb.AType{
@@ -48,6 +69,8 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string) error {
 			F: "in a oneof",
 		},
 		Bytes: []byte("mybytes"),
+		FileDefault: fileDefaultContent,
+		FileArg: fileArgContent,
 		AArray: []*foopb.AType{
 			&foopb.AType{
 				X: 0,
@@ -79,8 +102,9 @@ func main() {
 	theX := flag.Int64("the_x", 42, "")
 	theB := flag.String("the_b", "foobar", "")
 	theFoo := flag.String("the_foo", "myfoo", "")
+	fileArg := flag.String("file_arg", "path/to/local/file/arg.txt", "")
 	flag.Parse()
-	if err := sampleUnaryMethod(*theX, *theB, *theFoo); err != nil {
+	if err := sampleUnaryMethod(*theX, *theB, *theFoo, *fileArg); err != nil {
 		log.Fatal(err)
 	}
 }
