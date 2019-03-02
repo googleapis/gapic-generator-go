@@ -2,7 +2,7 @@ module showcase_integration
 
 require (
 	cloud.google.com/go/showcase v0.0.0
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.0
 	github.com/googleapis/gapic-showcase v0.0.12
 	github.com/googleapis/gax-go v0.0.0-20181219185031-c8a15bac9b9f // indirect
 	github.com/googleapis/gax-go/v2 v2.0.3 // indirect
