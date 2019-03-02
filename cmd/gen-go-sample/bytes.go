@@ -31,7 +31,7 @@ func bytesFmt() func(*generator, string) (string, error) {
 // The information we need to generate reading all bytes of a file
 // and assign them to a local variable
 type fileInfo struct {
-	// The test of the file name. If it's a string literal, it's already quoted
+	// The text of the file name. If it's a string literal, it's already quoted
 	fileName string
 	// The name of the local variable to hold the bytes of the file
 	varName string
@@ -41,7 +41,7 @@ type fileInfo struct {
 // used when SampleArgumentName is not provided.
 func fileVarName(param string) (string, error) {
 	// TODO: if there are multiple fields whose values are to be copied from local files,
-	// this method may not generate a unique variable name for all of them, when:
+	// this method cannot generate a unique variable name for each of them when:
 	// 1) SampleArgumentName are not provided for some or all of thse fields
 	// 2) these fields have the same name
 	// Considering the collision only happens in very rare cases, they are not handled for now

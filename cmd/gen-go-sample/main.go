@@ -275,7 +275,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		if attr.ReadFile {
 			varName, err := fileVarName(attr.Parameter)
 			if err != nil {
-				return errors.E(err, "can't determine variable to store bytes from local file")
+				return errors.E(err, "can't determine variable name to store bytes from local file")
 			}
 			if attr.SampleArgumentName != "" {
 				varName = snakeToCamel(attr.SampleArgumentName) + "Content"
