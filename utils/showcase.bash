@@ -21,7 +21,7 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	return
 fi
 
-SHOWCASE_SEMVER=0.0.12
+SHOWCASE_SEMVER=0.0.13
 
 pushd showcase
 rm -rf gen
