@@ -353,7 +353,13 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			}
 			buf.WriteByte('\n')
 		}
-		prependLines(&buf, "// ")
+		prependLines(&buf, "// ", false)
+
+		if len(files) > 0 {
+			buf.WriteByte('\n')
+			buf.WriteString("var file io.Reader\n")
+			buf.WriteString("var err error\n\n")
+		}
 
 		for _, info := range files {
 			file(info, &buf, g)
@@ -364,7 +370,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			return errors.E(err, "can't initialize request object")
 		}
 		buf.WriteByte('\n')
-		prependLines(&buf, "\t")
+		prependLines(&buf, "\t", true)
 
 		if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
 			return err
@@ -505,7 +511,7 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet Sam
 // prependLines adds prefix to every line in b. A line is defined as a possibly empty run
 // of non-newlines terminated by a newline character.
 // If b doesn't end with a newline, prependLines panics.
-func prependLines(b *bytes.Buffer, prefix string) {
+func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) {
 	if b.Len() == 0 {
 		return
 	}
@@ -520,7 +526,9 @@ func prependLines(b *bytes.Buffer, prefix string) {
 		if l == "" {
 			continue
 		}
-		b.WriteString(prefix)
+		if !skipEmptyLine || l != "\n" {
+			b.WriteString(prefix)
+		}
 		b.WriteString(l)
 	}
 }

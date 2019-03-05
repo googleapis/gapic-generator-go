@@ -39,24 +39,32 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, fileArg string) e
 	// theB := "foobar"
 	// theFoo := "myfoo"
 	// fileArg := "path/to/local/file/arg.txt"
-	file, err := os.Open("path/to/local/file/default.txt")
+
+	var file io.Reader
+	var err error
+
+	file, err = os.Open("path/to/local/file/default.txt")
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
 	}
 	defer file.Close()
-	fileDefaultContent, err := ioutil.ReadAll(file)
+	var fileDefaultContent []byte
+	fileDefaultContent, err = ioutil.ReadAll(file)
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
 	}
-	file, err := os.Open(fileArg)
+
+	file, err = os.Open(fileArg)
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
 	}
 	defer file.Close()
-	fileArgContent, err := ioutil.ReadAll(file)
+	var fileArgContent []byte
+	fileArgContent, err = ioutil.ReadAll(file)
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
 	}
+
 	req := &foopb.InputType{
 		ResourceField: fmt.Sprintf("foos/%s/bars/%s", theFoo, "mybar"),
 		A: &foopb.AType{
