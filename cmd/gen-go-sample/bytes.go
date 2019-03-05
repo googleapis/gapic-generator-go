@@ -38,6 +38,8 @@ type fileInfo struct {
 	varName string
 }
 
+const fileContentSuffix = "Content"
+
 // fileVarName generates a name for the local variable that hold bytes from a local file. It is only
 // used when SampleArgumentName is not provided.
 func fileVarName(param string) (string, error) {
@@ -66,7 +68,7 @@ func fileVarName(param string) (string, error) {
 				return "", errors.E(nil, "expected ']', found %q", sc.TokenText())
 			}
 		case scanner.EOF:
-			return snakeToCamel(varName) + "Content", nil
+			return snakeToCamel(varName), nil
 		default:
 			return "", errors.E(nil, "unhandled rune: %c", r)
 		}
@@ -76,17 +78,10 @@ func fileVarName(param string) (string, error) {
 func file(info *fileInfo, buf *bytes.Buffer, g *generator) {
 	vn := info.varName
 	fn := info.fileName
-	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 
-	fmt.Fprintf(buf, "file, err = os.Open(%s)\n", fn)
+	fmt.Fprintf(buf, "%s, err := ioutil.ReadFile(%s)\n", vn, fn)
 	fmt.Fprintf(buf, "if err != nil {\n")
-	fmt.Fprintf(buf, "\tlog.Fatalf(\"Failed to read file: %%v\", err)\n")
-	fmt.Fprintf(buf, "}\n")
-	fmt.Fprintf(buf, "defer file.Close()\n")
-	fmt.Fprintf(buf, "var %s []byte\n", vn)
-	fmt.Fprintf(buf, "%s, err = ioutil.ReadAll(file)\n", vn)
-	fmt.Fprintf(buf, "if err != nil {\n")
-	fmt.Fprintf(buf, "\tlog.Fatalf(\"Failed to read file: %%v\", err)\n")
+	fmt.Fprintf(buf, "\treturn err\n")
 	fmt.Fprintf(buf, "}\n\n")
 }

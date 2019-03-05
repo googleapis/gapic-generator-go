@@ -273,13 +273,16 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	// Some parts of request object are from arguments.
 	for _, attr := range valSet.Parameters.Attributes {
 		if attr.ReadFile {
-			varName, err := fileVarName(attr.Parameter)
+			var varName string
+			if attr.SampleArgumentName != "" {
+				varName = snakeToCamel(attr.SampleArgumentName) + fileContentSuffix
+			} else {
+				varName, err = fileVarName(attr.Parameter)
+			}
 			if err != nil {
 				return errors.E(err, "can't determine variable name to store bytes from local file")
 			}
-			if attr.SampleArgumentName != "" {
-				varName = snakeToCamel(attr.SampleArgumentName) + "Content"
-			}
+			
 			subTree, err := itree.parseSampleArgPath(
 				attr.Parameter,
 				g.descInfo,
@@ -354,12 +357,6 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			buf.WriteByte('\n')
 		}
 		prependLines(&buf, "// ", false)
-
-		if len(files) > 0 {
-			buf.WriteByte('\n')
-			buf.WriteString("var file io.Reader\n")
-			buf.WriteString("var err error\n\n")
-		}
 
 		for _, info := range files {
 			file(info, &buf, g)
@@ -511,6 +508,7 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet Sam
 // prependLines adds prefix to every line in b. A line is defined as a possibly empty run
 // of non-newlines terminated by a newline character.
 // If b doesn't end with a newline, prependLines panics.
+// If skipEmptyLine is true, prependLines does not prepend prefix to empty lines.
 func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) {
 	if b.Len() == 0 {
 		return

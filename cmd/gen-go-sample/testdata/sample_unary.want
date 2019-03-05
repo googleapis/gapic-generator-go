@@ -19,7 +19,6 @@ import(
  "context"
  "flag"
  "fmt"
- "io"
  "io/ioutil"
  "log"
 
@@ -28,7 +27,7 @@ foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleUnaryMethod(theX int64, theB string, theFoo string, fileArg string) error {
+func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
@@ -38,31 +37,15 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, fileArg string) e
 	// theX := 42
 	// theB := "foobar"
 	// theFoo := "myfoo"
-	// fileArg := "path/to/local/file/arg.txt"
-
-	var file io.Reader
-	var err error
-
-	file, err = os.Open("path/to/local/file/default.txt")
+	// bobFile := "path/to/local/file/bob.txt"
+	dataAlice, err := ioutil.ReadFile("path/to/local/file/alice.txt")
 	if err != nil {
-		log.Fatalf("Failed to read file: %v", err)
-	}
-	defer file.Close()
-	var fileDefaultContent []byte
-	fileDefaultContent, err = ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatalf("Failed to read file: %v", err)
+		return err
 	}
 
-	file, err = os.Open(fileArg)
+	bobFileContent, err := ioutil.ReadFile(bobFile)
 	if err != nil {
-		log.Fatalf("Failed to read file: %v", err)
-	}
-	defer file.Close()
-	var fileArgContent []byte
-	fileArgContent, err = ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatalf("Failed to read file: %v", err)
+		return err
 	}
 
 	req := &foopb.InputType{
@@ -77,8 +60,8 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, fileArg string) e
 			F: "in a oneof",
 		},
 		Bytes: []byte("mybytes"),
-		FileDefault: fileDefaultContent,
-		FileArg: fileArgContent,
+		DataAlice: dataAlice,
+		DataBob: bobFileContent,
 		AArray: []*foopb.AType{
 			&foopb.AType{
 				X: 0,
@@ -110,9 +93,9 @@ func main() {
 	theX := flag.Int64("the_x", 42, "")
 	theB := flag.String("the_b", "foobar", "")
 	theFoo := flag.String("the_foo", "myfoo", "")
-	fileArg := flag.String("file_arg", "path/to/local/file/arg.txt", "")
+	bobFile := flag.String("bob_file", "path/to/local/file/bob.txt", "")
 	flag.Parse()
-	if err := sampleUnaryMethod(*theX, *theB, *theFoo, *fileArg); err != nil {
+	if err := sampleUnaryMethod(*theX, *theB, *theFoo, *bobFile); err != nil {
 		log.Fatal(err)
 	}
 }
