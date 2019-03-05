@@ -47,7 +47,7 @@ func fileVarName(param string) (string, error) {
 	// this method cannot generate a unique variable name for each of them when:
 	// 1) SampleArgumentName are not provided for some or all of these fields
 	// 2) these fields have the same name
-	// Considering the collision only happens in very rare cases, they are not handled for now
+	// Considering the collision only happens in very rare cases, it is not handled for now
 	sc, _ := initScanner("." + param)
 
 	var varName string
