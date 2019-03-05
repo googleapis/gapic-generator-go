@@ -282,7 +282,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			if err != nil {
 				return errors.E(err, "can't determine variable name to store bytes from local file")
 			}
-			
+
 			subTree, err := itree.parseSampleArgPath(
 				attr.Parameter,
 				g.descInfo,
