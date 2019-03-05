@@ -38,7 +38,7 @@ type fileInfo struct {
 	varName string
 }
 
-const fileContentSuffix = "Content"
+const fileContentSuffix = "Bytes"
 
 // fileVarName generates a name for the local variable that hold bytes from a local file. It is only
 // used when SampleArgumentName is not provided.

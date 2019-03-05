@@ -43,7 +43,7 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) e
 		return err
 	}
 
-	bobFileContent, err := ioutil.ReadFile(bobFile)
+	bobFileBytes, err := ioutil.ReadFile(bobFile)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) e
 		},
 		Bytes: []byte("mybytes"),
 		DataAlice: dataAlice,
-		DataBob: bobFileContent,
+		DataBob: bobFileBytes,
 		AArray: []*foopb.AType{
 			&foopb.AType{
 				X: 0,
