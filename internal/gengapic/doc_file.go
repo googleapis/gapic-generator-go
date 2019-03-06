@@ -60,8 +60,8 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("// transport setup, but not for future calls performed using the client.")
 	p("// These calls use the ctx passed to individual methods on the client.")
 	p("//")
-	p("// Using deadlines on requests is recommended. See more information at")
-	p("// https://golang.org/pkg/context/.")
+	p("// For information about setting deadlines, reusing contexts, and more")
+	p("// please visit godoc.org/cloud.google.com/go")
 	p("")
 
 	p("package %s // import %q", pkgName, pkgPath)
