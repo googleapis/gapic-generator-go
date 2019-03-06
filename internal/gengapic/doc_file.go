@@ -53,6 +53,18 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 		}
 	}
 
+	p("//")
+	p("// Use of Context")
+	p("//")
+	p("// NewClient and all client methods require a context. NewClient context is")
+	p("// used for authentication requests as well as gRPC transport setup, but not")
+	p("// for any future calls. Context passed to client methods are used for the")
+	p("// lifetime of the request.")
+	p("//")
+	p("// Using deadlines on requests is recommended. See more information at")
+	p("// https://golang.org/pkg/context/.")
+	p("")
+
 	p("package %s // import %q", pkgName, pkgPath)
 	p("")
 

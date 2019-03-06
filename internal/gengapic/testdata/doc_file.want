@@ -19,6 +19,17 @@
 //
 // The Awesome Foo API is really really awesome. It enables the use of Foo
 // with Buz and Baz to acclerate bar.
+//
+// Use of Context
+//
+// NewClient and all client methods require a context. NewClient context is
+// used for authentication requests as well as gRPC transport setup, but not
+// for any future calls. Context passed to client methods are used for the
+// lifetime of the request.
+//
+// Using deadlines on requests is recommended. See more information at
+// https://golang.org/pkg/context/.
+
 package awesome // import "path/to/awesome"
 
 import (
