@@ -53,6 +53,17 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 		}
 	}
 
+	p("//")
+	p("// Use of Context")
+	p("//")
+	p("// The ctx passed to NewClient is used for authentication requests and gRPC")
+	p("// transport setup, but not for future calls performed using the client.")
+	p("// These calls use the ctx passed to individual methods on the client.")
+	p("//")
+	p("// For information about setting deadlines, reusing contexts, and more")
+	p("// please visit godoc.org/cloud.google.com/go")
+	p("")
+
 	p("package %s // import %q", pkgName, pkgPath)
 	p("")
 
