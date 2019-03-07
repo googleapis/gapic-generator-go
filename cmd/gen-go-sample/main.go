@@ -227,6 +227,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		argNames  []string
 		flagNames []string
 		argTrees  []*initTree
+		files     []*fileInfo
 	)
 
 	itree := initTree{
@@ -271,6 +272,43 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 
 	// Some parts of request object are from arguments.
 	for _, attr := range valSet.Parameters.Attributes {
+		if attr.ReadFile {
+			var varName string
+			if attr.SampleArgumentName != "" {
+				varName = snakeToCamel(attr.SampleArgumentName) + fileContentSuffix
+			} else {
+				varName, err = fileVarName(attr.Parameter)
+				if err != nil {
+					return errors.E(err, "can't determine variable name to store bytes from local file")
+				}
+			}
+
+			subTree, err := itree.parseSampleArgPath(
+				attr.Parameter,
+				g.descInfo,
+				varName,
+			)
+			if err != nil {
+				return errors.E(err, "can't set sample function argument: %q", attr.Parameter)
+			}
+			if subTree.typ.prim != descriptor.FieldDescriptorProto_TYPE_BYTES {
+				return errors.E(nil, "can only assign file contents to bytes field")
+			}
+			subTree.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
+			subTree.typ.valFmt = nil
+			if subTree.leafVal == "" {
+				return errors.E(nil, "default value not given: %q", attr.Parameter)
+			}
+			fileName := subTree.leafVal
+			if attr.SampleArgumentName != "" {
+				fileName = snakeToCamel(attr.SampleArgumentName)
+				argNames = append(argNames, fileName)
+				flagNames = append(flagNames, attr.SampleArgumentName)
+				argTrees = append(argTrees, subTree)
+			}
+			files = append(files, &fileInfo{fileName, varName})
+			continue
+		}
 		if attr.SampleArgumentName == "" {
 			continue
 		}
@@ -318,14 +356,18 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			}
 			buf.WriteByte('\n')
 		}
-		prependLines(&buf, "// ")
+		prependLines(&buf, "// ", false)
+
+		for _, info := range files {
+			readFile(info, &buf, g)
+		}
 
 		buf.WriteString("req := ")
 		if err := itree.Print(&buf, g); err != nil {
 			return errors.E(err, "can't initialize request object")
 		}
 		buf.WriteByte('\n')
-		prependLines(&buf, "\t")
+		prependLines(&buf, "\t", true)
 
 		if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
 			return err
@@ -466,7 +508,8 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet Sam
 // prependLines adds prefix to every line in b. A line is defined as a possibly empty run
 // of non-newlines terminated by a newline character.
 // If b doesn't end with a newline, prependLines panics.
-func prependLines(b *bytes.Buffer, prefix string) {
+// If skipEmptyLine is true, prependLines does not prepend prefix to empty lines.
+func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) {
 	if b.Len() == 0 {
 		return
 	}
@@ -481,7 +524,9 @@ func prependLines(b *bytes.Buffer, prefix string) {
 		if l == "" {
 			continue
 		}
-		b.WriteString(prefix)
+		if !skipEmptyLine || l != "\n" {
+			b.WriteString(prefix)
+		}
 		b.WriteString(l)
 	}
 }

@@ -14,8 +14,76 @@
 
 package main
 
+import (
+	"bytes"
+	"fmt"
+	"text/scanner"
+
+	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+)
+
 func bytesFmt() func(*generator, string) (string, error) {
 	return func(_ *generator, s string) (string, error) {
 		return "[]byte(" + s + ")", nil
 	}
+}
+
+// fileInfo keeps track of information we need to generate reading all bytes of a file
+// and assign them to a local variable.
+type fileInfo struct {
+	// fileName is the text of the file name. If it's a string literal, it's already quoted.
+	fileName string
+	// varName is the name of the local variable to hold the bytes of the file.
+	varName string
+}
+
+const fileContentSuffix = "Bytes"
+
+// fileVarName generates a name for the local variable that hold bytes from a local file. It is only
+// used when SampleArgumentName is not provided.
+func fileVarName(param string) (string, error) {
+	// TODO: if there are multiple fields whose values are to be copied from local files,
+	// this method cannot generate a unique variable name for each of them when:
+	// 1) SampleArgumentName are not provided for some or all of these fields
+	// 2) these fields have the same name
+	// Considering the collision only happens in very rare cases, it is not handled for now
+	sc, _ := initScanner("." + param)
+
+	var varName string
+	for {
+		switch r := sc.Scan(); r {
+		case '%':
+			return "", errors.E(nil, "bad format for bytes field, unexpected '%%'")
+		case '.':
+			if r := sc.Scan(); r != scanner.Ident {
+				return "", errors.E(nil, "expected ident, found %q", sc.TokenText())
+			}
+			varName = sc.TokenText()
+		case '[':
+			if r := sc.Scan(); r != scanner.Int {
+				return "", errors.E(nil, "expected int, found %q", sc.TokenText())
+			}
+			if r := sc.Scan(); r != ']' {
+				return "", errors.E(nil, "expected ']', found %q", sc.TokenText())
+			}
+		case scanner.EOF:
+			return snakeToCamel(varName), nil
+		default:
+			return "", errors.E(nil, "unhandled rune: %c", r)
+		}
+	}
+}
+
+// readFile generates code that read all bytes from a local file and assign
+// to a local variable.
+func readFile(info *fileInfo, buf *bytes.Buffer, g *generator) {
+	vn := info.varName
+	fn := info.fileName
+	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
+
+	fmt.Fprintf(buf, "%s, err := ioutil.ReadFile(%s)\n", vn, fn)
+	fmt.Fprintf(buf, "if err != nil {\n")
+	fmt.Fprintf(buf, "\treturn err\n")
+	fmt.Fprintf(buf, "}\n\n")
 }
