@@ -75,7 +75,9 @@ func fileVarName(param string) (string, error) {
 	}
 }
 
-func file(info *fileInfo, buf *bytes.Buffer, g *generator) {
+// readFile generates code that read all bytes from a local file and assign
+// to a local variable.
+func readFile(info *fileInfo, buf *bytes.Buffer, g *generator) {
 	vn := info.varName
 	fn := info.fileName
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true

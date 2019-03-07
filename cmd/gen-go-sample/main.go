@@ -278,9 +278,9 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 				varName = snakeToCamel(attr.SampleArgumentName) + fileContentSuffix
 			} else {
 				varName, err = fileVarName(attr.Parameter)
-			}
-			if err != nil {
-				return errors.E(err, "can't determine variable name to store bytes from local file")
+				if err != nil {
+					return errors.E(err, "can't determine variable name to store bytes from local file")
+				}
 			}
 
 			subTree, err := itree.parseSampleArgPath(
@@ -359,7 +359,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		prependLines(&buf, "// ", false)
 
 		for _, info := range files {
-			file(info, &buf, g)
+			readFile(info, &buf, g)
 		}
 
 		buf.WriteString("req := ")
