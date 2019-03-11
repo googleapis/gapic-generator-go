@@ -75,6 +75,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
+		p("// %s is import %s.", inSpec.Name, inSpec.Path)
 		p("req := &%s.%s{", inSpec.Name, inType.GetName())
 		p("  // TODO: Fill request struct fields.")
 		p("}")
@@ -141,6 +142,7 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
 
 	p("it := c.%s(ctx, req)", *m.Name)
 	p("for {")
+	p("  // iterator from http://godoc.org/google.golang.org/api/iterator.")
 	p("  resp, err := it.Next()")
 	p("  if err == iterator.Done {")
 	p("    break")
@@ -164,6 +166,7 @@ func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType 
 	p("}")
 
 	p("go func() {")
+	p("  // %s is import %s.", inSpec.Name, inSpec.Path)
 	p("  reqs := []*%s.%s{", inSpec.Name, inType.GetName())
 	p("    // TODO: Create requests.")
 	p("  }")
