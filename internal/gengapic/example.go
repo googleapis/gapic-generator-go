@@ -71,19 +71,34 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	g.imports[inSpec] = true
 
 	p("func Example%sClient_%s() {", servName, m.GetName())
+
+	pf, err := g.pagingField(m)
+	if err != nil {
+		return err
+	}
+
+	if *m.OutputType != emptyType {
+		p("// import \"%s\" %s", inSpec.Path, inSpec.Name)
+		if pf == nil {
+			p("")
+		}
+	}
+
+	if pf != nil {
+		p("// import \"google.golang.org/api/iterator\"")
+		p("")
+	}
+
 	g.exampleInitClient(pkgName, servName)
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
-		p("// %s is import %s.", inSpec.Name, inSpec.Path)
 		p("req := &%s.%s{", inSpec.Name, inType.GetName())
 		p("  // TODO: Fill request struct fields.")
 		p("}")
 	}
 
-	if pf, err := g.pagingField(m); err != nil {
-		return err
-	} else if pf != nil {
+	if pf != nil {
 		g.examplePagingCall(m)
 	} else if *m.OutputType == lroType {
 		g.exampleLROCall(m)
@@ -142,7 +157,6 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
 
 	p("it := c.%s(ctx, req)", *m.Name)
 	p("for {")
-	p("  // iterator from http://godoc.org/google.golang.org/api/iterator.")
 	p("  resp, err := it.Next()")
 	p("  if err == iterator.Done {")
 	p("    break")
@@ -166,7 +180,6 @@ func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType 
 	p("}")
 
 	p("go func() {")
-	p("  // %s is import %s.", inSpec.Name, inSpec.Path)
 	p("  reqs := []*%s.%s{", inSpec.Name, inType.GetName())
 	p("    // TODO: Create requests.")
 	p("  }")

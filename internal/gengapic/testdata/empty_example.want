@@ -15,7 +15,6 @@ func ExampleClient_GetEmptyThing() {
 		// TODO: Handle error.
 	}
 
-	// mypackagepb is import mypackage.
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
 	}
@@ -26,13 +25,14 @@ func ExampleClient_GetEmptyThing() {
 }
 
 func ExampleClient_GetOneThing() {
+	// import "mypackage" mypackagepb
+
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
 
-	// mypackagepb is import mypackage.
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
 	}
@@ -45,13 +45,14 @@ func ExampleClient_GetOneThing() {
 }
 
 func ExampleClient_GetBigThing() {
+	// import "mypackage" mypackagepb
+
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
 
-	// mypackagepb is import mypackage.
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
 	}
@@ -69,19 +70,20 @@ func ExampleClient_GetBigThing() {
 }
 
 func ExampleClient_GetManyThings() {
+	// import "mypackage" mypackagepb
+	// import "google.golang.org/api/iterator"
+
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
 
-	// mypackagepb is import mypackage.
 	req := &mypackagepb.PageInputType{
 		// TODO: Fill request struct fields.
 	}
 	it := c.GetManyThings(ctx, req)
 	for {
-		// iterator from http://godoc.org/google.golang.org/api/iterator.
 		resp, err := it.Next()
 		if err == iterator.Done {
 			break
@@ -95,6 +97,8 @@ func ExampleClient_GetManyThings() {
 }
 
 func ExampleClient_BidiThings() {
+	// import "mypackage" mypackagepb
+
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
@@ -105,7 +109,6 @@ func ExampleClient_BidiThings() {
 		// TODO: Handle error.
 	}
 	go func() {
-		// mypackagepb is import mypackage.
 		reqs := []*mypackagepb.InputType{
 			// TODO: Create requests.
 		}
