@@ -25,7 +25,7 @@ func ExampleFooClient_GetEmptyThing() {
 }
 
 func ExampleFooClient_GetOneThing() {
-	// import "mypackage" mypackagepb
+	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
@@ -45,7 +45,7 @@ func ExampleFooClient_GetOneThing() {
 }
 
 func ExampleFooClient_GetBigThing() {
-	// import "mypackage" mypackagepb
+	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
@@ -70,7 +70,7 @@ func ExampleFooClient_GetBigThing() {
 }
 
 func ExampleFooClient_GetManyThings() {
-	// import "mypackage" mypackagepb
+	// import mypackagepb "mypackage"
 	// import "google.golang.org/api/iterator"
 
 	ctx := context.Background()
@@ -97,7 +97,7 @@ func ExampleFooClient_GetManyThings() {
 }
 
 func ExampleFooClient_BidiThings() {
-	// import "mypackage" mypackagepb
+	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)

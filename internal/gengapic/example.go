@@ -78,7 +78,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	}
 
 	if *m.OutputType != emptyType {
-		p("// import \"%s\" %s", inSpec.Path, inSpec.Name)
+		p("// import %s \"%s\"", inSpec.Name, inSpec.Path)
 		if pf == nil {
 			p("")
 		}
