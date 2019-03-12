@@ -71,6 +71,24 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	g.imports[inSpec] = true
 
 	p("func Example%sClient_%s() {", servName, m.GetName())
+
+	pf, err := g.pagingField(m)
+	if err != nil {
+		return err
+	}
+
+	if *m.OutputType != emptyType {
+		p("// import %s \"%s\"", inSpec.Name, inSpec.Path)
+		if pf == nil {
+			p("")
+		}
+	}
+
+	if pf != nil {
+		p("// import \"google.golang.org/api/iterator\"")
+		p("")
+	}
+
 	g.exampleInitClient(pkgName, servName)
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
@@ -80,9 +98,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 		p("}")
 	}
 
-	if pf, err := g.pagingField(m); err != nil {
-		return err
-	} else if pf != nil {
+	if pf != nil {
 		g.examplePagingCall(m)
 	} else if *m.OutputType == lroType {
 		g.exampleLROCall(m)
