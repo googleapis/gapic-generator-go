@@ -36,7 +36,7 @@ func main() {
 
 	genResp, err := gencli.Gen(&genReq)
 	if err != nil {
-		log.Fatal(err)
+		genResp.Error = proto.String(err.Error())
 	}
 
 	outBytes, err := proto.Marshal(genResp)

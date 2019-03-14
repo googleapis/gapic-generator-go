@@ -48,7 +48,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	var g generator
 
 	if genReq.Parameter == nil {
-		return nil, errors.E(nil, paramError)
+		return &g.resp, errors.E(nil, paramError)
 	}
 
 	// parse plugin params, ignoring unknown values
@@ -59,7 +59,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				p := strings.IndexByte(s, ';')
 
 				if p < 0 {
-					return nil, errors.E(nil, paramError)
+					return &g.resp, errors.E(nil, paramError)
 				}
 
 				pkgPath = s[e+1 : p]
@@ -68,19 +68,19 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			case "gapic-service-config":
 				f, err := os.Open(s[e+1:])
 				if err != nil {
-					return nil, errors.E(nil, "error opening service config: %v", err)
+					return &g.resp, errors.E(nil, "error opening service config: %v", err)
 				}
 
 				err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
 				if err != nil {
-					return nil, errors.E(nil, "error decoding service config: %v", err)
+					return &g.resp, errors.E(nil, "error decoding service config: %v", err)
 				}
 			}
 		}
 	}
 
 	if pkgPath == "" || pkgName == "" || outDir == "" {
-		return nil, errors.E(nil, paramError)
+		return &g.resp, errors.E(nil, paramError)
 	}
 
 	g.init(genReq.ProtoFile)
@@ -123,13 +123,13 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 		g.reset()
 		if err := g.gen(s, pkgName); err != nil {
-			return nil, errors.E(err, "service: %s", s.GetName())
+			return &g.resp, errors.E(err, "service: %s", s.GetName())
 		}
 		g.commit(outFile+"_client.go", pkgName)
 
 		g.reset()
 		if err := g.genExampleFile(s, pkgName); err != nil {
-			return nil, errors.E(err, "example: %s", s.GetName())
+			return &g.resp, errors.E(err, "example: %s", s.GetName())
 		}
 		g.imports[pbinfo.ImportSpec{Name: pkgName, Path: pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", pkgName+"_test")
@@ -138,7 +138,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	g.reset()
 	scopes, err := collectScopes(genServs, g.serviceConfig)
 	if err != nil {
-		return nil, err
+		return &g.resp, err
 	}
 	g.genDocFile(pkgPath, pkgName, time.Now().Year(), scopes)
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
