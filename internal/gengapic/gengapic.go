@@ -123,7 +123,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 		g.reset()
 		if err := g.gen(s, pkgName); err != nil {
-			return &g.resp, errors.E(err, "service: %s", s.GetName())
+			return &g.resp, err
 		}
 		g.commit(outFile+"_client.go", pkgName)
 
@@ -308,7 +308,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 	})
 	for _, m := range aux.lros {
 		if err := g.lroType(servName, serv, m); err != nil {
-			return errors.E(err, "while generating LRO type for %q", m.GetName())
+			return err
 		}
 	}
 
