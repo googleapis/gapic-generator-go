@@ -38,6 +38,7 @@ if [ -z "$GO_GAPIC_PACKAGE" ]; then
 fi
 
 protoc --proto_path=/protos/ --proto_path=/in/ \
+                  --gapic-validator_out=. \
                   --go_gapic_out=/out/ \
                   --go_gapic_opt="$GO_GAPIC_PACKAGE" \
                   --go_gapic_opt="$GAPIC_SERVICE_CONFIG" \
