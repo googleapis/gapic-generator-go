@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -50,7 +51,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			// TODO(ndietz) remove this once default_host annotation is acepted
 			host = g.serviceConfig.Name
 		} else {
-			return errors.E(err, "cannot read default host")
+			fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
+			return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
 		}
 
 		if !strings.Contains(host, ":") {

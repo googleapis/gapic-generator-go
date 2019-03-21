@@ -20,7 +20,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/longrunning"
 )
@@ -70,15 +69,19 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 }
 
 func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+	mFQN := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
 	lroType := lroTypeName(*m.Name)
 	p := g.printf
 
 	eLRO, err := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
 	if err != nil {
-		return errors.E(err, "cannot read LRO types")
+		return fmt.Errorf("rpc %q returns google.longrunning.Operation but is missing option google.longrunning.operation_info", mFQN)
 	}
 	opInfo := eLRO.(*longrunning.OperationInfo)
 	fullName := opInfo.GetResponseType()
+	if fullName == "" {
+		return fmt.Errorf("rpc %q has google.longrunning.operation_info but is missing option google.longrunning.operation_info.response_type", mFQN)
+	}
 
 	var respType string
 	{
@@ -94,7 +97,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		typ := g.descInfo.Type[fullName]
 		respSpec, err := g.descInfo.ImportSpec(typ)
 		if err != nil {
-			return errors.E(err, "cannot find LRO type %q; type not linked?", fullName)
+			return fmt.Errorf("unable to resolve google.longrunning.operation_info.response_type value %q in rpc %q", opInfo.GetResponseType(), mFQN)
 		}
 		g.imports[respSpec] = true
 		respType = fmt.Sprintf("%s.%s", respSpec.Name, typ.GetName())
@@ -112,7 +115,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		typ := g.descInfo.Type[fullName]
 		meta, err := g.descInfo.ImportSpec(typ)
 		if err != nil {
-			return errors.E(err, "cannot find LRO metadata type %q; type not linked?", fullName)
+			return fmt.Errorf("unable to resolve google.longrunning.operation_info.metadata_type value %q in rpc %q", opInfo.GetMetadataType(), mFQN)
 		}
 		g.imports[meta] = true
 		metaType = fmt.Sprintf("%s.%s", meta.Name, typ.GetName())
