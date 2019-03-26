@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -42,6 +43,8 @@ const (
 	lroType    = ".google.longrunning.Operation"
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 )
+
+var headerParamRegexp = regexp.MustCompile(`{([_a-z]+)=`)
 
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var pkgPath, pkgName, outDir string
@@ -388,7 +391,7 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		servName, *m.Name, inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
-	g.insertMetadata()
+	g.insertMetadata(m)
 	g.appendCallOpts(m)
 	p("var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -423,7 +426,7 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		servName, m.GetName(), inSpec.Name, inType.GetName())
 
-	g.insertMetadata()
+	g.insertMetadata(m)
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
@@ -439,8 +442,28 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	return nil
 }
 
-func (g *generator) insertMetadata() {
+func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) {
+	if headers := parseRequestHeaders(m); len(headers) > 0 {
+		field := headers[0][1]
+		pairs := pair("x-goog-request-params", field)
+
+		for _, h := range headers[1:] {
+			field = h[1]
+			pairs += fmt.Sprintf(", %s", pair("x-goog-request-params", field))
+		}
+
+		g.printf("md := metadata.Pairs(%s)", pairs)
+		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
+
+		return
+	}
+
 	g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata)")
+}
+
+func pair(key, val string) string {
+	// TODO(ndietz) the formatted field accessor here only works for top-level fields
+	return fmt.Sprintf("%q, fmt.Sprintf(%q, %q, req.Get%s())", key, "%s=%v", val, snakeToCamel(val))
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
@@ -531,4 +554,27 @@ func snakeToCamel(s string) string {
 		}
 	}
 	return sb.String()
+}
+
+func parseRequestHeaders(m *descriptor.MethodDescriptorProto) [][]string {
+	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
+	if err != nil {
+		return nil
+	}
+
+	pattern := ""
+	switch http := eHTTP.(*annotations.HttpRule); http.GetPattern().(type) {
+	case *annotations.HttpRule_Get:
+		pattern = http.GetGet()
+	case *annotations.HttpRule_Post:
+		pattern = http.GetPost()
+	case *annotations.HttpRule_Patch:
+		pattern = http.GetPatch()
+	case *annotations.HttpRule_Put:
+		pattern = http.GetPut()
+	case *annotations.HttpRule_Delete:
+		pattern = http.GetDelete()
+	}
+
+	return headerParamRegexp.FindAllStringSubmatch(pattern, -1)
 }

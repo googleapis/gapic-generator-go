@@ -1,5 +1,6 @@
 func (c *FooClient) GetManyThings(ctx context.Context, req *mypackagepb.PageInputType, opts ...gax.CallOption) *StringIterator {
-	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v", "field_name", req.GetFieldName()), "x-goog-request-params", fmt.Sprintf("%s=%v", "other", req.GetOther()))
+	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
 	opts = append(c.CallOptions.GetManyThings[0:len(c.CallOptions.GetManyThings):len(c.CallOptions.GetManyThings)], opts...)
 	it := &StringIterator{}
 	req = proto.Clone(req).(*mypackagepb.PageInputType)
