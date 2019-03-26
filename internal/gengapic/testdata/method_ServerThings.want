@@ -1,5 +1,5 @@
 func (c *FooClient) ServerThings(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (mypackagepb._ServerThingsClient, error) {
-	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v", "field_name", req.GetFieldName()), "x-goog-request-params", fmt.Sprintf("%s=%v", "other", req.GetOther()))
+	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("field_name=%v", req.GetFieldName()), "x-goog-request-params", fmt.Sprintf("other=%v", req.GetOther()))
 	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
 	opts = append(c.CallOptions.ServerThings[0:len(c.CallOptions.ServerThings):len(c.CallOptions.ServerThings)], opts...)
 	var resp mypackagepb._ServerThingsClient

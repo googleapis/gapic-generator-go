@@ -444,15 +444,14 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 
 func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) {
 	if headers := parseRequestHeaders(m); len(headers) > 0 {
-		field := headers[0][1]
-		pairs := pair("x-goog-request-params", field)
-
-		for _, h := range headers[1:] {
-			field = h[1]
-			pairs += fmt.Sprintf(", %s", pair("x-goog-request-params", field))
+		var pairs strings.Builder
+		for _, h := range headers {
+			field := h[1]
+			fmt.Fprintf(&pairs, ", %s", pair("x-goog-request-params", field))
 		}
+		p := pairs.String()[2:]
 
-		g.printf("md := metadata.Pairs(%s)", pairs)
+		g.printf("md := metadata.Pairs(%s)", p)
 		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
 
 		return
@@ -461,9 +460,9 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) {
 	g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata)")
 }
 
-func pair(key, val string) string {
+func pair(key, field string) string {
 	// TODO(ndietz) the formatted field accessor here only works for top-level fields
-	return fmt.Sprintf("%q, fmt.Sprintf(%q, %q, req.Get%s())", key, "%s=%v", val, snakeToCamel(val))
+	return fmt.Sprintf("%q, fmt.Sprintf(%q, req.Get%s())", key, field+"=%v", snakeToCamel(field))
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {

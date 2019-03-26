@@ -1,5 +1,5 @@
 func (c *FooClient) GetOneThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
-	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v", "field_name", req.GetFieldName()), "x-goog-request-params", fmt.Sprintf("%s=%v", "other", req.GetOther()))
+	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("field_name=%v", req.GetFieldName()), "x-goog-request-params", fmt.Sprintf("other=%v", req.GetOther()))
 	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
 	opts = append(c.CallOptions.GetOneThing[0:len(c.CallOptions.GetOneThing):len(c.CallOptions.GetOneThing)], opts...)
 	var resp *mypackagepb.OutputType
