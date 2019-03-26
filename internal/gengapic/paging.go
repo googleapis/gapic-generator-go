@@ -144,7 +144,11 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		servName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
 
-	g.insertMetadata(m)
+	err = g.insertMetadata(m)
+	if err != nil {
+		return err
+	}
+
 	g.appendCallOpts(m)
 
 	p("it := &%s{}", pt.iterTypeName)

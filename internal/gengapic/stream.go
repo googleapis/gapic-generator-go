@@ -66,7 +66,11 @@ func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescr
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		servName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 
-	g.insertMetadata(m)
+	err = g.insertMetadata(m)
+	if err != nil {
+		return err
+	}
+
 	g.appendCallOpts(m)
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")

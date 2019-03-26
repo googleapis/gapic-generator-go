@@ -391,7 +391,11 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		servName, *m.Name, inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
-	g.insertMetadata(m)
+	err = g.insertMetadata(m)
+	if err != nil {
+		return err
+	}
+
 	g.appendCallOpts(m)
 	p("var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -426,7 +430,11 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		servName, m.GetName(), inSpec.Name, inType.GetName())
 
-	g.insertMetadata(m)
+	err = g.insertMetadata(m)
+	if err != nil {
+		return err
+	}
+
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
@@ -442,8 +450,13 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	return nil
 }
 
-func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) {
-	if headers := parseRequestHeaders(m); len(headers) > 0 {
+func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
+	headers, err := parseRequestHeaders(m)
+	if err != nil {
+		return err
+	}
+
+	if len(headers) > 0 {
 		var pairs strings.Builder
 		for _, h := range headers {
 			field := h[1]
@@ -454,10 +467,12 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) {
 		g.printf("md := metadata.Pairs(%s)", p)
 		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
 
-		return
+		return nil
 	}
 
 	g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata)")
+
+	return nil
 }
 
 func pair(key, field string) string {
@@ -555,10 +570,12 @@ func snakeToCamel(s string) string {
 	return sb.String()
 }
 
-func parseRequestHeaders(m *descriptor.MethodDescriptorProto) [][]string {
+func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
 	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-	if err != nil {
-		return nil
+	if m == nil || m.GetOptions() == nil || err == proto.ErrMissingExtension {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	pattern := ""
@@ -575,5 +592,5 @@ func parseRequestHeaders(m *descriptor.MethodDescriptorProto) [][]string {
 		pattern = http.GetDelete()
 	}
 
-	return headerParamRegexp.FindAllStringSubmatch(pattern, -1)
+	return headerParamRegexp.FindAllStringSubmatch(pattern, -1), nil
 }
