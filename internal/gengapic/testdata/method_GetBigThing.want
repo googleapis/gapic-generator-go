@@ -1,5 +1,6 @@
 func (c *FooClient) GetBigThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*GetBigThingOperation, error) {
-	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("field_name=%v", req.GetFieldName()), "x-goog-request-params", fmt.Sprintf("other=%v", req.GetOther()))
+	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
 	opts = append(c.CallOptions.GetBigThing[0:len(c.CallOptions.GetBigThing):len(c.CallOptions.GetBigThing)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {

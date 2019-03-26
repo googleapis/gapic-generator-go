@@ -18,6 +18,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"google.golang.org/genproto/googleapis/api/annotations"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -163,6 +165,10 @@ func TestGenMethod(t *testing.T) {
 		},
 	}
 
+	opts := &descriptor.MethodOptions{}
+	ext := &annotations.HttpRule{Pattern: &annotations.HttpRule_Get{Get: "/v1/{field_name=projects/*/foo/*}/bars/{other=bar/*/baz/*}/buz"}}
+	proto.SetExtension(opts, annotations.E_Http, ext)
+
 	file := &descriptor.FileDescriptorProto{
 		Package: proto.String("my.pkg"),
 		Options: &descriptor.FileOptions{
@@ -188,34 +194,39 @@ func TestGenMethod(t *testing.T) {
 			Name:       proto.String("GetEmptyThing"),
 			InputType:  proto.String(".my.pkg.InputType"),
 			OutputType: proto.String(emptyType),
+			Options:    opts,
 		},
 		{
 			Name:       proto.String("GetOneThing"),
 			InputType:  proto.String(".my.pkg.InputType"),
 			OutputType: proto.String(".my.pkg.OutputType"),
+			Options:    opts,
 		},
 		{
 			Name:       proto.String("GetBigThing"),
 			InputType:  proto.String(".my.pkg.InputType"),
 			OutputType: proto.String(".google.longrunning.Operation"),
-			Options:    &descriptor.MethodOptions{},
+			Options:    opts,
 		},
 		{
 			Name:       proto.String("GetManyThings"),
 			InputType:  proto.String(".my.pkg.PageInputType"),
 			OutputType: proto.String(".my.pkg.PageOutputType"),
+			Options:    opts,
 		},
 		{
 			Name:            proto.String("ServerThings"),
 			InputType:       proto.String(".my.pkg.InputType"),
 			OutputType:      proto.String(".my.pkg.OutputType"),
 			ServerStreaming: proto.Bool(true),
+			Options:         opts,
 		},
 		{
 			Name:            proto.String("ClientThings"),
 			InputType:       proto.String(".my.pkg.InputType"),
 			OutputType:      proto.String(".my.pkg.OutputType"),
 			ClientStreaming: proto.Bool(true),
+			Options:         opts,
 		},
 		{
 			Name:            proto.String("BidiThings"),
@@ -223,6 +234,7 @@ func TestGenMethod(t *testing.T) {
 			OutputType:      proto.String(".my.pkg.OutputType"),
 			ServerStreaming: proto.Bool(true),
 			ClientStreaming: proto.Bool(true),
+			Options:         opts,
 		},
 	}
 
