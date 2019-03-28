@@ -26,6 +26,7 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 const (
@@ -319,12 +320,17 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, fie
 		Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 		IsOneOfField: true,
 		IsNested:     isNested,
+		Usage:        sanitizeComment(g.comments[field]),
 	}
 
-	// evaluate field comments for API behavior
-	output, flag.Required, flag.Usage = g.getFieldBehavior(msg, field)
+	// evaluate field behavior
+	output, flag.Required = g.getFieldBehavior(field)
 	if output {
 		return
+	}
+
+	if flag.Required {
+		flag.Usage = "Required. " + flag.Usage
 	}
 
 	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
@@ -399,6 +405,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			Type:         field.GetType(),
 			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 			IsOneOfField: isOneOf,
+			Usage:        sanitizeComment(g.comments[field]),
 		}
 
 		// skip repeated bytes, they end up being [][]byte which isn't a supported pFlag flag
@@ -406,10 +413,14 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			continue
 		}
 
-		// evaluate field comments for API behavior
-		output, flag.Required, flag.Usage = g.getFieldBehavior(msg, field)
+		// evaluate field behavior
+		output, flag.Required = g.getFieldBehavior(field)
 		if output {
 			continue
+		}
+
+		if flag.Required {
+			flag.Usage = "Required. " + flag.Usage
 		}
 
 		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
@@ -456,11 +467,24 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	return flags
 }
 
-func (g *gcli) getFieldBehavior(msg *descriptor.DescriptorProto, field *descriptor.FieldDescriptorProto) (output bool, required bool, cmt string) {
-	if cmt, ok := g.comments[field]; ok {
-		cmt = sanitizeComment(cmt)
-		output = strings.Contains(cmt, OutputOnlyStr)
-		required = strings.Contains(cmt, RequiredStr)
+func (g *gcli) getFieldBehavior(field *descriptor.FieldDescriptorProto) (output bool, required bool) {
+	eBehav, err := proto.GetExtension(field.GetOptions(), annotations.E_FieldBehavior)
+	if err == proto.ErrMissingExtension || field.GetOptions() == nil {
+		return
+	} else if err != nil {
+		errStr := fmt.Sprintf("Error parsing the %s field_behavior: %v", field.GetName(), err)
+		g.response.Error = &errStr
+		return
+	}
+
+	behavior := eBehav.([]annotations.FieldBehavior)
+
+	for _, b := range behavior {
+		if b == annotations.FieldBehavior_REQUIRED {
+			required = true
+		} else if b == annotations.FieldBehavior_OUTPUT_ONLY {
+			output = true
+		}
 	}
 
 	return
