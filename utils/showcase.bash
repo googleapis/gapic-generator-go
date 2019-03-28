@@ -21,7 +21,9 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	return
 fi
 
-SHOWCASE_SEMVER=0.0.13
+go install ./cmd/protoc-gen-go_gapic
+
+SHOWCASE_SEMVER=0.0.16
 
 pushd showcase
 rm -rf gen
