@@ -467,6 +467,8 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 		g.printf("md := metadata.Pairs(%s)", p)
 		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
 
+		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+
 		return nil
 	}
 
