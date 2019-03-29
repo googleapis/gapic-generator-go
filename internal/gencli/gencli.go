@@ -34,12 +34,6 @@ const (
 	EmptyProtoType = ".google.protobuf.Empty"
 	// LROProtoType is the type name for the LRO message type
 	LROProtoType = ".google.longrunning.Operation"
-	// OutputOnlyStr represents the comment-level string that
-	// indicates a field is only present as output, never input
-	OutputOnlyStr = "Output only"
-	// RequiredStr represents the comment-level string that
-	// indicates a field is required
-	RequiredStr = "Required"
 )
 
 // Command intermediate representation of a RPC/Method as a CLI command
