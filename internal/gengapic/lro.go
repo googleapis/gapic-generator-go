@@ -102,7 +102,6 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-
 		respSpec, err := g.descInfo.ImportSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.response_type value %q in rpc %q", opInfo.GetResponseType(), mFQN)
@@ -131,7 +130,6 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-
 		meta, err := g.descInfo.ImportSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.metadata_type value %q in rpc %q", opInfo.GetMetadataType(), mFQN)
