@@ -102,13 +102,14 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-		name := typ.GetName()
 
 		respSpec, err := g.descInfo.ImportSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.response_type value %q in rpc %q", opInfo.GetResponseType(), mFQN)
 		}
 		g.imports[respSpec] = true
+
+		name := typ.GetName()
 
 		// handle nested message types
 		if parent, ok := g.descInfo.ParentElement[typ]; ok {
@@ -130,13 +131,14 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-		name := typ.GetName()
 
 		meta, err := g.descInfo.ImportSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.metadata_type value %q in rpc %q", opInfo.GetMetadataType(), mFQN)
 		}
 		g.imports[meta] = true
+
+		name := typ.GetName()
 
 		// handle nested message types
 		if parent, ok := g.descInfo.ParentElement[typ]; ok {
