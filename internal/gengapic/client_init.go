@@ -78,20 +78,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		}
 
 		var idempotent []string
-		var nonidempotent []string
 		var overrideRetry []methodCode
 
 		for _, m := range serv.GetMethod() {
 			if m.GetOptions() == nil {
-				// Some methods are not annotated, this is not an error, give it default/nonidempotent config.
-				nonidempotent = append(nonidempotent, m.GetName())
 				continue
 			}
 
 			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 			if err == proto.ErrMissingExtension {
-				// Give method default/nonidempotent config
-				nonidempotent = append(nonidempotent, m.GetName())
 				continue
 			}
 			if err != nil {
@@ -99,18 +94,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			}
 			// Generator spec mandates we bucket methods into idempotent and non-idempotent for retries, unless there is an override.
 			// TODO(pongad): implement the override.
-			switch eHttp.(*annotations.HttpRule).Pattern.(type) {
-			case *annotations.HttpRule_Get:
+			if _, ok := eHttp.(*annotations.HttpRule).Pattern.(*annotations.HttpRule_Get); ok {
 				idempotent = append(idempotent, m.GetName())
-			default:
-				nonidempotent = append(nonidempotent, m.GetName())
 			}
 		}
 
 		// TODO(pongad): read retry params from somewhere
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 
-		if len(idempotent) > 0 || len(nonidempotent) > 0 || len(overrideRetry) > 0 {
+		if len(idempotent) > 0 || len(overrideRetry) > 0 {
 			p("backoff := gax.Backoff{")
 			p("  Initial: 100 * time.Millisecond,")
 			p("  Max: time.Minute,")
@@ -136,24 +128,9 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 		}
 
-		if len(nonidempotent) > 0 {
-			p("nonidempotent := []gax.CallOption{")
-			p("  gax.WithRetry(func() gax.Retryer {")
-			p("    return gax.OnCodes([]codes.Code{")
-			p("      codes.Unavailable,")
-			p("    }, backoff)")
-			p("  }),")
-			p("}")
-			p("")
-
-		}
-
 		p("  return &%sCallOptions{", servName)
 		for _, m := range idempotent {
 			p("%s: idempotent,", m)
-		}
-		for _, m := range nonidempotent {
-			p("%s: nonidempotent,", m)
 		}
 		for _, retry := range overrideRetry {
 			p("%s: []gax.CallOption{", retry.method)
