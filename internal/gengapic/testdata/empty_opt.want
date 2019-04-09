@@ -29,18 +29,8 @@ func defaultCallOptions() *CallOptions {
 		}),
 	}
 
-	nonidempotent := []gax.CallOption{
-		gax.WithRetry(func() gax.Retryer {
-			return gax.OnCodes([]codes.Code{
-				codes.Unavailable,
-			}, backoff)
-		}),
-	}
-
 	return &CallOptions{
 		Zip: idempotent,
-		Zap: nonidempotent,
-		Smack: nonidempotent,
 	}
 }
 
