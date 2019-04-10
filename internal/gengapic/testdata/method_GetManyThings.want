@@ -40,6 +40,7 @@ type StringIterator struct {
 	items    []string
 	pageInfo *iterator.PageInfo
 	nextFunc func() error
+	Response *mypackagepb.PageOutputType
 
 	// InternalFetch is for use by the Google Cloud Libraries only.
 	// It is not part of the stable interface of this package.

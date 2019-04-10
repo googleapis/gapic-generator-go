@@ -27,6 +27,9 @@ import (
 type iterType struct {
 	iterTypeName, elemTypeName string
 
+	resType string
+	resSpec pbinfo.ImportSpec
+
 	// If the elem type is a message, elemImports contains pbinfo.ImportSpec for the type.
 	// Otherwise, len(elemImports)==0.
 	elemImports []pbinfo.ImportSpec
@@ -36,6 +39,17 @@ type iterType struct {
 // elemField should be the "resource" of a paginating RPC.
 func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iterType, error) {
 	var pt iterType
+
+	parent, ok := g.descInfo.ParentElement[elemField]
+	if !ok {
+		return iterType{}, errors.E(nil, "cannot find parent element for %q, malformed descriptor?", elemField.GetName())
+	}
+
+	var err error
+	pt.resType, pt.resSpec, err = g.descInfo.NameSpec(parent)
+	if err != nil {
+		return iterType{}, errors.E(err, "unable to get a name & import spec for %s", parent.GetName())
+	}
 
 	switch t := *elemField.Type; {
 	case t == descriptor.FieldDescriptorProto_TYPE_MESSAGE:
@@ -207,6 +221,7 @@ func (g *generator) pagingIter(pt iterType) {
 	p("  items    []%s", pt.elemTypeName)
 	p("  pageInfo *iterator.PageInfo")
 	p("  nextFunc func() error")
+	p("  Response *%s.%s", pt.resSpec.Name, pt.resType)
 	p("")
 	p("  // InternalFetch is for use by the Google Cloud Libraries only.")
 	p("  // It is not part of the stable interface of this package.")

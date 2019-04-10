@@ -155,6 +155,7 @@ func TestIterTypeOf(t *testing.T) {
 			Type: map[string]pbinfo.ProtoType{
 				msgType.GetName(): msgType,
 			},
+			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{},
 			ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
 				msgType: &descriptor.FileDescriptorProto{
 					Options: &descriptor.FileOptions{
@@ -176,6 +177,8 @@ func TestIterTypeOf(t *testing.T) {
 			want: iterType{
 				iterTypeName: "StringIterator",
 				elemTypeName: "string",
+				resType:      "Foo",
+				resSpec:      pbinfo.ImportSpec{Name: "foopb", Path: "path/to/foo"},
 			},
 		},
 		{
@@ -185,6 +188,8 @@ func TestIterTypeOf(t *testing.T) {
 			want: iterType{
 				iterTypeName: "BytesIterator",
 				elemTypeName: "[]byte",
+				resType:      "Foo",
+				resSpec:      pbinfo.ImportSpec{Name: "foopb", Path: "path/to/foo"},
 			},
 		},
 		{
@@ -196,9 +201,12 @@ func TestIterTypeOf(t *testing.T) {
 				iterTypeName: "FooIterator",
 				elemTypeName: "*foopb.Foo",
 				elemImports:  []pbinfo.ImportSpec{{Name: "foopb", Path: "path/to/foo"}},
+				resType:      "Foo",
+				resSpec:      pbinfo.ImportSpec{Name: "foopb", Path: "path/to/foo"},
 			},
 		},
 	} {
+		g.descInfo.ParentElement[tst.field] = msgType
 		got, err := g.iterTypeOf(tst.field)
 		if err != nil {
 			t.Error(err)
