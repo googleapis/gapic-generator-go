@@ -135,6 +135,28 @@ func TestPaging(t *testing.T) {
 	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
 }
 
+func TestLro(t *testing.T) {
+	t.Parellel()
+
+	g := initTestGenerator()
+
+	vs := SampleValueSet{
+		ID: "my_value_set",
+		OnSuccess: []OutputSpec{
+			{Print: []string{"x = %s", "$resp.a.x"}},
+		},
+	}
+
+	methConf := GAPICMethod{
+		Name:              "UnaryMethod",
+		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
+		LongRunning: LongRunningConfig{
+			ReturnType: "foo.lroReturnType",
+			MetadataType: "foo.lroMetadataType",
+		}
+	}
+}
+
 func TestEmpty(t *testing.T) {
 	t.Parallel()
 
@@ -201,6 +223,19 @@ func initTestGenerator() *generator {
 			{Name: proto.String("next_page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 		},
 	}
+	
+	lroInType := &descriptor.DescriptorProto{
+		Name: proto.String("LroInType"),
+	}
+	lroReturnType := &descriptor.DescriptorProto{
+		Name: proto.String("lroReturnType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
+		}
+	}
+	lroMetadataType := &descriptor.DescriptorProto{
+		Name: proto.String("lroMetadataType"),
+	}
 
 	serv := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
@@ -220,6 +255,11 @@ func initTestGenerator() *generator {
 				InputType:  proto.String(".foo.PageInType"),
 				OutputType: proto.String(".google.protobuf.Empty"),
 			},
+			{
+				Name:		proto.String("LroMethod"),
+				InputType: proto.string(".foo.LroInType"),
+				OutputType: proto.string(".google.longrunning.Operation"),
+			}
 		},
 	}
 	file := &descriptor.FileDescriptorProto{
@@ -228,7 +268,7 @@ func initTestGenerator() *generator {
 		},
 		Package:     proto.String("foo"),
 		Service:     []*descriptor.ServiceDescriptorProto{serv},
-		MessageType: []*descriptor.DescriptorProto{inType, aType, pageInType, pageOutType},
+		MessageType: []*descriptor.DescriptorProto{inType, aType, pageInType, pageOutType, lroInType, lroReturnType, lroMetadataType},
 	}
 
 	return &generator{
