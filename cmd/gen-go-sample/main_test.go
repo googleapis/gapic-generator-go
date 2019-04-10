@@ -119,6 +119,18 @@ func TestSample_InitError(t *testing.T) {
 			t.Errorf("expected error from init config: %s", tst)
 		}
 	}
+
+	// missing LRO config
+	g.reset()
+
+	vs := SampleValueSet{
+		ID: "my_value_set",
+	}
+
+	if err := g.genSample("foo.FooService", GAPICMethod{Name: "LroMethod"}, "awesome_region", vs); err == nil {
+		t.Errorf("expected error from missing config")
+	}
+
 }
 
 func TestPaging(t *testing.T) {
@@ -136,7 +148,7 @@ func TestPaging(t *testing.T) {
 }
 
 func TestLro(t *testing.T) {
-	t.Parellel()
+	t.Parallel()
 
 	g := initTestGenerator()
 
@@ -148,13 +160,17 @@ func TestLro(t *testing.T) {
 	}
 
 	methConf := GAPICMethod{
-		Name:              "UnaryMethod",
-		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
+		Name:              "LroMethod",
 		LongRunning: LongRunningConfig{
 			ReturnType: "foo.lroReturnType",
 			MetadataType: "foo.lroMetadataType",
-		}
+		},
 	}
+
+	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_lro.want"))
 }
 
 func TestEmpty(t *testing.T) {
@@ -231,7 +247,7 @@ func initTestGenerator() *generator {
 		Name: proto.String("lroReturnType"),
 		Field: []*descriptor.FieldDescriptorProto{
 			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
-		}
+		},
 	}
 	lroMetadataType := &descriptor.DescriptorProto{
 		Name: proto.String("lroMetadataType"),
@@ -257,9 +273,9 @@ func initTestGenerator() *generator {
 			},
 			{
 				Name:		proto.String("LroMethod"),
-				InputType: proto.string(".foo.LroInType"),
-				OutputType: proto.string(".google.longrunning.Operation"),
-			}
+				InputType: proto.String(".foo.LroInType"),
+				OutputType: proto.String(".google.longrunning.Operation"),
+			},
 		},
 	}
 	file := &descriptor.FileDescriptorProto{

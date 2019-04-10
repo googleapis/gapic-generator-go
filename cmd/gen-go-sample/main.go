@@ -373,10 +373,9 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			return err
 		}
 	}
-
 	if meth.GetOutputType() == ".google.protobuf.Empty" {
 		err = g.emptyOut(meth, valSet)
-	} else if meth.GetOutputType() == ".google.protobuf.Operation" {
+	} else if meth.GetOutputType() == ".google.longrunning.Operation" {
 		err = g.lro(meth, methConf, valSet)
 	} else if meth.GetServerStreaming() || meth.GetClientStreaming() {
 		err = errors.E(nil, "streaming methods not supported yet")
@@ -498,9 +497,6 @@ func (g *generator) lro(meth *descriptor.MethodDescriptorProto, methConf GAPICMe
 	p("}")
 
 	lroConf := methConf.LongRunning
-	// if lroConf == nil {
-	// 	return errors.E(nil, "LRO config not given")
-	// }
 	var typ initType
 	if tn := lroConf.ReturnType; tn != "" {
 		typ = initType{desc: g.descInfo.Type["."+tn]}
