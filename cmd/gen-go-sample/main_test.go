@@ -160,9 +160,9 @@ func TestLro(t *testing.T) {
 	}
 
 	methConf := GAPICMethod{
-		Name:              "LroMethod",
+		Name: "LroMethod",
 		LongRunning: LongRunningConfig{
-			ReturnType: "foo.lroReturnType",
+			ReturnType:   "foo.lroReturnType",
 			MetadataType: "foo.lroMetadataType",
 		},
 	}
@@ -239,7 +239,7 @@ func initTestGenerator() *generator {
 			{Name: proto.String("next_page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 		},
 	}
-	
+
 	lroInType := &descriptor.DescriptorProto{
 		Name: proto.String("LroInType"),
 	}
@@ -272,8 +272,8 @@ func initTestGenerator() *generator {
 				OutputType: proto.String(".google.protobuf.Empty"),
 			},
 			{
-				Name:		proto.String("LroMethod"),
-				InputType: proto.String(".foo.LroInType"),
+				Name:       proto.String("LroMethod"),
+				InputType:  proto.String(".foo.LroInType"),
 				OutputType: proto.String(".google.longrunning.Operation"),
 			},
 		},
