@@ -20,6 +20,8 @@ func (c *FooClient) GetManyThings(ctx context.Context, req *mypackagepb.PageInpu
 		if err != nil {
 			return nil, "", err
 		}
+
+		it.Response = resp
 		return resp.Items, resp.NextPageToken, nil
 	}
 	fetch := func(pageSize int, pageToken string) (string, error) {
@@ -40,6 +42,9 @@ type StringIterator struct {
 	items    []string
 	pageInfo *iterator.PageInfo
 	nextFunc func() error
+
+	// Response is the raw response for the current page.
+	// Calling Next() or InternalFetch() updates this value.
 	Response *mypackagepb.PageOutputType
 
 	// InternalFetch is for use by the Google Cloud Libraries only.

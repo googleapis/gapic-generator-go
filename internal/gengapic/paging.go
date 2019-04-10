@@ -183,6 +183,8 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("  if err != nil {")
 	p("    return nil, \"\", err")
 	p("  }")
+	p("")
+	p("  it.Response = resp")
 	p("  return resp.%s, resp.NextPageToken, nil", snakeToCamel(*elemField.Name))
 	p("}")
 
@@ -221,6 +223,9 @@ func (g *generator) pagingIter(pt iterType) {
 	p("  items    []%s", pt.elemTypeName)
 	p("  pageInfo *iterator.PageInfo")
 	p("  nextFunc func() error")
+	p("")
+	p("  // Response is the raw response for the current page.")
+	p("  // Calling Next() or InternalFetch() updates this value.")
 	p("  Response *%s.%s", pt.resSpec.Name, pt.resType)
 	p("")
 	p("  // InternalFetch is for use by the Google Cloud Libraries only.")
