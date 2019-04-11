@@ -102,18 +102,11 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-		respSpec, err := g.descInfo.ImportSpec(typ)
+		name, respSpec, err := g.descInfo.NameSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.response_type value %q in rpc %q", opInfo.GetResponseType(), mFQN)
 		}
 		g.imports[respSpec] = true
-
-		name := typ.GetName()
-
-		// handle nested message types
-		if parent, ok := g.descInfo.ParentElement[typ]; ok {
-			name = fmt.Sprintf("%s_%s", parent.GetName(), name)
-		}
 
 		respType = fmt.Sprintf("%s.%s", respSpec.Name, name)
 	}
@@ -130,18 +123,11 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-		meta, err := g.descInfo.ImportSpec(typ)
+		name, meta, err := g.descInfo.NameSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.metadata_type value %q in rpc %q", opInfo.GetMetadataType(), mFQN)
 		}
 		g.imports[meta] = true
-
-		name := typ.GetName()
-
-		// handle nested message types
-		if parent, ok := g.descInfo.ParentElement[typ]; ok {
-			name = fmt.Sprintf("%s_%s", parent.GetName(), name)
-		}
 
 		metaType = fmt.Sprintf("%s.%s", meta.Name, name)
 	}
