@@ -496,14 +496,12 @@ func (g *generator) lro(meth *descriptor.MethodDescriptorProto, methConf GAPICMe
 	p("  return err")
 	p("}")
 
-	lroConf := methConf.LongRunning
-	var typ initType
-	if tn := lroConf.ReturnType; tn != "" {
-		typ = initType{desc: g.descInfo.Type["."+tn]}
-	} else {
+	retType := methConf.LongRunning.ReturnType
+	if retType == "" {
 		return errors.E(nil, "LRO return type not given")
 	}
 
+	typ := initType{desc: g.descInfo.Type["."+retType]}
 	return g.handleOut(meth, valSet, &typ)
 }
 
