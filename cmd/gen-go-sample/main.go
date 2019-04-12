@@ -491,10 +491,12 @@ func (g *generator) lro(meth *descriptor.MethodDescriptorProto, methConf GAPICMe
 	p("if err != nil {")
 	p("  return err")
 	p("}")
+	p("")
 	p("resp, err := op.Wait(ctx)")
 	p("if err != nil {")
 	p("  return err")
 	p("}")
+	p("")
 
 	retType := methConf.LongRunning.ReturnType
 	if retType == "" {

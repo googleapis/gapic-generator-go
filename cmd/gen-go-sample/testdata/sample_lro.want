@@ -39,10 +39,12 @@ func sampleLroMethod() error {
 	if err != nil {
 		return err
 	}
+
 	resp, err := op.Wait(ctx)
 	if err != nil {
 		return err
 	}
+
 	fmt.Printf("x = %v\n", resp.GetA().GetX())
 	return nil
 }
