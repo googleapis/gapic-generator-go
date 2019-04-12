@@ -111,6 +111,10 @@ func addMessage(typMap map[string]ProtoType, parentMap map[ProtoType]ProtoType, 
 		typMap[fullName+"."+subEnum.GetName()] = subEnum
 		parentMap[subEnum] = msg
 	}
+
+	for _, field := range msg.GetField() {
+		parentMap[field] = msg
+	}
 }
 
 type ImportSpec struct {
