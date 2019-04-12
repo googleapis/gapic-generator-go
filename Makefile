@@ -15,6 +15,9 @@ test-go-cli:
 test-gapic:
 	go test github.com/googleapis/gapic-generator-go/internal/gengapic
 
+golden:
+	go test github.com/googleapis/gapic-generator-go/internal/gengapic -update_golden
+
 test:
 	go test ./...
 	./utils/showcase.bash
