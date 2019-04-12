@@ -373,11 +373,10 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			return err
 		}
 	}
-
 	if meth.GetOutputType() == ".google.protobuf.Empty" {
 		err = g.emptyOut(meth, valSet)
-	} else if meth.GetOutputType() == ".google.protobuf.Operation" {
-		err = errors.E(nil, "LRO not supported yet")
+	} else if meth.GetOutputType() == ".google.longrunning.Operation" {
+		err = g.lro(meth, methConf, valSet)
 	} else if meth.GetServerStreaming() || meth.GetClientStreaming() {
 		err = errors.E(nil, "streaming methods not supported yet")
 	} else if pf, err2 := pagingField(g.descInfo, meth); err2 != nil {
@@ -483,6 +482,29 @@ func (g *generator) paging(meth *descriptor.MethodDescriptorProto, pf *descripto
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 
 	return err
+}
+
+func (g *generator) lro(meth *descriptor.MethodDescriptorProto, methConf GAPICMethod, valSet SampleValueSet) error {
+	p := g.pt.Printf
+
+	p("op, err := c.%s(ctx, req)", meth.GetName())
+	p("if err != nil {")
+	p("  return err")
+	p("}")
+	p("")
+	p("resp, err := op.Wait(ctx)")
+	p("if err != nil {")
+	p("  return err")
+	p("}")
+	p("")
+
+	retType := methConf.LongRunning.ReturnType
+	if retType == "" {
+		return errors.E(nil, "LRO return type not given")
+	}
+
+	typ := initType{desc: g.descInfo.Type["."+retType]}
+	return g.handleOut(meth, valSet, &typ)
 }
 
 func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet, respTyp *initType) error {
