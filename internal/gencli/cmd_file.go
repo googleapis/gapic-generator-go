@@ -277,8 +277,12 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 		{{ else if and .Paged (not .IsLRO ) }}
 		// get requested page
+		var items []interface{}
 		data := make(map[string]interface{})
-		items := []interface{}{}
+
+		// PageSize could be an integer with a specific precision.
+		// Doing standard i := 0; i < PageSize; i++ creates i as
+		// an int, creating a potential type mismatch. 
 		for i := {{ $inputVar }}.PageSize; i > 0; i-- {
 			item, err := iter.Next()
 			if err == iterator.Done {
