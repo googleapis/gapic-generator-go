@@ -11,22 +11,7 @@ func defaultBarClientOptions() []option.ClientOption {
 }
 
 func defaultBarCallOptions() *BarCallOptions {
-	backoff := gax.Backoff{
-		Initial: 100 * time.Millisecond,
-		Max: time.Minute,
-		Multiplier: 1.3,
-	}
-
-	nonidempotent := []gax.CallOption{
-		gax.WithRetry(func() gax.Retryer {
-			return gax.OnCodes([]codes.Code{
-				codes.Unavailable,
-			}, backoff)
-		}),
-	}
-
 	return &BarCallOptions{
-		Smack: nonidempotent,
 	}
 }
 

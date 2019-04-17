@@ -149,6 +149,11 @@ func TestGenMethod(t *testing.T) {
 			},
 		},
 	}
+	paginatedField := &descriptor.FieldDescriptorProto{
+		Name:  proto.String("items"),
+		Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+		Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+	}
 	pageOutputType := &descriptor.DescriptorProto{
 		Name: proto.String("PageOutputType"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -157,11 +162,7 @@ func TestGenMethod(t *testing.T) {
 				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
-			{
-				Name:  proto.String("items"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-			},
+			paginatedField,
 		},
 	}
 
@@ -188,6 +189,9 @@ func TestGenMethod(t *testing.T) {
 		g.descInfo.ParentFile[typ] = file
 	}
 	g.descInfo.ParentFile[serv] = file
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{
+		paginatedField: pageOutputType,
+	}
 
 	meths := []*descriptor.MethodDescriptorProto{
 		{

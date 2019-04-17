@@ -119,6 +119,18 @@ func TestSample_InitError(t *testing.T) {
 			t.Errorf("expected error from init config: %s", tst)
 		}
 	}
+
+	// missing LRO config
+	g.reset()
+
+	vs := SampleValueSet{
+		ID: "my_value_set",
+	}
+
+	if err := g.genSample("foo.FooService", GAPICMethod{Name: "LroMethod"}, "awesome_region", vs); err == nil {
+		t.Errorf("expected error from missing config")
+	}
+
 }
 
 func TestPaging(t *testing.T) {
@@ -133,6 +145,32 @@ func TestPaging(t *testing.T) {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
+}
+
+func TestLro(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+
+	vs := SampleValueSet{
+		ID: "my_value_set",
+		OnSuccess: []OutputSpec{
+			{Print: []string{"x = %s", "$resp.a.x"}},
+		},
+	}
+
+	methConf := GAPICMethod{
+		Name: "LroMethod",
+		LongRunning: LongRunningConfig{
+			ReturnType:   "foo.lroReturnType",
+			MetadataType: "foo.lroMetadataType",
+		},
+	}
+
+	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_lro.want"))
 }
 
 func TestEmpty(t *testing.T) {
@@ -202,6 +240,19 @@ func initTestGenerator() *generator {
 		},
 	}
 
+	lroInType := &descriptor.DescriptorProto{
+		Name: proto.String("LroInType"),
+	}
+	lroReturnType := &descriptor.DescriptorProto{
+		Name: proto.String("lroReturnType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
+		},
+	}
+	lroMetadataType := &descriptor.DescriptorProto{
+		Name: proto.String("lroMetadataType"),
+	}
+
 	serv := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 		Method: []*descriptor.MethodDescriptorProto{
@@ -220,6 +271,11 @@ func initTestGenerator() *generator {
 				InputType:  proto.String(".foo.PageInType"),
 				OutputType: proto.String(".google.protobuf.Empty"),
 			},
+			{
+				Name:       proto.String("LroMethod"),
+				InputType:  proto.String(".foo.LroInType"),
+				OutputType: proto.String(".google.longrunning.Operation"),
+			},
 		},
 	}
 	file := &descriptor.FileDescriptorProto{
@@ -228,7 +284,7 @@ func initTestGenerator() *generator {
 		},
 		Package:     proto.String("foo"),
 		Service:     []*descriptor.ServiceDescriptorProto{serv},
-		MessageType: []*descriptor.DescriptorProto{inType, aType, pageInType, pageOutType},
+		MessageType: []*descriptor.DescriptorProto{inType, aType, pageInType, pageOutType, lroInType, lroReturnType, lroMetadataType},
 	}
 
 	return &generator{

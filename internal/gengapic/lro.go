@@ -89,7 +89,10 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 
 	var respType string
 	{
-		// eLRO.ResponseType is either fully-qualified or in the same package as the method.
+		// eLRO.ResponseType is either fully-qualified or top-level in the same package as the method.
+		//
+		// TODO(ndietz) this won't work with nested message types in the same package;
+		// migrating to protoreflect will help remove from semantic meaning in the names.
 		if strings.IndexByte(fullName, '.') < 0 {
 			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
 		}
@@ -99,30 +102,34 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-		respSpec, err := g.descInfo.ImportSpec(typ)
+		name, respSpec, err := g.descInfo.NameSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.response_type value %q in rpc %q", opInfo.GetResponseType(), mFQN)
 		}
 		g.imports[respSpec] = true
-		respType = fmt.Sprintf("%s.%s", respSpec.Name, typ.GetName())
+
+		respType = fmt.Sprintf("%s.%s", respSpec.Name, name)
 	}
 
 	hasMeta := opInfo.GetMetadataType() != ""
 	var metaType string
 	if hasMeta {
 		fullName := opInfo.GetMetadataType()
+		// TODO(ndietz) this won't work with nested message types in the same package;
+		// migrating to protoreflect will help remove from semantic meaning in the names.
 		if strings.IndexByte(fullName, '.') < 0 {
 			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
 		}
 		fullName = "." + fullName
 
 		typ := g.descInfo.Type[fullName]
-		meta, err := g.descInfo.ImportSpec(typ)
+		name, meta, err := g.descInfo.NameSpec(typ)
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.metadata_type value %q in rpc %q", opInfo.GetMetadataType(), mFQN)
 		}
 		g.imports[meta] = true
-		metaType = fmt.Sprintf("%s.%s", meta.Name, typ.GetName())
+
+		metaType = fmt.Sprintf("%s.%s", meta.Name, name)
 	}
 
 	// Type definition

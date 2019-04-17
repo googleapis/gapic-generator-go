@@ -33,6 +33,8 @@ type GAPICMethod struct {
 
 	// map[fieldName]ResourceName.EntityName
 	FieldNamePatterns map[string]string `yaml:"field_name_patterns"`
+
+	LongRunning LongRunningConfig `yaml: "long_running"`
 }
 
 type SampleValueSet struct {
@@ -74,4 +76,10 @@ type LoopSpec struct {
 type ResourceName struct {
 	EntityName  string `yaml:"entity_name"`
 	NamePattern string `yaml:"name_pattern"`
+}
+
+// All other fields are left out because samples do not need to know polling config, and we are moving to annotations anyway
+type LongRunningConfig struct {
+	ReturnType   string `yaml: "return_type"`
+	MetadataType string `yaml: "metadata_type"`
 }
