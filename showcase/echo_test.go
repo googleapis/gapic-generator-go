@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	showcase "cloud.google.com/go/showcase/apiv1alpha3"
+	showcase "cloud.google.com/go/showcase/apiv1beta1"
 	durationpb "github.com/golang/protobuf/ptypes/duration"
 	genprotopb "github.com/googleapis/gapic-showcase/server/genproto"
 	"google.golang.org/api/iterator"
@@ -226,6 +226,32 @@ func TestPagination(t *testing.T) {
 			t.Fatal(err)
 		}
 		if resp.GetContent() != expected[ndx] {
+			t.Errorf("Chat() = %s, want %s", resp.GetContent(), expected[ndx])
+		}
+		ndx++
+	}
+}
+
+func TestPaginationWithToken(t *testing.T) {
+	t.Parallel()
+	str := "ab cd ef gh ij kl"
+	expected := strings.Split(str, " ")[1:]
+	req := &genprotopb.PagedExpandRequest{Content: str, PageSize: 2, PageToken: "1"}
+	iter := client.PagedExpand(context.Background(), req)
+
+	ndx := 0
+	for {
+		resp, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if ndx >= len(expected) {
+			t.Errorf("Received more items than expected")
+		} else if resp.GetContent() != expected[ndx] {
 			t.Errorf("Chat() = %s, want %s", resp.GetContent(), expected[ndx])
 		}
 		ndx++

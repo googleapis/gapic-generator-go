@@ -199,6 +199,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 
 	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
 	p("it.pageInfo.MaxSize = int(req.PageSize)")
+	p("it.pageInfo.Token = req.PageToken")
 	p("return it")
 
 	p("}")
