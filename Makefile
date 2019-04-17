@@ -21,6 +21,10 @@ test:
 	go test ./...
 	./utils/showcase.bash
 
+install:
+	go install ./cmd/protoc-gen-go_gapic
+	go install ./cmd/protoc-gen-go_cli
+
 clean:
 	rm -rf testdata
 	rm -rf cmd/protoc-gen-go_cli/testprotos

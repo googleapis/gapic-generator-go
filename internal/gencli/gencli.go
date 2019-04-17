@@ -21,9 +21,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jhump/protoreflect/desc"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -31,9 +34,9 @@ import (
 
 const (
 	// EmptyProtoType is the type name for the Empty message type
-	EmptyProtoType = ".google.protobuf.Empty"
+	EmptyProtoType = "google.protobuf.Empty"
 	// LROProtoType is the type name for the LRO message type
-	LROProtoType = ".google.longrunning.Operation"
+	LROProtoType = "google.longrunning.Operation"
 )
 
 // Command intermediate representation of a RPC/Method as a CLI command
@@ -90,24 +93,30 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 type gcli struct {
 	comments    map[proto.Message]string
-	descInfo    pbinfo.Info
+	protos      map[string]*desc.FileDescriptor
 	imports     map[string]*pbinfo.ImportSpec
 	pt          printer.P
 	response    plugin.CodeGeneratorResponse
 	root        string
-	services    []*descriptor.ServiceDescriptorProto
+	services    []*desc.ServiceDescriptor
 	subcommands map[string][]*Command
 	format      bool
 	gapicName   string
 }
 
 func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
+	var err error
+
 	g.comments = make(map[proto.Message]string)
-	g.descInfo = pbinfo.Of(req.ProtoFile)
 	g.imports = make(map[string]*pbinfo.ImportSpec)
 	g.subcommands = make(map[string][]*Command)
 
-	err := g.parseParameters(req.Parameter)
+	g.protos, err = desc.CreateFileDescriptors(req.GetProtoFile())
+	if err != nil {
+		return err
+	}
+
+	err = g.parseParameters(req.Parameter)
 	if err != nil {
 		errStr := fmt.Sprintf("Error in parsing params: %s", err.Error())
 		g.response.Error = &errStr
@@ -115,19 +124,13 @@ func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 	}
 
 	// gather services & imports for generation
-	for _, f := range req.ProtoFile {
-		if strContains(req.FileToGenerate, f.GetName()) {
-			// Comments
-			for _, loc := range f.GetSourceCodeInfo().GetLocation() {
-				if loc.LeadingComments == nil {
-					continue
-				}
-
-				g.addComments(f, loc)
-			}
-
-			g.services = append(g.services, f.Service...)
+	for _, f := range req.FileToGenerate {
+		file, ok := g.protos[f]
+		if !ok {
+			continue
 		}
+
+		g.services = append(g.services, file.GetServices()...)
 	}
 
 	return nil
@@ -140,21 +143,21 @@ func (g *gcli) genCommands() {
 
 	// build commands for desird services
 	for _, srv := range g.services {
-		for _, mthd := range srv.GetMethod() {
+		for _, mthd := range srv.GetMethods() {
 			cmd := Command{
 				Imports:          make(map[string]*pbinfo.ImportSpec),
 				Service:          pbinfo.ReduceServName(srv.GetName(), ""),
 				Method:           mthd.GetName(),
-				InputMessageType: mthd.GetInputType(),
-				ServerStreaming:  mthd.GetServerStreaming(),
-				ClientStreaming:  mthd.GetClientStreaming(),
+				InputMessageType: mthd.GetInputType().GetFullyQualifiedName(),
+				ServerStreaming:  mthd.IsServerStreaming(),
+				ClientStreaming:  mthd.IsClientStreaming(),
 				OneOfSelectors:   make(map[string]*Flag),
 				MethodCmd: strings.ToLower(strings.Join(
 					camelCaseRegex.FindAllString(mthd.GetName(), -1), "-")),
 			}
 
 			// add any available comment as usage
-			if cmt, ok := g.comments[mthd]; ok {
+			if cmt := mthd.GetSourceInfo().GetLeadingComments(); cmt != "" {
 				cmt = sanitizeComment(cmt)
 
 				cmd.LongDesc = cmt
@@ -162,7 +165,7 @@ func (g *gcli) genCommands() {
 			}
 
 			// add input message import
-			msg := g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
+			msg := mthd.GetInputType()
 			pkg, err := g.addImport(&cmd, msg)
 			if err != nil {
 				continue
@@ -199,7 +202,7 @@ func (g *gcli) genCommands() {
 			}
 
 			// capture output type for template formatting reasons
-			if out := mthd.GetOutputType(); out == LROProtoType {
+			if out := mthd.GetOutputType().GetFullyQualifiedName(); out == LROProtoType {
 				cmd.IsLRO = true
 				cmd.OutputMessageType = out
 
@@ -208,16 +211,16 @@ func (g *gcli) genCommands() {
 					Path: "fmt",
 				})
 			} else if out != EmptyProtoType {
-				msg := g.descInfo.Type[out].(*descriptor.DescriptorProto)
+				msg := mthd.GetOutputType()
 
 				// buildFieldFlags identifies if a Method is paged
 				// while iterating over the fields
 				if cmd.Paged {
-					var f *descriptor.FieldDescriptorProto
+					var f *desc.FieldDescriptor
 
 					// find repeated field in paged response
-					for _, f = range msg.GetField() {
-						if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+					for _, f = range msg.GetFields() {
+						if f.IsRepeated() {
 							break
 						}
 					}
@@ -230,8 +233,8 @@ func (g *gcli) genCommands() {
 					}
 
 					// set message being evaluated to the repeated type
-					out = f.GetTypeName()
-					msg = g.descInfo.Type[f.GetTypeName()].(*descriptor.DescriptorProto)
+					msg = f.GetMessageType()
+					out = msg.GetName()
 
 					putImport(cmd.Imports, &pbinfo.ImportSpec{
 						Path: "google.golang.org/api/iterator",
@@ -277,18 +280,19 @@ func (g *gcli) genCommands() {
 		}
 
 		// add any available comment as usage
-		if cmt, ok := g.comments[srv]; ok {
+		if cmt := srv.GetSourceInfo().GetLeadingComments(); cmt != "" {
 			cmt = sanitizeComment(cmt)
 
 			cmd.LongDesc = cmt
 			cmd.ShortDesc = toShortUsage(cmt)
 		}
+
 		g.genServiceCmdFile(&cmd)
 	}
 }
 
-func (g *gcli) buildOneOfSelectors(cmd *Command, msg *descriptor.DescriptorProto, prefix string) {
-	for _, field := range msg.GetOneofDecl() {
+func (g *gcli) buildOneOfSelectors(cmd *Command, msg *desc.MessageDescriptor, prefix string) {
+	for _, field := range msg.GetOneOfs() {
 		flag := Flag{
 			Name:     prefix + field.GetName(),
 			Type:     descriptor.FieldDescriptorProto_TYPE_STRING,
@@ -302,10 +306,10 @@ func (g *gcli) buildOneOfSelectors(cmd *Command, msg *descriptor.DescriptorProto
 	}
 }
 
-func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, field *descriptor.FieldDescriptorProto, prefix string, isNested bool) (flags []*Flag) {
+func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *desc.FieldDescriptor, prefix string, isNested bool) (flags []*Flag) {
 	var output bool
 
-	oneOfField := msg.GetOneofDecl()[field.GetOneofIndex()].GetName()
+	oneOfField := field.GetOneOf().GetName()
 	oneOfPrefix := prefix + oneOfField + "."
 
 	flag := Flag{
@@ -314,7 +318,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, fie
 		Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 		IsOneOfField: true,
 		IsNested:     isNested,
-		Usage:        sanitizeComment(g.comments[field]),
+		Usage:        sanitizeComment(field.GetSourceInfo().GetLeadingComments()),
 	}
 
 	// evaluate field behavior
@@ -330,23 +334,17 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, fie
 	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
 	// construct oneof gRPC struct type info
-	m := msg
-	if !isNested {
-		m = g.descInfo.Type[cmd.InputMessageType].(*descriptor.DescriptorProto)
-	}
-
-	parent, err := g.getImport(m)
+	parent, err := g.getImport(msg)
 	if err != nil {
 		return
 	}
-	flag.Message = m.GetName()[strings.LastIndex(m.GetName(), ".")+1:]
+	flag.Message = msg.GetName()[strings.LastIndex(msg.GetName(), ".")+1:]
 	flag.MessageImport = *parent
 
 	// handle oneof message or enum fields
-	if flag.IsMessage() || flag.IsEnum() {
-		flag.Message = g.prepareMessageName(field)
-
-		nested := g.descInfo.Type[field.GetTypeName()]
+	if flag.IsMessage() {
+		nested := field.GetMessageType()
+		flag.Message = g.prepareName(nested)
 
 		// add nested type import
 		pkg, err := g.addImport(cmd, nested)
@@ -355,21 +353,29 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, fie
 		}
 		flag.MessageImport = *pkg
 
-		if flag.IsMessage() {
-			cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
-				FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
-				FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
-			})
+		cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
+			FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
+			FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
+		})
 
-			p := oneOfPrefix + field.GetName() + "."
-			m := nested.(*descriptor.DescriptorProto)
+		p := oneOfPrefix + field.GetName() + "."
 
-			// recursively add singular, nested message fields
-			flags = append(flags, g.buildFieldFlags(cmd, m, p, true)...)
+		// recursively add singular, nested message fields
+		flags = append(flags, g.buildFieldFlags(cmd, nested, p, true)...)
 
-			cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
+		cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
+
+		return
+	} else if flag.IsEnum() {
+		e := field.GetEnumType()
+		flag.Message = g.prepareName(e)
+
+		// add enum type import
+		pkg, err := g.addImport(cmd, e)
+		if err != nil {
 			return
 		}
+		flag.MessageImport = *pkg
 	}
 
 	cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
@@ -378,16 +384,16 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *descriptor.DescriptorProto, fie
 	return flags
 }
 
-func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, prefix string, isOneOf bool) []*Flag {
+func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix string, isOneOf bool) []*Flag {
 	var flags []*Flag
 	var output bool
 
-	for _, field := range msg.GetField() {
-		if field.OneofIndex != nil {
+	for _, field := range msg.GetFields() {
+		if field.GetOneOf() != nil {
 			g.buildOneOfSelectors(cmd, msg, prefix)
 
 			// check if we've recursed into a nested message's oneof
-			isInNested := g.descInfo.Type[cmd.InputMessageType] != msg
+			isInNested := msg.GetFullyQualifiedName() != cmd.InputMessageType
 
 			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, isInNested)...)
 
@@ -399,7 +405,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			Type:         field.GetType(),
 			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 			IsOneOfField: isOneOf,
-			Usage:        sanitizeComment(g.comments[field]),
+			Usage:        sanitizeComment(field.GetSourceInfo().GetLeadingComments()),
 		}
 
 		// skip repeated bytes, they end up being [][]byte which isn't a supported pFlag flag
@@ -419,10 +425,9 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 
 		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
-		if flag.IsMessage() || flag.IsEnum() {
-			flag.Message = g.prepareMessageName(field)
-
-			nested := g.descInfo.Type[field.GetTypeName()]
+		if flag.IsMessage() {
+			nested := field.GetMessageType()
+			flag.Message = g.prepareName(nested)
 
 			// add nested message import
 			pkg, err := g.addImport(cmd, nested)
@@ -432,7 +437,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 			flag.MessageImport = *pkg
 
 			// recursively add singular, nested message fields
-			if !flag.Repeated && !flag.IsEnum() {
+			if !flag.Repeated {
 				n := &NestedMessage{
 					FieldName: "." + flag.InputFieldName(),
 					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
@@ -445,10 +450,19 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 				cmd.NestedMessages = append(cmd.NestedMessages, n)
 
 				p := prefix + field.GetName() + "."
-				m := nested.(*descriptor.DescriptorProto)
-				flags = append(flags, g.buildFieldFlags(cmd, m, p, isOneOf)...)
+				flags = append(flags, g.buildFieldFlags(cmd, nested, p, isOneOf)...)
 				continue
 			}
+		} else if flag.IsEnum() {
+			e := field.GetEnumType()
+			flag.Message = g.prepareName(e)
+
+			// add enum type import
+			pkg, err := g.addImport(cmd, e)
+			if err != nil {
+				continue
+			}
+			flag.MessageImport = *pkg
 		}
 
 		if name := field.GetName(); name == "page_token" || name == "page_size" {
@@ -461,9 +475,13 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *descriptor.DescriptorProto, pr
 	return flags
 }
 
-func (g *gcli) getFieldBehavior(field *descriptor.FieldDescriptorProto) (output bool, required bool) {
-	eBehav, err := proto.GetExtension(field.GetOptions(), annotations.E_FieldBehavior)
-	if err == proto.ErrMissingExtension || field.GetOptions() == nil {
+func (g *gcli) getFieldBehavior(field *desc.FieldDescriptor) (output bool, required bool) {
+	if field.GetFieldOptions() == nil {
+		return
+	}
+
+	eBehav, err := proto.GetExtension(field.GetFieldOptions(), annotations.E_FieldBehavior)
+	if err == proto.ErrMissingExtension {
 		return
 	} else if err != nil {
 		errStr := fmt.Sprintf("Error parsing the %s field_behavior: %v", field.GetName(), err)
@@ -484,19 +502,35 @@ func (g *gcli) getFieldBehavior(field *descriptor.FieldDescriptorProto) (output 
 	return
 }
 
-func (g *gcli) getImport(t pbinfo.ProtoType) (*pbinfo.ImportSpec, error) {
-	_, pkg, err := g.descInfo.NameSpec(t)
-	if err != nil {
-		errStr := fmt.Sprintf("Error retrieving import for message: %s", err.Error())
-		g.response.Error = &errStr
-		return nil, err
+func (g *gcli) getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
+	pkg := m.GetFile().GetFileOptions().GetGoPackage()
+
+	// the below logic is copied from pbinfo.NameSpec()
+	if pkg == "" {
+		return &pbinfo.ImportSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", m.GetName(), m.GetFile().GetName())
 	}
 
-	return &pkg, nil
+	if p := strings.IndexByte(pkg, ';'); p >= 0 {
+		return &pbinfo.ImportSpec{Path: pkg[:p], Name: pkg[p+1:] + "pb"}, nil
+	}
+
+	for {
+		p := strings.LastIndexByte(pkg, '/')
+		if p < 0 {
+			return &pbinfo.ImportSpec{Path: pkg, Name: pkg + "pb"}, nil
+		}
+		elem := pkg[p+1:]
+		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
+			// It's a version number; skip so we get a more meaningful name
+			pkg = pkg[:p]
+			continue
+		}
+		return &pbinfo.ImportSpec{Path: pkg, Name: elem + "pb"}, nil
+	}
 }
 
-func (g *gcli) addImport(cmd *Command, t pbinfo.ProtoType) (*pbinfo.ImportSpec, error) {
-	pkg, err := g.getImport(t)
+func (g *gcli) addImport(cmd *Command, m desc.Descriptor) (*pbinfo.ImportSpec, error) {
+	pkg, err := g.getImport(m)
 	if err != nil {
 		return nil, err
 	}
@@ -567,13 +601,16 @@ func (g *gcli) addGoFile(name string) {
 	g.response.File = append(g.response.File, file)
 }
 
-func (g *gcli) prepareMessageName(field *descriptor.FieldDescriptorProto) string {
-	f := g.descInfo.Type[field.GetTypeName()]
-	name := f.GetName()
+func (g *gcli) prepareName(m desc.Descriptor) string {
+	name := m.GetName()
 
-	// prepend parent name for nested message types
-	for p, ok := g.descInfo.ParentElement[f]; ok; p, ok = g.descInfo.ParentElement[p] {
-		name = p.GetName() + "_" + name
+	// prepend parent name for nested types
+	for par := m.GetParent(); par != nil; par = par.GetParent() {
+		if _, ok := par.(*desc.MessageDescriptor); !ok {
+			break
+		}
+
+		name = par.GetName() + "_" + name
 	}
 
 	return name
