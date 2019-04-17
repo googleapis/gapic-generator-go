@@ -57,8 +57,8 @@ curl -L -O https://raw.githubusercontent.com/googleapis/kiosk/master/protos/kios
 mv kiosk.proto $KIOSK_PROTOS/
 
 # download gapic-showcase proto descriptor set
-curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v0.0.10/gapic-showcase-0.0.10.desc
-mv gapic-showcase-0.0.10.desc $SHOW_PROTOS/
+curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v0.1.0/gapic-showcase-0.1.0.desc
+mv gapic-showcase-0.1.0.desc $SHOW_PROTOS/
 
 # install gapic microgenerator plugin
 go install "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic"
@@ -78,7 +78,7 @@ protoc -I $KIOSK_PROTOS \
   $KIOSK_PROTOS/kiosk.proto
 
 # generate gapic-showcase gapic & go_cli
-protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-0.0.10.desc \
+protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-0.1.0.desc \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
   --go_gapic_opt "go-gapic-package=$SHOWCASE_GAPIC"';gapic' \
@@ -86,10 +86,10 @@ protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-0.0.10.desc \
   --go_cli_opt "gapic=$SHOWCASE_GAPIC" \
   --go_cli_opt "root=testshowctl" \
   --go_cli_opt "fmt=false" \
-  google/showcase/v1alpha3/echo.proto \
-  google/showcase/v1alpha3/identity.proto \
-  google/showcase/v1alpha3/messaging.proto \
-  google/showcase/v1alpha3/testing.proto
+  google/showcase/v1beta1/echo.proto \
+  google/showcase/v1beta1/identity.proto \
+  google/showcase/v1beta1/messaging.proto \
+  google/showcase/v1beta1/testing.proto
 
 # build each go_cli for sanity check
 d=$(pwd)
