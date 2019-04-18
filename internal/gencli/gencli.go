@@ -160,7 +160,7 @@ func (g *gcli) genCommands() {
 			if cmt := mthd.GetSourceInfo().GetLeadingComments(); cmt != "" {
 				cmt = sanitizeComment(cmt)
 
-				cmd.LongDesc = cmt
+				cmd.LongDesc = toLongUsage(cmt)
 				cmd.ShortDesc = toShortUsage(cmt)
 			}
 
@@ -283,7 +283,7 @@ func (g *gcli) genCommands() {
 		if cmt := srv.GetSourceInfo().GetLeadingComments(); cmt != "" {
 			cmt = sanitizeComment(cmt)
 
-			cmd.LongDesc = cmt
+			cmd.LongDesc = toLongUsage(cmt)
 			cmd.ShortDesc = toShortUsage(cmt)
 		}
 
@@ -318,7 +318,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 		IsOneOfField: true,
 		IsNested:     isNested,
-		Usage:        sanitizeComment(field.GetSourceInfo().GetLeadingComments()),
+		Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 	}
 
 	// evaluate field behavior
@@ -405,7 +405,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			Type:         field.GetType(),
 			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 			IsOneOfField: isOneOf,
-			Usage:        sanitizeComment(field.GetSourceInfo().GetLeadingComments()),
+			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		}
 
 		// skip repeated bytes, they end up being [][]byte which isn't a supported pFlag flag

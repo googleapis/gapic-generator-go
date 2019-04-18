@@ -24,13 +24,25 @@ const (
 	// ShortDescMax is the maximum length accepted for
 	// the Short usage docs
 	ShortDescMax = 50
+
+	// LongDescMax is the maximum length accepted for
+	// the Long usage docs
+	LongDescMax = 150
 )
 
+func toLongUsage(cmt string) string {
+	return shorten(cmt, LongDescMax)
+}
+
 func toShortUsage(cmt string) string {
-	if len(cmt) > ShortDescMax {
-		sep := strings.LastIndex(cmt[:ShortDescMax], " ")
+	return shorten(cmt, ShortDescMax)
+}
+
+func shorten(cmt string, limit int) string {
+	if len(cmt) > limit {
+		sep := strings.LastIndex(cmt[:limit], " ")
 		if sep == -1 {
-			sep = ShortDescMax
+			sep = limit
 		}
 		cmt = cmt[:sep] + "..."
 	}
@@ -41,6 +53,7 @@ func toShortUsage(cmt string) string {
 func sanitizeComment(cmt string) string {
 	cmt = strings.Replace(cmt, "\\", `\\`, -1)
 	cmt = strings.Replace(cmt, "\n", " ", -1)
+	cmt = strings.Replace(cmt, "\"", "'", -1)
 	cmt = strings.TrimSpace(cmt)
 	return cmt
 }
