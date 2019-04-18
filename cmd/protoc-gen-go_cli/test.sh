@@ -36,7 +36,6 @@ SHOW_PROTOS=${SHOW_PROTOS:-$GCLI_SRC/testprotos/showcase}
 COMMON_PROTOS=${COMMON_PROTOS:-$OUT/common}
 
 KIOSK_GAPIC=${KIOSK_GAPIC:-$GCLI/testdata/kiosk/gapic}
-SHOWCASE_GAPIC=${SHOWCASE_GAPIC:-$GCLI/testdata/showcase/gapic}
 
 # make test output directories
 mkdir -p "$OUT/kiosk"
@@ -47,6 +46,7 @@ mkdir -p $KIOSK_PROTOS
 mkdir -p $SHOW_PROTOS
 
 # download api-common-protos:input-contract branch
+rm -f input-contract.zip api-common-protos-input-contract
 curl -L -O https://github.com/googleapis/api-common-protos/archive/input-contract.zip
 unzip -q input-contract.zip
 rm -f input-contract.zip
@@ -56,9 +56,11 @@ mv -f api-common-protos-input-contract $COMMON_PROTOS
 curl -L -O https://raw.githubusercontent.com/googleapis/kiosk/master/protos/kiosk.proto
 mv kiosk.proto $KIOSK_PROTOS/
 
+SHOWCASE_VERSION=0.1.1
+
 # download gapic-showcase proto descriptor set
-curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v0.1.0/gapic-showcase-0.1.0.desc
-mv gapic-showcase-0.1.0.desc $SHOW_PROTOS/
+curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_VERSION/gapic-showcase-$SHOWCASE_VERSION.desc
+mv gapic-showcase-$SHOWCASE_VERSION.desc $SHOW_PROTOS/
 
 # install gapic microgenerator plugin
 go install "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic"
@@ -78,12 +80,12 @@ protoc -I $KIOSK_PROTOS \
   $KIOSK_PROTOS/kiosk.proto
 
 # generate gapic-showcase gapic & go_cli
-protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-0.1.0.desc \
+protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-$SHOWCASE_VERSION.desc \
   --go_out=plugins=grpc:$GOPATH/src \
   --go_gapic_out $GOPATH/src \
-  --go_gapic_opt "go-gapic-package=$SHOWCASE_GAPIC"';gapic' \
+  --go_gapic_opt "go-gapic-package=github.com/gapic-showcase/client;client" \
   --go_cli_out $OUT/showcase \
-  --go_cli_opt "gapic=$SHOWCASE_GAPIC" \
+  --go_cli_opt "gapic=github.com/gapic-showcase/client;client" \
   --go_cli_opt "root=testshowctl" \
   --go_cli_opt "fmt=false" \
   google/showcase/v1beta1/echo.proto \

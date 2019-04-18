@@ -10,6 +10,7 @@ check-license:
 
 test-go-cli:
 	go test github.com/googleapis/gapic-generator-go/internal/gencli
+	./cmd/protoc-gen-go_cli/test.sh
 
 test-gapic:
 	go test github.com/googleapis/gapic-generator-go/internal/gengapic
