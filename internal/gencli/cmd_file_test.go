@@ -60,6 +60,7 @@ func TestCommandFile(t *testing.T) {
 				Usage:         "importance of the task",
 				Message:       "Priority",
 				MessageImport: pbinfo.ImportSpec{Name: "todopb"},
+				VarName:       "CreateTodoInputPriority",
 			},
 		},
 		HasEnums: true,

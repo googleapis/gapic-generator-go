@@ -16,6 +16,7 @@ package gencli
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -33,27 +34,11 @@ type Flag struct {
 	MessageImport pbinfo.ImportSpec
 	OneOfs        map[string]*Flag
 	OneOfSelector string
+	VarName       string
+	FieldName     string
+	SliceAccessor string
 	IsOneOfField  bool
 	IsNested      bool
-}
-
-// GenOtherVarName generates the Go variable to store repeated Message & Enum string values
-func (f *Flag) GenOtherVarName(in string) string {
-	return in + strings.Replace(f.InputFieldName(), ".", "", -1)
-}
-
-// GenOneOfVarName generates the variable name for a oneof entry type
-func (f *Flag) GenOneOfVarName(in string) string {
-	name := f.InputFieldName()
-	if !f.IsNested && strings.Count(name, ".") > 1 {
-		name = name[:strings.LastIndex(name, ".")]
-	}
-
-	for _, tkn := range strings.Split(name, ".") {
-		in += strings.Title(tkn)
-	}
-
-	return in
 }
 
 // GenFlag generates the pflag API call for this flag
@@ -68,7 +53,7 @@ func (f *Flag) GenFlag(in string) string {
 
 	if f.Repeated {
 		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			field := f.GenOtherVarName(in)
+			field := f.VarName
 			// repeated Messages are entered as JSON strings and unmarshaled into the Message type later
 			return fmt.Sprintf(`StringArrayVar(&%s, "%s", []string{}, "%s")`, field, f.Name, f.Usage)
 		}
@@ -94,22 +79,21 @@ func (f *Flag) GenFlag(in string) string {
 	}
 
 	name := in + "." + f.InputFieldName()
-	if f.IsOneOfField {
-		name = f.GenOneOfVarName(in) + "." + f.OneOfInputFieldName()
-	} else if len(f.OneOfs) > 0 {
-		name = f.GenOneOfVarName(in)
+	if f.VarName != "" && f.FieldName != "" {
+		fmt.Fprintf(os.Stderr, "Using the VarName %q & FieldName %q\n", f.VarName, f.FieldName)
+		name = f.VarName + "." + f.FieldName
+	} else if f.IsOneOfField {
+		name = f.VarName + "." + f.OneOfInputFieldName()
+	} else if len(f.OneOfs) > 0 && f.VarName != "" {
+		name = f.VarName
 	} else if f.IsEnum() {
-		name = f.GenOtherVarName(in)
+		// this won't change oneof enums, which are handled by f.IsOneOfField case
+		name = f.VarName
 	}
 
 	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, fType, name, f.Name, def, f.Usage)
 
 	return str
-}
-
-// GenRequired generates the code to mark the flag as required
-func (f *Flag) GenRequired() string {
-	return fmt.Sprintf(`cmd.MarkFlagRequired("%s")`, f.Name)
 }
 
 // IsMessage is a template helper that reports if the flag is a message type

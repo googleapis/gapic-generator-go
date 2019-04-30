@@ -40,55 +40,6 @@ func TestInputFieldName(t *testing.T) {
 	}
 }
 
-func TestGenOtherVarName(t *testing.T) {
-	for _, tst := range []struct {
-		f        *Flag
-		in, want string
-	}{
-		{
-			f:    &Flag{Name: "message.enum"},
-			in:   "ClientInput",
-			want: "ClientInputMessageEnum",
-		},
-	} {
-		if got := tst.f.GenOtherVarName(tst.in); got != tst.want {
-			t.Errorf("(%s).GenOtherVarName(%s) = %q, want %q", tst.f.Name, tst.in, got, tst.want)
-		}
-	}
-}
-
-func TestGenOneOfVarName(t *testing.T) {
-	for _, tst := range []struct {
-		f        *Flag
-		in, want string
-	}{
-		{
-			f:    &Flag{Name: "oneof.field"},
-			in:   "ClientInput",
-			want: "ClientInputOneofField",
-		},
-		{
-			f:    &Flag{Name: "oneof.field_snake"},
-			in:   "ClientInput",
-			want: "ClientInputOneofFieldSnake",
-		},
-		{
-			f:    &Flag{Name: "oneof.msg.field"},
-			in:   "ClientInput",
-			want: "ClientInputOneofMsg",
-		},
-		{
-			f:    &Flag{Name: "oneof.msg.field", Type: descriptor.FieldDescriptorProto_TYPE_STRING, IsNested: true},
-			in:   "ClientInput",
-			want: "ClientInputOneofMsgField",
-		},
-	} {
-		if got := tst.f.GenOneOfVarName(tst.in); got != tst.want {
-			t.Errorf("(%s, %v).GenOneOfVarName(%s) = %q, want %q", tst.f.Name, tst.f.IsNested, tst.in, got, tst.want)
-		}
-	}
-}
-
 func TestOneOfInputFieldName(t *testing.T) {
 	for _, tst := range []struct {
 		f    *Flag
@@ -192,15 +143,17 @@ func TestGenFlag(t *testing.T) {
 				Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE,
 				Usage:    "this is the usage",
 				Repeated: true,
+				VarName:  "ClientInputField",
 			},
 			in:   "ClientInput",
 			want: `StringArrayVar(&ClientInputField, "field", []string{}, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:  "field",
-				Type:  descriptor.FieldDescriptorProto_TYPE_ENUM,
-				Usage: "this is the usage",
+				Name:    "field",
+				Type:    descriptor.FieldDescriptorProto_TYPE_ENUM,
+				Usage:   "this is the usage",
+				VarName: "ClientInputField",
 			},
 			in:   "ClientInput",
 			want: `StringVar(&ClientInputField, "field", "", "this is the usage")`,
@@ -210,6 +163,7 @@ func TestGenFlag(t *testing.T) {
 				Name:         "oneof.field",
 				Type:         descriptor.FieldDescriptorProto_TYPE_STRING,
 				Usage:        "this is the usage",
+				VarName:      "ClientInputOneofField",
 				IsOneOfField: true,
 			},
 			in:   "ClientInput",
@@ -217,10 +171,11 @@ func TestGenFlag(t *testing.T) {
 		},
 		{
 			f: &Flag{
-				Name:   "oneof_selector",
-				Type:   descriptor.FieldDescriptorProto_TYPE_STRING,
-				Usage:  "this is the usage",
-				OneOfs: map[string]*Flag{"test": &Flag{}},
+				Name:    "oneof_selector",
+				VarName: "ClientInputOneofSelector",
+				Type:    descriptor.FieldDescriptorProto_TYPE_STRING,
+				Usage:   "this is the usage",
+				OneOfs:  map[string]*Flag{"test": &Flag{}},
 			},
 			in:   "ClientInput",
 			want: `StringVar(&ClientInputOneofSelector, "oneof_selector", "", "this is the usage")`,
@@ -228,26 +183,6 @@ func TestGenFlag(t *testing.T) {
 	} {
 		if got := tst.f.GenFlag(tst.in); got != tst.want {
 			t.Errorf("(%+v).GenFlag(%s) = %q, want %q", tst.f, tst.in, got, tst.want)
-		}
-	}
-}
-
-func TestGenRequired(t *testing.T) {
-	for _, tst := range []struct {
-		f    *Flag
-		want string
-	}{
-		{
-			f:    &Flag{Name: "name"},
-			want: `cmd.MarkFlagRequired("name")`,
-		},
-		{
-			f:    &Flag{Name: "kiosk_id"},
-			want: `cmd.MarkFlagRequired("kiosk_id")`,
-		},
-	} {
-		if got := tst.f.GenRequired(); got != tst.want {
-			t.Errorf("(%s).GenRequired() = %q, want %q", tst.f.Name, got, tst.want)
 		}
 	}
 }

@@ -51,23 +51,23 @@ var {{ $followVar }} bool
 var {{ $pollingOperationVar }} string
 {{ end }}
 {{ range $key, $val := .OneOfSelectors }}
-var {{ ( $val.GenOneOfVarName $inputVar ) }} string
+var {{ $val.VarName }} string
 {{ range $oneOfKey, $oneOfVal := $val.OneOfs}}
-var {{($oneOfVal.GenOneOfVarName $inputVar)}} {{if $oneOfVal.IsNested }}{{ $oneOfVal.MessageImport.Name }}.{{ $oneOfVal.Message }}{{ else }}{{ $.InputMessage }}{{ end }}_{{ ( title $oneOfKey ) }}
+var {{$oneOfVal.VarName}} {{if $oneOfVal.IsNested }}{{ $oneOfVal.MessageImport.Name }}.{{ $oneOfVal.Message }}{{ else }}{{ $.InputMessage }}{{ end }}_{{ ( title $oneOfKey ) }}
 {{ end }}
 {{ end }}
 {{ range .Flags }}
 {{ if and ( .IsMessage ) .Repeated }}
-var {{ ( .GenOtherVarName $inputVar) }} []string
+var {{ .VarName }} []string
 {{ else if ( .IsEnum ) }}
-var {{ ( .GenOtherVarName $inputVar ) }} string
+var {{ .VarName }} string
 {{ end }}
 {{ end }}
 
 func init() {
 	{{ $serviceCmdVar }}.AddCommand({{ $methodCmdVar }})
 	{{ range .NestedMessages }}
-	{{ $inputVar }}{{ .FieldName }} = new({{ .FieldType }})
+	{{ .FieldName }} = new({{ .FieldType }})
 	{{ end }}
 	{{ range .Flags }}
 	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $inputVar) }}
@@ -105,11 +105,11 @@ var {{$methodCmdVar}} = &cobra.Command{
 		if {{ $fromFileVar }} == "" {
 			{{ range .Flags }}
 			{{ if and .Required ( not .IsOneOfField ) }}
-			{{ ( .GenRequired ) }}
+			cmd.MarkFlagRequired("{{ .Name }}")
 			{{ end }}
 			{{ end }}
 			{{ range $key, $val := .OneOfSelectors }}
-			{{ ( $val.GenRequired ) }}
+			cmd.MarkFlagRequired("{{ $val.Name }}")
 			{{ end }}
 		}
 		{{ end }}
@@ -132,10 +132,10 @@ var {{$methodCmdVar}} = &cobra.Command{
 		} {{ if or .OneOfSelectors .HasEnums }} else {
 			{{ if .OneOfSelectors }}
 			{{ range $key, $val := .OneOfSelectors }}
-			switch {{ ( .GenOneOfVarName $inputVar ) }} {
+			switch {{ .VarName }} {
 			{{ range $oneOfKey, $oneOfVal := .OneOfs }}
 			case "{{$oneOfKey}}":
-				{{$inputVar}}.{{($val.InputFieldName)}} = &{{($oneOfVal.GenOneOfVarName $inputVar)}}
+				{{$inputVar}}.{{($val.InputFieldName)}} = &{{$oneOfVal.VarName}}
 			{{ end }}
 			default:
 				return fmt.Errorf("Missing oneof choice for {{ .Name }}")
@@ -145,7 +145,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			{{ if .HasEnums }}
 			{{ range .Flags }}
 			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}
-			{{ $inputVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ ( .GenOtherVarName $inputVar ) }})])
+			{{ $inputVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
 			{{ end }} 
 			{{ end }}
 			{{ end }}
@@ -155,20 +155,14 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ range .Flags }}
 		{{ if and ( .IsMessage ) .Repeated }}
 		// unmarshal JSON strings into slice of structs
-		for _, item := range {{ ( .GenOtherVarName $inputVar) }} {
+		for _, item := range {{ .VarName }} {
 			tmp := {{ .MessageImport.Name }}.{{ .Message }}{}
 			err = jsonpb.UnmarshalString(item, &tmp)
 			if err != nil {
 				return
 			}
 
-			{{ if .IsOneOfField }}
-			{{ $sliceAccessor := (print ( .GenOneOfVarName $inputVar) "." ( .OneOfInputFieldName )) }}
-			{{ $sliceAccessor }} = append({{ $sliceAccessor }}, &tmp)
-			{{ else }}
-			{{ $sliceAccessor := (print $inputVar "." ( .InputFieldName )) }}
-			{{ $sliceAccessor }} = append({{ $sliceAccessor }}, &tmp)
-			{{ end }}
+			{{ .SliceAccessor }} = append({{ .SliceAccessor }}, &tmp)
 		}
 		{{ end }}
 		{{ end }}
