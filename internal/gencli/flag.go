@@ -32,6 +32,7 @@ type Flag struct {
 	Usage         string
 	MessageImport pbinfo.ImportSpec
 	OneOfs        map[string]*Flag
+	OneOfSelector string
 	IsOneOfField  bool
 	IsNested      bool
 }
@@ -129,14 +130,17 @@ func (f *Flag) IsBytes() bool {
 // OneOfInputFieldName converts the field name into the Go struct property
 // name for a oneof field, which excludes the oneof definition name
 func (f *Flag) OneOfInputFieldName() string {
-	name := f.InputFieldName()
-	ndx := strings.Index(name, ".")
+	name := f.Name
 
-	if f.IsNested {
-		ndx = strings.LastIndex(name, ".")
+	if !f.IsNested {
+		name = title(name)
+		ndx := strings.Index(name, ".")
+
+		return name[ndx+1:]
 	}
 
-	return name[ndx+1:]
+	// strip the selector portion of the name, leaving the field
+	return title(strings.Replace(name, f.OneOfSelector+".", "", -1))
 }
 
 // InputFieldName converts the field name into the Go struct property name

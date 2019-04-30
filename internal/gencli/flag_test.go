@@ -78,7 +78,7 @@ func TestGenOneOfVarName(t *testing.T) {
 			want: "ClientInputOneofMsg",
 		},
 		{
-			f:    &Flag{Name: "oneof.msg.field", IsNested: true},
+			f:    &Flag{Name: "oneof.msg.field", Type: descriptor.FieldDescriptorProto_TYPE_STRING, IsNested: true},
 			in:   "ClientInput",
 			want: "ClientInputOneofMsgField",
 		},
@@ -107,7 +107,7 @@ func TestOneOfInputFieldName(t *testing.T) {
 			want: "Msg.Field",
 		},
 		{
-			f:    &Flag{Name: "oneof.nested.msg.field", IsNested: true},
+			f:    &Flag{Name: "oneof.nested.msg.field", IsNested: true, OneOfSelector: "oneof.nested.msg"},
 			want: "Field",
 		},
 	} {

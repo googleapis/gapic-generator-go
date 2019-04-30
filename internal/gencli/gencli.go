@@ -313,12 +313,13 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 	oneOfPrefix := prefix + oneOfField + "."
 
 	flag := Flag{
-		Name:         oneOfPrefix + field.GetName(),
-		Type:         field.GetType(),
-		Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
-		IsOneOfField: true,
-		IsNested:     isNested,
-		Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
+		Name:          oneOfPrefix + field.GetName(),
+		Type:          field.GetType(),
+		Repeated:      field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+		IsOneOfField:  true,
+		IsNested:      isNested,
+		OneOfSelector: prefix + oneOfField,
+		Usage:         toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 	}
 
 	// evaluate field behavior
@@ -344,7 +345,6 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 	// handle oneof message or enum fields
 	if flag.IsMessage() {
 		nested := field.GetMessageType()
-		flag.Message = g.prepareName(nested)
 
 		// add nested type import
 		pkg, err := g.addImport(cmd, nested)
@@ -355,7 +355,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 
 		cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
 			FieldName: flag.GenOneOfVarName("") + "." + flag.OneOfInputFieldName(),
-			FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
+			FieldType: fmt.Sprintf("%s.%s", pkg.Name, g.prepareName(nested)),
 		})
 
 		p := oneOfPrefix + field.GetName() + "."
@@ -388,14 +388,25 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 	var flags []*Flag
 	var output bool
 
+	// check if we've recursed into a nested message
+	isInNested := msg.GetFullyQualifiedName() != cmd.InputMessageType
+
 	for _, field := range msg.GetFields() {
-		if field.GetOneOf() != nil {
+		if oneof := field.GetOneOf(); oneof != nil {
 			g.buildOneOfSelectors(cmd, msg, prefix)
 
-			// check if we've recursed into a nested message's oneof
-			isInNested := msg.GetFullyQualifiedName() != cmd.InputMessageType
+			oneofs := g.buildOneOfFlag(cmd, msg, field, prefix, isInNested)
+			for _, o := range oneofs {
+				o.OneOfSelector = prefix + oneof.GetName()
 
-			flags = append(flags, g.buildOneOfFlag(cmd, msg, field, prefix, isInNested)...)
+				// top-level oneof sub-fields should be not be marked
+				// as nested for naming semantics
+				//
+				// TODO (ndietz) strongly consider a rewrite,
+				// these semantics aren't good
+				o.IsNested = isInNested
+			}
+			flags = append(flags, oneofs...)
 
 			continue
 		}
@@ -405,6 +416,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			Type:         field.GetType(),
 			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 			IsOneOfField: isOneOf,
+			IsNested:     isInNested,
 			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		}
 
@@ -537,47 +549,6 @@ func (g *gcli) addImport(cmd *Command, m desc.Descriptor) (*pbinfo.ImportSpec, e
 	putImport(cmd.Imports, pkg)
 
 	return pkg, nil
-}
-
-func (g *gcli) addComments(f *descriptor.FileDescriptorProto, loc *descriptor.SourceCodeInfo_Location) {
-	var key proto.Message
-	p := loc.Path
-
-	switch {
-	// Service comment
-	case len(p) == 2 && p[0] == 6:
-		key = f.Service[p[1]]
-
-	// Method comment
-	case len(p) == 4 && p[0] == 6 && p[2] == 2:
-		key = f.Service[p[1]].Method[p[3]]
-
-	// Message comment
-	case len(p) == 2 && p[0] == 4:
-		key = f.MessageType[p[1]]
-
-	// Field comment
-	case len(p) == 4 && p[0] == 4 && p[2] == 2:
-		key = f.MessageType[p[1]].Field[p[3]]
-
-	// Extension comment
-	case len(p) == 2 && p[0] == 7:
-		key = f.Extension[p[1]]
-
-	// Enum comment
-	case len(p) == 2 && p[0] == 5:
-		key = f.EnumType[p[1]]
-
-	// Enum Value comment
-	case len(p) == 4 && p[0] == 5 && p[2] == 2:
-		key = f.EnumType[p[1]].Value[p[3]]
-
-	// TODO(ndietz): this is an incomplete mapping of comments
-	default:
-		return
-	}
-
-	g.comments[key] = *loc.LeadingComments
 }
 
 func (g *gcli) addGoFile(name string) {
