@@ -127,7 +127,9 @@ func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 	for _, f := range req.FileToGenerate {
 		file, ok := g.protos[f]
 		if !ok {
-			continue
+			errStr := fmt.Sprintf("Target file %q did not have a parsed descriptor", f)
+			g.response.Error = &errStr
+			return err
 		}
 
 		g.services = append(g.services, file.GetServices()...)
