@@ -20,26 +20,6 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-func TestInputFieldName(t *testing.T) {
-	for _, tst := range []struct {
-		f    *Flag
-		want string
-	}{
-		{
-			f:    &Flag{Name: "name"},
-			want: "Name",
-		},
-		{
-			f:    &Flag{Name: "kiosk_id"},
-			want: "KioskId",
-		},
-	} {
-		if got := tst.f.InputFieldName(); got != tst.want {
-			t.Errorf("(%s).InputFieldName() = %q, want %q", tst.f.Name, got, tst.want)
-		}
-	}
-}
-
 func TestOneOfInputFieldName(t *testing.T) {
 	for _, tst := range []struct {
 		f    *Flag
@@ -75,85 +55,94 @@ func TestGenFlag(t *testing.T) {
 	}{
 		{
 			f: &Flag{
-				Name:  "field",
-				Type:  descriptor.FieldDescriptorProto_TYPE_STRING,
-				Usage: "this is the usage",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
+				Usage:     "this is the usage",
 			},
 			in:   "ClientInput",
 			want: `StringVar(&ClientInput.Field, "field", "", "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:  "field",
-				Type:  descriptor.FieldDescriptorProto_TYPE_BOOL,
-				Usage: "this is the usage",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_BOOL,
+				Usage:     "this is the usage",
 			},
 			in:   "ClientInput",
 			want: `BoolVar(&ClientInput.Field, "field", false, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:  "field",
-				Type:  descriptor.FieldDescriptorProto_TYPE_INT32,
-				Usage: "this is the usage",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_INT32,
+				Usage:     "this is the usage",
 			},
 			in:   "ClientInput",
 			want: `Int32Var(&ClientInput.Field, "field", 0, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:  "field",
-				Type:  descriptor.FieldDescriptorProto_TYPE_FLOAT,
-				Usage: "this is the usage",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_FLOAT,
+				Usage:     "this is the usage",
 			},
 			in:   "ClientInput",
 			want: `Float32Var(&ClientInput.Field, "field", 0.0, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:  "field",
-				Type:  descriptor.FieldDescriptorProto_TYPE_DOUBLE,
-				Usage: "this is the usage",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_DOUBLE,
+				Usage:     "this is the usage",
 			},
 			in:   "ClientInput",
 			want: `Float64Var(&ClientInput.Field, "field", 0.0, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:  "field",
-				Type:  descriptor.FieldDescriptorProto_TYPE_BYTES,
-				Usage: "this is the usage",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_BYTES,
+				Usage:     "this is the usage",
 			},
 			in:   "ClientInput",
 			want: `BytesHexVar(&ClientInput.Field, "field", []byte{}, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:     "field",
-				Type:     descriptor.FieldDescriptorProto_TYPE_STRING,
-				Usage:    "this is the usage",
-				Repeated: true,
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
+				Usage:     "this is the usage",
+				Repeated:  true,
 			},
 			in:   "ClientInput",
 			want: `StringSliceVar(&ClientInput.Field, "field", []string{}, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:     "field",
-				Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE,
-				Usage:    "this is the usage",
-				Repeated: true,
-				VarName:  "ClientInputField",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_MESSAGE,
+				Usage:     "this is the usage",
+				Repeated:  true,
+				VarName:   "ClientInputField",
 			},
 			in:   "ClientInput",
 			want: `StringArrayVar(&ClientInputField, "field", []string{}, "this is the usage")`,
 		},
 		{
 			f: &Flag{
-				Name:    "field",
-				Type:    descriptor.FieldDescriptorProto_TYPE_ENUM,
-				Usage:   "this is the usage",
-				VarName: "ClientInputField",
+				Name:      "field",
+				FieldName: "Field",
+				Type:      descriptor.FieldDescriptorProto_TYPE_ENUM,
+				Usage:     "this is the usage",
+				VarName:   "ClientInputField",
 			},
 			in:   "ClientInput",
 			want: `StringVar(&ClientInputField, "field", "", "this is the usage")`,

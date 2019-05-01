@@ -134,7 +134,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			switch {{ .VarName }} {
 			{{ range $oneOfKey, $oneOfVal := .OneOfs }}
 			case "{{$oneOfKey}}":
-				{{ $.InputMessageVar }}.{{($val.InputFieldName)}} = &{{$oneOfVal.VarName}}
+				{{ $.InputMessageVar }}.{{$val.FieldName}} = &{{$oneOfVal.VarName}}
 			{{ end }}
 			default:
 				return fmt.Errorf("Missing oneof choice for {{ .Name }}")
@@ -144,7 +144,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			{{ if .HasEnums }}
 			{{ range .Flags }}
 			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}
-			{{ $.InputMessageVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
+			{{ $.InputMessageVar }}.{{ .FieldName }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
 			{{ end }} 
 			{{ end }}
 			{{ end }}

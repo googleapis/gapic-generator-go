@@ -304,6 +304,8 @@ func (g *gcli) buildOneOfSelectors(cmd *Command, msg *desc.MessageDescriptor, pr
 			Required: true,
 		}
 
+		flag.FieldName = title(flag.Name)
+
 		n := title(flag.Name)
 		n = dotToCamel(n)
 		flag.VarName = cmd.InputMessageVar + n
@@ -329,6 +331,8 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		OneOfSelector: prefix + oneOfField,
 		Usage:         toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 	}
+
+	flag.FieldName = title(flag.Name)
 
 	n := title(flag.Name)
 	n = dotToCamel(n)
@@ -439,6 +443,8 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		}
 
+		flag.FieldName = title(flag.Name)
+
 		n := title(flag.Name)
 		if flag.IsOneOfField && !flag.IsMessage() {
 			n = n[:strings.LastIndex(n, ".")]
@@ -465,7 +471,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 
 		if flag.IsMessage() {
 			// only actually used when repeated
-			flag.SliceAccessor = fmt.Sprintf("%s.%s", cmd.InputMessageVar, flag.InputFieldName())
+			flag.SliceAccessor = fmt.Sprintf("%s.%s", cmd.InputMessageVar, flag.FieldName)
 
 			nested := field.GetMessageType()
 			flag.Message = g.prepareName(nested)
@@ -482,7 +488,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 				flag.VarName = cmd.InputMessageVar
 
 				n := &NestedMessage{
-					FieldName: flag.VarName + "." + flag.InputFieldName(),
+					FieldName: flag.VarName + "." + flag.FieldName,
 					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
 				}
 

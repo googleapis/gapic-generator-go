@@ -16,7 +16,6 @@ package gencli
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -78,16 +77,14 @@ func (f *Flag) GenFlag(in string) string {
 		}
 	}
 
-	name := in + "." + f.InputFieldName()
-	if f.VarName != "" && f.FieldName != "" {
-		fmt.Fprintf(os.Stderr, "Using the VarName %q & FieldName %q\n", f.VarName, f.FieldName)
-		name = f.VarName + "." + f.FieldName
-	} else if f.IsOneOfField {
+	name := in + "." + f.FieldName
+	// if f.VarName != "" && f.FieldName != "" && !f.IsOneOfField && !f.IsMessage() {
+	// 	fmt.Fprintf(os.Stderr, "Using the VarName %q & FieldName %q\n", f.VarName, f.FieldName)
+	// 	name = f.VarName + "." + f.FieldName
+	// } else
+	if f.IsOneOfField {
 		name = f.VarName + "." + f.OneOfInputFieldName()
-	} else if len(f.OneOfs) > 0 && f.VarName != "" {
-		name = f.VarName
-	} else if f.IsEnum() {
-		// this won't change oneof enums, which are handled by f.IsOneOfField case
+	} else if len(f.OneOfs) > 0 || f.IsEnum() {
 		name = f.VarName
 	}
 
@@ -125,14 +122,4 @@ func (f *Flag) OneOfInputFieldName() string {
 
 	// strip the selector portion of the name, leaving the field
 	return title(strings.Replace(name, f.OneOfSelector+".", "", -1))
-}
-
-// InputFieldName converts the field name into the Go struct property name
-func (f *Flag) InputFieldName() string {
-	split := strings.Split(f.Name, "_")
-	for ndx, tkn := range split {
-		split[ndx] = strings.Title(tkn)
-	}
-
-	return strings.Join(split, "")
 }
