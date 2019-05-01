@@ -69,10 +69,10 @@ func init() {
 	{{ .FieldName }} = new({{ .FieldType }})
 	{{ end }}
 	{{ range .Flags }}
-	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $.InputMessageVar) }}
+	{{ $methodCmdVar }}.Flags().{{ (.GenFlag) }}
 	{{ end }}
 	{{ range $key, $val := .OneOfSelectors }}
-	{{ $methodCmdVar }}.Flags().{{ ($val.GenFlag $.InputMessageVar) }}
+	{{ $methodCmdVar }}.Flags().{{ ($val.GenFlag) }}
 	{{ end }}
 	{{ if or .Flags .ClientStreaming }}
 	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "Absolute path to JSON file containing request payload")

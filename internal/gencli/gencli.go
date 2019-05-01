@@ -332,7 +332,14 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		Usage:         toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 	}
 
-	flag.FieldName = title(flag.Name)
+	fieldName := title(strings.TrimPrefix(flag.Name, oneOfPrefix))
+	if !isNested {
+		fieldName = title(fieldName)
+		ndx := strings.Index(fieldName, ".")
+
+		fieldName = fieldName[ndx+1:]
+	}
+	flag.FieldName = fieldName
 
 	n := title(flag.Name)
 	n = dotToCamel(n)
@@ -370,7 +377,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		flag.MessageImport = *pkg
 
 		cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
-			FieldName: flag.VarName + "." + flag.OneOfInputFieldName(),
+			FieldName: flag.VarName + "." + flag.FieldName,
 			FieldType: fmt.Sprintf("%s.%s", pkg.Name, g.prepareName(nested)),
 		})
 
@@ -402,33 +409,35 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 
 func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix string, isOneOf bool) []*Flag {
 	var flags []*Flag
-	var output bool
+	var outputOnly bool
 
 	// check if we've recursed into a nested message
 	isInNested := msg.GetFullyQualifiedName() != cmd.InputMessageType
 
 	for _, field := range msg.GetFields() {
 		if oneof := field.GetOneOf(); oneof != nil {
+			// build oneof option selector flags
 			g.buildOneOfSelectors(cmd, msg, prefix)
 
+			// build flags for oneof option fields
 			oneofs := g.buildOneOfFlag(cmd, msg, field, prefix, isInNested)
+
+			// post-process oneof field flags in context of parent oneof
 			for _, o := range oneofs {
 				o.OneOfSelector = prefix + oneof.GetName()
+				o.FieldName = title(strings.TrimPrefix(o.Name, o.OneOfSelector+"."))
+
+				// oneof fields containing repeated message fields
+				// need to update the corresponding slice accessor
 				if o.Repeated && o.IsMessage() {
 					n := title(o.Name)
 					n = n[:strings.LastIndex(n, ".")]
 					n = dotToCamel(n)
 
-					o.SliceAccessor = fmt.Sprintf("%s%s.%s", cmd.InputMessageVar, n, o.OneOfInputFieldName())
+					o.SliceAccessor = fmt.Sprintf("%s%s.%s", cmd.InputMessageVar, n, o.FieldName)
 				}
-
-				// top-level oneof sub-fields should be not be marked
-				// as nested for naming semantics
-				//
-				// TODO (ndietz) strongly consider a rewrite,
-				// these semantics aren't good
-				o.IsNested = isInNested
 			}
+
 			flags = append(flags, oneofs...)
 
 			continue
@@ -436,6 +445,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 
 		flag := Flag{
 			Name:         prefix + field.GetName(),
+			FieldName:    title(prefix + field.GetName()),
 			Type:         field.GetType(),
 			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 			IsOneOfField: isOneOf,
@@ -443,28 +453,33 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		}
 
-		flag.FieldName = title(flag.Name)
+		// evaluate field behavior
+		outputOnly, flag.Required = g.getFieldBehavior(field)
+		if flag.Required {
+			flag.Usage = "Required. " + flag.Usage
+		}
 
+		// skip repeated bytes, they end up being [][]byte which
+		// isn't a supported pFlag flag, and skip output only fields
+		if (flag.IsBytes() && flag.Repeated) || outputOnly {
+			continue
+		}
+
+		// build the variable name this field belongs to
 		n := title(flag.Name)
+
+		// oneof option fields exclude the actual field name
+		// from the var name
 		if flag.IsOneOfField && !flag.IsMessage() {
 			n = n[:strings.LastIndex(n, ".")]
 		}
+
 		n = dotToCamel(n)
 		flag.VarName = cmd.InputMessageVar + n
 
-		// skip repeated bytes, they end up being [][]byte which isn't a supported pFlag flag
-		if flag.IsBytes() && flag.Repeated {
-			continue
-		}
-
-		// evaluate field behavior
-		output, flag.Required = g.getFieldBehavior(field)
-		if output {
-			continue
-		}
-
-		if flag.Required {
-			flag.Usage = "Required. " + flag.Usage
+		// top-level, primitive type fields reference their parent directly
+		if !flag.IsOneOfField && !flag.IsMessage() && !flag.IsEnum() {
+			flag.VarName = cmd.InputMessageVar
 		}
 
 		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
@@ -473,10 +488,9 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			// only actually used when repeated
 			flag.SliceAccessor = fmt.Sprintf("%s.%s", cmd.InputMessageVar, flag.FieldName)
 
+			// handle nested message information
 			nested := field.GetMessageType()
 			flag.Message = g.prepareName(nested)
-
-			// add nested message import
 			pkg, err := g.addImport(cmd, nested)
 			if err != nil {
 				continue
@@ -493,7 +507,15 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 				}
 
 				if isOneOf {
-					n.FieldName = flag.VarName + "." + flag.OneOfInputFieldName()
+					fieldName := title(strings.TrimPrefix(flag.Name, flag.OneOfSelector+"."))
+					if !isInNested {
+						fieldName = title(fieldName)
+						ndx := strings.Index(fieldName, ".")
+
+						fieldName = fieldName[ndx+1:]
+					}
+
+					n.FieldName = flag.VarName + "." + fieldName
 				}
 
 				cmd.NestedMessages = append(cmd.NestedMessages, n)

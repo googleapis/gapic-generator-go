@@ -20,108 +20,80 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-func TestOneOfInputFieldName(t *testing.T) {
+func TestGenFlag(t *testing.T) {
 	for _, tst := range []struct {
 		f    *Flag
 		want string
 	}{
 		{
-			f:    &Flag{Name: "oneof.field"},
-			want: "Field",
-		},
-		{
-			f:    &Flag{Name: "oneof.field_snake"},
-			want: "FieldSnake",
-		},
-		{
-			f:    &Flag{Name: "oneof.msg.field"},
-			want: "Msg.Field",
-		},
-		{
-			f:    &Flag{Name: "oneof.nested.msg.field", IsNested: true, OneOfSelector: "oneof.nested.msg"},
-			want: "Field",
-		},
-	} {
-		if got := tst.f.OneOfInputFieldName(); got != tst.want {
-			t.Errorf("(%s, %v).OneOfInputFieldName() = %q, want %q", tst.f.Name, tst.f.IsNested, got, tst.want)
-		}
-	}
-}
-
-func TestGenFlag(t *testing.T) {
-	for _, tst := range []struct {
-		f        *Flag
-		in, want string
-	}{
-		{
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
+				VarName:   "ClientInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
 				Usage:     "this is the usage",
 			},
-			in:   "ClientInput",
 			want: `StringVar(&ClientInput.Field, "field", "", "this is the usage")`,
 		},
 		{
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
+				VarName:   "ClientInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_BOOL,
 				Usage:     "this is the usage",
 			},
-			in:   "ClientInput",
 			want: `BoolVar(&ClientInput.Field, "field", false, "this is the usage")`,
 		},
 		{
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
+				VarName:   "ClientInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_INT32,
 				Usage:     "this is the usage",
 			},
-			in:   "ClientInput",
 			want: `Int32Var(&ClientInput.Field, "field", 0, "this is the usage")`,
 		},
 		{
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
+				VarName:   "ClientInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_FLOAT,
 				Usage:     "this is the usage",
 			},
-			in:   "ClientInput",
 			want: `Float32Var(&ClientInput.Field, "field", 0.0, "this is the usage")`,
 		},
 		{
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
+				VarName:   "ClientInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_DOUBLE,
 				Usage:     "this is the usage",
 			},
-			in:   "ClientInput",
 			want: `Float64Var(&ClientInput.Field, "field", 0.0, "this is the usage")`,
 		},
 		{
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
+				VarName:   "ClientInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_BYTES,
 				Usage:     "this is the usage",
 			},
-			in:   "ClientInput",
 			want: `BytesHexVar(&ClientInput.Field, "field", []byte{}, "this is the usage")`,
 		},
 		{
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
+				VarName:   "ClientInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
 				Usage:     "this is the usage",
 				Repeated:  true,
 			},
-			in:   "ClientInput",
 			want: `StringSliceVar(&ClientInput.Field, "field", []string{}, "this is the usage")`,
 		},
 		{
@@ -133,7 +105,6 @@ func TestGenFlag(t *testing.T) {
 				Repeated:  true,
 				VarName:   "ClientInputField",
 			},
-			in:   "ClientInput",
 			want: `StringArrayVar(&ClientInputField, "field", []string{}, "this is the usage")`,
 		},
 		{
@@ -144,18 +115,17 @@ func TestGenFlag(t *testing.T) {
 				Usage:     "this is the usage",
 				VarName:   "ClientInputField",
 			},
-			in:   "ClientInput",
 			want: `StringVar(&ClientInputField, "field", "", "this is the usage")`,
 		},
 		{
 			f: &Flag{
 				Name:         "oneof.field",
+				FieldName:    "Field",
 				Type:         descriptor.FieldDescriptorProto_TYPE_STRING,
 				Usage:        "this is the usage",
 				VarName:      "ClientInputOneofField",
 				IsOneOfField: true,
 			},
-			in:   "ClientInput",
 			want: `StringVar(&ClientInputOneofField.Field, "oneof.field", "", "this is the usage")`,
 		},
 		{
@@ -166,12 +136,11 @@ func TestGenFlag(t *testing.T) {
 				Usage:   "this is the usage",
 				OneOfs:  map[string]*Flag{"test": &Flag{}},
 			},
-			in:   "ClientInput",
 			want: `StringVar(&ClientInputOneofSelector, "oneof_selector", "", "this is the usage")`,
 		},
 	} {
-		if got := tst.f.GenFlag(tst.in); got != tst.want {
-			t.Errorf("(%+v).GenFlag(%s) = %q, want %q", tst.f, tst.in, got, tst.want)
+		if got := tst.f.GenFlag(); got != tst.want {
+			t.Errorf("(%+v).GenFlag() = %q, want %q", tst.f, got, tst.want)
 		}
 	}
 }

@@ -49,11 +49,13 @@ func TestCommandFile(t *testing.T) {
 				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
 				Required:  true,
 				FieldName: "Task",
+				VarName:   "CreateTodoInput",
 				Usage:     "task to complete",
 			},
 			&Flag{
 				Name:      "done",
 				FieldName: "Done",
+				VarName:   "CreateTodoInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_BOOL,
 				Usage:     "task completion status",
 			},
@@ -87,6 +89,7 @@ func TestCommandFile(t *testing.T) {
 			&Flag{
 				Name:      "id",
 				FieldName: "Id",
+				VarName:   "StartTodoInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_INT32,
 				Required:  true,
 				Usage:     "task to start",
@@ -127,6 +130,7 @@ func TestCommandFile(t *testing.T) {
 			&Flag{
 				Name:      "id",
 				FieldName: "Id",
+				VarName:   "WatchTodoInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_INT32,
 				Required:  true,
 				Usage:     "task to watch",
