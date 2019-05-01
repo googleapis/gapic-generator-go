@@ -20,8 +20,7 @@ import (
 
 const (
 	// cmdTemplate is the template for a cobra subcommand
-	cmdTemplate = `{{$inputVar := (print .Method "Input")}}
-{{$methodCmdVar := (print .Method "Cmd")}}
+	cmdTemplate = `{{$methodCmdVar := (print .Method "Cmd")}}
 {{$pollingCmdVar := (print .Method "PollCmd")}}
 {{$pollingOperationVar := (print .Method "PollOperation")}}
 {{$fromFileVar := (print .Method "FromFile")}}
@@ -38,7 +37,7 @@ import (
 	{{ end }}
 )
 {{ if not .ClientStreaming }}
-var {{ $inputVar }} {{ .InputMessage }}{{ end }}
+var {{ .InputMessageVar }} {{ .InputMessage }}{{ end }}
 {{ if or .Flags .ClientStreaming }}
 var {{ $fromFileVar }} string
 {{ end }}
@@ -70,10 +69,10 @@ func init() {
 	{{ .FieldName }} = new({{ .FieldType }})
 	{{ end }}
 	{{ range .Flags }}
-	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $inputVar) }}
+	{{ $methodCmdVar }}.Flags().{{ (.GenFlag $.InputMessageVar) }}
 	{{ end }}
 	{{ range $key, $val := .OneOfSelectors }}
-	{{ $methodCmdVar }}.Flags().{{ ($val.GenFlag $inputVar) }}
+	{{ $methodCmdVar }}.Flags().{{ ($val.GenFlag $.InputMessageVar) }}
 	{{ end }}
 	{{ if or .Flags .ClientStreaming }}
 	{{ $methodCmdVar }}.Flags().StringVar(&{{ $fromFileVar }}, "from_file", "", "Absolute path to JSON file containing request payload")
@@ -124,7 +123,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			}
 			defer in.Close()
 			{{ if not .ClientStreaming }}
-			err = jsonpb.Unmarshal(in, &{{ $inputVar }})
+			err = jsonpb.Unmarshal(in, &{{ .InputMessageVar }})
 			if err != nil {
 				return err
 			}
@@ -135,7 +134,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			switch {{ .VarName }} {
 			{{ range $oneOfKey, $oneOfVal := .OneOfs }}
 			case "{{$oneOfKey}}":
-				{{$inputVar}}.{{($val.InputFieldName)}} = &{{$oneOfVal.VarName}}
+				{{ $.InputMessageVar }}.{{($val.InputFieldName)}} = &{{$oneOfVal.VarName}}
 			{{ end }}
 			default:
 				return fmt.Errorf("Missing oneof choice for {{ .Name }}")
@@ -145,7 +144,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 			{{ if .HasEnums }}
 			{{ range .Flags }}
 			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}
-			{{ $inputVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
+			{{ $.InputMessageVar }}.{{ ( .InputFieldName ) }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
 			{{ end }} 
 			{{ end }}
 			{{ end }}
@@ -168,27 +167,27 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 		{{ if and (eq .OutputMessageType "") ( not .ClientStreaming ) }}
 		if Verbose {
-			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
 		}
-		err = {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
+		err = {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
 		{{ else }}
 		{{ if and ( not .ClientStreaming ) ( not .Paged ) }}
 		if Verbose {
-			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
 		}
-		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
+		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
 		{{ else if and .Paged ( not .IsLRO )}}
 		if Verbose {
-			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
 		}
-		iter := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
+		iter := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
 		{{ else if ( not .IsLRO )}}
 		stream, err := {{ $serviceClient }}.{{ .Method }}(ctx)
 		{{ else }}
 		if Verbose {
-			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ $inputVar }})
+			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
 		}
-		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ $inputVar }})
+		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
 		{{ end }}
 		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
 		var item *{{ .OutputMessageType }}
@@ -235,19 +234,19 @@ var {{$methodCmdVar}} = &cobra.Command{
 			fmt.Println("Client stream open. Close with ctrl+D.")
 		}
 
-		var {{ $inputVar }} {{ .InputMessage }}
+		var {{.InputMessageVar }} {{ .InputMessage }}
 		scanner := bufio.NewScanner(in)
     for scanner.Scan() {
 				input := scanner.Text()
 				if input == "" {
 					continue
 				}
-        err = jsonpb.UnmarshalString(input, &{{ $inputVar }})
+        err = jsonpb.UnmarshalString(input, &{{ .InputMessageVar }})
 				if err != nil {
 					return err
 				}
 				
-				err = stream.Send(&{{ $inputVar }})
+				err = stream.Send(&{{ .InputMessageVar }})
 				if err != nil {
 					return err
 				}
@@ -277,7 +276,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		// PageSize could be an integer with a specific precision.
 		// Doing standard i := 0; i < PageSize; i++ creates i as
 		// an int, creating a potential type mismatch. 
-		for i := {{ $inputVar }}.PageSize; i > 0; i-- {
+		for i := {{ .InputMessageVar }}.PageSize; i > 0; i-- {
 			item, err := iter.Next()
 			if err == iterator.Done {
 				err = nil

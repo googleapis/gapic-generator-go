@@ -38,6 +38,7 @@ func TestCommandFile(t *testing.T) {
 		ShortDesc:         "creates a todo entry",
 		LongDesc:          "creates a todo entry for the user to track",
 		InputMessage:      "todopb.Todo",
+		InputMessageVar:   "CreateTodoInput",
 		OutputMessageType: "todopb.Todo",
 		Imports: map[string]*pbinfo.ImportSpec{
 			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
@@ -74,6 +75,7 @@ func TestCommandFile(t *testing.T) {
 		ShortDesc:         "starts a todo",
 		LongDesc:          "starts a todo that has not been completed yet",
 		InputMessage:      "todopb.StartTodoRequest",
+		InputMessageVar:   "StartTodoInput",
 		OutputMessageType: ".google.longrunning.Operation",
 		Imports: map[string]*pbinfo.ImportSpec{
 			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
@@ -96,6 +98,7 @@ func TestCommandFile(t *testing.T) {
 		MethodCmd:         "copy-todos",
 		ShortDesc:         "stream several todos to create",
 		InputMessage:      "todopb.Todo",
+		InputMessageVar:   "CopyTodosInput",
 		OutputMessageType: ".google.protobuf.Empty",
 		Imports: map[string]*pbinfo.ImportSpec{
 			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
@@ -111,6 +114,7 @@ func TestCommandFile(t *testing.T) {
 		ShortDesc:         "watch todo",
 		LongDesc:          "watch todo for changes, like completion",
 		InputMessage:      "todopb.WatchTodoRequest",
+		InputMessageVar:   "WatchTodoInput",
 		OutputMessageType: "todopb.Todo",
 		Imports: map[string]*pbinfo.ImportSpec{
 			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
@@ -134,6 +138,7 @@ func TestCommandFile(t *testing.T) {
 		ShortDesc:         "manage todos live",
 		LongDesc:          "manage todos live by creating and updating todos as they change",
 		InputMessage:      "todopb.Todo",
+		InputMessageVar:   "ManageTodosInput",
 		OutputMessageType: "todopb.Todo",
 		Imports: map[string]*pbinfo.ImportSpec{
 			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},

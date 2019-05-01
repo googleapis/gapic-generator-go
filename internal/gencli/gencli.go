@@ -47,6 +47,7 @@ type Command struct {
 	MethodCmd         string
 	InputMessageType  string
 	InputMessage      string
+	InputMessageVar   string
 	ShortDesc         string
 	LongDesc          string
 	Imports           map[string]*pbinfo.ImportSpec
@@ -151,6 +152,7 @@ func (g *gcli) genCommands() {
 				Service:          pbinfo.ReduceServName(srv.GetName(), ""),
 				Method:           mthd.GetName(),
 				InputMessageType: mthd.GetInputType().GetFullyQualifiedName(),
+				InputMessageVar:  mthd.GetName() + "Input",
 				ServerStreaming:  mthd.IsServerStreaming(),
 				ClientStreaming:  mthd.IsClientStreaming(),
 				OneOfSelectors:   make(map[string]*Flag),
@@ -304,7 +306,7 @@ func (g *gcli) buildOneOfSelectors(cmd *Command, msg *desc.MessageDescriptor, pr
 
 		n := title(flag.Name)
 		n = dotToCamel(n)
-		flag.VarName = fmt.Sprintf("%sInput%s", cmd.Method, n)
+		flag.VarName = cmd.InputMessageVar + n
 
 		if _, ok := cmd.OneOfSelectors[field.GetName()]; !ok {
 			cmd.OneOfSelectors[field.GetName()] = &flag
@@ -330,7 +332,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 
 	n := title(flag.Name)
 	n = dotToCamel(n)
-	flag.VarName = fmt.Sprintf("%sInput%s", cmd.Method, n)
+	flag.VarName = cmd.InputMessageVar + n
 
 	// evaluate field behavior
 	output, flag.Required = g.getFieldBehavior(field)
@@ -413,7 +415,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 					n = n[:strings.LastIndex(n, ".")]
 					n = dotToCamel(n)
 
-					o.SliceAccessor = fmt.Sprintf("%sInput%s.%s", cmd.Method, n, o.OneOfInputFieldName())
+					o.SliceAccessor = fmt.Sprintf("%s%s.%s", cmd.InputMessageVar, n, o.OneOfInputFieldName())
 				}
 
 				// top-level oneof sub-fields should be not be marked
@@ -442,7 +444,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			n = n[:strings.LastIndex(n, ".")]
 		}
 		n = dotToCamel(n)
-		flag.VarName = fmt.Sprintf("%sInput%s", cmd.Method, n)
+		flag.VarName = cmd.InputMessageVar + n
 
 		// skip repeated bytes, they end up being [][]byte which isn't a supported pFlag flag
 		if flag.IsBytes() && flag.Repeated {
@@ -463,7 +465,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 
 		if flag.IsMessage() {
 			// only actually used when repeated
-			flag.SliceAccessor = fmt.Sprintf("%sInput.%s", cmd.Method, flag.InputFieldName())
+			flag.SliceAccessor = fmt.Sprintf("%s.%s", cmd.InputMessageVar, flag.InputFieldName())
 
 			nested := field.GetMessageType()
 			flag.Message = g.prepareName(nested)
@@ -477,7 +479,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 
 			// recursively add singular, nested message fields
 			if !flag.Repeated {
-				flag.VarName = cmd.Method + "Input"
+				flag.VarName = cmd.InputMessageVar
 
 				n := &NestedMessage{
 					FieldName: flag.VarName + "." + flag.InputFieldName(),
