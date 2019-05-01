@@ -317,7 +317,7 @@ func (g *gcli) buildOneOfSelectors(cmd *Command, msg *desc.MessageDescriptor, pr
 }
 
 func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *desc.FieldDescriptor, prefix string, isNested bool) (flags []*Flag) {
-	var output bool
+	var outputOnly bool
 
 	oneOfField := field.GetOneOf().GetName()
 	oneOfPrefix := prefix + oneOfField + "."
@@ -330,24 +330,14 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		IsNested:      isNested,
 		OneOfSelector: prefix + oneOfField,
 		Usage:         toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
+		VarName:       cmd.InputMessageVar + dotToCamel(title(oneOfPrefix+field.GetName())),
 	}
 
-	fieldName := title(strings.TrimPrefix(flag.Name, oneOfPrefix))
-	if !isNested {
-		fieldName = title(fieldName)
-		ndx := strings.Index(fieldName, ".")
-
-		fieldName = fieldName[ndx+1:]
-	}
-	flag.FieldName = fieldName
-
-	n := title(flag.Name)
-	n = dotToCamel(n)
-	flag.VarName = cmd.InputMessageVar + n
+	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
 	// evaluate field behavior
-	output, flag.Required = g.getFieldBehavior(field)
-	if output {
+	outputOnly, flag.Required = g.getFieldBehavior(field)
+	if outputOnly {
 		return
 	}
 
@@ -355,7 +345,13 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		flag.Usage = "Required. " + flag.Usage
 	}
 
-	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
+	// build input FieldName
+	fieldName := title(strings.TrimPrefix(flag.Name, oneOfPrefix))
+	if !isNested {
+		ndx := strings.Index(fieldName, ".")
+		fieldName = fieldName[ndx+1:]
+	}
+	flag.FieldName = fieldName
 
 	// construct oneof gRPC struct type info
 	parent, err := g.getImport(msg)
@@ -453,6 +449,8 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		}
 
+		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
+
 		// evaluate field behavior
 		outputOnly, flag.Required = g.getFieldBehavior(field)
 		if flag.Required {
@@ -474,16 +472,14 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			n = n[:strings.LastIndex(n, ".")]
 		}
 
-		n = dotToCamel(n)
-		flag.VarName = cmd.InputMessageVar + n
+		flag.VarName = cmd.InputMessageVar + dotToCamel(n)
 
 		// top-level, primitive type fields reference their parent directly
 		if !flag.IsOneOfField && !flag.IsMessage() && !flag.IsEnum() {
 			flag.VarName = cmd.InputMessageVar
 		}
 
-		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
-
+		// handle a field of another Message type
 		if flag.IsMessage() {
 			// only actually used when repeated
 			flag.SliceAccessor = fmt.Sprintf("%s.%s", cmd.InputMessageVar, flag.FieldName)
@@ -497,7 +493,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			}
 			flag.MessageImport = *pkg
 
-			// recursively add singular, nested message fields
+			// recursively add non-repeated, nested message fields
 			if !flag.Repeated {
 				flag.VarName = cmd.InputMessageVar
 
@@ -506,15 +502,10 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 					FieldType: fmt.Sprintf("%s.%s", pkg.Name, flag.Message),
 				}
 
+				// fields belonging to a oneof option need
+				// the selector prefix to be trimmed
 				if isOneOf {
 					fieldName := title(strings.TrimPrefix(flag.Name, flag.OneOfSelector+"."))
-					if !isInNested {
-						fieldName = title(fieldName)
-						ndx := strings.Index(fieldName, ".")
-
-						fieldName = fieldName[ndx+1:]
-					}
-
 					n.FieldName = flag.VarName + "." + fieldName
 				}
 
