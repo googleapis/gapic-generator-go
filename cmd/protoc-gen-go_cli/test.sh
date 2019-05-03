@@ -77,6 +77,7 @@ protoc -I $KIOSK_PROTOS \
   --go_cli_out $OUT/kiosk \
   --go_cli_opt "gapic=$KIOSK_GAPIC" \
   --go_cli_opt "root=testkctl" \
+  --go_cli_opt "fmt=false" \
   $KIOSK_PROTOS/kiosk.proto
 
 # generate gapic-showcase gapic & go_cli
