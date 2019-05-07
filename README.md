@@ -102,6 +102,36 @@ $ gapic.sh \
 
 Use `gapic.sh --help` to print the usage documentation.
 
+Code Generation
+---------------
+
+This is an explanation of the Go GAPIC generator for those interested in how it works and possibly those using it as a reference.
+
+### Plugin interface
+
+`gapic-generator-go` is a `protoc` [plugin](https://developers.google.com/protocol-buffers/docs/reference/other). It consumes a serialzed `CodeGeneratorRequest` on `stdin` and produces a serialized `CodeGeneratorResponse` on `stdout`. The `CodeGeneratorResponse` contains all of the generated Go code and/or any error(s) that might of occured during generation. All logs are emitted on `stderr`.
+
+The plugin implementation can be found in [cmd/protoc-gen-go_gapic](/cmd/protoc-gen-go_gapic).
+
+### Generated Artifacts
+
+A single invocation of the code generator creates a `doc.go` file package level documentation according to [godoc](https://blog.golang.org/godoc-documenting-go-code).  This documentation is (currently) pulled from a given service config.
+
+Each service found in the input protos gets two generated artifacts:
+
+* `{service}_client.go`: contains the GAPIC implementation
+* `{service}_client_example_test.go`: contains example code for each service method, consumed by [godoc](https://blog.golang.org/examples)
+
+There is no directory structure in the generated output. All files are placed directly in the designated output directory by `protoc`.
+
+### Generation Process
+
+The generator implementation can be found in [internal/gengapic](/internal/gengapic).
+
+The service client type, initialization code and any standard helpers are generated first. Then each method is generated. Any relevant helper types (i.e. pagination [Iterator](https://github.com/googleapis/google-cloud-go/wiki/Iterator-Guidelines) types, LRO helpers, etc.) for the service methods are generated following the methods.
+
+Following the client implementation, the client example file is generated, and after all services have been generated the single `doc.go` file is created.
+
 Disclaimer
 ----------
 This generator is currently experimental. Please don't use it for anything mission-critical.
