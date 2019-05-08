@@ -33,31 +33,15 @@ type Flag struct {
 	MessageImport pbinfo.ImportSpec
 	OneOfs        map[string]*Flag
 	OneOfSelector string
+	VarName       string
+	FieldName     string
+	SliceAccessor string
 	IsOneOfField  bool
 	IsNested      bool
 }
 
-// GenOtherVarName generates the Go variable to store repeated Message & Enum string values
-func (f *Flag) GenOtherVarName(in string) string {
-	return in + strings.Replace(f.InputFieldName(), ".", "", -1)
-}
-
-// GenOneOfVarName generates the variable name for a oneof entry type
-func (f *Flag) GenOneOfVarName(in string) string {
-	name := f.InputFieldName()
-	if !f.IsNested && strings.Count(name, ".") > 1 {
-		name = name[:strings.LastIndex(name, ".")]
-	}
-
-	for _, tkn := range strings.Split(name, ".") {
-		in += strings.Title(tkn)
-	}
-
-	return in
-}
-
 // GenFlag generates the pflag API call for this flag
-func (f *Flag) GenFlag(in string) string {
+func (f *Flag) GenFlag() string {
 	var str, def string
 
 	tStr := pbinfo.GoTypeForPrim[f.Type]
@@ -68,9 +52,8 @@ func (f *Flag) GenFlag(in string) string {
 
 	if f.Repeated {
 		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			field := f.GenOtherVarName(in)
 			// repeated Messages are entered as JSON strings and unmarshaled into the Message type later
-			return fmt.Sprintf(`StringArrayVar(&%s, "%s", []string{}, "%s")`, field, f.Name, f.Usage)
+			return fmt.Sprintf(`StringArrayVar(&%s, "%s", []string{}, "%s")`, f.VarName, f.Name, f.Usage)
 		}
 
 		fType += "Slice"
@@ -93,23 +76,14 @@ func (f *Flag) GenFlag(in string) string {
 		}
 	}
 
-	name := in + "." + f.InputFieldName()
-	if f.IsOneOfField {
-		name = f.GenOneOfVarName(in) + "." + f.OneOfInputFieldName()
-	} else if len(f.OneOfs) > 0 {
-		name = f.GenOneOfVarName(in)
-	} else if f.IsEnum() {
-		name = f.GenOtherVarName(in)
+	name := f.VarName + "." + f.FieldName
+	if len(f.OneOfs) > 0 || f.IsEnum() {
+		name = f.VarName
 	}
 
 	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, fType, name, f.Name, def, f.Usage)
 
 	return str
-}
-
-// GenRequired generates the code to mark the flag as required
-func (f *Flag) GenRequired() string {
-	return fmt.Sprintf(`cmd.MarkFlagRequired("%s")`, f.Name)
 }
 
 // IsMessage is a template helper that reports if the flag is a message type
@@ -125,30 +99,4 @@ func (f *Flag) IsEnum() bool {
 // IsBytes is a helper that reports if the flag is of a type bytes
 func (f *Flag) IsBytes() bool {
 	return f.Type == descriptor.FieldDescriptorProto_TYPE_BYTES
-}
-
-// OneOfInputFieldName converts the field name into the Go struct property
-// name for a oneof field, which excludes the oneof definition name
-func (f *Flag) OneOfInputFieldName() string {
-	name := f.Name
-
-	if !f.IsNested {
-		name = title(name)
-		ndx := strings.Index(name, ".")
-
-		return name[ndx+1:]
-	}
-
-	// strip the selector portion of the name, leaving the field
-	return title(strings.Replace(name, f.OneOfSelector+".", "", -1))
-}
-
-// InputFieldName converts the field name into the Go struct property name
-func (f *Flag) InputFieldName() string {
-	split := strings.Split(f.Name, "_")
-	for ndx, tkn := range split {
-		split[ndx] = strings.Title(tkn)
-	}
-
-	return strings.Join(split, "")
 }

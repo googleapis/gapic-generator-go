@@ -76,6 +76,7 @@ func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 	imports[key] = pkg
 }
 
+// does not remove dot
 func title(name string) string {
 	split := strings.Split(name, "_")
 	for i, s := range split {
@@ -83,4 +84,13 @@ func title(name string) string {
 	}
 
 	return strings.Join(split, "")
+}
+
+// does not remove underscores
+func dotToCamel(name string) (s string) {
+	for _, tkn := range strings.Split(name, ".") {
+		s += strings.Title(tkn)
+	}
+
+	return
 }
