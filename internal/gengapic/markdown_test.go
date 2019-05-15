@@ -64,6 +64,11 @@ func TestMDPlain(t *testing.T) {
 			in:   "List:\n* item1\nabc\n  * item2\n`def`, ghi\n\ndone",
 			want: "List:\n\n  item1\n  abc\n\n    item2\n    def, ghi\n\ndone",
 		},
+		{
+			// ignore headings
+			in:   "## Heading",
+			want: "Heading",
+		},
 	} {
 		got := MDPlain(tst.in)
 		if got != tst.want {
