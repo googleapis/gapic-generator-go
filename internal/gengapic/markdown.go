@@ -87,6 +87,10 @@ func (m *mdRenderer) plain(t markdown.Token) {
 		m.indent()
 	case *markdown.ListItemClose:
 
+	// ignore # headings
+	case *markdown.HeadingOpen:
+	case *markdown.HeadingClose:
+
 	default:
 		log.Printf("unhandled type: %T", t)
 	}
