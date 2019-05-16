@@ -61,7 +61,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 		p("func default%sClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
-		p(`    option.WithEndpoint("%s"),`, host)
+		p("    option.WithEndpoint(%q),", host)
+		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("  }")
 		p("}")
