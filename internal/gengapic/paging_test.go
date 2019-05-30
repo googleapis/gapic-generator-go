@@ -177,8 +177,6 @@ func TestIterTypeOf(t *testing.T) {
 			want: iterType{
 				iterTypeName: "StringIterator",
 				elemTypeName: "string",
-				resType:      "Foo",
-				resSpec:      pbinfo.ImportSpec{Name: "foopb", Path: "path/to/foo"},
 			},
 		},
 		{
@@ -188,8 +186,6 @@ func TestIterTypeOf(t *testing.T) {
 			want: iterType{
 				iterTypeName: "BytesIterator",
 				elemTypeName: "[]byte",
-				resType:      "Foo",
-				resSpec:      pbinfo.ImportSpec{Name: "foopb", Path: "path/to/foo"},
 			},
 		},
 		{
@@ -201,8 +197,6 @@ func TestIterTypeOf(t *testing.T) {
 				iterTypeName: "FooIterator",
 				elemTypeName: "*foopb.Foo",
 				elemImports:  []pbinfo.ImportSpec{{Name: "foopb", Path: "path/to/foo"}},
-				resType:      "Foo",
-				resSpec:      pbinfo.ImportSpec{Name: "foopb", Path: "path/to/foo"},
 			},
 		},
 	} {
