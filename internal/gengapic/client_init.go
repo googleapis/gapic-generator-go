@@ -63,6 +63,9 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("  return []option.ClientOption{")
 		p("    option.WithEndpoint(%q),", host)
 		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
+		if g.grpcConf != "" {
+			p("    option.WithGRPCDialOption(grpc.WithDefaultServiceConfig(gRPCServiceConfig)),")
+		}
 		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("  }")
 		p("}")
@@ -72,7 +75,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	}
 
 	// defaultCallOptions
-	{
+	if g.grpcConf == "" {
 		type methodCode struct {
 			method string
 			codes  []code.Code
@@ -226,7 +229,9 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("  }")
 		p("  c := &%sClient{", servName)
 		p("    conn:        conn,")
-		p("    CallOptions: default%sCallOptions(),", servName)
+		if g.grpcConf == "" {
+			p("    CallOptions: default%sCallOptions(),", servName)
+		}
 		p("")
 		p("    %s: %s.New%sClient(conn),", grpcClientField(servName), imp.Name, serv.GetName())
 		p("  }")

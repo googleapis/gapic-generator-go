@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -78,6 +79,13 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				if err != nil {
 					return &g.resp, errors.E(nil, "error decoding service config: %v", err)
 				}
+			case "grpc-service-config":
+				data, err := ioutil.ReadFile(s[e+1:])
+				if err != nil {
+					return &g.resp, errors.E(nil, "error reading gRPC service config: %v", err)
+				}
+
+				g.grpcConf = string(data)
 			}
 		}
 	}
@@ -178,6 +186,9 @@ type generator struct {
 
 	// Parsed service config from plugin option
 	serviceConfig *serviceConfig
+
+	// Text Proto format gRPC Service Config
+	grpcConf string
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
@@ -483,7 +494,9 @@ func pair(key, field string) string {
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
-	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
+	if g.grpcConf == "" {
+		g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
+	}
 }
 
 func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {

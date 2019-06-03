@@ -80,6 +80,9 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("")
 
 	p("const versionClient = %q", "UNKNOWN")
+	if g.grpcConf != "" {
+		p("const gRPCServiceConfig = `%s`", g.grpcConf)
+	}
 	p("")
 
 	p("func insertMetadata(ctx context.Context, mds ...metadata.MD) context.Context {")
