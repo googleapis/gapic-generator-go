@@ -139,7 +139,7 @@ func writePrint(pFmt string, pArgs []string, st *symTab, gen *generator) error {
 		sc, report := initScanner(arg)
 		path, _, err := writePath(sc, st, gen.descInfo)
 		if err != nil {
-			return report(nil)
+			return report(err)
 		}
 		sb.WriteString(path)
 	}

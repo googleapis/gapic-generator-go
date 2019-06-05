@@ -196,10 +196,10 @@ func TestMapOut(t *testing.T) {
 		OnSuccess: []OutputSpec{
 			{
 				Loop: &LoopSpec{
-					Key: "key_only",
+					Key: "just_key",
 					Map: "$resp.mappy_map",
 					Body: []OutputSpec{
-						{Print: []string{"key: %s", "key_only"}},
+						{Print: []string{"key: %s", "just_key"}},
 					},
 				},
 			},
@@ -215,10 +215,10 @@ func TestMapOut(t *testing.T) {
 			},
 			{
 				Loop: &LoopSpec{
-					Value: "value_only",
+					Value: "only_value",
 					Map:   "$resp.mappy_map",
 					Body: []OutputSpec{
-						{Print: []string{"value: %s", "value_only"}},
+						{Print: []string{"value: %s", "only_value"}},
 					},
 				},
 			},
