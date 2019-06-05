@@ -86,7 +86,13 @@ func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 	}
 	if l := out.Loop; l != nil {
 		used++
-		err = writeLoop(l, st, gen)
+		if l.Collection != "" {
+			err = writeLoop(l, st, gen)
+		} else if l.Map != "" {
+			err = writeMap(l, st, gen)
+		} else {
+			err = errors.E(nil, "")
+		}
 	}
 
 	if used == 0 {
@@ -145,6 +151,14 @@ func writePrint(pFmt string, pArgs []string, st *symTab, gen *generator) error {
 }
 
 func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
+	if l.Variable == "" {
+		return errors.E(nil, "variable not specified for looping over arrays")
+	}
+
+	if l.Map != "" || l.Key != "" || l.Value != "" {
+		return errors.E(nil, "map, key, value cannot be specified for looping over arrays")
+	}
+
 	p := gen.pt.Printf
 
 	sc, report := initScanner(l.Collection)
@@ -158,6 +172,52 @@ func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
 	typ.repeated = false
 	stInner := newSymTab(st)
 	stInner.put(l.Variable, typ)
+
+	for _, b := range l.Body {
+		if err := writeOutputSpec(b, stInner, gen); err != nil {
+			return err
+		}
+	}
+	p("}")
+	return nil
+}
+
+func writeMap(l *LoopSpec, st *symTab, gen *generator) error {
+	if l.Key == "" && l.Value == "" {
+		return errors.E(nil, "at least one of key and value should be specified for looping over maps")
+	}
+
+	if l.Collection != "" || l.Variable != "" {
+		return errors.E(nil, "collection and variable cannot be specified for looping over maps")
+	}
+
+	p := gen.pt.Printf
+
+	sc, report := initScanner(l.Map)
+	path, typ, err := writePath(sc, st, gen.descInfo)
+	if err = report(err); err != nil {
+		return err
+	}
+
+	if typ.keyType == nil || typ.valueType == nil {
+		return errors.E(nil, "%s is not a map field", l.Map)
+	}
+	keyType := *typ.keyType
+	valueType := *typ.valueType
+
+	stInner := newSymTab(st)
+
+	if l.Value == "" {
+		p("for %s := range %s {", snakeToCamel(l.Key), path)
+		stInner.put(l.Key, keyType)
+	} else if l.Key == "" {
+		p("for _, %s := range %s {", snakeToCamel(l.Value), path)
+		stInner.put(l.Value, valueType)
+	} else {
+		p("for %s, %s := range %s {", snakeToCamel(l.Key), snakeToCamel(l.Value), path)
+		stInner.put(l.Key, keyType)
+		stInner.put(l.Value, valueType)
+	}
 
 	for _, b := range l.Body {
 		if err := writeOutputSpec(b, stInner, gen); err != nil {

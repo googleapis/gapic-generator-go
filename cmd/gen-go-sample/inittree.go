@@ -43,6 +43,9 @@ type initType struct {
 
 	repeated bool
 
+	keyType   *initType
+	valueType *initType
+
 	// valFmt, if not nil, post-processes values to be included into init struct.
 	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
 	// to deal with enums and bytes. Time will tell.
@@ -106,6 +109,29 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		} else {
 			// type is a message
 			v.typ.desc = typ
+
+			if d, ok := typ.(*descriptor.DescriptorProto); ok {
+				if d.GetOptions().GetMapEntry() == true {
+					// type is a map entry
+					for _, f2 := range d.Field {
+						if f2.GetName() == "key" {
+							// key is always a primitive type
+							v.typ.keyType = &initType{prim: f2.GetType()}
+						}
+						if f2.GetName() == "value" {
+							if tn2 := f.GetTypeName(); tn2 == "" {
+								// value is a primitive type
+								v.typ.valueType = &initType{prim: f2.GetType()}
+							} else if typ := info.Type[tn2]; typ == nil {
+								return nil, errors.E(nil, "cannot find descriptor of %q", f.GetTypeName())
+							} else {
+								// value is a message
+								v.typ.valueType = &initType{desc: typ}
+							}
+						}
+					}
+				}
+			}
 		}
 		v.typ.repeated = f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 

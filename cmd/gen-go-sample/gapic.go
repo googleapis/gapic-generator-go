@@ -69,7 +69,10 @@ type OutputSpec struct {
 
 type LoopSpec struct {
 	Collection string
+	Map        string
 	Variable   string
+	Key        string
+	Value      string
 	Body       []OutputSpec
 }
 
