@@ -247,7 +247,7 @@ func initTestGenerator() *generator {
 		EnumType: []*descriptor.EnumDescriptorProto{eType},
 	}
 
-	mapType, mapField := mapTypeAndField("mappy_map", ".foo.InputType", typep(descriptor.FieldDescriptorProto_TYPE_STRING), typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE), "foo.AType")
+	mapType, mapField := mapTypeAndField("mappy_map", ".foo.InputType", typep(descriptor.FieldDescriptorProto_TYPE_STRING), typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE), ".foo.AType")
 
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),

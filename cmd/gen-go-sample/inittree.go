@@ -114,19 +114,23 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 				if d.GetOptions().GetMapEntry() == true {
 					// type is a map entry
 					for _, f2 := range d.Field {
-						if f2.GetName() == "key" {
+						switch f2.GetName() {
+						case "key":
 							// key is always a primitive type
 							v.typ.keyType = &initType{prim: f2.GetType()}
-						}
-						if f2.GetName() == "value" {
-							if tn2 := f.GetTypeName(); tn2 == "" {
-								// value is a primitive type
-								v.typ.valueType = &initType{prim: f2.GetType()}
-							} else if typ := info.Type[tn2]; typ == nil {
-								return nil, errors.E(nil, "cannot find descriptor of %q", f.GetTypeName())
+						case "value":
+							if t2 := f2.GetType(); t2 == descriptor.FieldDescriptorProto_TYPE_MESSAGE || t2 == descriptor.FieldDescriptorProto_TYPE_ENUM {
+								// value is a protobuf message or enum
+								tn2 := f2.GetTypeName()
+								typ2 := info.Type[tn2]
+								if typ2 == nil {
+									return nil, errors.E(nil, "cannot find descriptor of %q", tn2)
+								}
+								
+								v.typ.valueType = &initType{desc: typ2}
 							} else {
-								// value is a message
-								v.typ.valueType = &initType{desc: typ}
+								// value is a primitive type
+								v.typ.valueType = &initType{prim: t2}
 							}
 						}
 					}

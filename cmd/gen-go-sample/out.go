@@ -86,12 +86,11 @@ func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 	}
 	if l := out.Loop; l != nil {
 		used++
+		err = errors.E(nil, "")
 		if l.Collection != "" {
 			err = writeLoop(l, st, gen)
 		} else if l.Map != "" {
 			err = writeMap(l, st, gen)
-		} else {
-			err = errors.E(nil, "")
 		}
 	}
 
