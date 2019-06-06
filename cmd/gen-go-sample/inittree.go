@@ -126,7 +126,7 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 								if typ2 == nil {
 									return nil, errors.E(nil, "cannot find descriptor of %q", tn2)
 								}
-								
+
 								v.typ.valueType = &initType{desc: typ2}
 							} else {
 								// value is a primitive type
