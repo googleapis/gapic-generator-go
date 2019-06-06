@@ -247,7 +247,13 @@ func initTestGenerator() *generator {
 		EnumType: []*descriptor.EnumDescriptorProto{eType},
 	}
 
-	mapType, mapField := mapTypeAndField("mappy_map", ".foo.InputType", typep(descriptor.FieldDescriptorProto_TYPE_STRING), typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE), ".foo.AType")
+	mapType, mapField :=
+		createMapTypeAndField(
+			"mappy_map",
+			".foo.InputType",
+			typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+			".foo.AType")
 
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
@@ -351,9 +357,9 @@ func labelp(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptor
 	return &l
 }
 
-// mapTypeAndField creates the generated MapEntry protobuf message and the actually map field.
+// createMapTypeAndField creates the generated MapEntry protobuf message and the actual map field.
 // If valueType is enum or message, vTypeName must not be empty.
-func mapTypeAndField(
+func createMapTypeAndField(
 	fieldName string,
 	parentTyp string,
 	keyType *descriptor.FieldDescriptorProto_Type,
@@ -392,14 +398,14 @@ func mapTypeAndField(
 		},
 	}
 
-	mf := &descriptor.FieldDescriptorProto{
+	mapField := &descriptor.FieldDescriptorProto{
 		Name:     proto.String(fieldName),
 		Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 		TypeName: proto.String(parentTyp + ".MapFieldEntry"),
 		Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 	}
 
-	return mapEntry, mf
+	return mapEntry, mapField
 }
 
 func compare(t *testing.T, g *generator, goldenPath string) {

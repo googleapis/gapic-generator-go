@@ -43,6 +43,7 @@ type initType struct {
 
 	repeated bool
 
+	// keyType and valueType are set if the type is a protobuf map
 	keyType   *initType
 	valueType *initType
 

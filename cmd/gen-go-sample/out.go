@@ -87,7 +87,9 @@ func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 	if l := out.Loop; l != nil {
 		used++
 		err = errors.E(nil, "")
-		if l.Collection != "" {
+		if l.Collection != "" && l.Map != "" {
+			err = errors.E(nil, "only one of collection and map should be set")
+		} else if l.Collection != "" {
 			err = writeLoop(l, st, gen)
 		} else if l.Map != "" {
 			err = writeMap(l, st, gen)
@@ -154,10 +156,6 @@ func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
 		return errors.E(nil, "variable not specified for looping over arrays")
 	}
 
-	if l.Map != "" || l.Key != "" || l.Value != "" {
-		return errors.E(nil, "map, key, value cannot be specified for looping over arrays")
-	}
-
 	p := gen.pt.Printf
 
 	sc, report := initScanner(l.Collection)
@@ -184,10 +182,6 @@ func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
 func writeMap(l *LoopSpec, st *symTab, gen *generator) error {
 	if l.Key == "" && l.Value == "" {
 		return errors.E(nil, "at least one of key and value should be specified for looping over maps")
-	}
-
-	if l.Collection != "" || l.Variable != "" {
-		return errors.E(nil, "collection and variable cannot be specified for looping over maps")
 	}
 
 	p := gen.pt.Printf
