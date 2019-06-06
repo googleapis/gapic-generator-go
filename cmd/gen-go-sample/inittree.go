@@ -119,10 +119,12 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 							// key is always a primitive type
 							v.typ.keyType = &initType{prim: f2.GetType()}
 						case "value":
+							t2 := f2.GetType()
+
 							// value is a primitive type
 							v.typ.valueType = &initType{prim: t2}
 
-							if t2 := f2.GetType(); t2 == descriptor.FieldDescriptorProto_TYPE_MESSAGE || t2 == descriptor.FieldDescriptorProto_TYPE_ENUM {
+							if t2 == descriptor.FieldDescriptorProto_TYPE_MESSAGE || t2 == descriptor.FieldDescriptorProto_TYPE_ENUM {
 								// value is a protobuf message or enum
 								tn2 := f2.GetTypeName()
 								typ2 := info.Type[tn2]
