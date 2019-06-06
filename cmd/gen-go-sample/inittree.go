@@ -43,6 +43,10 @@ type initType struct {
 
 	repeated bool
 
+	// keyType and valueType are set if the type is a protobuf map
+	keyType   *initType
+	valueType *initType
+
 	// valFmt, if not nil, post-processes values to be included into init struct.
 	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
 	// to deal with enums and bytes. Time will tell.
@@ -106,6 +110,35 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		} else {
 			// type is a message
 			v.typ.desc = typ
+
+			if d, ok := typ.(*descriptor.DescriptorProto); ok {
+				if d.GetOptions().GetMapEntry() == true {
+					// type is a map entry
+					for _, f2 := range d.Field {
+						switch f2.GetName() {
+						case "key":
+							// key is always a primitive type
+							v.typ.keyType = &initType{prim: f2.GetType()}
+						case "value":
+							t2 := f2.GetType()
+
+							// value is a primitive type
+							v.typ.valueType = &initType{prim: t2}
+
+							if t2 == descriptor.FieldDescriptorProto_TYPE_MESSAGE || t2 == descriptor.FieldDescriptorProto_TYPE_ENUM {
+								// value is a protobuf message or enum
+								tn2 := f2.GetTypeName()
+								typ2 := info.Type[tn2]
+								if typ2 == nil {
+									return nil, errors.E(nil, "cannot find descriptor of %q", tn2)
+								}
+
+								v.typ.valueType = &initType{desc: typ2}
+							}
+						}
+					}
+				}
+			}
 		}
 		v.typ.repeated = f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 

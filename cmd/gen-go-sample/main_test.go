@@ -20,6 +20,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
@@ -186,15 +187,81 @@ func TestEmpty(t *testing.T) {
 	compare(t, g, filepath.Join("testdata", "sample_empty.want"))
 }
 
-func initTestGenerator() *generator {
-	labelp := func(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
-		return &l
+func TestMapOut(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	vs := SampleValueSet{
+		ID: "my_value_set",
+		OnSuccess: []OutputSpec{
+			{
+				Loop: &LoopSpec{
+					Key: "just_key",
+					Map: "$resp.mappy_map",
+					Body: []OutputSpec{
+						{Print: []string{"key: %s", "just_key"}},
+					},
+				},
+			},
+			{
+				Loop: &LoopSpec{
+					Key:   "k",
+					Value: "v",
+					Map:   "$resp.mappy_map",
+					Body: []OutputSpec{
+						{Print: []string{"key: %s, value: %s", "k", "v"}},
+					},
+				},
+			},
+			{
+				Loop: &LoopSpec{
+					Value: "only_value",
+					Map:   "$resp.mappy_map",
+					Body: []OutputSpec{
+						{Print: []string{"value: %s", "only_value"}},
+					},
+				},
+			},
+		},
 	}
+	if err := g.genSample("foo.FooService", GAPICMethod{Name: "UnaryMethod"}, "awesome_region", vs); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
+}
+
+func initTestGenerator() *generator {
+	eType := &descriptor.EnumDescriptorProto{
+		Name: proto.String("EType"),
+		Value: []*descriptor.EnumValueDescriptorProto{
+			{Name: proto.String("FOO")},
+		},
+	}
+
+	aType := &descriptor.DescriptorProto{
+		Name: proto.String("AType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
+			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
+		},
+		EnumType: []*descriptor.EnumDescriptorProto{eType},
+	}
+
+	mapType, mapField :=
+		createMapTypeAndField(
+			"mappy_map",
+			".foo.InputType",
+			typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+			".foo.AType")
 
 	inType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
 		OneofDecl: []*descriptor.OneofDescriptorProto{
 			{Name: proto.String("Group")},
+		},
+		NestedType: []*descriptor.DescriptorProto{
+			mapType,
 		},
 		Field: []*descriptor.FieldDescriptorProto{
 			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
@@ -207,21 +274,8 @@ func initTestGenerator() *generator {
 			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
 			{Name: proto.String("resource_field"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 			{Name: proto.String("bytes"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
+			mapField,
 		},
-	}
-	eType := &descriptor.EnumDescriptorProto{
-		Name: proto.String("EType"),
-		Value: []*descriptor.EnumValueDescriptorProto{
-			{Name: proto.String("FOO")},
-		},
-	}
-	aType := &descriptor.DescriptorProto{
-		Name: proto.String("AType"),
-		Field: []*descriptor.FieldDescriptorProto{
-			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
-			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
-		},
-		EnumType: []*descriptor.EnumDescriptorProto{eType},
 	}
 
 	pageInType := &descriptor.DescriptorProto{
@@ -297,6 +351,61 @@ func initTestGenerator() *generator {
 			},
 		},
 	}
+}
+
+func labelp(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
+	return &l
+}
+
+// createMapTypeAndField creates the generated MapEntry protobuf message and the actual map field.
+// If valueType is enum or message, vTypeName must not be empty.
+func createMapTypeAndField(
+	fieldName string,
+	parentTyp string,
+	keyType *descriptor.FieldDescriptorProto_Type,
+	valueType *descriptor.FieldDescriptorProto_Type,
+	vTypeName string,
+) (*descriptor.DescriptorProto, *descriptor.FieldDescriptorProto) {
+
+	var vf *descriptor.FieldDescriptorProto
+	if vTypeName == "" {
+		if *valueType == descriptor.FieldDescriptorProto_TYPE_ENUM {
+			panic(errors.E(nil, "expecting non-empty enum type name"))
+		}
+		if *valueType == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			panic(errors.E(nil, "expecting non-empty message type name"))
+		}
+		vf = &descriptor.FieldDescriptorProto{
+			Name: proto.String("value"),
+			Type: valueType,
+		}
+	} else {
+		vf = &descriptor.FieldDescriptorProto{
+			Name:     proto.String("value"),
+			Type:     valueType,
+			TypeName: proto.String(vTypeName),
+		}
+	}
+
+	mapEntry := &descriptor.DescriptorProto{
+		Name: proto.String("MapFieldEntry"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("key"), Type: keyType},
+			vf,
+		},
+		Options: &descriptor.MessageOptions{
+			MapEntry: proto.Bool(true),
+		},
+	}
+
+	mapField := &descriptor.FieldDescriptorProto{
+		Name:     proto.String(fieldName),
+		Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+		TypeName: proto.String(parentTyp + ".MapFieldEntry"),
+		Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+	}
+
+	return mapEntry, mapField
 }
 
 func compare(t *testing.T, g *generator, goldenPath string) {
