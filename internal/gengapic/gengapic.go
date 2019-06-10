@@ -89,29 +89,16 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	g.init(genReq.ProtoFile)
 
 	var genServs []*descriptor.ServiceDescriptorProto
-	var ePkg *annotations.Package
 	for _, f := range genReq.ProtoFile {
 		if !strContains(genReq.FileToGenerate, f.GetName()) {
 			continue
 		}
 		genServs = append(genServs, f.Service...)
-
-		// TODO(pongad): check if first-one-wins is the right strategy here.
-		if ePkg == nil {
-			if em, err := proto.GetExtension(f.GetOptions(), annotations.E_ClientPackage); err == nil {
-				ePkg = em.(*annotations.Package)
-			}
-		}
 	}
 
-	// favor annotations over service config
-	if ePkg != nil {
-		// Without this, the doc is going to be a little bad but this is not an error.
-		nameParts := append([]string(nil), ePkg.Namespace...)
-		nameParts = append(nameParts, ePkg.Title, "API")
-		g.apiName = strings.Join(nameParts, " ")
-	} else if g.serviceConfig != nil {
-		// TODO(ndietz) remove this once metadata/packaging annotations are accepted
+	if g.serviceConfig != nil {
+		// TODO(ndietz) remove this if some metadata/packaging
+		// annotations are ever accepted
 		g.apiName = g.serviceConfig.Title
 	}
 
