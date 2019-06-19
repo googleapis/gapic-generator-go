@@ -26,12 +26,15 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/golang/protobuf/jsonpb"
+
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
@@ -78,6 +81,17 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
 				if err != nil {
 					return &g.resp, errors.E(nil, "error decoding service config: %v", err)
+				}
+			case "grpc-service-config":
+				data, err := os.Open(s[e+1:])
+				if err != nil {
+					return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
+				}
+
+				g.grpcConf = &conf.ServiceConfig{}
+				err = jsonpb.Unmarshal(data, g.grpcConf)
+				if err != nil {
+					return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
 				}
 			}
 		}
@@ -166,6 +180,8 @@ type generator struct {
 
 	// Parsed service config from plugin option
 	serviceConfig *serviceConfig
+
+	grpcConf *conf.ServiceConfig
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {

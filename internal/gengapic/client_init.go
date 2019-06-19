@@ -18,16 +18,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes/duration"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
+	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
 func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
+	sFQN := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
 
 	// CallOptions struct
 	{
@@ -73,80 +75,61 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// defaultCallOptions
 	{
-		type methodCode struct {
-			method string
-			codes  []code.Code
+		policies := map[string]*conf.MethodConfig_RetryPolicy{}
+
+		// gather retry policies from gRPC ServiceConfig
+		for _, mc := range g.grpcConf.GetMethodConfig() {
+			for _, name := range mc.GetName() {
+				base := name.GetService()
+
+				// skip the Name entry if it's not the current service
+				if base != sFQN {
+					continue
+				}
+
+				// individual method config, overwrites service-level config
+				if name.GetMethod() != "" {
+					base = base + "." + name.GetMethod()
+					policies[base] = mc.GetRetryPolicy()
+					continue
+				}
+
+				// service-level config, apply to all *unset* methods
+				for _, m := range serv.GetMethod() {
+					// build fully-qualified name
+					fqn := base + "." + m.GetName()
+					if _, ok := policies[fqn]; !ok {
+						policies[fqn] = mc.GetRetryPolicy()
+					}
+				}
+			}
 		}
 
-		var idempotent []string
-		var overrideRetry []methodCode
-
-		for _, m := range serv.GetMethod() {
-			if m.GetOptions() == nil {
-				continue
-			}
-
-			eHttp, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-			if err == proto.ErrMissingExtension {
-				continue
-			}
-			if err != nil {
-				return errors.E(err, "cannot read HTTP annotation")
-			}
-			// Generator spec mandates we bucket methods into idempotent and non-idempotent for retries, unless there is an override.
-			// TODO(pongad): implement the override.
-			if _, ok := eHttp.(*annotations.HttpRule).Pattern.(*annotations.HttpRule_Get); ok {
-				idempotent = append(idempotent, m.GetName())
-			}
-		}
-
-		// TODO(pongad): read retry params from somewhere
-		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
-
-		if len(idempotent) > 0 || len(overrideRetry) > 0 {
-			p("backoff := gax.Backoff{")
-			p("  Initial: 100 * time.Millisecond,")
-			p("  Max: time.Minute,")
-			p("  Multiplier: 1.3,")
-			p("}")
-			p("")
-
+		if len(policies) > 0 {
 			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
 		}
 
-		if len(idempotent) > 0 {
-			p("idempotent := []gax.CallOption{")
-			p("  gax.WithRetry(func() gax.Retryer {")
-			p("    return gax.OnCodes([]codes.Code{")
-			p("      codes.Aborted,")
-			p("      codes.Unavailable,")
-			p("      codes.Unknown,")
-			p("    }, backoff)")
-			p("  }),")
-			p("}")
-			p("")
-
-		}
-
+		// read retry params from gRPC ServiceConfig
+		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 		p("  return &%sCallOptions{", servName)
-		for _, m := range idempotent {
-			p("%s: idempotent,", m)
-		}
-		for _, retry := range overrideRetry {
-			p("%s: []gax.CallOption{", retry.method)
-			p("  gax.WithRetry(func() gax.Retryer {")
-			p("    return gax.OnCodes([]codes.Code{")
-			for _, c := range retry.codes {
-				if c == code.Code_CANCELLED {
-					// Go uses one 'l' spelling.
-					p("codes.Canceled,")
-				} else {
-					p("codes.%s,", snakeToCamel(c.String()))
+		for _, m := range serv.GetMethod() {
+			mFQN := sFQN + "." + m.GetName()
+			p("%s: []gax.CallOption{", m.GetName())
+			if rp, ok := policies[mFQN]; ok && rp != nil && len(rp.GetRetryableStatusCodes()) > 0 {
+				p("gax.WithRetry(func() gax.Retryer {")
+				p("  return gax.OnCodes([]codes.Code{")
+				for _, c := range rp.GetRetryableStatusCodes() {
+					p("    codes.%s,", snakeToCamel(c.String()))
 				}
+				p("	 }, gax.Backoff{")
+				// this ignores max_attempts
+				p("		Initial:    %d * time.Millisecond,", durationToMillis(rp.GetInitialBackoff()))
+				p("		Max:        %d * time.Millisecond,", durationToMillis(rp.GetMaxBackoff()))
+				p("		Multiplier: %.2f,", rp.GetBackoffMultiplier())
+				p("	 })")
+				p("}),")
 			}
-			p("    }, backoff)")
-			p("  }),")
 			p("},")
 		}
 		p("  }")
@@ -155,6 +138,10 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	}
 
 	return nil
+}
+
+func durationToMillis(d *duration.Duration) int64 {
+	return d.GetSeconds()*1000 + int64(d.GetNanos()/1000000)
 }
 
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
