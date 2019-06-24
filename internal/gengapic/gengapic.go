@@ -469,12 +469,12 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 }
 
 func buildAccessor(field string) string {
-	var ax string
+	var ax strings.Builder
 	split := strings.Split(field, ".")
 	for _, s := range split {
-		ax += fmt.Sprintf(".Get%s()", snakeToCamel(s))
+		fmt.Fprintf(&ax, ".Get%s()", snakeToCamel(s))
 	}
-	return ax
+	return ax.String()
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
