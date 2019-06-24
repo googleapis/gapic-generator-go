@@ -18,12 +18,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"google.golang.org/genproto/googleapis/api/annotations"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
 )
 
@@ -274,5 +273,23 @@ methods:
 		}
 
 		txtdiff.Diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+	}
+}
+
+func Test_buildAccessor(t *testing.T) {
+	tests := []struct {
+		name  string
+		field string
+		want  string
+	}{
+		{name: "simple", field: "foo_foo", want: ".GetFooFoo()"},
+		{name: "nested", field: "foo_foo.bar_bar", want: ".GetFooFoo().GetBarBar()"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := buildAccessor(tt.field); got != tt.want {
+				t.Errorf("buildAccessor() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
