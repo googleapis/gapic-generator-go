@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -448,13 +449,17 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 		for _, h := range headers {
 			field := h[1]
 
+			// URL encode key & values separately per aip.dev/4222.
+			// Encode the key ahead of time to reduce clutter
+			// and because it will likely never be necessary
+			fmt.Fprintf(&values, " %q, url.QueryEscape(req%s),",
+				url.QueryEscape(field), buildAccessor(field))
 			formats.WriteString("%s=%v&")
-			fmt.Fprintf(&values, " %q, req%s,", field, buildAccessor(field))
 		}
 		f := formats.String()[:formats.Len()-1]
 		v := values.String()[:values.Len()-1]
 
-		g.printf("md := metadata.Pairs(\"x-goog-request-params\", url.QueryEscape(fmt.Sprintf(%q,%s)))", f, v)
+		g.printf("md := metadata.Pairs(\"x-goog-request-params\", fmt.Sprintf(%q,%s))", f, v)
 		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
 
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
