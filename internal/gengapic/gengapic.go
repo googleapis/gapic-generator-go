@@ -449,12 +449,12 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			field := h[1]
 
 			formats.WriteString("%s=%v&")
-			fmt.Fprintf(&values, " %q, req%s,", field, buildAccessor(field))
+			fmt.Fprintf(&values, " url.QueryEscape(%q), url.QueryEscape(req%s),", field, buildAccessor(field))
 		}
 		f := formats.String()[:formats.Len()-1]
 		v := values.String()[:values.Len()-1]
 
-		g.printf("md := metadata.Pairs(\"x-goog-request-params\", url.QueryEscape(fmt.Sprintf(%q,%s)))", f, v)
+		g.printf("md := metadata.Pairs(\"x-goog-request-params\", fmt.Sprintf(%q,%s))", f, v)
 		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
 
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
