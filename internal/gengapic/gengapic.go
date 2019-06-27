@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -448,8 +449,12 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 		for _, h := range headers {
 			field := h[1]
 
+			// URL encode key & values separately per aip.dev/4222.
+			// Encode the key ahead of time to reduce clutter
+			// and because it will likely never be necessary
+			fmt.Fprintf(&values, " %q, url.QueryEscape(req%s),",
+				url.QueryEscape(field), buildAccessor(field))
 			formats.WriteString("%s=%v&")
-			fmt.Fprintf(&values, " url.QueryEscape(%q), url.QueryEscape(req%s),", field, buildAccessor(field))
 		}
 		f := formats.String()[:formats.Len()-1]
 		v := values.String()[:values.Len()-1]
