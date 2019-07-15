@@ -18,10 +18,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/ptypes/duration"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/ptypes/duration"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -78,28 +77,30 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		policies := map[string]*conf.MethodConfig_RetryPolicy{}
 
 		// gather retry policies from gRPC ServiceConfig
-		for _, mc := range g.grpcConf.GetMethodConfig() {
-			for _, name := range mc.GetName() {
-				base := name.GetService()
+		if g.grpcConf != nil {
+			for _, mc := range g.grpcConf.GetMethodConfig() {
+				for _, name := range mc.GetName() {
+					base := name.GetService()
 
-				// skip the Name entry if it's not the current service
-				if base != sFQN {
-					continue
-				}
+					// skip the Name entry if it's not the current service
+					if base != sFQN {
+						continue
+					}
 
-				// individual method config, overwrites service-level config
-				if name.GetMethod() != "" {
-					base = base + "." + name.GetMethod()
-					policies[base] = mc.GetRetryPolicy()
-					continue
-				}
+					// individual method config, overwrites service-level config
+					if name.GetMethod() != "" {
+						base = base + "." + name.GetMethod()
+						policies[base] = mc.GetRetryPolicy()
+						continue
+					}
 
-				// service-level config, apply to all *unset* methods
-				for _, m := range serv.GetMethod() {
-					// build fully-qualified name
-					fqn := base + "." + m.GetName()
-					if _, ok := policies[fqn]; !ok {
-						policies[fqn] = mc.GetRetryPolicy()
+					// service-level config, apply to all *unset* methods
+					for _, m := range serv.GetMethod() {
+						// build fully-qualified name
+						fqn := base + "." + m.GetName()
+						if _, ok := policies[fqn]; !ok {
+							policies[fqn] = mc.GetRetryPolicy()
+						}
 					}
 				}
 			}
@@ -116,7 +117,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		for _, m := range serv.GetMethod() {
 			mFQN := sFQN + "." + m.GetName()
 			p("%s: []gax.CallOption{", m.GetName())
-			if rp, ok := policies[mFQN]; ok && rp != nil && len(rp.GetRetryableStatusCodes()) > 0 {
+			if rp, ok := policies[mFQN]; ok && rp != nil {
 				p("gax.WithRetry(func() gax.Retryer {")
 				p("  return gax.OnCodes([]codes.Code{")
 				for _, c := range rp.GetRetryableStatusCodes() {
