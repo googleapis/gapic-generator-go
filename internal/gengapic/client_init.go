@@ -28,7 +28,7 @@ import (
 
 func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
-	sFQN := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
+	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName())
 
 	// CallOptions struct
 	{
