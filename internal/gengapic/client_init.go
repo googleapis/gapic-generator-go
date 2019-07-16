@@ -28,7 +28,6 @@ import (
 
 func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
-	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName())
 
 	// CallOptions struct
 	{
@@ -74,33 +73,37 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// defaultCallOptions
 	{
+		sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName())
 		policies := map[string]*conf.MethodConfig_RetryPolicy{}
 
-		// gather retry policies from gRPC ServiceConfig
+		var methCfgs []*conf.MethodConfig
 		if g.grpcConf != nil {
-			for _, mc := range g.grpcConf.GetMethodConfig() {
-				for _, name := range mc.GetName() {
-					base := name.GetService()
+			methCfgs = g.grpcConf.GetMethodConfig()
+		}
 
-					// skip the Name entry if it's not the current service
-					if base != sFQN {
-						continue
-					}
+		// gather retry policies from MethodConfigs
+		for _, mc := range methCfgs {
+			for _, name := range mc.GetName() {
+				base := name.GetService()
 
-					// individual method config, overwrites service-level config
-					if name.GetMethod() != "" {
-						base = base + "." + name.GetMethod()
-						policies[base] = mc.GetRetryPolicy()
-						continue
-					}
+				// skip the Name entry if it's not the current service
+				if base != sFQN {
+					continue
+				}
 
-					// service-level config, apply to all *unset* methods
-					for _, m := range serv.GetMethod() {
-						// build fully-qualified name
-						fqn := base + "." + m.GetName()
-						if _, ok := policies[fqn]; !ok {
-							policies[fqn] = mc.GetRetryPolicy()
-						}
+				// individual method config, overwrites service-level config
+				if name.GetMethod() != "" {
+					base = base + "." + name.GetMethod()
+					policies[base] = mc.GetRetryPolicy()
+					continue
+				}
+
+				// service-level config, apply to all *unset* methods
+				for _, m := range serv.GetMethod() {
+					// build fully-qualified name
+					fqn := base + "." + m.GetName()
+					if _, ok := policies[fqn]; !ok {
+						policies[fqn] = mc.GetRetryPolicy()
 					}
 				}
 			}
