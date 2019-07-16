@@ -20,16 +20,59 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/ptypes/duration"
+	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	code "google.golang.org/genproto/googleapis/rpc/code"
 )
 
 func TestClientOpt(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.grpcConf = &conf.ServiceConfig{
+		MethodConfig: []*conf.MethodConfig{
+			&conf.MethodConfig{
+				Name: []*conf.MethodConfig_Name{
+					&conf.MethodConfig_Name{
+						Service: "bar.FooService",
+						Method:  "Zip",
+					},
+				},
+				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
+					RetryPolicy: &conf.MethodConfig_RetryPolicy{
+						InitialBackoff:    &duration.Duration{Nanos: 100000000},
+						MaxBackoff:        &duration.Duration{Seconds: 60},
+						BackoffMultiplier: 1.3,
+						RetryableStatusCodes: []code.Code{
+							code.Code_UNKNOWN,
+						},
+					},
+				},
+			},
+			&conf.MethodConfig{
+				Name: []*conf.MethodConfig_Name{
+					&conf.MethodConfig_Name{
+						Service: "bar.FooService",
+					},
+				},
+				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
+					RetryPolicy: &conf.MethodConfig_RetryPolicy{
+						InitialBackoff:    &duration.Duration{Nanos: 10000000},
+						MaxBackoff:        &duration.Duration{Seconds: 7},
+						BackoffMultiplier: 1.1,
+						RetryableStatusCodes: []code.Code{
+							code.Code_UNKNOWN,
+						},
+					},
+				},
+			},
+		},
+	}
 
 	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("FooService"),
 		Method: []*descriptor.MethodDescriptorProto{
 			{Name: proto.String("Zip"), Options: &descriptor.MethodOptions{}},
 			{Name: proto.String("Zap"), Options: &descriptor.MethodOptions{}},
@@ -39,6 +82,14 @@ func TestClientOpt(t *testing.T) {
 	}
 	if err := proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.bar.com")); err != nil {
 		t.Fatal(err)
+	}
+
+	g.descInfo = pbinfo.Info{
+		ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
+			serv: &descriptor.FileDescriptorProto{
+				Package: proto.String("bar"),
+			},
+		},
 	}
 
 	// Test some annotations

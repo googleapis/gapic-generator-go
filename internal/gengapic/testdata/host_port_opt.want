@@ -13,6 +13,8 @@ func defaultBarClientOptions() []option.ClientOption {
 
 func defaultBarCallOptions() *BarCallOptions {
 	return &BarCallOptions{
+		Smack: []gax.CallOption{
+		},
 	}
 }
 
