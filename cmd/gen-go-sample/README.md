@@ -9,7 +9,7 @@ Prerequisites
 - sample configuration written in gapic config*
 
 Note: We are in the process of moving sample configuration out of gapic config into a separate sample config yaml file.
-Refer to sample config spec for how to [config a sample](https://github.com/googleapis/gapic-generator/blob/master/src/main/proto/com/google/api/codegen/samplegen/v1p2/sample_config_v1p2.proto). Before that, samples can be configured using [gapic config](https://github.com/googleapis/gapic-generator/blob/master/src/main/proto/com/google/api/codegen/config.proto).
+Refer to [sample config spec](https://github.com/googleapis/gapic-generator/blob/d633cd88ca98320ab921eafebd93942fffe5fed4/src/main/proto/com/google/api/codegen/samplegen/v1p2/sample_config_v1p2.proto) for how to config a sample. Before that, samples can be configured using [gapic config](https://github.com/googleapis/gapic-generator/blob/d633cd88ca98320ab921eafebd93942fffe5fed4/src/main/proto/com/google/api/codegen/config.proto).
 
 Installation
 ===========================
