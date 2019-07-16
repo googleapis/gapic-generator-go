@@ -149,11 +149,6 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 func collectScopes(servs []*descriptor.ServiceDescriptorProto, config *serviceConfig) ([]string, error) {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
-		// TODO(ndietz) remove this once oauth scopes annotation is accepted
-		if s.GetOptions() == nil {
-			continue
-		}
-
 		eOauthScopes, err := proto.GetExtension(s.Options, annotations.E_OauthScopes)
 		if err == proto.ErrMissingExtension {
 			continue
@@ -164,25 +159,6 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto, config *serviceCo
 		scopes := strings.Split(*eOauthScopes.(*string), ",")
 		for _, sc := range scopes {
 			scopeSet[sc] = true
-		}
-	}
-
-	// TODO(ndietz) remove this once oauth scopes annotation is accepted
-	if len(scopeSet) == 0 && config != nil && config.Authentication != nil {
-		if len(config.Authentication.Rules) > 0 {
-			for _, rule := range config.Authentication.Rules {
-				if rule.Selector == "*" {
-					if rule.Oauth != nil {
-						if rule.Oauth.CanonicalScopes != "nil" {
-							scopes := strings.Split(rule.Oauth.CanonicalScopes, ",")
-							for _, sc := range scopes {
-								scopeSet[sc] = true
-							}
-							break
-						}
-					}
-				}
-			}
 		}
 	}
 
