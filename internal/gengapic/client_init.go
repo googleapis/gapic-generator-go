@@ -47,9 +47,6 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		var host string
 		if eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost); err == nil {
 			host = *eHost.(*string)
-		} else if g.serviceConfig != nil {
-			// TODO(ndietz) remove this once default_host annotation is acepted
-			host = g.serviceConfig.Name
 		} else {
 			fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
 			return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
