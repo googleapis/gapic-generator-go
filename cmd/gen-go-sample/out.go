@@ -163,7 +163,7 @@ func writeDump(fnFmt string, fnArgs []string, contPath string, st *symTab, gen *
 
 	sc, report := initScanner(contPath)
 	cont, typ, err := writePath(sc, st, gen.descInfo)
-	
+
 	if err != nil {
 		return report(err)
 	}

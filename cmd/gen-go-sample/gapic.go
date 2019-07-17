@@ -62,9 +62,9 @@ type GAPICSample struct {
 }
 
 type OutputSpec struct {
-	Define string
-	Print  []string
-	Loop   *LoopSpec
+	Define    string
+	Print     []string
+	Loop      *LoopSpec
 	WriteFile *WriteFileSpec
 }
 
