@@ -230,6 +230,35 @@ func TestMapOut(t *testing.T) {
 	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
 }
 
+func TestWriteFile(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	vs := SampleValueSet{
+		ID: "my_value_set",
+		OnSuccess: []OutputSpec{
+			{
+				WriteFile: &WriteFileSpec{
+					FileName: []string{"my_bob.mp3"},
+					Contents: "$resp.data_bob",
+				},
+			},
+			{
+				WriteFile: &WriteFileSpec{
+					FileName: []string{"my_alice_%s.mp3", "$resp.a"},
+					Contents: "$resp.b",
+				},
+			},
+		},
+	}
+
+	if err := g.genSample("foo.FooService", GAPICMethod{Name: "UnaryMethod"}, "awesome_region", vs); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_write_file.want"))
+
+}
+
 func initTestGenerator() *generator {
 	eType := &descriptor.EnumDescriptorProto{
 		Name: proto.String("EType"),

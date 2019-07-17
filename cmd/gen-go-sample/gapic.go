@@ -65,6 +65,7 @@ type OutputSpec struct {
 	Define string
 	Print  []string
 	Loop   *LoopSpec
+	WriteFile *WriteFileSpec
 }
 
 type LoopSpec struct {
@@ -74,6 +75,11 @@ type LoopSpec struct {
 	Key        string
 	Value      string
 	Body       []OutputSpec
+}
+
+type WriteFileSpec struct {
+	Contents string
+	FileName []string
 }
 
 type ResourceName struct {

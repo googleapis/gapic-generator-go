@@ -51,6 +51,11 @@ type initType struct {
 	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
 	// to deal with enums and bytes. Time will tell.
 	valFmt func(*generator, string) (string, error)
+
+	// If the type is a Go native type, native records the short name of the type.
+	// For now, nativeType is only used to check whether the commonly used variable `err` for error
+	// handling has been defined before.
+	native string
 }
 
 // initTree represents a node in the initialization tree.
