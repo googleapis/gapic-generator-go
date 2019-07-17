@@ -41,7 +41,7 @@ func sampleUnaryMethod() error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(my_bob.mp3, resp.GetDataBob(), 0644); err != nil {
+	if err := ioutil.WriteFile("my_bob.mp3", resp.GetDataBob(), 0644); err != nil {
 		return err
 	}
 	if err := ioutil.WriteFile(fmt.Sprintf("my_alice_%v.mp3", resp.GetA()), bytes[](resp.GetB()), 0644), err != nil {

@@ -163,13 +163,12 @@ func writeDump(fnFmt string, fnArgs []string, contPath string, st *symTab, gen *
 
 	sc, report := initScanner(contPath)
 	cont, typ, err := writePath(sc, st, gen.descInfo)
-
 	if err != nil {
 		return report(err)
 	}
 
 	if typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
-		gen.pt.Printf("if err := ioutil.WriteFile(%s, %s, 0644); err != nil {\n", fn, cont)
+		gen.pt.Printf("if err := ioutil.WriteFile(%q, %s, 0644); err != nil {\n", fn, cont)
 	} else if typ.prim == descriptor.FieldDescriptorProto_TYPE_STRING && !typ.repeated {
 		gen.pt.Printf("if err := ioutil.WriteFile(%s, bytes[](%s), 0644), err != nil {\n", fn, cont)
 	} else {
