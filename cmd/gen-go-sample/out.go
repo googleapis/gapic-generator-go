@@ -15,9 +15,11 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"text/scanner"
 
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
@@ -95,6 +97,10 @@ func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 			err = writeMap(l, st, gen)
 		}
 	}
+	if dp := out.WriteFile; dp != nil {
+		used++
+		err = writeDump(dp.FileName[0], dp.FileName[1:], dp.Contents, st, gen)
+	}
 
 	if used == 0 {
 		return errors.E(nil, "OutputSpec not defined")
@@ -133,21 +139,46 @@ func writeDefine(txt string, st *symTab, gen *generator) error {
 var fmtStrReplacer = strings.NewReplacer("%%", "%%", "%s", "%v")
 
 func writePrint(pFmt string, pArgs []string, st *symTab, gen *generator) error {
-	var sb strings.Builder
-	for _, arg := range pArgs {
-		sb.WriteString(", ")
-
-		sc, report := initScanner(arg)
-		path, _, err := writePath(sc, st, gen.descInfo)
-		if err != nil {
-			return report(err)
-		}
-		sb.WriteString(path)
+	argList, err := writePaths(pArgs, st, gen)
+	if err != nil {
+		return err
 	}
 
-	gen.pt.Printf("fmt.Printf(%q%s)", fmtStrReplacer.Replace(pFmt)+"\n", sb.String())
+	gen.pt.Printf("fmt.Printf(%q%s)", fmtStrReplacer.Replace(pFmt)+"\n", argList)
 	gen.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 
+	return nil
+}
+
+func writeDump(fnFmt string, fnArgs []string, contPath string, st *symTab, gen *generator) error {
+	argList, err := writePaths(fnArgs, st, gen)
+	if err != nil {
+		return err
+	}
+
+	fn := fnFmt
+	if len(argList) != 0 {
+		fn = fmt.Sprintf("fmt.Sprintf(%q%s)", fmtStrReplacer.Replace(fnFmt), argList)
+	}
+
+	sc, report := initScanner(contPath)
+	cont, typ, err := writePath(sc, st, gen.descInfo)
+	if err != nil {
+		return report(err)
+	}
+
+	if typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
+		gen.pt.Printf("if err := ioutil.WriteFile(%q, %s, 0644); err != nil {\n", fn, cont)
+	} else if typ.prim == descriptor.FieldDescriptorProto_TYPE_STRING && !typ.repeated {
+		gen.pt.Printf("if err := ioutil.WriteFile(%s, bytes[](%s), 0644), err != nil {\n", fn, cont)
+	} else {
+		return errors.E(nil, "illegal type for file contents, expecting string or bytes, got %v", typ)
+	}
+
+	gen.pt.Printf("  return err")
+	gen.pt.Printf("}")
+
+	gen.imports[pbinfo.ImportSpec{Path: "ioutil"}] = true
 	return nil
 }
 
@@ -259,4 +290,20 @@ func writePath(sc *scanner.Scanner, st *symTab, info pbinfo.Info) (string, initT
 	}
 
 	return sb.String(), itLeaf.typ, nil
+}
+
+// writePaths translates each path into go field accessors, and joins them by commas.
+func writePaths(args []string, st *symTab, gen *generator) (string, error) {
+	var sb strings.Builder
+	for _, arg := range args {
+		sb.WriteString(", ")
+
+		sc, report := initScanner(arg)
+		path, _, err := writePath(sc, st, gen.descInfo)
+		if err != nil {
+			return "", report(err)
+		}
+		sb.WriteString(path)
+	}
+	return sb.String(), nil
 }
