@@ -33,8 +33,7 @@ func sampleUnaryMethod() error {
 		return err
 	}
 
-	req := &foopb.InputType{
-	}
+	req := &foopb.InputType{}
 	resp, err := c.UnaryMethod(ctx, req)
 	if err != nil {
 		return err

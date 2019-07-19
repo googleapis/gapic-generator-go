@@ -223,6 +223,11 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 		}
 		t.leafVal = tok
 
+	case '{':
+		if r := sc.Scan(); r != '}' {
+			return report(errors.E(nil, "bad format rhs: expecting '}', found %q", r))
+		}
+
 	default:
 		return report(errors.E(nil, "expected value, found %q", sc.TokenText()))
 	}
@@ -430,7 +435,11 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		typPrefix = "&"
 	}
 
-	fmt.Fprintf(w, "%s%s.%s{\n", typPrefix, impSpec.Name, typName)
+	fmt.Fprintf(w, "%s%s.%s{", typPrefix, impSpec.Name, typName)
+	if len(t.keys) != 0 {
+		fmt.Fprintf(w, "\n")
+	}
+
 	for i, k := range t.keys {
 		indent(ind + 1)
 
@@ -457,7 +466,10 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		}
 		w.WriteString(",\n")
 	}
-	indent(ind)
+
+	if len(t.keys) != 0 {
+		indent(ind)
+	}
 	w.WriteString("}")
 	return nil
 }
