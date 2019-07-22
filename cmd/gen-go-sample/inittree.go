@@ -225,7 +225,7 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 
 	case '{':
 		if r := sc.Scan(); r != '}' {
-			return report(errors.E(nil, "bad format rhs: expecting '}', found %q", r))
+			return report(errors.E(nil, "bad format: expected '}', found %q", r))
 		}
 
 	default:
