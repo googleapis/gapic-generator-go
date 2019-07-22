@@ -174,6 +174,32 @@ func TestLro(t *testing.T) {
 	compare(t, g, filepath.Join("testdata", "sample_lro.want"))
 }
 
+func TestEmptyObject(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	vs := SampleValueSet{
+		ID: "my_value_set",
+		Parameters: SampleParameter{
+			Defaults: []string{
+				`f2 = {}`,
+				`resource_field%foo="myfoo"`,
+				`resource_field%bar="mybar"`,
+			},
+		},
+	}
+
+	methConf := GAPICMethod{
+		Name:              "UnaryMethod",
+		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
+	}
+
+	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_empty_object.want"))
+}
+
 func TestEmpty(t *testing.T) {
 	t.Parallel()
 
@@ -298,6 +324,7 @@ func initTestGenerator() *generator {
 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
 			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.EType")},
 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
+			{Name: proto.String("f2"), TypeName: proto.String(".foo.AType"), OneofIndex: proto.Int32(0)},
 			{Name: proto.String("data_alice"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
 			{Name: proto.String("data_bob"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
 			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},

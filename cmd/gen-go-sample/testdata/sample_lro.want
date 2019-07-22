@@ -33,8 +33,7 @@ func sampleLroMethod() error {
 		return err
 	}
 
-	req := &foopb.LroInType{
-	}
+	req := &foopb.LroInType{}
 	op, err := c.LroMethod(ctx, req)
 	if err != nil {
 		return err
