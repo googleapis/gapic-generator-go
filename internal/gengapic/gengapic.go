@@ -305,6 +305,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		return err
 	}
 
+	// clear LRO types between services
 	g.aux.lros = []*descriptor.MethodDescriptorProto{}
 
 	for _, m := range serv.Method {
