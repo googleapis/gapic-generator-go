@@ -181,6 +181,9 @@ type generator struct {
 	serviceConfig *serviceConfig
 
 	grpcConf *conf.ServiceConfig
+
+	// Auxiliary types to be generated in the package
+	aux *auxTypes
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
@@ -188,6 +191,9 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 
 	g.comments = map[proto.Message]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.aux = &auxTypes{
+		iters: map[string]*iterType{},
+	}
 
 	for _, f := range files {
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
@@ -299,27 +305,35 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		return err
 	}
 
-	aux := auxTypes{
-		iters: map[string]iterType{},
-	}
+	g.aux.lros = []*descriptor.MethodDescriptorProto{}
+
 	for _, m := range serv.Method {
 		g.methodDoc(m)
-		if err := g.genMethod(servName, serv, m, &aux); err != nil {
+		if err := g.genMethod(servName, serv, m); err != nil {
 			return errors.E(err, "method: %s", m.GetName())
 		}
 	}
 
-	sort.Slice(aux.lros, func(i, j int) bool {
-		return aux.lros[i].GetName() < aux.lros[j].GetName()
+	sort.Slice(g.aux.lros, func(i, j int) bool {
+		return g.aux.lros[i].GetName() < g.aux.lros[j].GetName()
 	})
-	for _, m := range aux.lros {
+	for _, m := range g.aux.lros {
 		if err := g.lroType(servName, serv, m); err != nil {
 			return err
 		}
 	}
 
-	var iters []iterType
-	for _, iter := range aux.iters {
+	var iters []*iterType
+	for _, iter := range g.aux.iters {
+		// skip iterators that have already been generated in this package
+		//
+		// TODO(ndietz): investigate generating auxiliary types in a
+		// separate file in the same pacakge to avoid keeping this state
+		if iter.generated {
+			continue
+		}
+
+		iter.generated = true
 		iters = append(iters, iter)
 	}
 	sort.Slice(iters, func(i, j int) bool {
@@ -340,14 +354,14 @@ type auxTypes struct {
 	// "List" of iterator types. We use these to generate FooIterator returned by paging methods.
 	// Since multiple methods can page over the same type, we dedupe by the name of the iterator,
 	// which is in turn determined by the element type name.
-	iters map[string]iterType
+	iters map[string]*iterType
 }
 
 // genMethod generates a single method from a client. m must be a method declared in serv.
 // If the generated method requires an auxillary type, it is added to aux.
-func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto, aux *auxTypes) error {
+func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	if m.GetOutputType() == lroType {
-		aux.lros = append(aux.lros, m)
+		g.aux.lros = append(g.aux.lros, m)
 		return g.lroCall(servName, m)
 	}
 
@@ -362,7 +376,7 @@ func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescripto
 		if err != nil {
 			return err
 		}
-		aux.iters[iter.iterTypeName] = iter
+		g.aux.iters[iter.iterTypeName] = iter
 		return g.pagingCall(servName, m, pf, iter)
 	}
 

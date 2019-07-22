@@ -30,11 +30,13 @@ type iterType struct {
 	// If the elem type is a message, elemImports contains pbinfo.ImportSpec for the type.
 	// Otherwise, len(elemImports)==0.
 	elemImports []pbinfo.ImportSpec
+
+	generated bool
 }
 
 // iterTypeOf deduces iterType from a field to be iterated over.
 // elemField should be the "resource" of a paginating RPC.
-func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iterType, error) {
+func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*iterType, error) {
 	var pt iterType
 
 	switch t := *elemField.Type; {
@@ -43,7 +45,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iter
 
 		imp, err := g.descInfo.ImportSpec(eType)
 		if err != nil {
-			return iterType{}, err
+			return &iterType{}, err
 		}
 
 		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, eType.GetName())
@@ -66,7 +68,12 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (iter
 		pt.elemTypeName = pType
 		pt.iterTypeName = upperFirst(pt.elemTypeName) + "Iterator"
 	}
-	return pt, nil
+
+	if iter, ok := g.aux.iters[pt.iterTypeName]; ok {
+		return iter, nil
+	}
+
+	return &pt, nil
 }
 
 // TODO(pongad): this will probably need to read from annotations later.
@@ -126,7 +133,7 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 	return elemFields[0], nil
 }
 
-func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt iterType) error {
+func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt *iterType) error {
 	inType := g.descInfo.Type[*m.InputType]
 	outType := g.descInfo.Type[*m.OutputType]
 
@@ -202,7 +209,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	return nil
 }
 
-func (g *generator) pagingIter(pt iterType) {
+func (g *generator) pagingIter(pt *iterType) {
 	p := g.printf
 
 	p("// %s manages a stream of %s.", pt.iterTypeName, pt.elemTypeName)
