@@ -329,7 +329,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string)
 		// skip iterators that have already been generated in this package
 		//
 		// TODO(ndietz): investigate generating auxiliary types in a
-		// separate file in the same pacakge to avoid keeping this state
+		// separate file in the same package to avoid keeping this state
 		if iter.generated {
 			continue
 		}
