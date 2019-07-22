@@ -80,6 +80,9 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) e
 
 	outA := resp.GetA()
 	fmt.Printf("x = %v\n", resp.GetA().GetX())
+	// outA contains the field y,
+	// % is a single percent,
+	// and '\n' specifies a newline in comment too
 	fmt.Printf("y = %v\n", outA.GetY())
 	for _, r := range resp.GetR() {
 		fmt.Printf("resp.r contains %v\n", r)

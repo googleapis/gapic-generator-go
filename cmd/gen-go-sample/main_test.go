@@ -62,6 +62,10 @@ func TestUnary(t *testing.T) {
 		OnSuccess: []OutputSpec{
 			{Define: "out_a = $resp.a"},
 			{Print: []string{"x = %s", "$resp.a.x"}},
+			{Comment: []string{
+				"%s contains the field %s,\n%%%% is a single percent,\nand '\\n' specifies a newline in comment too",
+				"out_a",
+				"y"}},
 			{Print: []string{"y = %s", "out_a.y"}},
 			{
 				Loop: &LoopSpec{

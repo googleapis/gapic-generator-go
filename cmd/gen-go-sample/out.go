@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"text/scanner"
@@ -100,6 +101,10 @@ func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 	if dp := out.WriteFile; dp != nil {
 		used++
 		err = writeDump(dp.FileName[0], dp.FileName[1:], dp.Contents, st, gen)
+	}
+	if c := out.Comment; len(c) > 0 {
+		used++
+		err = writeComment(c[0], c[1:], gen)
 	}
 
 	if used == 0 {
@@ -249,6 +254,28 @@ func writeMap(l *LoopSpec, st *symTab, gen *generator) error {
 		}
 	}
 	p("}")
+	return nil
+}
+
+func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
+	var buf bytes.Buffer
+	args := make([]interface{}, len(cmtArgs))
+	for i := range cmtArgs {
+		args[i] = snakeToCamel(cmtArgs[i])
+	}
+
+	if _, err := fmt.Fprintf(&buf, cmtFmt, args...); err != nil {
+		return errors.E(err, "comment spec: bad format")
+	}
+	buf.WriteString("\n")
+	prependLines(&buf, "// ", false)
+	cmts := strings.Split(buf.String(), "\n")
+	for i, c := range(cmts) {
+		if i == len(cmts) - 1 {
+			continue
+		}
+		gen.pt.Printf(c)
+	}
 	return nil
 }
 

@@ -62,6 +62,7 @@ type GAPICSample struct {
 }
 
 type OutputSpec struct {
+	Comment   []string
 	Define    string
 	Print     []string
 	Loop      *LoopSpec
