@@ -261,7 +261,7 @@ func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
 	var buf bytes.Buffer
 	args := make([]interface{}, len(cmtArgs))
 	for i := range cmtArgs {
-		args[i] = cmtArgs[i]
+		args[i] = snakeToCamel(cmtArgs[i])
 	}
 
 	if _, err := fmt.Fprintf(&buf, cmtFmt, args...); err != nil {
