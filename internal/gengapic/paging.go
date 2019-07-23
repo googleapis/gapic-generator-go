@@ -72,6 +72,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 	if iter, ok := g.aux.iters[pt.iterTypeName]; ok {
 		return iter, nil
 	}
+	g.aux.iters[pt.iterTypeName] = &pt
 
 	return &pt, nil
 }

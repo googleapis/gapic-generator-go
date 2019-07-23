@@ -377,7 +377,7 @@ func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescripto
 		if err != nil {
 			return err
 		}
-		g.aux.iters[iter.iterTypeName] = iter
+
 		return g.pagingCall(servName, m, pf, iter)
 	}
 
