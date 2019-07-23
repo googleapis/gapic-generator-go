@@ -253,22 +253,22 @@ methods:
 			proto.SetExtension(m.Options, longrunning.E_OperationInfo, lroType)
 		}
 
-		aux := auxTypes{
-			iters: map[string]iterType{},
+		g.aux = &auxTypes{
+			iters: map[string]*iterType{},
 		}
-		if err := g.genMethod("Foo", serv, m, &aux); err != nil {
+		if err := g.genMethod("Foo", serv, m); err != nil {
 			t.Error(err)
 			continue
 		}
 
-		for _, m := range aux.lros {
+		for _, m := range g.aux.lros {
 			if err := g.lroType("MyService", serv, m); err != nil {
 				t.Error(err)
 				continue methods
 			}
 		}
 
-		for _, iter := range aux.iters {
+		for _, iter := range g.aux.iters {
 			g.pagingIter(iter)
 		}
 

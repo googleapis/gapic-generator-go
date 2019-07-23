@@ -151,6 +151,9 @@ func TestIterTypeOf(t *testing.T) {
 		Name: proto.String("Foo"),
 	}
 	g := &generator{
+		aux: &auxTypes{
+			iters: map[string]*iterType{},
+		},
 		descInfo: pbinfo.Info{
 			Type: map[string]pbinfo.ProtoType{
 				msgType.GetName(): msgType,
@@ -204,7 +207,7 @@ func TestIterTypeOf(t *testing.T) {
 		got, err := g.iterTypeOf(tst.field)
 		if err != nil {
 			t.Error(err)
-		} else if diff := cmp.Diff(tst.want, got, cmp.AllowUnexported(got)); diff != "" {
+		} else if diff := cmp.Diff(tst.want, *got, cmp.AllowUnexported(*got)); diff != "" {
 			t.Errorf("%d: (got=-, want=+):\n%s", i, diff)
 		}
 	}
