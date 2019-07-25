@@ -196,7 +196,6 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 
 func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag string, valSet SampleValueSet) error {
 	// TODO(pongad): This method's error cases are not well tested. Split and test.
-
 	g.imports[g.clientPkg] = true
 	serv := g.descInfo.Serv["."+ifaceName]
 	if serv == nil {
@@ -222,6 +221,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	if err != nil {
 		return errors.E(err, "can't import input type: %q", inType)
 	}
+	g.imports[inSpec] = true
 
 	var (
 		argNames  []string
@@ -332,7 +332,15 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	if len(argNames) > 0 {
 		var sb strings.Builder
 		for i, n := range argNames {
-			fmt.Fprintf(&sb, ", %s %s", n, pbinfo.GoTypeForPrim[argTrees[i].typ.prim])
+			if e, ok := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok {
+				en, err := enumType(g.descInfo, e, g)
+				if err != nil {
+					return err
+				}
+				fmt.Fprintf(&sb, ", %s %s", n, en)
+			} else {
+				fmt.Fprintf(&sb, ", %s %s", n, pbinfo.GoTypeForPrim[argTrees[i].typ.prim])
+			}	
 		}
 		argStr = sb.String()[2:]
 	}
@@ -397,39 +405,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	p("// [END %s]", regTag)
 	p("")
 
-	p("func main() {")
-
-	for i := range argNames {
-		// TODO(pongad): some types, like int32, are not supported by flag package.
-		// We have to convert.
-		typ := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
-		p(`%s := flag.%s(%q, %s, "")`, argNames[i], snakeToPascal(typ), flagNames[i], argTrees[i].leafVal)
-	}
-
-	p("  flag.Parse()")
-	p("  if err := sample%s(%s); err != nil {", meth.GetName(), flagArgs(argNames))
-	p("    log.Fatal(err)")
-	p("  }")
-	p("}")
-	p("")
-
-	g.imports[inSpec] = true
-	g.imports[pbinfo.ImportSpec{Path: "flag"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "log"}] = true
-	return nil
-}
-
-func flagArgs(names []string) string {
-	if len(names) == 0 {
-		return ""
-	}
-
-	var sb strings.Builder
-	for _, n := range names {
-		fmt.Fprintf(&sb, ", *%s", n)
-	}
-	return sb.String()[2:]
+	return writeMain(g, argNames, flagNames, argTrees, meth.GetName())
 }
 
 func (g *generator) unary(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet) error {

@@ -75,6 +75,21 @@ func (st *symTab) put(ident string, typ initType) error {
 	return nil
 }
 
+func (st *symTab) disambiguate(ident string, typ initType) string {
+	base := ident
+	sf := 1
+	_, ok := st.scope[ident]
+	for ok {
+		sf++
+		ident = fmt.Sprintf("%s%d", base, sf)
+		_, ok = st.scope[ident]
+	}
+	if err := st.put(ident, typ); err != nil {
+		panic("bad state: ident can't exist")
+	}
+	return ident
+}
+
 func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 	used := 0
 	var err error
@@ -270,8 +285,8 @@ func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
 	buf.WriteString("\n")
 	prependLines(&buf, "// ", false)
 	cmts := strings.Split(buf.String(), "\n")
-	for i, c := range(cmts) {
-		if i == len(cmts) - 1 {
+	for i, c := range cmts {
+		if i == len(cmts)-1 {
 			continue
 		}
 		gen.pt.Printf(c)

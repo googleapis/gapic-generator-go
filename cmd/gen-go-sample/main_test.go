@@ -289,6 +289,35 @@ func TestWriteFile(t *testing.T) {
 
 }
 
+func TestEnum(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	vs := SampleValueSet{
+		ID: "my_value_set",
+		Parameters: SampleParameter{
+			Defaults: []string{
+				`e = FOO`,
+			},
+			Attributes: []SampleAttribute{
+				{Parameter: "e", SampleArgumentName: "cool_e"},
+			},
+		},
+		OnSuccess: []OutputSpec{
+			{Print: []string{"call finished."}},
+		},
+	}
+
+	methConf := GAPICMethod{
+		Name: "UnaryMethod",
+	}
+	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
+		t.Fatal(err)
+	}
+
+	compare(t, g, filepath.Join("testdata", "sample_enum.want"))
+}
+
 func initTestGenerator() *generator {
 	eType := &descriptor.EnumDescriptorProto{
 		Name: proto.String("EType"),
