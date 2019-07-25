@@ -16,9 +16,9 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"strings"
 )
 
 func writeMain(g *generator, argNames []string, flagNames []string, argTrees []*initTree, methName string) error {

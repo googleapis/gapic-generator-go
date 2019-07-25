@@ -85,7 +85,7 @@ func (st *symTab) disambiguate(ident string, typ initType) string {
 		_, ok = st.scope[ident]
 	}
 	if err := st.put(ident, typ); err != nil {
-		panic("bad state: ident can't exist")
+		panic("bad state: ident shouldn't have existed")
 	}
 	return ident
 }

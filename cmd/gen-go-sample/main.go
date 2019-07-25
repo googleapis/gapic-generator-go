@@ -196,6 +196,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 
 func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag string, valSet SampleValueSet) error {
 	// TODO(pongad): This method's error cases are not well tested. Split and test.
+
 	g.imports[g.clientPkg] = true
 	serv := g.descInfo.Serv["."+ifaceName]
 	if serv == nil {
@@ -340,7 +341,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 				fmt.Fprintf(&sb, ", %s %s", n, en)
 			} else {
 				fmt.Fprintf(&sb, ", %s %s", n, pbinfo.GoTypeForPrim[argTrees[i].typ.prim])
-			}	
+			}
 		}
 		argStr = sb.String()[2:]
 	}
