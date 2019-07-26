@@ -10,7 +10,7 @@ require (
 	github.com/google/go-cmp v0.2.0
 	github.com/jhump/protoreflect v1.4.4
 	github.com/opennota/wd v0.0.0-20180911144301-b446539ab1e7 // indirect
-	github.com/russross/blackfriday v2.0.0+incompatible // indirect
+	github.com/russross/blackfriday v2.0.1 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	google.golang.org/genproto v0.0.0-20190726164837-c506a9f90610
 	gopkg.in/yaml.v2 v2.2.2
