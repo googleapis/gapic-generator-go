@@ -67,7 +67,7 @@ func ancestors(info pbinfo.Info, enum *descriptor.EnumDescriptorProto, g *genera
 
 	// We made array in [child, parent, grandparent] order, we want grandparent fist.
 	for i := 0; i < len(parts)/2; i++ {
-		opp := len(parts)-1-i
+		opp := len(parts) - 1 - i
 		parts[i], parts[opp] = parts[opp], parts[i]
 	}
 
