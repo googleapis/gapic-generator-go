@@ -15,15 +15,16 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
-// enumFmt returns a function that transforms a protobuf enum value literal into it's corresponding Go const.
+// enumFmt returns a function that transforms a protobuf enum value literal into its corresponding Go const.
 func enumFmt(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) func(*generator, string) (string, error) {
-	return func(g *generator, s string) (string, error) {
+	return func(g *generator, value string) (string, error) {
 		parts, impSpec, err := ancestors(info, enum, g)
 		if err != nil {
 			return "", err
@@ -37,7 +38,8 @@ func enumFmt(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) func(*gener
 			parts = parts[:len(parts)-1]
 		}
 
-		return impSpec.Name + "." + strings.Join(parts, "_") + "_" + s, nil
+		formattedName := fmt.Sprintf("%s.%s_%s", impSpec.Name, strings.Join(parts, "_"), value)
+		return formattedName, nil
 	}
 }
 
@@ -47,10 +49,11 @@ func enumType(info pbinfo.Info, enum *descriptor.EnumDescriptorProto, g *generat
 	if err != nil {
 		return "", err
 	}
-	return impSpec.Name + "." + strings.Join(parts, "_"), nil
+	typeName := fmt.Sprintf("%s.%s", impSpec.Name, strings.Join(parts, "_"))
+	return typeName, nil
 }
 
-// ancestors returns the names of all the types down to `enum`, included and the ImportSpec.
+// ancestors returns the names of all the types down to `enum` (`enum` itself included), and the ImportSpec of `enum`.
 // of the slice.
 func ancestors(info pbinfo.Info, enum *descriptor.EnumDescriptorProto, g *generator) ([]string, pbinfo.ImportSpec, error) {
 	var element pbinfo.ProtoType = enum
@@ -64,7 +67,8 @@ func ancestors(info pbinfo.Info, enum *descriptor.EnumDescriptorProto, g *genera
 
 	// We made array in [child, parent, grandparent] order, we want grandparent fist.
 	for i := 0; i < len(parts)/2; i++ {
-		parts[i], parts[len(parts)-1-i] = parts[len(parts)-1-i], parts[i]
+		opp := len(parts)-1-i
+		parts[i], parts[opp] = parts[opp], parts[i]
 	}
 
 	impSpec, err := info.ImportSpec(topElement)

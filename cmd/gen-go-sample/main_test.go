@@ -37,7 +37,7 @@ func TestUnary(t *testing.T) {
 				`a.x = 42`,
 				`a.y = 3.14159`,
 				`b = "foobar"`,
-				`e = FOO`,
+				`e = BANANA`,
 				`f = "in a oneof"`,
 				`bytes = "mybytes"`,
 				`data_alice = "path/to/local/file/alice.txt"`,
@@ -297,10 +297,10 @@ func TestEnum(t *testing.T) {
 		ID: "my_value_set",
 		Parameters: SampleParameter{
 			Defaults: []string{
-				`e = FOO`,
+				`e = APPLE`,
 			},
 			Attributes: []SampleAttribute{
-				{Parameter: "e", SampleArgumentName: "cool_e"},
+				{Parameter: "e", SampleArgumentName: "my_fruit"},
 			},
 		},
 		OnSuccess: []OutputSpec{
@@ -320,9 +320,11 @@ func TestEnum(t *testing.T) {
 
 func initTestGenerator() *generator {
 	eType := &descriptor.EnumDescriptorProto{
-		Name: proto.String("EType"),
+		Name: proto.String("FruitEnum"),
 		Value: []*descriptor.EnumValueDescriptorProto{
-			{Name: proto.String("FOO")},
+			{Name: proto.String("APPLE")},
+			{Name: proto.String("BANANA")},
+			{Name: proto.String("CHERRY")},
 		},
 	}
 
@@ -355,7 +357,7 @@ func initTestGenerator() *generator {
 			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
 			{Name: proto.String("a_array"), TypeName: proto.String(".foo.AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
-			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.EType")},
+			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.FruitEnum")},
 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
 			{Name: proto.String("f2"), TypeName: proto.String(".foo.AType"), OneofIndex: proto.Int32(0)},
 			{Name: proto.String("data_alice"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},

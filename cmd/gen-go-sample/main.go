@@ -332,16 +332,21 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	var argStr string
 	if len(argNames) > 0 {
 		var sb strings.Builder
-		for i, n := range argNames {
-			if e, ok := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok {
-				en, err := enumType(g.descInfo, e, g)
+		for i, name := range argNames {
+			var typ string
+			typ, ok := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
+			if enum, ok2 := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok2 {
+				t, err := enumType(g.descInfo, enum, g)
 				if err != nil {
 					return err
 				}
-				fmt.Fprintf(&sb, ", %s %s", n, en)
-			} else {
-				fmt.Fprintf(&sb, ", %s %s", n, pbinfo.GoTypeForPrim[argTrees[i].typ.prim])
+				typ = t
+				ok = ok2
 			}
+			if !ok {
+				return errors.E(nil, "unrecognized primitive type: %s", argTrees[i].typ.prim)
+			}
+			fmt.Fprintf(&sb, ", %s %s", name, typ)
 		}
 		argStr = sb.String()[2:]
 	}

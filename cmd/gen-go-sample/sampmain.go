@@ -37,7 +37,7 @@ func writeMain(g *generator, argNames []string, flagNames []string, argTrees []*
 
 	for i := range argNames {
 		if _, ok := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			p(`%s := flag.String(%s, "%s", "")`, argNames[i], flagNames[i], argTrees[i].leafVal)
+			p(`%s := flag.String(%q, %q, "")`, argNames[i], flagNames[i], argTrees[i].leafVal)
 			continue
 		}
 

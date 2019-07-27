@@ -26,16 +26,16 @@ foopb "path.to/pb/foo"
 )
 // [START awesome_region]
 
-func sampleUnaryMethod(coolE foopb.AType_EType) error {
+func sampleUnaryMethod(myFruit foopb.AType_FruitEnum) error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	// coolE := foopb.AType_FOO
+	// myFruit := foopb.AType_APPLE
 	req := &foopb.InputType{
-		E: coolE,
+		E: myFruit,
 	}
 	resp, err := c.UnaryMethod(ctx, req)
 	if err != nil {
@@ -49,13 +49,13 @@ func sampleUnaryMethod(coolE foopb.AType_EType) error {
 // [END awesome_region]
 
 func main() {
-	coolE := flag.String(cool_e, "FOO", "")
+	myFruit := flag.String("my_fruit", "APPLE", "")
 	flag.Parse()
-	coolE2, ok := foopb.AType_EType_name[*coolE]
+	myFruit2, ok := foopb.AType_FruitEnum_name[*myFruit]
 	if !ok {
-		log.fatal("enum type foopb.AType_EType does not have value %s", *coolE2)
+		log.fatal("enum type foopb.AType_FruitEnum does not have value %s", *myFruit2)
 	}
-	if err := sampleUnaryMethod(*foopb.AType_EType(coolE2)); err != nil {
+	if err := sampleUnaryMethod(*foopb.AType_FruitEnum(myFruit2)); err != nil {
 		log.Fatal(err)
 	}
 }
