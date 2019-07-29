@@ -49,13 +49,13 @@ func sampleUnaryMethod(myFruit foopb.AType_FruitEnum) error {
 // [END awesome_region]
 
 func main() {
-	myFruit := flag.String("my_fruit", "APPLE", "")
+	myFruitArg := flag.String("my_fruit", "APPLE", "")
 	flag.Parse()
-	myFruit2, ok := foopb.AType_FruitEnum_name[*myFruit]
+	myFruit, ok := foopb.AType_FruitEnum_name[*myFruitArg]
 	if !ok {
-		log.fatal("enum type foopb.AType_FruitEnum does not have value %s", *myFruit2)
+		log.fatal("enum type foopb.AType_FruitEnum does not have value %s", *myFruitArg)
 	}
-	if err := sampleUnaryMethod(*foopb.AType_FruitEnum(myFruit2)); err != nil {
+	if err := sampleUnaryMethod(*foopb.AType_FruitEnum(myFruit)); err != nil {
 		log.Fatal(err)
 	}
 }

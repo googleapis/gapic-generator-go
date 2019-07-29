@@ -91,7 +91,7 @@ func (st *symTab) disambiguate(ident string, typ initType) string {
 		ident = fmt.Sprintf("%s%d", base, sf)
 		_, ok = st.scope[ident]
 	}
-	// We just checked that `ident` is not in the table, thus swallowing the error
+	// We just checked that `ident` is not in the table, so we can safely swallow the error below
 	st.put(ident, typ)
 	return ident
 }

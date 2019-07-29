@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"strings"
 )
 
@@ -35,9 +36,14 @@ func writeMain(g *generator, argNames []string, flagNames []string, argTrees []*
 
 	p("func main() {")
 
+	enumNameToEnumFlagVarName := make(map[string]string)
+
 	for i := range argNames {
 		if _, ok := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			p(`%s := flag.String(%q, %q, "")`, argNames[i], flagNames[i], argTrees[i].leafVal)
+			argVar := fmt.Sprintf("%sArg", argNames[i])
+			argVar = st.disambiguate(argVar, dummyType)
+			enumNameToEnumFlagVarName[argNames[i]] = argVar
+			p(`%s := flag.String(%q, %q, "")`, argVar, flagNames[i], argTrees[i].leafVal)
 			continue
 		}
 
@@ -53,18 +59,19 @@ func writeMain(g *generator, argNames []string, flagNames []string, argTrees []*
 
 	for i := range argNames {
 		if e, ok := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			v := st.disambiguate(argNames[i], dummyType)
 			tn, err := enumType(g.descInfo, e, g)
 			if err != nil {
 				return err
 			}
 			vMap := tn + "_name"
-			st.put(v, dummyType)
-			fArgs = append(fArgs, fmt.Sprintf("%s(%s)", tn, v))
-
-			p(`%s, ok := %s[*%s]`, v, vMap, argNames[i])
+			fArgs = append(fArgs, fmt.Sprintf("%s(%s)", tn, argNames[i]))
+			flagVar, ok := enumNameToEnumFlagVarName[argNames[i]]
+			if !ok {
+				return errors.E(nil, "Unrecognized sample argument name: %s", argNames[i])
+			}
+			p(`%s, ok := %s[*%s]`, argNames[i], vMap, flagVar)
 			p("if !ok {")
-			p(`log.fatal("enum type %s does not have value %%s", *%s)`, tn, v)
+			p(`log.fatal("enum type %s does not have value %%s", *%s)`, tn, flagVar)
 			p("}")
 		} else {
 			fArgs = append(fArgs, argNames[i])
