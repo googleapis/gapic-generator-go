@@ -91,6 +91,8 @@ func (st *symTab) disambiguate(ident string, typ initType) string {
 		ident = fmt.Sprintf("%s%d", base, sf)
 		_, ok = st.scope[ident]
 	}
+	// We just checked that `ident` is not in the table, thus swallowing the error
+	st.put(ident, typ)
 	return ident
 }
 
@@ -288,9 +290,8 @@ func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
 	}
 	buf.WriteString("\n")
 	prependLines(&buf, "// ", false)
-	cmts := strings.Split(buf.String(), "\n")
-	end := len(cmts) - 1
-	for _, c := range cmts[:end] {
+	cmts := strings.TrimRight(buf.String(), "\n")
+	for _, c := range strings.Split(cmts, "\n") {
 		gen.pt.Printf(c)
 	}
 	return nil

@@ -333,7 +333,6 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	if len(argNames) > 0 {
 		var sb strings.Builder
 		for i, name := range argNames {
-			var typ string
 			typ, ok := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
 			if enum, ok2 := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok2 {
 				t, err := enumType(g.descInfo, enum, g)
