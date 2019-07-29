@@ -74,7 +74,7 @@ func writeMain(g *generator, argNames []string, flagNames []string, argTrees []*
 			p(`log.fatal("enum type %s does not have value %%s", *%s)`, tn, flagVar)
 			p("}")
 		} else {
-			fArgs = append(fArgs, argNames[i])
+			fArgs = append(fArgs, fmt.Sprintf("*%s", argNames[i]))
 		}
 	}
 
@@ -97,7 +97,7 @@ func flagArgs(names []string) string {
 
 	var sb strings.Builder
 	for _, n := range names {
-		fmt.Fprintf(&sb, ", *%s", n)
+		fmt.Fprintf(&sb, ", %s", n)
 	}
 	return sb.String()[2:]
 }

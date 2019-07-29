@@ -55,7 +55,7 @@ func main() {
 	if !ok {
 		log.fatal("enum type foopb.AType_FruitEnum does not have value %s", *myFruitArg)
 	}
-	if err := sampleUnaryMethod(*foopb.AType_FruitEnum(myFruit)); err != nil {
+	if err := sampleUnaryMethod(foopb.AType_FruitEnum(myFruit)); err != nil {
 		log.Fatal(err)
 	}
 }
