@@ -17,6 +17,7 @@
 
 GO_GAPIC_PACKAGE=
 GAPIC_SERVICE_CONFIG=
+GRPC_SERVICE_CONFIG=
 
 # enable extended globbing for flag pattern matching
 shopt -s extglob
@@ -26,6 +27,7 @@ while true; do
   case "$1" in
     --go-gapic-package ) GO_GAPIC_PACKAGE="go-gapic-package=$2"; shift 2 ;;
     --gapic-service-config ) GAPIC_SERVICE_CONFIG="gapic-service-config=/conf/$2"; shift 2;;
+    --grpc-service-config ) GRPC_SERVICE_CONFIG="grpc-service-config=/conf/$2"; shift 2;;
     --go-gapic* ) echo "Skipping unrecognized go-gapic flag: $1" >&2; shift ;;
     --* | +([[:word:][:punct:]]) ) shift ;;
     * ) break ;;
@@ -42,4 +44,5 @@ protoc --proto_path=/protos/ --proto_path=/in/ \
                   --go_gapic_out=/out/ \
                   --go_gapic_opt="$GO_GAPIC_PACKAGE" \
                   --go_gapic_opt="$GAPIC_SERVICE_CONFIG" \
+                  --go_gapic_opt="$GRPC_SERVICE_CONFIG" \
                   `find /in/ -name *.proto`
