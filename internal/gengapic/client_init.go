@@ -61,6 +61,9 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("    option.WithEndpoint(%q),", host)
 		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 		p("    option.WithScopes(DefaultAuthScopes()...),")
+		p("		 option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
+		p("      grpc.MaxCallRecvMsgSize(%d),", -1)
+		p("      grpc.MaxCallSendMsgSize(%d))),", -1)
 		p("  }")
 		p("}")
 		p("")
@@ -72,6 +75,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	{
 		sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName())
 		policies := map[string]*conf.MethodConfig_RetryPolicy{}
+		reqLimits := map[string]int{}
+		resLimits := map[string]int{}
 
 		var methCfgs []*conf.MethodConfig
 		if g.grpcConf != nil {
@@ -92,6 +97,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				if name.GetMethod() != "" {
 					base = base + "." + name.GetMethod()
 					policies[base] = mc.GetRetryPolicy()
+					
+					if maxReq := mc.GetMaxRequestMessageBytes(); maxReq != nil {
+						reqLimits[base] = int(maxReq.GetValue())
+					}
+
+					if maxRes := mc.GetMaxResponseMessageBytes(); maxRes != nil {
+						resLimits[base] = int(maxRes.GetValue())
+					}
+
 					continue
 				}
 
@@ -99,8 +113,24 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				for _, m := range serv.GetMethod() {
 					// build fully-qualified name
 					fqn := base + "." + m.GetName()
+
+					// set retry config
 					if _, ok := policies[fqn]; !ok {
 						policies[fqn] = mc.GetRetryPolicy()
+					}
+
+					// set max request size limit
+					if maxReq := mc.GetMaxRequestMessageBytes(); maxReq != nil {
+						if _, ok := reqLimits[fqn]; !ok {
+							reqLimits[fqn] = int(maxReq.GetValue())
+						}
+					}
+
+					// set max response size limit
+					if maxRes := mc.GetMaxResponseMessageBytes(); maxRes != nil {
+						if _, ok := resLimits[fqn]; !ok {
+							resLimits[fqn] = int(maxRes.GetValue())
+						}
 					}
 				}
 			}
@@ -117,6 +147,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		for _, m := range serv.GetMethod() {
 			mFQN := sFQN + "." + m.GetName()
 			p("%s: []gax.CallOption{", m.GetName())
+
+			if maxReq, ok := reqLimits[mFQN]; ok  {
+				p("gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(%d)),", maxReq)
+			}
+
+			if maxRes, ok := resLimits[mFQN]; ok {
+				p("gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(%d)),", maxRes)
+			}
+
 			if rp, ok := policies[mFQN]; ok && rp != nil {
 				p("gax.WithRetry(func() gax.Retryer {")
 				p("  return gax.OnCodes([]codes.Code{")

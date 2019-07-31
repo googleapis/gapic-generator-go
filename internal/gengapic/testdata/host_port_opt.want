@@ -8,6 +8,9 @@ func defaultBarClientOptions() []option.ClientOption {
 		option.WithEndpoint("foo.bar.com:1234"),
 		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
 		option.WithScopes(DefaultAuthScopes()...),
+		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(-1),
+		grpc.MaxCallSendMsgSize(-1))),
 	}
 }
 
