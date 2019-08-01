@@ -75,6 +75,27 @@ func (st *symTab) put(ident string, typ initType) error {
 	return nil
 }
 
+// disambiguate calculates a unique name based on `ident`, saves
+// the new variable name and `typ` to this symbol table, and returns
+// the calculated unique name.
+//
+// If `ident` is already unique, it is used as the output.
+// If `ident` is not unique, this method keeps appending a numeric
+// suffix in the sequence of 1, 2, 3..., until a unique name is found.
+func (st *symTab) disambiguate(ident string, typ initType) string {
+	base := ident
+	sf := 1
+	_, ok := st.scope[ident]
+	for ok {
+		sf++
+		ident = fmt.Sprintf("%s%d", base, sf)
+		_, ok = st.scope[ident]
+	}
+	// We just checked that `ident` is not in the table, so we can safely swallow the error below
+	st.put(ident, typ)
+	return ident
+}
+
 func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
 	used := 0
 	var err error
@@ -269,11 +290,8 @@ func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
 	}
 	buf.WriteString("\n")
 	prependLines(&buf, "// ", false)
-	cmts := strings.Split(buf.String(), "\n")
-	for i, c := range(cmts) {
-		if i == len(cmts) - 1 {
-			continue
-		}
+	cmts := strings.TrimRight(buf.String(), "\n")
+	for _, c := range strings.Split(cmts, "\n") {
 		gen.pt.Printf(c)
 	}
 	return nil
