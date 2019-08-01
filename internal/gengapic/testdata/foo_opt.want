@@ -11,8 +11,7 @@ func defaultFooClientOptions() []option.ClientOption {
 		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
 		option.WithScopes(DefaultAuthScopes()...),
 		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
-		grpc.MaxCallRecvMsgSize(-1),
-		grpc.MaxCallSendMsgSize(-1))),
+		grpc.MaxCallRecvMsgSize(-1))),
 	}
 }
 
