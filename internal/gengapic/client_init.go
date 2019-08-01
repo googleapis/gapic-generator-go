@@ -62,11 +62,12 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
-		p("      grpc.MaxCallRecvMsgSize(%d))),", -1)
+		p("      grpc.MaxCallRecvMsgSize(math.MaxInt32))),")
 		p("  }")
 		p("}")
 		p("")
 
+		g.imports[pbinfo.ImportSpec{Path: "math"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
 	}
 
