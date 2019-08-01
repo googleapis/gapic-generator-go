@@ -61,7 +61,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("    option.WithEndpoint(%q),", host)
 		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 		p("    option.WithScopes(DefaultAuthScopes()...),")
-		p("		 option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
+		p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
 		p("      grpc.MaxCallRecvMsgSize(%d),", -1)
 		p("      grpc.MaxCallSendMsgSize(%d))),", -1)
 		p("  }")
