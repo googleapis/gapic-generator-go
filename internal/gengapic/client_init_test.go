@@ -26,6 +26,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	code "google.golang.org/genproto/googleapis/rpc/code"
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 )
 
 func TestClientOpt(t *testing.T) {
@@ -40,6 +41,8 @@ func TestClientOpt(t *testing.T) {
 						Method:  "Zip",
 					},
 				},
+				MaxRequestMessageBytes: &wrappers.UInt32Value{Value: 123456},
+				MaxResponseMessageBytes: &wrappers.UInt32Value{Value: 123456},
 				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
 					RetryPolicy: &conf.MethodConfig_RetryPolicy{
 						InitialBackoff:    &duration.Duration{Nanos: 100000000},
@@ -57,6 +60,8 @@ func TestClientOpt(t *testing.T) {
 						Service: "bar.FooService",
 					},
 				},
+				MaxRequestMessageBytes: &wrappers.UInt32Value{Value: 654321},
+				MaxResponseMessageBytes: &wrappers.UInt32Value{Value: 654321},
 				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
 					RetryPolicy: &conf.MethodConfig_RetryPolicy{
 						InitialBackoff:    &duration.Duration{Nanos: 10000000},

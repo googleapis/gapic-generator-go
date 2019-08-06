@@ -55,7 +55,7 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) e
 			Y: 3.14159,
 		},
 		B: theB,
-		E: foopb.AType_FOO,
+		E: foopb.AType_BANANA,
 		Group: &foopb.InputType_F{
 			F: "in a oneof",
 		},

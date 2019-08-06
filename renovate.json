@@ -4,5 +4,11 @@
   ],
   "ignorePaths": [
     "showcase"
-  ]
+  ],
+  "golang": {
+    "ignoreDeps": [
+      "github.com/russross/blackfriday"
+    ],
+    "postUpdateOptions": ["gomodTidy"]
+  }
 }
