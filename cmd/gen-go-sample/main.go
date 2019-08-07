@@ -232,33 +232,9 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	files := initInfo.files
 	itree := initInfo.reqTree
 
-	p := g.pt.Printf
-
-	p("// [START %s]", regTag)
-	p("")
-
-	var argStr string
-	if len(argNames) > 0 {
-		var sb strings.Builder
-		for i, name := range argNames {
-			typ, err := g.getGoTypeName(argTrees[i].typ)
-			if err != nil {
-				return err
-			}
-			fmt.Fprintf(&sb, ", %s %s", name, typ)
-		}
-		argStr = sb.String()[2:]
+	if err := g.sampFuncAndClient(serv.GetName(), meth.GetName(), initInfo, regTag); err != nil {
+		return nil
 	}
-
-	// Create the client
-	p("func sample%s(%s) error {", meth.GetName(), argStr)
-	p("  ctx := context.Background()")
-	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
-	p("  if err != nil {")
-	p("    return err")
-	p("  }")
-	p("")
-	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
 	// Set up the request
 	{
@@ -308,6 +284,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		return err
 	}
 
+	p := g.pt.Printf
 	p("return nil")
 	p("}")
 	p("")
@@ -430,6 +407,35 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, v
 	}
 
 	return initInfo, nil
+}
+
+func (g *generator) sampFuncAndClient(servName string, methName string, init initInfo, regTag string) (error) {
+	var argStr string
+	if len(init.argNames) > 0 {
+		var sb strings.Builder
+		for i, name := range init.argNames {
+			typ, err := g.getGoTypeName(init.argTrees[i].typ)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(&sb, ", %s %s", name, typ)
+		}
+		argStr = sb.String()[2:]
+	}
+
+	p := g.pt.Printf
+
+	p("// [START %s]", regTag)
+	p("")
+	p("func sample%s(%s) error {", methName, argStr)
+	p("  ctx := context.Background()")
+	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(servName, g.clientPkg.Name))
+	p("  if err != nil {")
+	p("    return err")
+	p("  }")
+	p("")
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	return nil
 }
 
 func (g *generator) unary(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet) error {
