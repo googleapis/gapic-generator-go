@@ -54,7 +54,7 @@ type LoopSpec struct {
 	Variable   string
 	Key        string
 	Value      string
-	Body       []RequestConfig
+	Body       []ResponseConfig
 }
 
 type WriteFileSpec struct {

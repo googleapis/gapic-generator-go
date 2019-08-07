@@ -17,9 +17,7 @@ package main
 import (
 	"path/filepath"
 	"testing"
-	"fmt"
 
-	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
@@ -32,24 +30,6 @@ func TestUnary(t *testing.T) {
 
 	g := initTestGenerator()
 
-	sp := schema_v1p2.SampleConfig{
-		Type: "com.google.api.codegen.samplegen.v1p2.SampleConfigProto",
-		Version: "1.2.0",
-		Samples: []schema_v1p2.Sample{
-			Service: "foo.FooService",
-			Rpc: "UnaryMethod",
-			Request: []schema_v1p2.RequestConfig{
-				{Field: "a.x", Value: "42", InputParameter: "the_x"},
-				{Field: "a.y", Value: "3.14159"},
-				{Field: "b", Value: "foobar", InputParameter: "the_b"},
-				{Field: "e", Value: }
-			},
-			Response: []schema_v1p2.ResponseConfig{
-
-			},
-		},
-	}
-	fmt.Println(sp)
 	vs := SampleValueSet{
 		ID: "my_value_set",
 		Parameters: SampleParameter{

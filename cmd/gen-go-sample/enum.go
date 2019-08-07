@@ -25,7 +25,7 @@ import (
 // enumFmt returns a function that transforms a protobuf enum value literal into its corresponding Go const.
 func enumFmt(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) func(*generator, string) (string, error) {
 	return func(g *generator, value string) (string, error) {
-		parts, impSpec, err := ancestors(info, enum, g)
+		parts, impSpec, err := ancestors(info, enum)
 		if err != nil {
 			return "", err
 		}
@@ -43,9 +43,9 @@ func enumFmt(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) func(*gener
 	}
 }
 
-// enumType returns the Go Type name of a protobuf enum type.
-func enumType(info pbinfo.Info, enum *descriptor.EnumDescriptorProto, g *generator) (string, error) {
-	parts, impSpec, err := ancestors(info, enum, g)
+// goTypeForEnum returns the Go Type name of a protobuf enum type.
+func goTypeForEnum(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) (string, error) {
+	parts, impSpec, err := ancestors(info, enum)
 	if err != nil {
 		return "", err
 	}
@@ -54,8 +54,7 @@ func enumType(info pbinfo.Info, enum *descriptor.EnumDescriptorProto, g *generat
 }
 
 // ancestors returns the names of all the types down to `enum` (`enum` itself included), and the ImportSpec of `enum`.
-// of the slice.
-func ancestors(info pbinfo.Info, enum *descriptor.EnumDescriptorProto, g *generator) ([]string, pbinfo.ImportSpec, error) {
+func ancestors(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) ([]string, pbinfo.ImportSpec, error) {
 	var element pbinfo.ProtoType = enum
 	var topElement pbinfo.ProtoType
 	var parts []string
