@@ -233,7 +233,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	itree := initInfo.reqTree
 
 	if err := g.sampFuncAndClient(serv.GetName(), meth.GetName(), initInfo, regTag); err != nil {
-		return nil
+		return err
 	}
 
 	// Set up the request
