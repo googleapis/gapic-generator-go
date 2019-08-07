@@ -185,31 +185,27 @@ func (t *initTree) index(k string) *initTree {
 }
 
 // Just do simple structs for now.
-// TODO(pongad): allow map and array index.
-//
-// spec = path [ '=' value ] .
-func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
+// TODO(hzyi): allow map index.
+func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error {
 	// The first ident is treated specially to be a member of the root.
 	// Since we know the root is a struct, a dot is the only legal token anyway,
 	// so just insert a dot here so we don't need to treat the first token specially.
-	sc, report := initScanner("." + txt)
+	pathScanner, report := initScanner("." + path)
 
-	t, r, err := t.parsePathRest(sc, info)
+	t, r, err := t.parsePathRest(pathScanner, info)
 	if err != nil {
 		return report(err)
 	}
-	if r != '=' {
-		return report(errors.E(nil, "expected '=', got %q", r))
-	}
 
-	// TODO(pongad): handle resource names
-	switch r := sc.Scan(); r {
+	valScanner, report := initScanner(value)
+
+	switch r := valScanner.Scan(); r {
 	case scanner.Int, scanner.Float, scanner.String, scanner.Ident:
 		if lv := t.leafVal; lv != "" {
 			return report(errors.E(nil, "value already set to %q", lv))
 		}
 
-		tok := sc.TokenText()
+		tok := valScanner.TokenText()
 
 		if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
 			valid := false
@@ -239,16 +235,16 @@ func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
 		t.leafVal = tok
 
 	case '{':
-		if r := sc.Scan(); r != '}' {
+		if r := valScanner.Scan(); r != '}' {
 			return report(errors.E(nil, "bad format: expected '}', found %q", r))
 		}
 
 	default:
-		return report(errors.E(nil, "expected value, found %q", sc.TokenText()))
+		return report(errors.E(nil, "expected value, found %q", valScanner.TokenText()))
 	}
 
-	if sc.Scan() != scanner.EOF {
-		return report(errors.E(nil, "expected EOF, found %q", sc.TokenText()))
+	if valScanner.Scan() != scanner.EOF {
+		return report(errors.E(nil, "expected EOF, found %q", valScanner.TokenText()))
 	}
 	return report(nil)
 }
