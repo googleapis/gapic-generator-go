@@ -197,6 +197,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag string, valSet SampleValueSet) error {
 	// TODO(pongad): This method's error cases are not well tested. Split and test.
 
+	// Preparation
 	g.imports[g.clientPkg] = true
 	serv := g.descInfo.Serv["."+ifaceName]
 	if serv == nil {
@@ -224,141 +225,18 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 	}
 	g.imports[inSpec] = true
 
-	var (
-		argNames  []string
-		flagNames []string
-		argTrees  []*initTree
-		files     []*fileInfo
-	)
+	initInfo, err := g.getInitInfo(inType, methConf, valSet)
+	argNames := initInfo.argNames
+	argTrees := initInfo.argTrees
+	flagNames := initInfo.flagNames
+	files := initInfo.files
+	itree := initInfo.reqTree
 
-	itree := initTree{
-		typ: initType{desc: inType},
+	if err := g.sampFuncAndClient(serv.GetName(), meth.GetName(), initInfo, regTag); err != nil {
+		return err
 	}
 
-	// Set up resource names. We need this info when setting up request object.
-	for field, entName := range methConf.FieldNamePatterns {
-		var pat string
-		for _, col := range g.gapic.Collections {
-			if col.EntityName == entName {
-				pat = col.NamePattern
-				break
-			}
-		}
-		if pat == "" {
-			return errors.E(nil, "undefined resource name: %q", entName)
-		}
-
-		namePat, err := parseNamePattern(pat)
-		if err != nil {
-			return err
-		}
-
-		subTree, err := itree.get(field, g.descInfo)
-		if err != nil {
-			return errors.E(err, "cannot set up resource name: %q", entName)
-		}
-		if typ := subTree.typ; typ.prim != descriptor.FieldDescriptorProto_TYPE_STRING {
-			return errors.E(err, "cannot set up resource name for %q, need field to be string, got %v", field, typ)
-		}
-		subTree.typ.prim = 0
-		subTree.typ.namePat = &namePat
-	}
-
-	// Set up request object.
-	for _, def := range valSet.Parameters.Defaults {
-		if err := itree.parseInit(def, g.descInfo); err != nil {
-			return errors.E(err, "can't set default value: %q", def)
-		}
-	}
-
-	// Some parts of request object are from arguments.
-	for _, attr := range valSet.Parameters.Attributes {
-		if attr.ReadFile {
-			var varName string
-			if attr.SampleArgumentName != "" {
-				varName = snakeToCamel(attr.SampleArgumentName) + fileContentSuffix
-			} else {
-				varName, err = fileVarName(attr.Parameter)
-				if err != nil {
-					return errors.E(err, "can't determine variable name to store bytes from local file")
-				}
-			}
-
-			subTree, err := itree.parseSampleArgPath(
-				attr.Parameter,
-				g.descInfo,
-				varName,
-			)
-			if err != nil {
-				return errors.E(err, "can't set sample function argument: %q", attr.Parameter)
-			}
-			if subTree.typ.prim != descriptor.FieldDescriptorProto_TYPE_BYTES {
-				return errors.E(nil, "can only assign file contents to bytes field")
-			}
-			subTree.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
-			subTree.typ.valFmt = nil
-			if subTree.leafVal == "" {
-				return errors.E(nil, "default value not given: %q", attr.Parameter)
-			}
-			fileName := subTree.leafVal
-			if attr.SampleArgumentName != "" {
-				fileName = snakeToCamel(attr.SampleArgumentName)
-				argNames = append(argNames, fileName)
-				flagNames = append(flagNames, attr.SampleArgumentName)
-				argTrees = append(argTrees, subTree)
-			}
-			files = append(files, &fileInfo{fileName, varName})
-			continue
-		}
-		if attr.SampleArgumentName == "" {
-			continue
-		}
-		name := snakeToCamel(attr.SampleArgumentName)
-		subTree, err := itree.parseSampleArgPath(attr.Parameter, g.descInfo, name)
-		if err != nil {
-			return errors.E(err, "can't set sample function argument: %q", attr.Parameter)
-		}
-
-		argNames = append(argNames, name)
-		flagNames = append(flagNames, attr.SampleArgumentName)
-		argTrees = append(argTrees, subTree)
-	}
-
-	p := g.pt.Printf
-
-	p("// [START %s]", regTag)
-	p("")
-
-	var argStr string
-	if len(argNames) > 0 {
-		var sb strings.Builder
-		for i, name := range argNames {
-			typ, ok := pbinfo.GoTypeForPrim[argTrees[i].typ.prim]
-			if enum, ok2 := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok2 {
-				t, err := enumType(g.descInfo, enum, g)
-				if err != nil {
-					return err
-				}
-				typ = t
-				ok = ok2
-			}
-			if !ok {
-				return errors.E(nil, "unrecognized primitive type: %s", argTrees[i].typ.prim)
-			}
-			fmt.Fprintf(&sb, ", %s %s", name, typ)
-		}
-		argStr = sb.String()[2:]
-	}
-
-	p("func sample%s(%s) error {", meth.GetName(), argStr)
-	p("  ctx := context.Background()")
-	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
-	p("  if err != nil {")
-	p("    return err")
-	p("  }")
-	p("")
-	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-
+	// Set up the request
 	{
 		var buf bytes.Buffer
 
@@ -372,7 +250,7 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		prependLines(&buf, "// ", false)
 
 		for _, info := range files {
-			readFile(info, &buf, g)
+			handleReadFile(info, &buf, g)
 		}
 
 		buf.WriteString("req := ")
@@ -386,6 +264,8 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 			return err
 		}
 	}
+
+	// Make the RPC call and handle output
 	if meth.GetOutputType() == ".google.protobuf.Empty" {
 		err = g.emptyOut(meth, valSet)
 	} else if meth.GetOutputType() == ".google.longrunning.Operation" {
@@ -404,13 +284,158 @@ func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag str
 		return err
 	}
 
+	p := g.pt.Printf
 	p("return nil")
 	p("}")
 	p("")
 	p("// [END %s]", regTag)
 	p("")
 
+	// main
 	return writeMain(g, argNames, flagNames, argTrees, meth.GetName())
+}
+
+func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, valSet SampleValueSet) (initInfo, error) {
+	var (
+		argNames  []string
+		flagNames []string
+		argTrees  []*initTree
+		files     []*fileInfo
+	)
+
+	itree := initTree{
+		typ: initType{desc: inType},
+	}
+
+	// Set up resource names. We need this info when setting up request object.
+	// TODO(hzyi): handle collection_oneofs
+	for field, entName := range methConf.FieldNamePatterns {
+		var pat string
+		for _, col := range g.gapic.Collections {
+			if col.EntityName == entName {
+				pat = col.NamePattern
+				break
+			}
+		}
+		if pat == "" {
+			return initInfo{}, errors.E(nil, "undefined resource name: %q", entName)
+		}
+
+		namePat, err := parseNamePattern(pat)
+		if err != nil {
+			return initInfo{}, err
+		}
+
+		subTree, err := itree.get(field, g.descInfo)
+		if err != nil {
+			return initInfo{}, errors.E(err, "cannot set up resource name: %q", entName)
+		}
+		if typ := subTree.typ; typ.prim != descriptor.FieldDescriptorProto_TYPE_STRING {
+			return initInfo{}, errors.E(err, "cannot set up resource name for %q, need field to be string, got %v", field, typ)
+		}
+		subTree.typ.prim = 0
+		subTree.typ.namePat = &namePat
+	}
+
+	// Set up request object.
+	for _, def := range valSet.Parameters.Defaults {
+		if err := itree.parseInit(def, g.descInfo); err != nil {
+			return initInfo{}, errors.E(err, "can't set default value: %q", def)
+		}
+	}
+
+	// Some parts of request object are from arguments.
+	for _, attr := range valSet.Parameters.Attributes {
+		if attr.ReadFile {
+			var varName string
+			var err error
+			if attr.SampleArgumentName != "" {
+				varName = snakeToCamel(attr.SampleArgumentName) + fileContentSuffix
+			} else {
+				varName, err = fileVarName(attr.Parameter)
+				if err != nil {
+					return initInfo{}, errors.E(err, "can't determine variable name to store bytes from local file")
+				}
+			}
+
+			subTree, err := itree.parseSampleArgPath(
+				attr.Parameter,
+				g.descInfo,
+				varName,
+			)
+			if err != nil {
+				return initInfo{}, errors.E(err, "can't set sample function argument: %q", attr.Parameter)
+			}
+			if subTree.typ.prim != descriptor.FieldDescriptorProto_TYPE_BYTES {
+				return initInfo{}, errors.E(nil, "can only assign file contents to bytes field")
+			}
+			subTree.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
+			subTree.typ.valFmt = nil
+			if subTree.leafVal == "" {
+				return initInfo{}, errors.E(nil, "default value not given: %q", attr.Parameter)
+			}
+			fileName := subTree.leafVal
+			if attr.SampleArgumentName != "" {
+				fileName = snakeToCamel(attr.SampleArgumentName)
+				argNames = append(argNames, fileName)
+				flagNames = append(flagNames, attr.SampleArgumentName)
+				argTrees = append(argTrees, subTree)
+			}
+			files = append(files, &fileInfo{fileName, varName})
+			continue
+		}
+		if attr.SampleArgumentName == "" {
+			continue
+		}
+		name := snakeToCamel(attr.SampleArgumentName)
+		subTree, err := itree.parseSampleArgPath(attr.Parameter, g.descInfo, name)
+		if err != nil {
+			return initInfo{}, errors.E(err, "can't set sample function argument: %q", attr.Parameter)
+		}
+
+		argNames = append(argNames, name)
+		flagNames = append(flagNames, attr.SampleArgumentName)
+		argTrees = append(argTrees, subTree)
+	}
+
+	initInfo := initInfo{
+		argNames:  argNames,
+		argTrees:  argTrees,
+		flagNames: flagNames,
+		files:     files,
+		reqTree:   itree,
+	}
+
+	return initInfo, nil
+}
+
+func (g *generator) sampFuncAndClient(servName string, methName string, init initInfo, regTag string) error {
+	var argStr string
+	if len(init.argNames) > 0 {
+		var sb strings.Builder
+		for i, name := range init.argNames {
+			typ, err := g.getGoTypeName(init.argTrees[i].typ)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(&sb, ", %s %s", name, typ)
+		}
+		argStr = sb.String()[2:]
+	}
+
+	p := g.pt.Printf
+
+	p("// [START %s]", regTag)
+	p("")
+	p("func sample%s(%s) error {", methName, argStr)
+	p("  ctx := context.Background()")
+	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(servName, g.clientPkg.Name))
+	p("  if err != nil {")
+	p("    return err")
+	p("  }")
+	p("")
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	return nil
 }
 
 func (g *generator) unary(meth *descriptor.MethodDescriptorProto, valSet SampleValueSet) error {

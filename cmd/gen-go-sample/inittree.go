@@ -69,6 +69,21 @@ type initTree struct {
 	leafVal string
 }
 
+// initInfo represents all the information needed to construct the request object.
+type initInfo struct {
+
+	// argNames, argTrees, flagNames keep track of information of sample function arguments
+	argNames  []string
+	argTrees  []*initTree
+	flagNames []string
+
+	// files represents file input nodes
+	files []*fileInfo
+
+	// reqTree is the final initialization tree of the request object
+	reqTree initTree
+}
+
 func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 	for i, key := range t.keys {
 		if k == key {

@@ -59,7 +59,7 @@ func writeMain(g *generator, argNames []string, flagNames []string, argTrees []*
 
 	for i := range argNames {
 		if e, ok := argTrees[i].typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			tn, err := enumType(g.descInfo, e, g)
+			tn, err := goTypeForEnum(g.descInfo, e)
 			if err != nil {
 				return err
 			}

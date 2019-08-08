@@ -80,7 +80,7 @@ type LoopSpec struct {
 
 type WriteFileSpec struct {
 	Contents string
-	FileName []string
+	FileName []string `yaml: file_name`
 }
 
 type ResourceName struct {
