@@ -65,7 +65,7 @@ type initTree struct {
 	keys []string
 	vals []*initTree
 
-	// Text of the literal. If the literal is a string, it's already quoted.
+	// Text of the literal.
 	leafVal string
 }
 
@@ -192,60 +192,50 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 	// so just insert a dot here so we don't need to treat the first token specially.
 	pathScanner, report := initScanner("." + path)
 
-	t, r, err := t.parsePathRest(pathScanner, info)
+	t, _, err := t.parsePathRest(pathScanner, info)
 	if err != nil {
 		return report(err)
 	}
-
-	valScanner, report := initScanner(value)
-
-	switch r := valScanner.Scan(); r {
-	case scanner.Int, scanner.Float, scanner.String, scanner.Ident:
-		if lv := t.leafVal; lv != "" {
-			return report(errors.E(nil, "value already set to %q", lv))
-		}
-
-		tok := valScanner.TokenText()
-
-		if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			valid := false
-			for _, enumVal := range enum.Value {
-				if tok == enumVal.GetName() {
-					valid = true
-					break
-				}
-			}
-			if !valid {
-				return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), tok))
-			}
-			t.typ.valFmt = enumFmt(info, enum)
-		} else {
-			pType := t.typ.prim
-			validPrim := validPrims[pType]
-			if validPrim == nil {
-				return report(errors.E(nil, "not a primitive type? %q", pType))
-			}
-			if !validPrim(tok) {
-				return report(errors.E(nil, "invalid value for type %q: %q", pType, tok))
-			}
-			if t.typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
-				t.typ.valFmt = bytesFmt()
-			}
-		}
-		t.leafVal = tok
-
-	case '{':
-		if r := valScanner.Scan(); r != '}' {
-			return report(errors.E(nil, "bad format: expected '}', found %q", r))
-		}
-
-	default:
-		return report(errors.E(nil, "expected value, found %q", valScanner.TokenText()))
+	if lv := t.leafVal; lv != "" {
+		return report(errors.E(nil, "value already set to %q", lv))
 	}
+		
 
-	if valScanner.Scan() != scanner.EOF {
-		return report(errors.E(nil, "expected EOF, found %q", valScanner.TokenText()))
+	if _, ok := t.typ.desc.(*descriptor.DescriptorProto); ok {
+		if value != "{}" {
+			return report(errors.E(nil, "invalid value for message: expecting `{}`, found %q", value))
+		}
+	} else if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
+		valid := false
+		for _, enumVal := range enum.Value {
+			if value == enumVal.GetName() {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), value))
+		}
+		t.typ.valFmt = enumFmt(info, enum)
+	} else {
+		pType := t.typ.prim
+		validPrim := validPrims[pType]
+		if validPrim == nil {
+			return report(errors.E(nil, "not a primitive type? %q", pType))
+		}
+		if !validPrim(value) {
+			return report(errors.E(nil, "invalid value for type %q: %q", pType, value))
+		}
+		if t.typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
+			value = fmt.Sprintf("%q", value)
+			t.typ.valFmt = bytesFmt()
+		}
+		// We need to quote string literals
+		if t.typ.prim == descriptor.FieldDescriptorProto_TYPE_STRING {
+			value = fmt.Sprintf("%q", value)
+		}
 	}
+	t.leafVal = value
 	return report(nil)
 }
 

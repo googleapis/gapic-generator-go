@@ -36,7 +36,7 @@ func TestUnary(t *testing.T) {
 		Rpc:       "UnaryMethod",
 		Service:   "foo.FooService",
 		RegionTag: "awesome_region",
-		Request: schema_v1p2.RequestConfig{
+		Request: []schema_v1p2.RequestConfig{
 			{Field: "a.x", Value: "42", InputParameter: "the_x"},
 			{Field: "a.y", Value: "3.14159"},
 			{Field: "b", Value: "foobar", InputParameter: "the_b"},
@@ -44,12 +44,12 @@ func TestUnary(t *testing.T) {
 			{Field: "f", Value: "in a oneof"},
 			{Field: "bytes", Value: "mybytes"},
 			{Field: "data_alice", Value: "path/to/local/file/alice.txt", ValueIsFile: true},
-			{Field: "data_bob", Value: "path/to/local/file/bob.txt", ValueIsFile: true, InputParameter: "bob_file"},
 			{Field: "a_array[0].x", Value: "0"},
 			{Field: "a_array[0].y", Value: "1"},
 			{Field: "a_array[1].x", Value: "2"},
-			{Field: "a_array[2].y", Value: "3"},
+			{Field: "a_array[1].y", Value: "3"},
 			{Field: "resource_field%foo", Value: "myfoo", InputParameter: "the_foo"},
+			{Field: "data_bob", Value: "path/to/local/file/bob.txt", ValueIsFile: true, InputParameter: "bob_file"},
 			{Field: "resource_field%bar", Value: "mybar"},
 		},
 		Response: []schema_v1p2.ResponseConfig{
@@ -64,7 +64,7 @@ func TestUnary(t *testing.T) {
 				Loop: &schema_v1p2.LoopSpec{
 					Variable:   "r",
 					Collection: "$resp.r",
-					Body: []OutputSpec{
+					Body: []schema_v1p2.ResponseConfig{
 						{Print: []string{"resp.r contains %s", "r"}},
 					},
 				},
@@ -113,7 +113,7 @@ func TestSample_InitError(t *testing.T) {
 			},
 		}
 
-		if err := g.genSample(sampConf, GAPICMethod{Name: "UnaryMethod"}); err == nil {
+		if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err == nil {
 			t.Errorf("expected error from init config: %s", fieldVal)
 		}
 	}
@@ -125,7 +125,7 @@ func TestSample_InitError(t *testing.T) {
 		ID: "my_sample_config",
 	}
 
-	if err := g.genSample(sampConf, GAPICMethod{Name: "LroMethod"}); err == nil {
+	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "LroMethod"}); err == nil {
 		t.Errorf("expected error from missing config")
 	}
 
@@ -311,131 +311,131 @@ func TestSample_InitError(t *testing.T) {
 // 	compare(t, g, filepath.Join("testdata", "sample_enum.want"))
 // }
 
-// func initTestGenerator() *generator {
-// 	eType := &descriptor.EnumDescriptorProto{
-// 		Name: proto.String("FruitEnum"),
-// 		Value: []*descriptor.EnumValueDescriptorProto{
-// 			{Name: proto.String("APPLE")},
-// 			{Name: proto.String("BANANA")},
-// 			{Name: proto.String("CHERRY")},
-// 		},
-// 	}
+func initTestGenerator() *generator {
+	eType := &descriptor.EnumDescriptorProto{
+		Name: proto.String("FruitEnum"),
+		Value: []*descriptor.EnumValueDescriptorProto{
+			{Name: proto.String("APPLE")},
+			{Name: proto.String("BANANA")},
+			{Name: proto.String("CHERRY")},
+		},
+	}
 
-// 	aType := &descriptor.DescriptorProto{
-// 		Name: proto.String("AType"),
-// 		Field: []*descriptor.FieldDescriptorProto{
-// 			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
-// 			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
-// 		},
-// 		EnumType: []*descriptor.EnumDescriptorProto{eType},
-// 	}
+	aType := &descriptor.DescriptorProto{
+		Name: proto.String("AType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("x"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT64)},
+			{Name: proto.String("y"), Type: typep(descriptor.FieldDescriptorProto_TYPE_FLOAT)},
+		},
+		EnumType: []*descriptor.EnumDescriptorProto{eType},
+	}
 
-// 	mapType, mapField :=
-// 		createMapTypeAndField(
-// 			"mappy_map",
-// 			".foo.InputType",
-// 			typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-// 			typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-// 			".foo.AType")
+	mapType, mapField :=
+		createMapTypeAndField(
+			"mappy_map",
+			".foo.InputType",
+			typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+			".foo.AType")
 
-// 	inType := &descriptor.DescriptorProto{
-// 		Name: proto.String("InputType"),
-// 		OneofDecl: []*descriptor.OneofDescriptorProto{
-// 			{Name: proto.String("Group")},
-// 		},
-// 		NestedType: []*descriptor.DescriptorProto{
-// 			mapType,
-// 		},
-// 		Field: []*descriptor.FieldDescriptorProto{
-// 			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
-// 			{Name: proto.String("a_array"), TypeName: proto.String(".foo.AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
-// 			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
-// 			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.FruitEnum")},
-// 			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
-// 			{Name: proto.String("f2"), TypeName: proto.String(".foo.AType"), OneofIndex: proto.Int32(0)},
-// 			{Name: proto.String("data_alice"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
-// 			{Name: proto.String("data_bob"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
-// 			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
-// 			{Name: proto.String("resource_field"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
-// 			{Name: proto.String("bytes"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
-// 			mapField,
-// 		},
-// 	}
+	inType := &descriptor.DescriptorProto{
+		Name: proto.String("InputType"),
+		OneofDecl: []*descriptor.OneofDescriptorProto{
+			{Name: proto.String("Group")},
+		},
+		NestedType: []*descriptor.DescriptorProto{
+			mapType,
+		},
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
+			{Name: proto.String("a_array"), TypeName: proto.String(".foo.AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
+			{Name: proto.String("b"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+			{Name: proto.String("e"), TypeName: proto.String(".foo.AType.FruitEnum")},
+			{Name: proto.String("f"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), OneofIndex: proto.Int32(0)},
+			{Name: proto.String("f2"), TypeName: proto.String(".foo.AType"), OneofIndex: proto.Int32(0)},
+			{Name: proto.String("data_alice"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
+			{Name: proto.String("data_bob"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
+			{Name: proto.String("r"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
+			{Name: proto.String("resource_field"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+			{Name: proto.String("bytes"), Type: typep(descriptor.FieldDescriptorProto_TYPE_BYTES)},
+			mapField,
+		},
+	}
 
-// 	pageInType := &descriptor.DescriptorProto{
-// 		Name: proto.String("PageInType"),
-// 		Field: []*descriptor.FieldDescriptorProto{
-// 			{Name: proto.String("a"), TypeName: proto.String("AType")},
-// 			{Name: proto.String("page_size"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT32)},
-// 			{Name: proto.String("page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
-// 		},
-// 	}
-// 	pageOutType := &descriptor.DescriptorProto{
-// 		Name: proto.String("PageOutType"),
-// 		Field: []*descriptor.FieldDescriptorProto{
-// 			{Name: proto.String("a"), TypeName: proto.String("AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
-// 			{Name: proto.String("next_page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
-// 		},
-// 	}
+	pageInType := &descriptor.DescriptorProto{
+		Name: proto.String("PageInType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String("AType")},
+			{Name: proto.String("page_size"), Type: typep(descriptor.FieldDescriptorProto_TYPE_INT32)},
+			{Name: proto.String("page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+		},
+	}
+	pageOutType := &descriptor.DescriptorProto{
+		Name: proto.String("PageOutType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String("AType"), Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED)},
+			{Name: proto.String("next_page_token"), Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING)},
+		},
+	}
 
-// 	lroInType := &descriptor.DescriptorProto{
-// 		Name: proto.String("LroInType"),
-// 	}
-// 	lroReturnType := &descriptor.DescriptorProto{
-// 		Name: proto.String("lroReturnType"),
-// 		Field: []*descriptor.FieldDescriptorProto{
-// 			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
-// 		},
-// 	}
-// 	lroMetadataType := &descriptor.DescriptorProto{
-// 		Name: proto.String("lroMetadataType"),
-// 	}
+	lroInType := &descriptor.DescriptorProto{
+		Name: proto.String("LroInType"),
+	}
+	lroReturnType := &descriptor.DescriptorProto{
+		Name: proto.String("lroReturnType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("a"), TypeName: proto.String(".foo.AType")},
+		},
+	}
+	lroMetadataType := &descriptor.DescriptorProto{
+		Name: proto.String("lroMetadataType"),
+	}
 
-// 	serv := &descriptor.ServiceDescriptorProto{
-// 		Name: proto.String("FooService"),
-// 		Method: []*descriptor.MethodDescriptorProto{
-// 			{
-// 				Name:       proto.String("UnaryMethod"),
-// 				InputType:  proto.String(".foo.InputType"),
-// 				OutputType: proto.String(".foo.InputType"),
-// 			},
-// 			{
-// 				Name:       proto.String("PagingMethod"),
-// 				InputType:  proto.String(".foo.PageInType"),
-// 				OutputType: proto.String(".foo.PageOutType"),
-// 			},
-// 			{
-// 				Name:       proto.String("EmptyMethod"),
-// 				InputType:  proto.String(".foo.PageInType"),
-// 				OutputType: proto.String(".google.protobuf.Empty"),
-// 			},
-// 			{
-// 				Name:       proto.String("LroMethod"),
-// 				InputType:  proto.String(".foo.LroInType"),
-// 				OutputType: proto.String(".google.longrunning.Operation"),
-// 			},
-// 		},
-// 	}
-// 	file := &descriptor.FileDescriptorProto{
-// 		Options: &descriptor.FileOptions{
-// 			GoPackage: proto.String("path.to/pb/foo;foo"),
-// 		},
-// 		Package:     proto.String("foo"),
-// 		Service:     []*descriptor.ServiceDescriptorProto{serv},
-// 		MessageType: []*descriptor.DescriptorProto{inType, aType, pageInType, pageOutType, lroInType, lroReturnType, lroMetadataType},
-// 	}
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("FooService"),
+		Method: []*descriptor.MethodDescriptorProto{
+			{
+				Name:       proto.String("UnaryMethod"),
+				InputType:  proto.String(".foo.InputType"),
+				OutputType: proto.String(".foo.InputType"),
+			},
+			{
+				Name:       proto.String("PagingMethod"),
+				InputType:  proto.String(".foo.PageInType"),
+				OutputType: proto.String(".foo.PageOutType"),
+			},
+			{
+				Name:       proto.String("EmptyMethod"),
+				InputType:  proto.String(".foo.PageInType"),
+				OutputType: proto.String(".google.protobuf.Empty"),
+			},
+			{
+				Name:       proto.String("LroMethod"),
+				InputType:  proto.String(".foo.LroInType"),
+				OutputType: proto.String(".google.longrunning.Operation"),
+			},
+		},
+	}
+	file := &descriptor.FileDescriptorProto{
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("path.to/pb/foo;foo"),
+		},
+		Package:     proto.String("foo"),
+		Service:     []*descriptor.ServiceDescriptorProto{serv},
+		MessageType: []*descriptor.DescriptorProto{inType, aType, pageInType, pageOutType, lroInType, lroReturnType, lroMetadataType},
+	}
 
-// 	return &generator{
-// 		clientPkg: pbinfo.ImportSpec{Path: "path.to/client/foo", Name: "foo"},
-// 		imports:   map[pbinfo.ImportSpec]bool{},
-// 		descInfo:  pbinfo.Of([]*descriptor.FileDescriptorProto{file}),
-// 		gapic: GAPICConfig{
-// 			Collections: []ResourceName{
-// 				{EntityName: "foobar_thing", NamePattern: "foos/{foo}/bars/{bar}"},
-// 			},
-// 		},
-// 	}
-// }
+	return &generator{
+		clientPkg: pbinfo.ImportSpec{Path: "path.to/client/foo", Name: "foo"},
+		imports:   map[pbinfo.ImportSpec]bool{},
+		descInfo:  pbinfo.Of([]*descriptor.FileDescriptorProto{file}),
+		gapic: GAPICConfig{
+			Collections: []ResourceName{
+				{EntityName: "foobar_thing", NamePattern: "foos/{foo}/bars/{bar}"},
+			},
+		},
+	}
+}
 
 func labelp(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
 	return &l

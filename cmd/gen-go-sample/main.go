@@ -41,7 +41,7 @@ func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
 	clientPkg := flag.String("clientpkg", "", "the package of the client, in format 'url/to/client/pkg;name'")
-	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
+	// nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
 	outDir := flag.String("o", ".", "directory to write samples to")
 	flag.Parse()
 
@@ -89,14 +89,14 @@ func main() {
 	<-donec
 	<-donec
 
-	for _, iface := range gen.gapic.Interfaces {
-		for _, meth := range iface.Methods {
+	// for _, iface := range gen.gapic.Interfaces {
+		// for _, meth := range iface.Methods {
 			// if err := genMethodSamples(&gen, iface, meth, *nofmt, *outDir); err != nil {
 			// 	err = errors.E(err, "generating: %s", iface.Name+"."+meth.Name)
 			// 	log.Fatal(err)
 			// }
-		}
-	}
+		// }
+	// }
 }
 
 // func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, nofmt bool, outDir string) error {
@@ -197,7 +197,6 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 
 func (g *generator) genSampleFromSampleConfig(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
 	ifaceName := sampConf.Service
-	methName := sampConf.Rpc
 
 	g.imports[g.clientPkg] = true
 	serv := g.descInfo.Serv["."+ifaceName]
@@ -229,6 +228,9 @@ func (g *generator) genSampleFromSampleConfig(sampConf schema_v1p2.Sample, methC
 	g.imports[inSpec] = true
 
 	initInfo, err := g.getInitInfo(inType, methConf, sampConf.Request)
+	if err != nil {
+		return err
+	}
 	argNames := initInfo.argNames
 	argTrees := initInfo.argTrees
 	flagNames := initInfo.flagNames
@@ -291,7 +293,7 @@ func (g *generator) genSampleFromSampleConfig(sampConf schema_v1p2.Sample, methC
 	p("return nil")
 	p("}")
 	p("")
-	p("// [END %s]", regTag)
+	p("// [END %s]", sampConf.RegionTag)
 	p("")
 
 	// main
@@ -444,7 +446,7 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, r
 	// Set up request object.
 	for _, reqConf := range reqConfs {
 		if err := itree.parseInit(reqConf.Field, reqConf.Value, g.descInfo); err != nil {
-			return initInfo{}, errors.E(err, "can't set default value: %q", def)
+			return initInfo{}, errors.E(err, "can't set default value: %s=%s", reqConf.Field, reqConf.Value)
 		}
 	}
 
@@ -482,7 +484,7 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, r
 			if reqConf.InputParameter != "" {
 				fileName = snakeToCamel(reqConf.InputParameter)
 				argNames = append(argNames, fileName)
-				flagNames = append(flagNames, reqConf.Parameter)
+				flagNames = append(flagNames, reqConf.InputParameter)
 				argTrees = append(argTrees, subTree)
 			}
 			files = append(files, &fileInfo{fileName, varName})
