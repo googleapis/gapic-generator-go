@@ -69,7 +69,7 @@ type initTree struct {
 	leafVal string
 }
 
-// request represents all the information needed to construct the request object.
+// initInfo represents all the information needed to construct the request object.
 type initInfo struct {
 
 	// argNames, argTrees, flagNames keep track of information of sample function arguments

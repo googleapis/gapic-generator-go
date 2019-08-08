@@ -409,7 +409,7 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, v
 	return initInfo, nil
 }
 
-func (g *generator) sampFuncAndClient(servName string, methName string, init initInfo, regTag string) (error) {
+func (g *generator) sampFuncAndClient(servName string, methName string, init initInfo, regTag string) error {
 	var argStr string
 	if len(init.argNames) > 0 {
 		var sb strings.Builder
