@@ -257,3 +257,37 @@ func TestPaginationWithToken(t *testing.T) {
 		ndx++
 	}
 }
+
+func TestBlock(t *testing.T) {
+	t.Parallel()
+	content := "hello world!"
+	req := &genprotopb.BlockRequest{
+		ResponseDelay: &durationpb.Duration{Nanos: 1000},
+		Response: &genprotopb.BlockRequest_Success{
+			Success: &genprotopb.BlockResponse{Content: content},
+		},
+	}
+	resp, err := client.Block(context.Background(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.GetContent() != content {
+		t.Errorf("Block() = %q, want %q", resp.GetContent(), content)
+	}
+}
+
+func TestBlock_timeout(t *testing.T) {
+	t.Parallel()
+	content := "hello world!"
+	req := &genprotopb.BlockRequest{
+		ResponseDelay: &durationpb.Duration{Seconds: 1},
+		Response: &genprotopb.BlockRequest_Success{
+			Success: &genprotopb.BlockResponse{Content: content},
+		},
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	resp, err := client.Block(ctx, req)
+	if err == nil {
+		t.Errorf("Block() = %v, want error", resp)
+	}
+}

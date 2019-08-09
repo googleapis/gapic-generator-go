@@ -23,7 +23,7 @@ fi
 
 go install ./cmd/protoc-gen-go_gapic
 
-SHOWCASE_SEMVER=0.1.0
+SHOWCASE_SEMVER=0.3.0
 
 pushd showcase
 rm -rf gen
