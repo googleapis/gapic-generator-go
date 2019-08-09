@@ -49,18 +49,16 @@ jobs:
       - run:
           name: Run Showcase
           command: |
-            mkdir protobuf
-            curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip > protobuf/protoc.zip
-            unzip -d protobuf protobuf/protoc.zip
-            export PATH=$PATH:$(pwd)/protobuf/bin            
+            curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip > protoc.zip
+            unzip -d $GOPATH/bin protoc.zip     
             ./utils/showcase.bash
       - run:
           name: Run Google APIs test gen
           command: |
-            mkdir apis
-            curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > apis/googleapis.zip
-            unzip -d apis apis/googleapis.zip
-            GOOGLEAPIS=apis OUT=$GOPATH/src ./test.sh
+            curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
+            unzip googleapis.zip
+            mv googleapis-master googleapis
+            GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
   publish_image:
     docker:
       - image: circleci/golang:1.12
