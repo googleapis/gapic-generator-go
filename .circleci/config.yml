@@ -54,6 +54,13 @@ jobs:
             unzip -d protobuf protobuf/protoc.zip
             export PATH=$PATH:$(pwd)/protobuf/bin            
             ./utils/showcase.bash
+      - run:
+          name: Run Google APIs test gen
+          command: |
+            mkdir apis
+            curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > apis/googleapis.zip
+            unzip -d apis apis/googleapis.zip
+            GOOGLEAPIS=apis OUT=$GOPATH/src ./test.sh
   publish_image:
     docker:
       - image: circleci/golang:1.12
