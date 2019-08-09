@@ -42,4 +42,9 @@ generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms' $GO
 echo "Generating Cloud Data Catalog v1beta1"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog' $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto
 
-echo "Generation completed"
+echo "Generation complete"
+
+echo "Running gofmt to check for syntax errors"
+gofmt -w -e $OUT
+
+echo "No syntax errors"
