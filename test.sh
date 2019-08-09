@@ -36,5 +36,10 @@ generate() {
 	protoc --go_gapic_out "$OUT" -I "$GOOGLEAPIS" $*
 }
 
+echo "Generating Cloud KMS v1"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms' $GOOGLEAPIS/google/cloud/kms/v1/*.proto
+
+echo "Generating Cloud Data Catalog v1beta1"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog' $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto
+
+echo "Generation completed"
