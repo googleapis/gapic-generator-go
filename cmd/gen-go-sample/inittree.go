@@ -65,7 +65,7 @@ type initTree struct {
 	keys []string
 	vals []*initTree
 
-	// Text of the literal.
+	// Text of the literal. If the literal is a string, it's already quoted.
 	leafVal string
 }
 
