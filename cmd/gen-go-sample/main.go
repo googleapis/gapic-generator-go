@@ -27,9 +27,9 @@ import (
 	"strings"
 	// "time"
 
-	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -40,8 +40,9 @@ import (
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
+	samplPath := flag.String("samples", "", "sample configs")
 	clientPkg := flag.String("clientpkg", "", "the package of the client, in format 'url/to/client/pkg;name'")
-	// nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
+	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
 	outDir := flag.String("o", ".", "directory to write samples to")
 	flag.Parse()
 
@@ -81,6 +82,8 @@ func main() {
 		gen.descInfo = pbinfo.Of(gen.desc.GetFile())
 		donec <- struct{}{}
 	}()
+	go func() {
+	}
 
 	if err := os.MkdirAll(*outDir, 0755); err != nil {
 		log.Fatal(err)
@@ -89,46 +92,39 @@ func main() {
 	<-donec
 	<-donec
 
-	// for _, iface := range gen.gapic.Interfaces {
-		// for _, meth := range iface.Methods {
-			// if err := genMethodSamples(&gen, iface, meth, *nofmt, *outDir); err != nil {
-			// 	err = errors.E(err, "generating: %s", iface.Name+"."+meth.Name)
-			// 	log.Fatal(err)
-			// }
-		// }
-	// }
 }
 
-// func genMethodSamples(gen *generator, iface GAPICInterface, meth GAPICMethod, nofmt bool, outDir string) error {
-// 	valSets := map[string]SampleValueSet{}
-// 	for _, vs := range meth.SampleValueSets {
-// 		valSets[vs.ID] = vs
-// 	}
+func genMethodSamples(gen *generator, sampConfs schema_v1p2.SampleConfig, nofmt bool, outDir string) error {
+	for _, sampConf := range sampConfs {
+		if sampConf.Type != "com.google.api.codegen.samplegen.v1p2.SampleConfigProto" {
+			return errors.E(nil, "bad sample config type")
+		}
+		if v = sampConf.Version; v != "1.2" {
+			return errors.E(nil, "unsupported schema version: expecting 1.2, found %s", v)
+		}
 
-// 	for _, sam := range meth.Samples.Standalone {
-// 		for _, vsID := range sam.ValueSets {
-// 			vs, ok := valSets[vsID]
-// 			if !ok {
-// 				return errors.E(nil, "value set not found: %q", vsID)
-// 			}
+		for _, iface := range gen.gapic.Interfaces {
+			for _, meth := range iface.Methods {
+				gen.reset()
+				if err := genSampleFromSampleConfig(sampConf, meth); err != nil {
 
-// 			gen.reset()
-// 			if err := gen.genSample(iface.Name, meth, sam.RegionTag, vs); err != nil {
-// 				return errors.E(err, "value set: %s", vsID)
-// 			}
-// 			content, err := gen.commit(!nofmt, time.Now().Year())
-// 			if err != nil {
-// 				return err
-// 			}
+					err = errors.E(err, "generating: %s:%s", iface.Name+"."+meth.Name, sampConf.ID)
+					log.Fatal(err)
+				}
 
-// 			fname := iface.Name + "_" + meth.Name + "_" + vsID + ".go"
-// 			if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
-// 				return err
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
+				content, err := gen.commit(!nofmt, time.Now().Year())
+				if err != nil {
+					return err
+				}
+				fname := iface.Name + "_" + meth.Name + "_" + vsID + ".go"
+				if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
 
 type generator struct {
 	desc     descriptor.FileDescriptorSet

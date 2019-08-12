@@ -21,9 +21,9 @@ import (
 	"text/scanner"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 )
 
 // symTab implements a symbol table.

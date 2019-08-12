@@ -199,12 +199,12 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 	if lv := t.leafVal; lv != "" {
 		return report(errors.E(nil, "value already set to %q", lv))
 	}
-		
 
 	if _, ok := t.typ.desc.(*descriptor.DescriptorProto); ok {
 		if value != "{}" {
 			return report(errors.E(nil, "invalid value for message: expecting `{}`, found %q", value))
 		}
+		return nil
 	} else if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
 		valid := false
 		for _, enumVal := range enum.Value {

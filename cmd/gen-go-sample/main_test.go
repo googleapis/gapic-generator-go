@@ -20,10 +20,10 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
-	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 )
 
 func TestUnary(t *testing.T) {
@@ -107,7 +107,10 @@ func TestSample_InitError(t *testing.T) {
 		g.reset()
 
 		sampConf := schema_v1p2.Sample{
-			ID: "my_sample_config",
+			ID:        "my_sample_config",
+			Service:   "foo.FooService",
+			Rpc:       "LroMethod",
+			RegionTag: "awesome_region",
 			Request: []schema_v1p2.RequestConfig{
 				{Field: fieldVal[0], Value: fieldVal[1]},
 			},
@@ -122,7 +125,10 @@ func TestSample_InitError(t *testing.T) {
 	g.reset()
 
 	sampConf := schema_v1p2.Sample{
-		ID: "my_sample_config",
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "LroMethod",
+		RegionTag: "awesome_region",
 	}
 
 	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "LroMethod"}); err == nil {
@@ -131,185 +137,198 @@ func TestSample_InitError(t *testing.T) {
 
 }
 
-// func TestPaging(t *testing.T) {
-// 	t.Parallel()
+func TestPaging(t *testing.T) {
+	t.Parallel()
 
-// 	g := initTestGenerator()
+	g := initTestGenerator()
 
-// 	vs := SampleValueSet{
-// 		ID: "my_value_set",
-// 	}
-// 	if err := g.genSample("foo.FooService", GAPICMethod{Name: "PagingMethod"}, "awesome_region", vs); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
-// }
+	sampConf := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "PagingMethod",
+		RegionTag: "awesome_region",
+	}
+	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "PagingMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
+}
 
-// func TestLro(t *testing.T) {
-// 	t.Parallel()
+func TestLro(t *testing.T) {
+	t.Parallel()
 
-// 	g := initTestGenerator()
+	g := initTestGenerator()
 
-// 	vs := SampleValueSet{
-// 		ID: "my_value_set",
-// 		OnSuccess: []OutputSpec{
-// 			{Print: []string{"x = %s", "$resp.a.x"}},
-// 		},
-// 	}
+	sampConf := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "LroMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{Print: []string{"x = %s", "$resp.a.x"}},
+		},
+	}
 
-// 	methConf := GAPICMethod{
-// 		Name: "LroMethod",
-// 		LongRunning: LongRunningConfig{
-// 			ReturnType:   "foo.lroReturnType",
-// 			MetadataType: "foo.lroMetadataType",
-// 		},
-// 	}
+	methConf := GAPICMethod{
+		Name: "LroMethod",
+		LongRunning: LongRunningConfig{
+			ReturnType:   "foo.lroReturnType",
+			MetadataType: "foo.lroMetadataType",
+		},
+	}
 
-// 	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	compare(t, g, filepath.Join("testdata", "sample_lro.want"))
-// }
+	if err := g.genSampleFromSampleConfig(sampConf, methConf); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_lro.want"))
+}
 
-// func TestEmptyObject(t *testing.T) {
-// 	t.Parallel()
+func TestEmptyObject(t *testing.T) {
+	t.Parallel()
 
-// 	g := initTestGenerator()
-// 	vs := SampleValueSet{
-// 		ID: "my_value_set",
-// 		Parameters: SampleParameter{
-// 			Defaults: []string{
-// 				`f2 = {}`,
-// 				`resource_field%foo="myfoo"`,
-// 				`resource_field%bar="mybar"`,
-// 			},
-// 		},
-// 	}
+	g := initTestGenerator()
+	sampConf := schema_v1p2.Sample{
+		ID:        "my_value_set",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Request: []schema_v1p2.RequestConfig{
+			{Field: "f2", Value: "{}"},
+			{Field: "resource_field%foo", Value: "myfoo"},
+			{Field: "resource_field%bar", Value: "mybar"},
+		},
+	}
 
-// 	methConf := GAPICMethod{
-// 		Name:              "UnaryMethod",
-// 		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
-// 	}
+	methConf := GAPICMethod{
+		Name:              "UnaryMethod",
+		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
+	}
 
-// 	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	compare(t, g, filepath.Join("testdata", "sample_empty_object.want"))
-// }
+	if err := g.genSampleFromSampleConfig(sampConf, methConf); err != nil {
+		t.Fatal(err)
+	}
 
-// func TestEmpty(t *testing.T) {
-// 	t.Parallel()
+	compare(t, g, filepath.Join("testdata", "sample_empty_object.want"))
+}
 
-// 	g := initTestGenerator()
-// 	vs := SampleValueSet{
-// 		ID: "my_value_set",
-// 	}
-// 	if err := g.genSample("foo.FooService", GAPICMethod{Name: "EmptyMethod"}, "awesome_region", vs); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	compare(t, g, filepath.Join("testdata", "sample_empty.want"))
-// }
+func TestEmpty(t *testing.T) {
+	t.Parallel()
 
-// func TestMapOut(t *testing.T) {
-// 	t.Parallel()
+	g := initTestGenerator()
+	sampConf := schema_v1p2.Sample{
+		ID:        "my_value_set",
+		Service:   "foo.FooService",
+		Rpc:       "EmptyMethod",
+		RegionTag: "awesome_region",
+	}
 
-// 	g := initTestGenerator()
-// 	vs := SampleValueSet{
-// 		ID: "my_value_set",
-// 		OnSuccess: []OutputSpec{
-// 			{
-// 				Loop: &LoopSpec{
-// 					Key: "just_key",
-// 					Map: "$resp.mappy_map",
-// 					Body: []OutputSpec{
-// 						{Print: []string{"key: %s", "just_key"}},
-// 					},
-// 				},
-// 			},
-// 			{
-// 				Loop: &LoopSpec{
-// 					Key:   "k",
-// 					Value: "v",
-// 					Map:   "$resp.mappy_map",
-// 					Body: []OutputSpec{
-// 						{Print: []string{"key: %s, value: %s", "k", "v"}},
-// 					},
-// 				},
-// 			},
-// 			{
-// 				Loop: &LoopSpec{
-// 					Value: "only_value",
-// 					Map:   "$resp.mappy_map",
-// 					Body: []OutputSpec{
-// 						{Print: []string{"value: %s", "only_value"}},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	}
-// 	if err := g.genSample("foo.FooService", GAPICMethod{Name: "UnaryMethod"}, "awesome_region", vs); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
-// }
+	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "EmptyMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_empty.want"))
+}
 
-// func TestWriteFile(t *testing.T) {
-// 	t.Parallel()
+func TestMapOut(t *testing.T) {
+	t.Parallel()
 
-// 	g := initTestGenerator()
-// 	vs := SampleValueSet{
-// 		ID: "my_value_set",
-// 		OnSuccess: []OutputSpec{
-// 			{
-// 				WriteFile: &WriteFileSpec{
-// 					FileName: []string{"my_bob.mp3"},
-// 					Contents: "$resp.data_bob",
-// 				},
-// 			},
-// 			{
-// 				WriteFile: &WriteFileSpec{
-// 					FileName: []string{"my_alice_%s.mp3", "$resp.a"},
-// 					Contents: "$resp.b",
-// 				},
-// 			},
-// 		},
-// 	}
+	g := initTestGenerator()
+	sampConf := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{
+				Loop: &schema_v1p2.LoopSpec{
+					Key: "just_key",
+					Map: "$resp.mappy_map",
+					Body: []schema_v1p2.ResponseConfig{
+						{Print: []string{"key: %s", "just_key"}},
+					},
+				},
+			},
+			{
+				Loop: &schema_v1p2.LoopSpec{
+					Key:   "k",
+					Value: "v",
+					Map:   "$resp.mappy_map",
+					Body: []schema_v1p2.ResponseConfig{
+						{Print: []string{"key: %s, value: %s", "k", "v"}},
+					},
+				},
+			},
+			{
+				Loop: &schema_v1p2.LoopSpec{
+					Value: "only_value",
+					Map:   "$resp.mappy_map",
+					Body: []schema_v1p2.ResponseConfig{
+						{Print: []string{"value: %s", "only_value"}},
+					},
+				},
+			},
+		},
+	}
+	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
+}
 
-// 	if err := g.genSample("foo.FooService", GAPICMethod{Name: "UnaryMethod"}, "awesome_region", vs); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	compare(t, g, filepath.Join("testdata", "sample_write_file.want"))
+func TestWriteFile(t *testing.T) {
+	t.Parallel()
 
-// }
+	g := initTestGenerator()
+	sampConf := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{
+				WriteFile: &schema_v1p2.WriteFileSpec{
+					FileName: []string{"my_bob.mp3"},
+					Contents: "$resp.data_bob",
+				},
+			},
+			{
+				WriteFile: &schema_v1p2.WriteFileSpec{
+					FileName: []string{"my_alice_%s.mp3", "$resp.a"},
+					Contents: "$resp.b",
+				},
+			},
+		},
+	}
 
-// func TestEnum(t *testing.T) {
-// 	t.Parallel()
+	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_write_file.want"))
 
-// 	g := initTestGenerator()
-// 	vs := SampleValueSet{
-// 		ID: "my_value_set",
-// 		Parameters: SampleParameter{
-// 			Defaults: []string{
-// 				`e = APPLE`,
-// 			},
-// 			Attributes: []SampleAttribute{
-// 				{Parameter: "e", SampleArgumentName: "my_fruit"},
-// 			},
-// 		},
-// 		OnSuccess: []OutputSpec{
-// 			{Print: []string{"call finished."}},
-// 		},
-// 	}
+}
 
-// 	methConf := GAPICMethod{
-// 		Name: "UnaryMethod",
-// 	}
-// 	if err := g.genSample("foo.FooService", methConf, "awesome_region", vs); err != nil {
-// 		t.Fatal(err)
-// 	}
+func TestEnum(t *testing.T) {
+	t.Parallel()
 
-// 	compare(t, g, filepath.Join("testdata", "sample_enum.want"))
-// }
+	g := initTestGenerator()
+	sampConf := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Request: []schema_v1p2.RequestConfig{
+			{Field: "e", Value: "APPLE", InputParameter: "my_fruit"},
+		},
+		Response: []schema_v1p2.ResponseConfig{
+			{Print: []string{"call finished."}},
+		},
+	}
+
+	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+
+	compare(t, g, filepath.Join("testdata", "sample_enum.want"))
+}
 
 func initTestGenerator() *generator {
 	eType := &descriptor.EnumDescriptorProto{
