@@ -25,7 +25,7 @@ type GAPICInterface struct {
 }
 
 type GAPICMethod struct {
-	Name            string
+	Name string
 
 	// map[fieldName]ResourceName.EntityName
 	FieldNamePatterns map[string]string `yaml:"field_name_patterns"`

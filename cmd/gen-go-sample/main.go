@@ -99,30 +99,33 @@ func main() {
 
 func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt bool, outDir string) error {
 	for _, samp := range sampConf.Samples {
-
 		for _, iface := range gen.gapic.Interfaces {
-			if iface.Name == samp.Service {
-				for _, meth := range iface.Methods {
-					if meth.Name == samp.Rpc {
-						gen.reset()
-						if err := gen.genSample(samp, meth); err != nil {
-
-							err = errors.E(err, "generating: %s:%s", iface.Name+"."+meth.Name, samp.ID)
-							log.Fatal(err)
-						}
-
-						content, err := gen.commit(!nofmt, time.Now().Year())
-						if err != nil {
-							return err
-						}
-						fname := samp.ID + ".go"
-						if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
-							return err
-						}
-					}
-				}
+			if iface.Name != samp.Service {
+				continue
 			}
+			for _, meth := range iface.Methods {
+				if meth.Name != samp.Rpc {
+					continue
+				}
+				gen.reset()
+				if err := gen.genSample(samp, meth); err != nil {
 
+					err = errors.E(err, "generating: %s:%s", iface.Name+"."+meth.Name, samp.ID)
+					log.Fatal(err)
+				}
+
+				content, err := gen.commit(!nofmt, time.Now().Year())
+				if err != nil {
+					return err
+				}
+				// Handle duplicate sample IDs
+				fname := samp.ID + ".go"
+				if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
+					return err
+				}
+				break
+			}
+			break
 		}
 	}
 	return nil

@@ -28,6 +28,9 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
+// emtyObjectLiteral initializes a node in initTree as an empty object
+const emptyObjectLiteral = "{}"
+
 // initType represents a type of a value in initialization tree.
 //
 // In protobuf, array-ness and map-ness are properties of fields, not types,
@@ -200,12 +203,14 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 		return report(errors.E(nil, "value already set to %q", lv))
 	}
 
-	if _, ok := t.typ.desc.(*descriptor.DescriptorProto); ok {
-		if value != "{}" {
-			return report(errors.E(nil, "invalid value for message: expecting `{}`, found %q", value))
+	switch t.typ.desc.(type) {
+	case *descriptor.DescriptorProto:
+		if value != emptyObjectLiteral {
+			return report(errors.E(nil, "invalid value for message: expecting %q, found %q", emptyObjectLiteral, value))
 		}
 		return nil
-	} else if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
+	case *descriptor.EnumDescriptorProto:
+		enum := t.typ.desc.(*descriptor.EnumDescriptorProto)
 		valid := false
 		for _, enumVal := range enum.Value {
 			if value == enumVal.GetName() {
@@ -217,7 +222,7 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 			return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), value))
 		}
 		t.typ.valFmt = enumFmt(info, enum)
-	} else {
+	default:
 		pType := t.typ.prim
 		validPrim := validPrims[pType]
 		if validPrim == nil {
@@ -226,12 +231,12 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 		if !validPrim(value) {
 			return report(errors.E(nil, "invalid value for type %q: %q", pType, value))
 		}
-		if t.typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
+		if pType == descriptor.FieldDescriptorProto_TYPE_BYTES {
 			value = fmt.Sprintf("%q", value)
 			t.typ.valFmt = bytesFmt()
 		}
 		// We need to quote string literals
-		if t.typ.prim == descriptor.FieldDescriptorProto_TYPE_STRING {
+		if pType == descriptor.FieldDescriptorProto_TYPE_STRING {
 			value = fmt.Sprintf("%q", value)
 		}
 	}
