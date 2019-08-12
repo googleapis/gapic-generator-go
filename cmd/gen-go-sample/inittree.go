@@ -190,9 +190,9 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 	// The first ident is treated specially to be a member of the root.
 	// Since we know the root is a struct, a dot is the only legal token anyway,
 	// so just insert a dot here so we don't need to treat the first token specially.
-	pathScanner, report := initScanner("." + path)
+	sc, report := initScanner("." + path)
 
-	t, _, err := t.parsePathRest(pathScanner, info)
+	t, _, err := t.parsePathRest(sc, info)
 	if err != nil {
 		return report(err)
 	}

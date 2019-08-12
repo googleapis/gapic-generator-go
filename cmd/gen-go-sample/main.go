@@ -81,10 +81,8 @@ func main() {
 		gen.descInfo = pbinfo.Of(gen.desc.GetFile())
 		donec <- struct{}{}
 	}()
-	go func() {
-		// TODO(hzyi): Read sample config
-		donec <- struct{}{}
-	}()
+
+	// TODO(hzyi): Read sample config
 
 	if err := os.MkdirAll(*outDir, 0755); err != nil {
 		log.Fatal(err)
