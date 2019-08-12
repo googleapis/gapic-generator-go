@@ -21,6 +21,7 @@ import (
 )
 
 func (g *generator) getGoTypeName(typ initType) (string, error) {
+	// `prim` is set to some value. `typ` represents a protobuf primitive
 	if typ.prim != 0 {
 		goType, ok := pbinfo.GoTypeForPrim[typ.prim]
 		if !ok {
@@ -29,7 +30,7 @@ func (g *generator) getGoTypeName(typ initType) (string, error) {
 		return goType, nil
 	}
 
-	if enum, ok2 := typ.desc.(*descriptor.EnumDescriptorProto); ok2 {
+	if enum, ok := typ.desc.(*descriptor.EnumDescriptorProto); ok {
 		goType, err := goTypeForEnum(g.descInfo, enum)
 		if err != nil {
 			return "", errors.E(err, "unrecognized enum type: %s", enum)

@@ -198,6 +198,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
 	ifaceName := sampConf.Service
 
+	// Preparation
 	g.imports[g.clientPkg] = true
 	serv := g.descInfo.Serv["."+ifaceName]
 	if serv == nil {

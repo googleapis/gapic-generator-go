@@ -15,22 +15,16 @@
 # limitations under the License.
 
 
-# Usage: COMMON_PROTO=path/to/api-common-protos GOOGLEAPIS=path/to/googleapis [OUT=out/dir] ./test.sh
+# Usage: GOOGLEAPIS=path/to/googleapis [OUT=out/dir] ./test.sh
 #
 # If OUT is not set, files are written to testdata/out, which is gitignore'd.
 # To integration test, set OUT=$GOPATH/src. The script will overwrite old files,
 # and you can see changes by git-diff-ing the cloud.google.com/go repo.
-#
-# We need proto annotations that's not stable yet. Use the input-contract branch of both repos.
 
 set -e
 
 if [ -z $GOOGLEAPIS ]; then
 	echo >&2 "need GOOGLEAPIS variable"
-	exit 1
-fi
-if [ -z $COMMON_PROTO ]; then
-	echo >&2 "need COMMON_PROTO variable"
 	exit 1
 fi
 
@@ -39,11 +33,18 @@ OUT=${OUT:-testdata/out}
 mkdir -p "$OUT"
 
 generate() {
-	protoc --go_gapic_out "$OUT" -I "$COMMON_PROTO" -I "$GOOGLEAPIS" $*
+	protoc --go_gapic_out "$OUT" -I "$GOOGLEAPIS" $*
 }
 
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/vision/apiv1;vision' $GOOGLEAPIS/google/cloud/vision/v1/*.proto
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/speech/apiv1;speech' $GOOGLEAPIS/google/cloud/speech/v1/*.proto
-# generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/language/apiv1;language' $GOOGLEAPIS/google/cloud/language/v1/*.proto
-# generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/pubsub/apiv1;pubsub' $GOOGLEAPIS/google/pubsub/v1/*.proto
-# generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/logging/apiv2;logging' $GOOGLEAPIS/google/logging/v2/*.proto
+echo "Generating Cloud KMS v1"
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms' $GOOGLEAPIS/google/cloud/kms/v1/*.proto
+
+echo "Generating Cloud Data Catalog v1beta1"
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog' $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto
+
+echo "Generation complete"
+
+echo "Running gofmt to check for syntax errors"
+gofmt -w -e $OUT
+
+echo "No syntax errors"
