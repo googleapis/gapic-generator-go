@@ -75,7 +75,7 @@ func fileVarName(param string) (string, error) {
 	}
 }
 
-// handleReadFile generates code that read all bytes from a local file and assign
+// handleReadFile generates code that reads all bytes from a local file and assigns them
 // to a local variable.
 func handleReadFile(info *fileInfo, buf *bytes.Buffer, g *generator) {
 	vn := info.varName

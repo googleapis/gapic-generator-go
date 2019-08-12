@@ -31,7 +31,7 @@ func TestUnary(t *testing.T) {
 
 	g := initTestGenerator()
 
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_sample_config",
 		Rpc:       "UnaryMethod",
 		Service:   "foo.FooService",
@@ -76,7 +76,7 @@ func TestUnary(t *testing.T) {
 		Name:              "UnaryMethod",
 		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
 	}
-	if err := g.genSampleFromSampleConfig(sampConf, methConf); err != nil {
+	if err := g.genSample(sp, methConf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -106,7 +106,7 @@ func TestSample_InitError(t *testing.T) {
 	} {
 		g.reset()
 
-		sampConf := schema_v1p2.Sample{
+		sp := schema_v1p2.Sample{
 			ID:        "my_sample_config",
 			Service:   "foo.FooService",
 			Rpc:       "LroMethod",
@@ -116,7 +116,7 @@ func TestSample_InitError(t *testing.T) {
 			},
 		}
 
-		if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err == nil {
+		if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err == nil {
 			t.Errorf("expected error from init config: %s", fieldVal)
 		}
 	}
@@ -124,14 +124,14 @@ func TestSample_InitError(t *testing.T) {
 	// missing LRO config
 	g.reset()
 
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_sample_config",
 		Service:   "foo.FooService",
 		Rpc:       "LroMethod",
 		RegionTag: "awesome_region",
 	}
 
-	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "LroMethod"}); err == nil {
+	if err := g.genSample(sp, GAPICMethod{Name: "LroMethod"}); err == nil {
 		t.Errorf("expected error from missing config")
 	}
 
@@ -142,13 +142,13 @@ func TestPaging(t *testing.T) {
 
 	g := initTestGenerator()
 
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_sample_config",
 		Service:   "foo.FooService",
 		Rpc:       "PagingMethod",
 		RegionTag: "awesome_region",
 	}
-	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "PagingMethod"}); err != nil {
+	if err := g.genSample(sp, GAPICMethod{Name: "PagingMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
@@ -159,7 +159,7 @@ func TestLro(t *testing.T) {
 
 	g := initTestGenerator()
 
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_sample_config",
 		Service:   "foo.FooService",
 		Rpc:       "LroMethod",
@@ -177,7 +177,7 @@ func TestLro(t *testing.T) {
 		},
 	}
 
-	if err := g.genSampleFromSampleConfig(sampConf, methConf); err != nil {
+	if err := g.genSample(sp, methConf); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_lro.want"))
@@ -187,7 +187,7 @@ func TestEmptyObject(t *testing.T) {
 	t.Parallel()
 
 	g := initTestGenerator()
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_value_set",
 		Service:   "foo.FooService",
 		Rpc:       "UnaryMethod",
@@ -204,7 +204,7 @@ func TestEmptyObject(t *testing.T) {
 		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
 	}
 
-	if err := g.genSampleFromSampleConfig(sampConf, methConf); err != nil {
+	if err := g.genSample(sp, methConf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -215,14 +215,14 @@ func TestEmpty(t *testing.T) {
 	t.Parallel()
 
 	g := initTestGenerator()
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_value_set",
 		Service:   "foo.FooService",
 		Rpc:       "EmptyMethod",
 		RegionTag: "awesome_region",
 	}
 
-	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "EmptyMethod"}); err != nil {
+	if err := g.genSample(sp, GAPICMethod{Name: "EmptyMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_empty.want"))
@@ -232,7 +232,7 @@ func TestMapOut(t *testing.T) {
 	t.Parallel()
 
 	g := initTestGenerator()
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_sample_config",
 		Service:   "foo.FooService",
 		Rpc:       "UnaryMethod",
@@ -268,7 +268,7 @@ func TestMapOut(t *testing.T) {
 			},
 		},
 	}
-	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
@@ -278,7 +278,7 @@ func TestWriteFile(t *testing.T) {
 	t.Parallel()
 
 	g := initTestGenerator()
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_sample_config",
 		Service:   "foo.FooService",
 		Rpc:       "UnaryMethod",
@@ -299,7 +299,7 @@ func TestWriteFile(t *testing.T) {
 		},
 	}
 
-	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_write_file.want"))
@@ -310,7 +310,7 @@ func TestEnum(t *testing.T) {
 	t.Parallel()
 
 	g := initTestGenerator()
-	sampConf := schema_v1p2.Sample{
+	sp := schema_v1p2.Sample{
 		ID:        "my_sample_config",
 		Service:   "foo.FooService",
 		Rpc:       "UnaryMethod",
@@ -323,7 +323,7 @@ func TestEnum(t *testing.T) {
 		},
 	}
 
-	if err := g.genSampleFromSampleConfig(sampConf, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 

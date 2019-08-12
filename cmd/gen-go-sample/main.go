@@ -22,10 +22,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	// "path/filepath"
+	"path/filepath"
 	"sort"
 	"strings"
-	// "time"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -40,7 +40,6 @@ import (
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
-	samplPath := flag.String("samples", "", "sample configs")
 	clientPkg := flag.String("clientpkg", "", "the package of the client, in format 'url/to/client/pkg;name'")
 	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
 	outDir := flag.String("o", ".", "directory to write samples to")
@@ -83,7 +82,9 @@ func main() {
 		donec <- struct{}{}
 	}()
 	go func() {
-	}
+		// TODO(hzyi): Read sample config
+		donec <- struct{}{}
+	}()
 
 	if err := os.MkdirAll(*outDir, 0755); err != nil {
 		log.Fatal(err)
@@ -92,46 +93,49 @@ func main() {
 	<-donec
 	<-donec
 
+	if err := genMethodSamples(&gen, gen.sampleConfig, *nofmt, *outDir); err != nil {
+		log.Fatal(err)
+	}
+
 }
 
-func genMethodSamples(gen *generator, sampConfs schema_v1p2.SampleConfig, nofmt bool, outDir string) error {
-	for _, sampConf := range sampConfs {
-		if sampConf.Type != "com.google.api.codegen.samplegen.v1p2.SampleConfigProto" {
-			return errors.E(nil, "bad sample config type")
-		}
-		if v = sampConf.Version; v != "1.2" {
-			return errors.E(nil, "unsupported schema version: expecting 1.2, found %s", v)
-		}
+func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt bool, outDir string) error {
+	for _, samp := range sampConf.Samples {
 
 		for _, iface := range gen.gapic.Interfaces {
-			for _, meth := range iface.Methods {
-				gen.reset()
-				if err := genSampleFromSampleConfig(sampConf, meth); err != nil {
+			if iface.Name == samp.Service {
+				for _, meth := range iface.Methods {
+					if meth.Name == samp.Rpc {
+						gen.reset()
+						if err := gen.genSample(samp, meth); err != nil {
 
-					err = errors.E(err, "generating: %s:%s", iface.Name+"."+meth.Name, sampConf.ID)
-					log.Fatal(err)
-				}
+							err = errors.E(err, "generating: %s:%s", iface.Name+"."+meth.Name, samp.ID)
+							log.Fatal(err)
+						}
 
-				content, err := gen.commit(!nofmt, time.Now().Year())
-				if err != nil {
-					return err
-				}
-				fname := iface.Name + "_" + meth.Name + "_" + vsID + ".go"
-				if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
-					return err
+						content, err := gen.commit(!nofmt, time.Now().Year())
+						if err != nil {
+							return err
+						}
+						fname := samp.ID + ".go"
+						if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
+							return err
+						}
+					}
 				}
 			}
+
 		}
 	}
 	return nil
 }
 
 type generator struct {
-	desc     descriptor.FileDescriptorSet
-	descInfo pbinfo.Info
-	gapic    GAPICConfig
-
-	clientPkg pbinfo.ImportSpec
+	desc         descriptor.FileDescriptorSet
+	descInfo     pbinfo.Info
+	gapic        GAPICConfig
+	sampleConfig schema_v1p2.SampleConfig
+	clientPkg    pbinfo.ImportSpec
 
 	pt      printer.P
 	imports map[pbinfo.ImportSpec]bool
@@ -191,7 +195,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 	return b, nil
 }
 
-func (g *generator) genSampleFromSampleConfig(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
+func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
 	ifaceName := sampConf.Service
 
 	g.imports[g.clientPkg] = true
@@ -227,43 +231,28 @@ func (g *generator) genSampleFromSampleConfig(sampConf schema_v1p2.Sample, methC
 	if err != nil {
 		return err
 	}
-	argNames := initInfo.argNames
-	argTrees := initInfo.argTrees
-	flagNames := initInfo.flagNames
-	files := initInfo.files
-	itree := initInfo.reqTree
 
-	if err := g.sampFuncAndClient(serv.GetName(), meth.GetName(), initInfo, sampConf.RegionTag); err != nil {
+	p := g.pt.Printf
+
+	// Region tag, function signature and new client
+	argStr, err := argListStr(initInfo, g)
+	if err != nil {
 		return err
 	}
+	p("// [START %s]", sampConf.RegionTag)
+	p("")
+	p("func sample%s(%s) error {", meth.GetName(), argStr)
+	p("  ctx := context.Background()")
+	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
+	p("  if err != nil {")
+	p("    return err")
+	p("  }")
+	p("")
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
-	// Set up the request
-	{
-		var buf bytes.Buffer
-
-		for i, name := range argNames {
-			fmt.Fprintf(&buf, "%s := ", name)
-			if err := argTrees[i].Print(&buf, g); err != nil {
-				return errors.E(err, "can't initialize parameter: %s", name)
-			}
-			buf.WriteByte('\n')
-		}
-		prependLines(&buf, "// ", false)
-
-		for _, info := range files {
-			handleReadFile(info, &buf, g)
-		}
-
-		buf.WriteString("req := ")
-		if err := itree.Print(&buf, g); err != nil {
-			return errors.E(err, "can't initialize request object")
-		}
-		buf.WriteByte('\n')
-		prependLines(&buf, "\t", true)
-
-		if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
-			return err
-		}
+	// Set up the request object
+	if err := g.handleRequest(initInfo); err != nil {
+		return err
 	}
 
 	// Make the RPC call and handle output
@@ -285,7 +274,6 @@ func (g *generator) genSampleFromSampleConfig(sampConf schema_v1p2.Sample, methC
 		return err
 	}
 
-	p := g.pt.Printf
 	p("return nil")
 	p("}")
 	p("")
@@ -293,109 +281,12 @@ func (g *generator) genSampleFromSampleConfig(sampConf schema_v1p2.Sample, methC
 	p("")
 
 	// main
-	return writeMain(g, argNames, flagNames, argTrees, meth.GetName())
+	if err := writeMain(g, initInfo.argNames, initInfo.flagNames, initInfo.argTrees, meth.GetName()); err != nil {
+		return err
+	}
+
+	return nil
 }
-
-// func (g *generator) genSample(ifaceName string, methConf GAPICMethod, regTag string, valSet SampleValueSet) error {
-// 	// TODO(pongad): This method's error cases are not well tested. Split and test.
-
-// 	// Preparation
-// 	g.imports[g.clientPkg] = true
-// 	serv := g.descInfo.Serv["."+ifaceName]
-// 	if serv == nil {
-// 		return errors.E(nil, "can't find service: %q", ifaceName)
-// 	}
-
-// 	var meth *descriptor.MethodDescriptorProto
-// 	for _, m := range serv.GetMethod() {
-// 		if m.GetName() == methConf.Name {
-// 			meth = m
-// 			break
-// 		}
-// 	}
-// 	if meth == nil {
-// 		return errors.E(nil, "service %q doesn't have method %q", serv.GetName(), methConf.Name)
-// 	}
-
-// 	inType := g.descInfo.Type[meth.GetInputType()]
-// 	if inType == nil {
-// 		return errors.E(nil, "can't find input type %q", meth.GetInputType())
-// 	}
-// 	inSpec, err := g.descInfo.ImportSpec(inType)
-// 	if err != nil {
-// 		return errors.E(err, "can't import input type: %q", inType)
-// 	}
-// 	g.imports[inSpec] = true
-
-// 	initInfo, err := g.getInitInfo(inType, methConf, valSet)
-// 	argNames := initInfo.argNames
-// 	argTrees := initInfo.argTrees
-// 	flagNames := initInfo.flagNames
-// 	files := initInfo.files
-// 	itree := initInfo.reqTree
-
-// 	if err := g.sampFuncAndClient(serv.GetName(), meth.GetName(), initInfo, regTag); err != nil {
-// 		return nil
-// 	}
-
-// 	// Set up the request
-// 	{
-// 		var buf bytes.Buffer
-
-// 		for i, name := range argNames {
-// 			fmt.Fprintf(&buf, "%s := ", name)
-// 			if err := argTrees[i].Print(&buf, g); err != nil {
-// 				return errors.E(err, "can't initialize parameter: %s", name)
-// 			}
-// 			buf.WriteByte('\n')
-// 		}
-// 		prependLines(&buf, "// ", false)
-
-// 		for _, info := range files {
-// 			handleReadFile(info, &buf, g)
-// 		}
-
-// 		buf.WriteString("req := ")
-// 		if err := itree.Print(&buf, g); err != nil {
-// 			return errors.E(err, "can't initialize request object")
-// 		}
-// 		buf.WriteByte('\n')
-// 		prependLines(&buf, "\t", true)
-
-// 		if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
-// 			return err
-// 		}
-// 	}
-
-// 	// Make the RPC call and handle output
-// 	if meth.GetOutputType() == ".google.protobuf.Empty" {
-// 		err = g.emptyOut(meth, valSet)
-// 	} else if meth.GetOutputType() == ".google.longrunning.Operation" {
-// 		err = g.lro(meth, methConf, valSet)
-// 	} else if meth.GetServerStreaming() || meth.GetClientStreaming() {
-// 		err = errors.E(nil, "streaming methods not supported yet")
-// 	} else if pf, err2 := pagingField(g.descInfo, meth); err2 != nil {
-// 		err = errors.E(err2, "can't determine whether method is paging")
-// 	} else if pf != nil {
-// 		err = g.paging(meth, pf, valSet)
-// 	} else {
-// 		err = g.unary(meth, valSet)
-// 	}
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	p := g.pt.Printf
-// 	p("return nil")
-// 	p("}")
-// 	p("")
-// 	p("// [END %s]", regTag)
-// 	p("")
-
-// 	// main
-// 	return writeMain(g, argNames, flagNames, argTrees, meth.GetName())
-// }
 
 func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, reqConfs []schema_v1p2.RequestConfig) (initInfo, error) {
 	var (
@@ -511,32 +402,47 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, r
 	return initInfo, nil
 }
 
-func (g *generator) sampFuncAndClient(servName string, methName string, init initInfo, regTag string) error {
-	var argStr string
+func argListStr(init initInfo, g *generator) (string, error) {
 	if len(init.argNames) > 0 {
 		var sb strings.Builder
 		for i, name := range init.argNames {
 			typ, err := g.getGoTypeName(init.argTrees[i].typ)
 			if err != nil {
-				return err
+				return "", err
 			}
 			fmt.Fprintf(&sb, ", %s %s", name, typ)
 		}
-		argStr = sb.String()[2:]
+		return sb.String()[2:], nil
+	}
+	return "", nil
+}
+
+func (g *generator) handleRequest(initInfo initInfo) error {
+	var buf bytes.Buffer
+
+	for i, name := range initInfo.argNames {
+		fmt.Fprintf(&buf, "%s := ", name)
+		if err := initInfo.argTrees[i].Print(&buf, g); err != nil {
+			return errors.E(err, "can't initialize parameter: %s", name)
+		}
+		buf.WriteByte('\n')
+	}
+	prependLines(&buf, "// ", false)
+
+	for _, info := range initInfo.files {
+		handleReadFile(info, &buf, g)
 	}
 
-	p := g.pt.Printf
+	buf.WriteString("req := ")
+	if err := initInfo.reqTree.Print(&buf, g); err != nil {
+		return errors.E(err, "can't initialize request object")
+	}
+	buf.WriteByte('\n')
+	prependLines(&buf, "\t", true)
 
-	p("// [START %s]", regTag)
-	p("")
-	p("func sample%s(%s) error {", methName, argStr)
-	p("  ctx := context.Background()")
-	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(servName, g.clientPkg.Name))
-	p("  if err != nil {")
-	p("    return err")
-	p("  }")
-	p("")
-	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
+		return err
+	}
 	return nil
 }
 
