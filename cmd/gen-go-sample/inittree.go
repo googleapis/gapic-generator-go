@@ -203,25 +203,24 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 		return report(errors.E(nil, "value already set to %q", lv))
 	}
 
-	switch t.typ.desc.(type) {
+	switch desc := t.typ.desc.(type) {
 	case *descriptor.DescriptorProto:
 		if value != emptyObjectLiteral {
 			return report(errors.E(nil, "invalid value for message: expecting %q, found %q", emptyObjectLiteral, value))
 		}
 		return nil
 	case *descriptor.EnumDescriptorProto:
-		enum := t.typ.desc.(*descriptor.EnumDescriptorProto)
 		valid := false
-		for _, enumVal := range enum.Value {
+		for _, enumVal := range desc.Value {
 			if value == enumVal.GetName() {
 				valid = true
 				break
 			}
 		}
 		if !valid {
-			return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), value))
+			return report(errors.E(nil, "invalid value for type %q: %q", desc.GetName(), value))
 		}
-		t.typ.valFmt = enumFmt(info, enum)
+		t.typ.valFmt = enumFmt(info, desc)
 	default:
 		pType := t.typ.prim
 		validPrim := validPrims[pType]
