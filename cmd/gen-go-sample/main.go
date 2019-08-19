@@ -98,34 +98,45 @@ func main() {
 }
 
 func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt bool, outDir string) error {
+	
 	for _, samp := range sampConf.Samples {
-		for _, iface := range gen.gapic.Interfaces {
-			if iface.Name != samp.Service {
-				continue
-			}
-			for _, meth := range iface.Methods {
-				if meth.Name != samp.Rpc {
-					continue
-				}
-				gen.reset()
-				if err := gen.genSample(samp, meth); err != nil {
-
-					err = errors.E(err, "generating: %s:%s", iface.Name+"."+meth.Name, samp.ID)
-					log.Fatal(err)
-				}
-
-				content, err := gen.commit(!nofmt, time.Now().Year())
-				if err != nil {
-					return err
-				}
-				// Handle duplicate sample IDs
-				fname := samp.ID + ".go"
-				if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
-					return err
+		var iface GAPICInterface
+		var method GAPICMethod
+		for _, i := range gen.gapic.Interfaces {
+			if i.Name == samp.Service {
+				iface = i
+				for _, m := range iface.Methods {
+					if m.Name != samp.Rpc {
+						method = m
+						break
+					}
 				}
 				break
 			}
-			break
+		}
+
+		if method.Name == "" {
+			return errors.E(nil, "generating sample %q: rpc %q not found", samp.ID, method.Name)
+		}
+		if iface.Name == "" {
+			return errors.E(nil, "generating sample %q: service %q not found", samp.ID, iface.Name)
+		}
+
+		gen.reset()
+		if err := gen.genSample(samp, method); err != nil {
+
+			err = errors.E(err, "generating: %s:%s", iface.Name+"."+method.Name, samp.ID)
+			log.Fatal(err)
+		}
+
+		content, err := gen.commit(!nofmt, time.Now().Year())
+		if err != nil {
+			return err
+		}
+		// TODO(hzyi): Handle duplicate sample IDs
+		fname := samp.ID + ".go"
+		if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -263,6 +274,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	} else if meth.GetOutputType() == ".google.longrunning.Operation" {
 		err = g.lro(meth, methConf, sampConf.Response)
 	} else if meth.GetServerStreaming() || meth.GetClientStreaming() {
+		// TODO(hzyi): github.com/googleapis/gapic-generator-go/issues/177
 		err = errors.E(nil, "streaming methods not supported yet")
 	} else if pf, err2 := pagingField(g.descInfo, meth); err2 != nil {
 		err = errors.E(err2, "can't determine whether method is paging")
@@ -290,7 +302,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	return nil
 }
 
-func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, reqConfs []schema_v1p2.RequestConfig) (initInfo, error) {
+func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, fieldConfs []schema_v1p2.RequestConfig) (initInfo, error) {
 	var (
 		argNames  []string
 		flagNames []string
@@ -333,33 +345,34 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, r
 	}
 
 	// Set up request object.
-	for _, reqConf := range reqConfs {
-		if err := itree.parseInit(reqConf.Field, reqConf.Value, g.descInfo); err != nil {
-			return initInfo{}, errors.E(err, "can't set default value: %s=%s", reqConf.Field, reqConf.Value)
+	for _, fieldConf := range fieldConfs {
+		if err := itree.parseInit(fieldConf.Field, fieldConf.Value, g.descInfo); err != nil {
+			return initInfo{}, errors.E(err, "can't set default value: %s=%s", fieldConf.Field, fieldConf.Value)
 		}
 	}
 
 	// Some parts of request object are from arguments.
-	for _, reqConf := range reqConfs {
-		if reqConf.ValueIsFile {
+	for _, fieldConf := range fieldConfs {
+		isInputParam := fieldConf.InputParameter != ""
+		if fieldConf.ValueIsFile {
 			var varName string
 			var err error
-			if reqConf.InputParameter != "" {
-				varName = snakeToCamel(reqConf.InputParameter) + fileContentSuffix
+			if isInputParam {
+				varName = snakeToCamel(fieldConf.InputParameter) + fileContentSuffix
 			} else {
-				varName, err = fileVarName(reqConf.Field)
+				varName, err = fileVarName(fieldConf.Field)
 				if err != nil {
 					return initInfo{}, errors.E(err, "can't determine variable name to store bytes from local file")
 				}
 			}
 
 			subTree, err := itree.parseSampleArgPath(
-				reqConf.Field,
+				fieldConf.Field,
 				g.descInfo,
 				varName,
 			)
 			if err != nil {
-				return initInfo{}, errors.E(err, "can't set sample function argument: %q", reqConf.Field)
+				return initInfo{}, errors.E(err, "can't set sample function argument: %q", fieldConf.Field)
 			}
 			if subTree.typ.prim != descriptor.FieldDescriptorProto_TYPE_BYTES {
 				return initInfo{}, errors.E(nil, "can only assign file contents to bytes field")
@@ -367,29 +380,30 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, r
 			subTree.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
 			subTree.typ.valFmt = nil
 			if subTree.leafVal == "" {
-				return initInfo{}, errors.E(nil, "default value not given: %q", reqConf.Field)
+				return initInfo{}, errors.E(nil, "default value not given: %q", fieldConf.Field)
 			}
 			fileName := subTree.leafVal
-			if reqConf.InputParameter != "" {
-				fileName = snakeToCamel(reqConf.InputParameter)
+			if isInputParam {
+				fileName = snakeToCamel(fieldConf.InputParameter)
 				argNames = append(argNames, fileName)
-				flagNames = append(flagNames, reqConf.InputParameter)
+				flagNames = append(flagNames, fieldConf.InputParameter)
 				argTrees = append(argTrees, subTree)
 			}
 			files = append(files, &fileInfo{fileName, varName})
 			continue
 		}
-		if reqConf.InputParameter == "" {
+
+		if !isInputParam {
 			continue
 		}
-		name := snakeToCamel(reqConf.InputParameter)
-		subTree, err := itree.parseSampleArgPath(reqConf.Field, g.descInfo, name)
+		name := snakeToCamel(fieldConf.InputParameter)
+		subTree, err := itree.parseSampleArgPath(fieldConf.Field, g.descInfo, name)
 		if err != nil {
-			return initInfo{}, errors.E(err, "can't set sample function argument: %q", reqConf.Field)
+			return initInfo{}, errors.E(err, "can't set sample function argument: %q", fieldConf.Field)
 		}
 
 		argNames = append(argNames, name)
-		flagNames = append(flagNames, reqConf.InputParameter)
+		flagNames = append(flagNames, fieldConf.InputParameter)
 		argTrees = append(argTrees, subTree)
 	}
 

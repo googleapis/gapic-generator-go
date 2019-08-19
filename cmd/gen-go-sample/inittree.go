@@ -187,7 +187,8 @@ func (t *initTree) index(k string) *initTree {
 	return v
 }
 
-// Just do simple structs for now.
+// parseInit adds a node to this initTree with given a field path and the default value
+// of the node.
 // TODO(hzyi): allow map index.
 func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error {
 	// The first ident is treated specially to be a member of the root.
@@ -225,7 +226,7 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 		pType := t.typ.prim
 		validPrim := validPrims[pType]
 		if validPrim == nil {
-			return report(errors.E(nil, "not a primitive type? %q", pType))
+			return report(errors.E(nil, "not a primitive type: %q", pType))
 		}
 		if !validPrim(value) {
 			return report(errors.E(nil, "invalid value for type %q: %q", pType, value))
