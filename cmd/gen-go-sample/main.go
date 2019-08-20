@@ -98,16 +98,13 @@ func main() {
 }
 
 func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt bool, outDir string) error {
-	
 	for _, samp := range sampConf.Samples {
 		var iface GAPICInterface
 		var method GAPICMethod
-		for _, i := range gen.gapic.Interfaces {
-			if i.Name == samp.Service {
-				iface = i
-				for _, m := range iface.Methods {
-					if m.Name != samp.Rpc {
-						method = m
+		for _, iface = range gen.gapic.Interfaces {
+			if iface.Name == samp.Service {
+				for _, method = range iface.Methods {
+					if method.Name != samp.Rpc {
 						break
 					}
 				}
@@ -115,17 +112,16 @@ func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt b
 			}
 		}
 
-		if method.Name == "" {
+		if method.Name != samp.Rpc {
 			return errors.E(nil, "generating sample %q: rpc %q not found", samp.ID, method.Name)
 		}
-		if iface.Name == "" {
+		if iface.Name != samp.Service {
 			return errors.E(nil, "generating sample %q: service %q not found", samp.ID, iface.Name)
 		}
 
 		gen.reset()
 		if err := gen.genSample(samp, method); err != nil {
-
-			err = errors.E(err, "generating: %s:%s", iface.Name+"."+method.Name, samp.ID)
+			err = errors.E(err, "generating: %s.%s:%s", iface.Name, method.Name, samp.ID)
 			log.Fatal(err)
 		}
 
