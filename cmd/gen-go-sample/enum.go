@@ -43,7 +43,7 @@ func enumFmt(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) func(*gener
 	}
 }
 
-// goTypeForEnum returns the Go Type name of a protobuf enum type.
+// goTypeForEnum returns the Go type name of a protobuf enum type.
 func goTypeForEnum(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) (string, error) {
 	parts, impSpec, err := ancestors(info, enum)
 	if err != nil {

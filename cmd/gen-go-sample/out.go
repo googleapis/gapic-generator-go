@@ -21,6 +21,7 @@ import (
 	"text/scanner"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
@@ -96,7 +97,7 @@ func (st *symTab) disambiguate(ident string, typ initType) string {
 	return ident
 }
 
-func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
+func writeOutputSpec(out schema_v1p2.ResponseConfig, st *symTab, gen *generator) error {
 	used := 0
 	var err error
 
@@ -208,7 +209,7 @@ func writeDump(fnFmt string, fnArgs []string, contPath string, st *symTab, gen *
 	return nil
 }
 
-func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
+func writeLoop(l *schema_v1p2.LoopSpec, st *symTab, gen *generator) error {
 	if l.Variable == "" {
 		return errors.E(nil, "variable not specified for looping over arrays")
 	}
@@ -236,7 +237,7 @@ func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
 	return nil
 }
 
-func writeMap(l *LoopSpec, st *symTab, gen *generator) error {
+func writeMap(l *schema_v1p2.LoopSpec, st *symTab, gen *generator) error {
 	if l.Key == "" && l.Value == "" {
 		return errors.E(nil, "at least one of key and value should be specified for looping over maps")
 	}

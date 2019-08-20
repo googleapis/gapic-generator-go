@@ -28,6 +28,9 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
+// emtyObjectLiteral initializes a node in initTree as an empty object
+const emptyObjectLiteral = "{}"
+
 // initType represents a type of a value in initialization tree.
 //
 // In protobuf, array-ness and map-ness are properties of fields, not types,
@@ -184,72 +187,60 @@ func (t *initTree) index(k string) *initTree {
 	return v
 }
 
-// Just do simple structs for now.
-// TODO(pongad): allow map and array index.
-//
-// spec = path [ '=' value ] .
-func (t *initTree) parseInit(txt string, info pbinfo.Info) error {
+// parseInit adds a node to this initTree with given a field path and the default value
+// of the node.
+// TODO(hzyi): allow map index.
+func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error {
 	// The first ident is treated specially to be a member of the root.
 	// Since we know the root is a struct, a dot is the only legal token anyway,
 	// so just insert a dot here so we don't need to treat the first token specially.
-	sc, report := initScanner("." + txt)
+	sc, report := initScanner("." + path)
 
-	t, r, err := t.parsePathRest(sc, info)
+	t, _, err := t.parsePathRest(sc, info)
 	if err != nil {
 		return report(err)
 	}
-	if r != '=' {
-		return report(errors.E(nil, "expected '=', got %q", r))
+	if lv := t.leafVal; lv != "" {
+		return report(errors.E(nil, "value already set to %q", lv))
 	}
 
-	// TODO(pongad): handle resource names
-	switch r := sc.Scan(); r {
-	case scanner.Int, scanner.Float, scanner.String, scanner.Ident:
-		if lv := t.leafVal; lv != "" {
-			return report(errors.E(nil, "value already set to %q", lv))
+	switch desc := t.typ.desc.(type) {
+	case *descriptor.DescriptorProto:
+		if value != emptyObjectLiteral {
+			return report(errors.E(nil, "invalid value for message: expecting %q, found %q", emptyObjectLiteral, value))
 		}
-
-		tok := sc.TokenText()
-
-		if enum, ok := t.typ.desc.(*descriptor.EnumDescriptorProto); ok {
-			valid := false
-			for _, enumVal := range enum.Value {
-				if tok == enumVal.GetName() {
-					valid = true
-					break
-				}
-			}
-			if !valid {
-				return report(errors.E(nil, "invalid value for type %q: %q", enum.GetName(), tok))
-			}
-			t.typ.valFmt = enumFmt(info, enum)
-		} else {
-			pType := t.typ.prim
-			validPrim := validPrims[pType]
-			if validPrim == nil {
-				return report(errors.E(nil, "not a primitive type? %q", pType))
-			}
-			if !validPrim(tok) {
-				return report(errors.E(nil, "invalid value for type %q: %q", pType, tok))
-			}
-			if t.typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
-				t.typ.valFmt = bytesFmt()
+		return nil
+	case *descriptor.EnumDescriptorProto:
+		valid := false
+		for _, enumVal := range desc.Value {
+			if value == enumVal.GetName() {
+				valid = true
+				break
 			}
 		}
-		t.leafVal = tok
-
-	case '{':
-		if r := sc.Scan(); r != '}' {
-			return report(errors.E(nil, "bad format: expected '}', found %q", r))
+		if !valid {
+			return report(errors.E(nil, "invalid value for type %q: %q", desc.GetName(), value))
 		}
-
+		t.typ.valFmt = enumFmt(info, desc)
 	default:
-		return report(errors.E(nil, "expected value, found %q", sc.TokenText()))
+		pType := t.typ.prim
+		validPrim := validPrims[pType]
+		if validPrim == nil {
+			return report(errors.E(nil, "not a primitive type: %q", pType))
+		}
+		if !validPrim(value) {
+			return report(errors.E(nil, "invalid value for type %q: %q", pType, value))
+		}
+		if pType == descriptor.FieldDescriptorProto_TYPE_BYTES {
+			value = fmt.Sprintf("%q", value)
+			t.typ.valFmt = bytesFmt()
+		}
+		// We need to quote string literals
+		if pType == descriptor.FieldDescriptorProto_TYPE_STRING {
+			value = fmt.Sprintf("%q", value)
+		}
 	}
-
-	if sc.Scan() != scanner.EOF {
-		return report(errors.E(nil, "expected EOF, found %q", sc.TokenText()))
-	}
+	t.leafVal = value
 	return report(nil)
 }
 
