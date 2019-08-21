@@ -16,8 +16,8 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha1"
 	"encoding/json"
+	"encoding/base32"
 	"flag"
 	"fmt"
 	"go/format"
@@ -28,7 +28,7 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"encoding/hex"
+  "crypto/sha256"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -282,13 +282,16 @@ func (g *generator) disambiguateSampleIDs() error {
 	}
 
 	for i := range samples {
-		if idCount[samples[i].ID] > 1 {
+		// Generate a sample ID when the user-provided ID is empty not unique
+		if samples[i].ID == "" || idCount[samples[i].ID] > 1 {
 			jsonStr, err := json.Marshal(samples[i])
 			if err != nil {
 				return err
 			}
-			b := sha1.Sum(jsonStr)
-			samples[i].ID += hex.EncodeToString(b[:])
+			checkSum := sha256.Sum256([]byte(jsonStr))
+			encodedStr := base32.StdEncoding.EncodeToString(checkSum[:])
+			suffix := string([]rune(encodedStr)[0:8])
+			samples[i].ID += suffix
 		}
 	}
 	return nil

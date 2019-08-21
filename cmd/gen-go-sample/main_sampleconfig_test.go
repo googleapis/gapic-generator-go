@@ -56,11 +56,11 @@ func TestDisambiguateRepeatedSampleIDs(t *testing.T) {
 	}
 
 	gen.disambiguateSampleIDs()
-	if gen.sampleConfig.Samples[0].ID != "sample0869f447dbdb23e5b6b08dec51059198ce28c361a" {
-		t.Fatal(errors.E(nil, `expected "sample0869f447dbdb23e5b6b08dec51059198ce28c361a", got %q`, gen.sampleConfig.Samples[0].ID))
+	if gen.sampleConfig.Samples[0].ID != "sample0WRAP2GEJ" {
+		t.Fatal(errors.E(nil, `expected "sample0WRAP2GEJ", got %q`, gen.sampleConfig.Samples[0].ID))
 	}
-	if gen.sampleConfig.Samples[1].ID != "sample019c7d6dbf4468cafdf72661f33c5b415108b807e" {
-		t.Fatal(errors.E(nil, `expected "sample019c7d6dbf4468cafdf72661f33c5b415108b807e", got %q`, gen.sampleConfig.Samples[1].ID))
+	if gen.sampleConfig.Samples[1].ID != "sample05ITXN42C" {
+		t.Fatal(errors.E(nil, `expected "sample05ITXN42C", got %q`, gen.sampleConfig.Samples[1].ID))
 	}
 	if gen.sampleConfig.Samples[2].ID != "sample1" {
 		t.Fatal(errors.E(nil, `expected "sample1", got %q`, gen.sampleConfig.Samples[2].ID))
@@ -79,11 +79,11 @@ func TestDisambiguateRepeatedSampleIDsFromRegionTags(t *testing.T) {
 	}
 
 	gen.disambiguateSampleIDs()
-	if gen.sampleConfig.Samples[0].ID != "sample0869f447dbdb23e5b6b08dec51059198ce28c361a" {
-		t.Fatal(errors.E(nil, `expected "sample0869f447dbdb23e5b6b08dec51059198ce28c361a", got %q`, gen.sampleConfig.Samples[0].ID))
+	if gen.sampleConfig.Samples[0].ID != "sample0WRAP2GEJ" {
+		t.Fatal(errors.E(nil, `expected "sample0WRAP2GEJ", got %q`, gen.sampleConfig.Samples[0].ID))
 	}
-	if gen.sampleConfig.Samples[1].ID != "sample01cd8282ddcf344fc77617c2ed0cbae7c7a0bd637" {
-		t.Fatal(errors.E(nil, `expected "sample01cd8282ddcf344fc77617c2ed0cbae7c7a0bd637", got %q`, gen.sampleConfig.Samples[1].ID))
+	if gen.sampleConfig.Samples[1].ID != "sample0QAE76E4S" {
+		t.Fatal(errors.E(nil, `expected "sample0QAE76E4S", got %q`, gen.sampleConfig.Samples[1].ID))
 	}
 	if gen.sampleConfig.Samples[2].ID != "sample1" {
 		t.Fatal(errors.E(nil, `expected "sample2", got %q`, gen.sampleConfig.Samples[2].ID))
