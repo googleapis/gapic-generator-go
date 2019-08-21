@@ -16,8 +16,9 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"crypto/sha256"
 	"encoding/base32"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"go/format"
@@ -28,7 +29,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-  "crypto/sha256"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
