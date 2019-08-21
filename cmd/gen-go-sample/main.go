@@ -16,6 +16,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"go/format"
@@ -41,6 +43,7 @@ func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
 	clientPkg := flag.String("clientpkg", "", "the package of the client, in format 'url/to/client/pkg;name'")
+	samplePath := flag.String("samples", "", "either the path to a sample config yaml or a directory containing sample config yamls. If it is a directory, the generator will look for sample config yamls in this directory recursively.")
 	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
 	outDir := flag.String("o", ".", "directory to write samples to")
 	flag.Parse()
@@ -82,7 +85,12 @@ func main() {
 		donec <- struct{}{}
 	}()
 
-	// TODO(hzyi): Read sample config
+	go func() {
+		if err := readSampleConfigs(&gen, *samplePath); err != nil {
+			log.Fatal(err)
+		}
+		donec <- struct{}{}
+	}()
 
 	if err := os.MkdirAll(*outDir, 0755); err != nil {
 		log.Fatal(err)
@@ -90,21 +98,77 @@ func main() {
 
 	<-donec
 	<-donec
+	<-donec
 
-	if err := genMethodSamples(&gen, gen.sampleConfig, *nofmt, *outDir); err != nil {
+	if err := genMethodSamples(&gen, *nofmt, *outDir); err != nil {
 		log.Fatal(err)
 	}
 
 }
 
-func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt bool, outDir string) error {
-	for _, samp := range sampConf.Samples {
+func readSampleConfigs(gen *generator, path string) error {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return errors.E(err, "cannot read sample config files")
+	}
+	switch mode := fi.Mode(); {
+	case mode.IsDir():
+		var sc schema_v1p2.SampleConfig
+		err := filepath.Walk(path,
+			func(p string, info os.FileInfo, err error) error {
+				if err != nil {
+					return errors.E(err, "cannot read sample config file: %s", p)
+				}
+				if info.IsDir() || !strings.HasSuffix(p, ".yaml") {
+					// ignore directories and non-YAML files
+					return nil
+				}
+
+				f, err := os.Open(p)
+				if err != nil {
+					return errors.E(err, "cannot read sample config file: %s", p)
+				}
+
+				if err := yaml.NewDecoder(f).Decode(&sc); err != nil {
+					// ignore unrecognized YAML files
+					return nil
+				}
+				if sc.Type != "com.google.api.codegen.samplegen.v1p2.SampleConfigProto" {
+					// ignore non sample config files
+					return nil
+				}
+				if sc.Version != "1.2.0" {
+					// ignore unsupported versions
+					return nil
+				}
+				gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, sc.Samples...)
+				return nil
+			})
+		if err != nil {
+			return err
+		}
+
+	case mode.IsRegular():
+		f, err := os.Open(path)
+		if err != nil {
+			return errors.E(err, "cannot read sample config file: %s", path)
+		}
+		if err := yaml.NewDecoder(f).Decode(&gen.sampleConfig); err != nil {
+			return errors.E(err, "invalid sample config format: %s", path)
+		}
+	}
+	return nil
+}
+
+func genMethodSamples(gen *generator, nofmt bool, outDir string) error {
+	gen.disambiguateSampleIDs()
+	for _, samp := range gen.sampleConfig.Samples {
 		var iface GAPICInterface
 		var method GAPICMethod
 		for _, iface = range gen.gapic.Interfaces {
 			if iface.Name == samp.Service {
 				for _, method = range iface.Methods {
-					if method.Name != samp.Rpc {
+					if method.Name == samp.Rpc {
 						break
 					}
 				}
@@ -113,14 +177,14 @@ func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt b
 		}
 
 		if method.Name != samp.Rpc {
-			return errors.E(nil, "generating sample %q: rpc %q not found", samp.ID, method.Name)
+			return errors.E(nil, "generating sample %q: rpc %q not found", samp.ID, samp.Rpc)
 		}
 		if iface.Name != samp.Service {
-			return errors.E(nil, "generating sample %q: service %q not found", samp.ID, iface.Name)
+			return errors.E(nil, "generating sample %q: service %q not found", samp.ID, samp.Service)
 		}
 
 		gen.reset()
-		if err := gen.genSample(samp, method); err != nil {
+		if err := gen.genSample(*samp, method); err != nil {
 			err = errors.E(err, "generating: %s.%s:%s", iface.Name, method.Name, samp.ID)
 			log.Fatal(err)
 		}
@@ -129,7 +193,7 @@ func genMethodSamples(gen *generator, sampConf schema_v1p2.SampleConfig, nofmt b
 		if err != nil {
 			return err
 		}
-		// TODO(hzyi): Handle duplicate sample IDs
+
 		fname := samp.ID + ".go"
 		if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
 			return err
@@ -201,6 +265,32 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 		b = b2
 	}
 	return b, nil
+}
+
+func (g *generator) disambiguateSampleIDs() error {
+	idCount := make(map[string]int)
+	samples := g.sampleConfig.Samples
+	for i := range samples {
+		// default ID to region tag
+		if samples[i].ID == "" {
+			samples[i].ID = samples[i].RegionTag
+		}
+		if samples[i].ID != "" {
+			idCount[samples[i].ID]++
+		}
+	}
+
+	for i := range samples {
+		if idCount[samples[i].ID] > 1 {
+			jsonStr, err := json.Marshal(samples[i])
+			if err != nil {
+				return err
+			}
+			b := sha256.Sum256(jsonStr)
+			samples[i].ID = string(b[:])
+		}
+	}
+	return nil
 }
 
 func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {

@@ -24,7 +24,7 @@ import (
 // Functions only perform cursory checking; since we use scanner for tokenizing,
 // they must already be a valid token of some type.
 var validPrims = [...]func(string) bool{
-	descriptor.FieldDescriptorProto_TYPE_BOOL: func(s string) bool { return s == "true" || s == "false" },
+	descriptor.FieldDescriptorProto_TYPE_BOOL: func(s string) bool { return s == "true" || s == "false" || s == "True" || s == "False" },
 
 	descriptor.FieldDescriptorProto_TYPE_BYTES:  validStrings,
 	descriptor.FieldDescriptorProto_TYPE_STRING: validStrings,

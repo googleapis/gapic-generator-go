@@ -30,7 +30,7 @@ type GAPICMethod struct {
 	// map[fieldName]ResourceName.EntityName
 	FieldNamePatterns map[string]string `yaml:"field_name_patterns"`
 
-	LongRunning LongRunningConfig `yaml: "long_running"`
+	LongRunning LongRunningConfig `yaml:"long_running"`
 }
 
 type ResourceName struct {
@@ -40,6 +40,6 @@ type ResourceName struct {
 
 // All other fields are left out because samples do not need to know polling config, and we are moving to annotations anyway
 type LongRunningConfig struct {
-	ReturnType   string `yaml: "return_type"`
-	MetadataType string `yaml: "metadata_type"`
+	ReturnType   string `yaml:"return_type"`
+	MetadataType string `yaml:"metadata_type"`
 }
