@@ -41,6 +41,10 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+const expectedSampleConfigType = "com.google.api.codegen.samplegen.v1p2.SampleConfigProto"
+const expectedSampleConfigVersion = "1.2.0"
+
+
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
@@ -138,11 +142,11 @@ func readSampleConfigs(gen *generator, path string) error {
 					// ignore unrecognized YAML files
 					return nil
 				}
-				if sc.Type != "com.google.api.codegen.samplegen.v1p2.SampleConfigProto" {
+				if sc.Type != expectedSampleConfigType {
 					// ignore non sample config files
 					return nil
 				}
-				if sc.Version != "1.2.0" {
+				if sc.Version != expectedSampleConfigVersion {
 					// ignore unsupported versions
 					return nil
 				}
@@ -160,6 +164,12 @@ func readSampleConfigs(gen *generator, path string) error {
 		}
 		if err := yaml.NewDecoder(f).Decode(&gen.sampleConfig); err != nil {
 			return errors.E(err, "invalid sample config format: %s", path)
+		}
+		if gen.sampleConfig.Type != expectedSampleConfigType {
+			return errors.E(nil, `unsupported type: expected "com.google.api.codegen.samplegen.v1p2.SampleConfigProto", got %q`, gen.sampleConfig.Type)
+		}
+		if gen.sampleConfig.Version != expectedSampleConfigVersion {
+			return errors.E(nil, `unsupported schema_version: expected 1.2.0, got %s`, gen.sampleConfig.Version)
 		}
 	}
 	return nil
