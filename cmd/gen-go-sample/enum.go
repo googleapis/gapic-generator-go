@@ -15,43 +15,64 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
+// enumFmt returns a function that transforms a protobuf enum value literal into its corresponding Go const.
 func enumFmt(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) func(*generator, string) (string, error) {
-	return func(g *generator, s string) (string, error) {
-		var element pbinfo.ProtoType = enum
-		var topElement pbinfo.ProtoType
-		var parts []string
-
-		for ; element != nil; element = info.ParentElement[element] {
-			parts = append(parts, element.GetName())
-			topElement = element
+	return func(g *generator, value string) (string, error) {
+		parts, impSpec, err := ancestors(info, enum)
+		if err != nil {
+			return "", err
 		}
-
 		if len(parts) > 1 {
 			// An enum is scoped using C++ rule. If MessageType contains EnumType,
 			// then elements are accessed as MessageType.Element, not MessageType.EnumType.Element.
 			//
 			// An exception to this rule is top-level enums, where len(parts)==1; they are qualified by
 			// EnumType.
-			parts = parts[1:]
+			parts = parts[:len(parts)-1]
 		}
 
-		// We made array in [child, parent, grandparent] order, we want grandparent fist.
-		for i := 0; i < len(parts)/2; i++ {
-			parts[i], parts[len(parts)-1-i] = parts[len(parts)-1-i], parts[i]
-		}
-
-		impSpec, err := info.ImportSpec(topElement)
-		if err != nil {
-			return "", err
-		}
-		g.imports[impSpec] = true
-
-		return impSpec.Name + "." + strings.Join(parts, "_") + "_" + s, nil
+		formattedName := fmt.Sprintf("%s.%s_%s", impSpec.Name, strings.Join(parts, "_"), value)
+		return formattedName, nil
 	}
+}
+
+// goTypeForEnum returns the Go type name of a protobuf enum type.
+func goTypeForEnum(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) (string, error) {
+	parts, impSpec, err := ancestors(info, enum)
+	if err != nil {
+		return "", err
+	}
+	typeName := fmt.Sprintf("%s.%s", impSpec.Name, strings.Join(parts, "_"))
+	return typeName, nil
+}
+
+// ancestors returns the names of all the types down to `enum` (`enum` itself included), and the ImportSpec of `enum`.
+func ancestors(info pbinfo.Info, enum *descriptor.EnumDescriptorProto) ([]string, pbinfo.ImportSpec, error) {
+	var element pbinfo.ProtoType = enum
+	var topElement pbinfo.ProtoType
+	var parts []string
+
+	for ; element != nil; element = info.ParentElement[element] {
+		parts = append(parts, element.GetName())
+		topElement = element
+	}
+
+	// We made array in [child, parent, grandparent] order, we want grandparent fist.
+	for i := 0; i < len(parts)/2; i++ {
+		opp := len(parts) - 1 - i
+		parts[i], parts[opp] = parts[opp], parts[i]
+	}
+
+	impSpec, err := info.ImportSpec(topElement)
+	if err != nil {
+		return []string{}, pbinfo.ImportSpec{}, err
+	}
+	return parts, impSpec, nil
 }

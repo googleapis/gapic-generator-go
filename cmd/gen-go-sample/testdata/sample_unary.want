@@ -55,13 +55,12 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) e
 			Y: 3.14159,
 		},
 		B: theB,
-		E: foopb.AType_FOO,
+		E: foopb.AType_BANANA,
 		Group: &foopb.InputType_F{
 			F: "in a oneof",
 		},
 		Bytes: []byte("mybytes"),
 		DataAlice: dataAlice,
-		DataBob: bobFileBytes,
 		AArray: []*foopb.AType{
 			&foopb.AType{
 				X: 0,
@@ -72,6 +71,7 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) e
 				Y: 3,
 			},
 		},
+		DataBob: bobFileBytes,
 	}
 	resp, err := c.UnaryMethod(ctx, req)
 	if err != nil {

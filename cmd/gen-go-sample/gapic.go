@@ -25,62 +25,12 @@ type GAPICInterface struct {
 }
 
 type GAPICMethod struct {
-	Name            string
-	SampleValueSets []SampleValueSet `yaml:"sample_value_sets"`
-	Samples         struct {
-		Standalone []GAPICSample
-	}
+	Name string
 
 	// map[fieldName]ResourceName.EntityName
 	FieldNamePatterns map[string]string `yaml:"field_name_patterns"`
 
 	LongRunning LongRunningConfig `yaml: "long_running"`
-}
-
-type SampleValueSet struct {
-	ID         string
-	Parameters SampleParameter
-	OnSuccess  []OutputSpec `yaml:"on_success"`
-}
-
-type SampleParameter struct {
-	Defaults   []string
-	Attributes []SampleAttribute
-}
-
-type SampleAttribute struct {
-	Parameter          string
-	SampleArgumentName string `yaml:"sample_argument_name"`
-	ReadFile           bool   `yaml:"read_file"`
-}
-
-type GAPICSample struct {
-	ValueSets []string `yaml:"value_sets"`
-
-	// TODO(pongad): Does this mean multiple samples have the same tag?
-	RegionTag string `yaml:"region_tag"`
-}
-
-type OutputSpec struct {
-	Comment   []string
-	Define    string
-	Print     []string
-	Loop      *LoopSpec
-	WriteFile *WriteFileSpec
-}
-
-type LoopSpec struct {
-	Collection string
-	Map        string
-	Variable   string
-	Key        string
-	Value      string
-	Body       []OutputSpec
-}
-
-type WriteFileSpec struct {
-	Contents string
-	FileName []string
 }
 
 type ResourceName struct {

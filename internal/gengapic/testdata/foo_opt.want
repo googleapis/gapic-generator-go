@@ -10,12 +10,16 @@ func defaultFooClientOptions() []option.ClientOption {
 		option.WithEndpoint("foo.bar.com:443"),
 		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
 		option.WithScopes(DefaultAuthScopes()...),
+		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
 	}
 }
 
 func defaultFooCallOptions() *FooCallOptions {
 	return &FooCallOptions{
 		Zip: []gax.CallOption{
+			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(123456)),
+			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(123456)),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnCodes([]codes.Code{
 					codes.Unknown,
@@ -27,6 +31,8 @@ func defaultFooCallOptions() *FooCallOptions {
 			}),
 		},
 		Zap: []gax.CallOption{
+			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnCodes([]codes.Code{
 					codes.Unknown,
@@ -38,6 +44,8 @@ func defaultFooCallOptions() *FooCallOptions {
 			}),
 		},
 		Smack: []gax.CallOption{
+			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnCodes([]codes.Code{
 					codes.Unknown,

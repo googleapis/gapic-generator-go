@@ -28,11 +28,11 @@ func typep(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorPr
 }
 
 func TestTree(t *testing.T) {
-	specs := []string{
-		`a.b = 1`,
-		`a.c = "xyz"`,
-		`a.d = 2.718281828`,
-		`x = true`,
+	fieldVals := [][]string{
+		{"a.b", "1"},
+		{"a.c", "xyz"},
+		{"a.d", "2.718281828"},
+		{"x", "true"},
 	}
 
 	info := pbinfo.Info{
@@ -56,8 +56,8 @@ func TestTree(t *testing.T) {
 	root := initTree{
 		typ: initType{desc: info.Type["RootType"]},
 	}
-	for _, s := range specs {
-		if err := root.parseInit(s, info); err != nil {
+	for _, fv := range fieldVals {
+		if err := root.parseInit(fv[0], fv[1], info); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -97,16 +97,16 @@ func TestTreeErrors(t *testing.T) {
 	}
 
 testcase:
-	for _, tst := range [][]string{
-		{`3=4`}, // bad field name
+	for _, tst := range [][][]string{
+		{{"3", "4"}}, // bad field name
 
-		{`a=1`, `a=2`},      // sets same node twice
-		{`a="abc"`},         // type is int64, value is string
-		{`unknown_field=3`}, // field doesn't exist
+		{{"a", "1"}, {"a", "2"}}, // sets same node twice
+		{{"a", "abc"}},           // type is int64, value is string
+		{{"unknown_field", "3"}}, // field doesn't exist
 	} {
 		root := initTree{typ: initType{desc: info.Type["RootType"]}}
 		for _, txt := range tst {
-			if root.parseInit(txt, info) != nil {
+			if root.parseInit(txt[0], txt[1], info) != nil {
 				continue testcase
 			}
 		}

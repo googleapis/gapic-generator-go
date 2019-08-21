@@ -21,6 +21,7 @@ import (
 	"text/scanner"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
@@ -75,7 +76,28 @@ func (st *symTab) put(ident string, typ initType) error {
 	return nil
 }
 
-func writeOutputSpec(out OutputSpec, st *symTab, gen *generator) error {
+// disambiguate calculates a unique name based on `ident`, saves
+// the new variable name and `typ` to this symbol table, and returns
+// the calculated unique name.
+//
+// If `ident` is already unique, it is used as the output.
+// If `ident` is not unique, this method keeps appending a numeric
+// suffix in the sequence of 1, 2, 3..., until a unique name is found.
+func (st *symTab) disambiguate(ident string, typ initType) string {
+	base := ident
+	sf := 1
+	_, ok := st.scope[ident]
+	for ok {
+		sf++
+		ident = fmt.Sprintf("%s%d", base, sf)
+		_, ok = st.scope[ident]
+	}
+	// We just checked that `ident` is not in the table, so we can safely swallow the error below
+	st.put(ident, typ)
+	return ident
+}
+
+func writeOutputSpec(out schema_v1p2.ResponseConfig, st *symTab, gen *generator) error {
 	used := 0
 	var err error
 
@@ -187,7 +209,7 @@ func writeDump(fnFmt string, fnArgs []string, contPath string, st *symTab, gen *
 	return nil
 }
 
-func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
+func writeLoop(l *schema_v1p2.LoopSpec, st *symTab, gen *generator) error {
 	if l.Variable == "" {
 		return errors.E(nil, "variable not specified for looping over arrays")
 	}
@@ -215,7 +237,7 @@ func writeLoop(l *LoopSpec, st *symTab, gen *generator) error {
 	return nil
 }
 
-func writeMap(l *LoopSpec, st *symTab, gen *generator) error {
+func writeMap(l *schema_v1p2.LoopSpec, st *symTab, gen *generator) error {
 	if l.Key == "" && l.Value == "" {
 		return errors.E(nil, "at least one of key and value should be specified for looping over maps")
 	}
@@ -269,11 +291,8 @@ func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
 	}
 	buf.WriteString("\n")
 	prependLines(&buf, "// ", false)
-	cmts := strings.Split(buf.String(), "\n")
-	for i, c := range(cmts) {
-		if i == len(cmts) - 1 {
-			continue
-		}
+	cmts := strings.TrimRight(buf.String(), "\n")
+	for _, c := range strings.Split(cmts, "\n") {
 		gen.pt.Printf(c)
 	}
 	return nil
