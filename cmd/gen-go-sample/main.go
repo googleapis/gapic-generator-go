@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -59,8 +60,11 @@ func main() {
 		log.Fatalf("need -clientPkg in 'url/to/client/pkg;name' format, got %q", *clientPkg)
 	}
 
-	donec := make(chan struct{})
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		f, err := os.Open(*gapicFname)
 		if err != nil {
 			log.Fatal(errors.E(err, "cannot read GAPIC config file"))
@@ -70,9 +74,11 @@ func main() {
 		if err := yaml.NewDecoder(f).Decode(&gen.gapic); err != nil {
 			log.Fatal(errors.E(err, "error reading GAPIC config file"))
 		}
-		donec <- struct{}{}
 	}()
+
+	wg.Add(2)
 	go func() {
+		defer wg.Done()
 		descBytes, err := ioutil.ReadFile(*descFname)
 		if err != nil {
 			log.Fatal(errors.E(err, "cannot read proto descriptor file"))
@@ -83,23 +89,21 @@ func main() {
 		}
 
 		gen.descInfo = pbinfo.Of(gen.desc.GetFile())
-		donec <- struct{}{}
 	}()
 
+	wg.Add(3)
 	go func() {
+		defer wg.Done()
 		if err := readSampleConfigs(&gen, *samplePath); err != nil {
 			log.Fatal(err)
 		}
-		donec <- struct{}{}
 	}()
 
 	if err := os.MkdirAll(*outDir, 0755); err != nil {
 		log.Fatal(err)
 	}
 
-	<-donec
-	<-donec
-	<-donec
+	wg.Wait()
 
 	if err := genMethodSamples(&gen, *nofmt, *outDir); err != nil {
 		log.Fatal(err)
@@ -110,7 +114,7 @@ func main() {
 func readSampleConfigs(gen *generator, path string) error {
 	fi, err := os.Stat(path)
 	if err != nil {
-		return errors.E(err, "cannot read sample config files")
+		return errors.E(err, "cannot read sample config files: %s", path)
 	}
 	switch mode := fi.Mode(); {
 	case mode.IsDir():
