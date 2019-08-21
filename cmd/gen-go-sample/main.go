@@ -76,7 +76,7 @@ func main() {
 		}
 	}()
 
-	wg.Add(2)
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		descBytes, err := ioutil.ReadFile(*descFname)
@@ -91,7 +91,7 @@ func main() {
 		gen.descInfo = pbinfo.Of(gen.desc.GetFile())
 	}()
 
-	wg.Add(3)
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		if err := readSampleConfigs(&gen, *samplePath); err != nil {
