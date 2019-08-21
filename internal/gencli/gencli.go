@@ -302,6 +302,7 @@ func (g *gcli) buildOneOfSelectors(cmd *Command, msg *desc.MessageDescriptor, pr
 			Type:     descriptor.FieldDescriptorProto_TYPE_STRING,
 			OneOfs:   make(map[string]*Flag),
 			Required: true,
+			Usage:    buildOneOfUsage(field),
 		}
 
 		flag.FieldName = title(flag.Name)
@@ -686,4 +687,19 @@ func (g *gcli) parseParameters(params *string) (err error) {
 	}
 
 	return
+}
+
+func buildOneOfUsage(oneof *desc.OneOfDescriptor) string {
+	var usage strings.Builder
+	fmt.Fprint(&usage, "Choices:")
+
+	for _, choice := range oneof.GetChoices() {
+		fmt.Fprintf(&usage, " %s,", choice.GetName())
+	}
+
+	// remove trailing comma
+	u := usage.String()
+	u = u[:len(u)-1]
+
+	return u
 }
