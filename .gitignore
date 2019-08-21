@@ -20,3 +20,6 @@ Session.vim
 
 # Temporary
 *~
+
+# Bazel directories
+bazel-*
