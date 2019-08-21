@@ -16,7 +16,7 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha256"
+	"crypto/sha1"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -28,6 +28,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"encoding/hex"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -286,8 +287,8 @@ func (g *generator) disambiguateSampleIDs() error {
 			if err != nil {
 				return err
 			}
-			b := sha256.Sum256(jsonStr)
-			samples[i].ID = string(b[:])
+			b := sha1.Sum(jsonStr)
+			samples[i].ID += hex.EncodeToString(b[:])
 		}
 	}
 	return nil
