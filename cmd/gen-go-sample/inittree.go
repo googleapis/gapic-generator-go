@@ -44,6 +44,8 @@ type initType struct {
 	namePat *namePattern
 	prim    descriptor.FieldDescriptorProto_Type
 
+	// repeated is set to true when the field is a protobuf repeated field.
+	// repeated should be set to false when the field is a protobuf map field.
 	repeated bool
 
 	// keyType and valueType are set if the type is a protobuf map
@@ -54,6 +56,16 @@ type initType struct {
 	// NOTE(pongad): This func signature might seem too general. I think it is just general enough
 	// to deal with enums and bytes. Time will tell.
 	valFmt func(*generator, string) (string, error)
+}
+
+func (t *initType) isMap() (bool, error) {
+	if t.keyType != nil && t.valueType != nil {
+		return true, nil
+	}
+	if t.keyType == nil && t.valueType == nil {
+		return false, nil
+	}
+	return false, errors.E(nil, "internal: only one of keyType and valueType is set.")
 }
 
 // initTree represents a node in the initialization tree.
@@ -70,6 +82,10 @@ type initTree struct {
 
 	// Text of the literal. If the literal is a string, it's already quoted.
 	leafVal string
+
+	// parent tracks the parent type of this type.
+	// The parent of root is nil
+	parent *initTree
 }
 
 // initInfo represents all the information needed to construct the request object.
@@ -115,10 +131,12 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 	}
 
 	v := new(initTree)
+	v.parent = t
 	for _, f := range fields {
 		if f.GetName() != k {
 			continue
 		}
+		v.typ.repeated = f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 
 		if tn := f.GetTypeName(); tn == "" {
 			// We're a primitive type.
@@ -155,10 +173,10 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 							}
 						}
 					}
+					v.typ.repeated = false
 				}
 			}
 		}
-		v.typ.repeated = f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 
 		break
 	}
@@ -181,6 +199,23 @@ func (t *initTree) index(k string) *initTree {
 	v := new(initTree)
 	v.typ = t.typ
 	v.typ.repeated = false
+	v.parent = t
+
+	t.keys = append(t.keys, k)
+	t.vals = append(t.vals, v)
+	return v
+}
+
+func (t *initTree) indexMap(k string) *initTree {
+	for i, key := range t.keys {
+		if k == key {
+			return t.vals[i]
+		}
+	}
+
+	v := new(initTree)
+	v.parent = t
+	v.typ = *t.typ.valueType
 
 	t.keys = append(t.keys, k)
 	t.vals = append(t.vals, v)
@@ -253,6 +288,7 @@ func (t *initTree) parseSampleArgPath(txt string, info pbinfo.Info, varName stri
 
 	var cp initTree
 	cp = *t
+	cp.parent = nil
 	*t = initTree{leafVal: varName}
 
 	return &cp, report(nil)
@@ -301,10 +337,32 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 
 			t = t.index(indVal)
 
-		case '{'
-			if !t.typ
+		case '{':
+			isMap, err := t.typ.isMap()
+			if err != nil {
+				return nil, r, err
+			}
+			if !isMap {
+				return nil, r, errors.E(nil, "cannot index into a non-map field")
+			}
 
-
+			var tokVal string
+			if r := sc.Scan(); r == scanner.Int || r == scanner.String || r == scanner.Ident {
+				// Note we don't yet support use a locally defined a variable (by the `define:` directive)
+				// as a map key. scanner.Ident is here to handle the case when key is a bool value, as
+				// `true` and `false` (without quote) are parsed as scanner.Ident.
+				tokVal = sc.TokenText()
+				validPrim := validPrims[t.typ.keyType.prim]
+				if !validPrim(tokVal) {
+					return nil, r, errors.E(nil, "invalid value for type %q: %q", t.typ.keyType.prim, tokVal)
+				}
+			} else {
+				return nil, r, errors.E(nil, "expected string, integer or bool, got %q", tokVal)
+			}
+			if r := sc.Scan(); r != '}' {
+				return nil, r, errors.E(nil, "expected '}', found %q", sc.TokenText())
+			}
+			t = t.indexMap(tokVal)
 
 		default:
 			return t, r, nil

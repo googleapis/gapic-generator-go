@@ -155,12 +155,25 @@ func writeDefine(txt string, st *symTab, gen *generator) error {
 		return report(errors.E(nil, "expecting '=', got %s", sc.TokenText()))
 	}
 
-	path, typ, err := writePath(sc, st, gen.descInfo)
+	path, itree, err := writePath(sc, st, gen.descInfo, true)
 	if err != nil {
 		return report(err)
 	}
-	gen.pt.Printf("%s := %s", snakeToCamel(lhs), path)
-	return st.put(lhs, typ)
+	isMapVal, err := itree.parent.typ.isMap()
+	if err != nil {
+		return err
+	}
+	if isMapVal {
+		gen.imports[pbinfo.ImportSpec{Path: "errors"}] = true
+		gen.pt.Printf("%s, ok := %s", snakeToCamel(lhs), path)
+		gen.pt.Printf("if !ok {")
+		gen.pt.Printf(`return errors.New("value not found")`)
+		gen.pt.Printf("}")
+	} else {
+		gen.pt.Printf("%s := %s", snakeToCamel(lhs), path)
+	}
+
+	return st.put(lhs, itree.typ)
 }
 
 var fmtStrReplacer = strings.NewReplacer("%%", "%%", "%s", "%v")
@@ -189,17 +202,17 @@ func writeDump(fnFmt string, fnArgs []string, contPath string, st *symTab, gen *
 	}
 
 	sc, report := initScanner(contPath)
-	cont, typ, err := writePath(sc, st, gen.descInfo)
+	cont, itree, err := writePath(sc, st, gen.descInfo, true)
 	if err != nil {
 		return report(err)
 	}
 
-	if typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
+	if itree.typ.prim == descriptor.FieldDescriptorProto_TYPE_BYTES {
 		gen.pt.Printf("if err := ioutil.WriteFile(%q, %s, 0644); err != nil {\n", fn, cont)
-	} else if typ.prim == descriptor.FieldDescriptorProto_TYPE_STRING && !typ.repeated {
+	} else if itree.typ.prim == descriptor.FieldDescriptorProto_TYPE_STRING && !itree.typ.repeated {
 		gen.pt.Printf("if err := ioutil.WriteFile(%s, bytes[](%s), 0644), err != nil {\n", fn, cont)
 	} else {
-		return errors.E(nil, "illegal type for file contents, expecting string or bytes, got %v", typ)
+		return errors.E(nil, "illegal type for file contents, expecting string or bytes, got %v", itree.typ)
 	}
 
 	gen.pt.Printf("  return err")
@@ -217,7 +230,8 @@ func writeLoop(l *schema_v1p2.LoopSpec, st *symTab, gen *generator) error {
 	p := gen.pt.Printf
 
 	sc, report := initScanner(l.Collection)
-	path, typ, err := writePath(sc, st, gen.descInfo)
+	path, itree, err := writePath(sc, st, gen.descInfo, false)
+	typ := itree.typ
 	if err = report(err); err != nil {
 		return err
 	}
@@ -245,29 +259,31 @@ func writeMap(l *schema_v1p2.LoopSpec, st *symTab, gen *generator) error {
 	p := gen.pt.Printf
 
 	sc, report := initScanner(l.Map)
-	path, typ, err := writePath(sc, st, gen.descInfo)
+	path, itree, err := writePath(sc, st, gen.descInfo, true)
 	if err = report(err); err != nil {
 		return err
 	}
 
-	if typ.keyType == nil || typ.valueType == nil {
+	isMap, err := itree.typ.isMap()
+	if err != nil {
+		return err
+	}
+	if !isMap {
 		return errors.E(nil, "%s is not a map field", l.Map)
 	}
-	keyType := *typ.keyType
-	valueType := *typ.valueType
 
 	stInner := newSymTab(st)
 
 	if l.Value == "" {
 		p("for %s := range %s {", snakeToCamel(l.Key), path)
-		stInner.put(l.Key, keyType)
+		stInner.put(l.Key, *(itree.typ.keyType))
 	} else if l.Key == "" {
 		p("for _, %s := range %s {", snakeToCamel(l.Value), path)
-		stInner.put(l.Value, valueType)
+		stInner.put(l.Value, *(itree.typ.valueType))
 	} else {
 		p("for %s, %s := range %s {", snakeToCamel(l.Key), snakeToCamel(l.Value), path)
-		stInner.put(l.Key, keyType)
-		stInner.put(l.Value, valueType)
+		stInner.put(l.Key, *(itree.typ.keyType))
+		stInner.put(l.Value, *(itree.typ.valueType))
 	}
 
 	for _, b := range l.Body {
@@ -298,24 +314,25 @@ func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
 	return nil
 }
 
-func writePath(sc *scanner.Scanner, st *symTab, info pbinfo.Info) (string, initType, error) {
+func writePath(sc *scanner.Scanner, st *symTab, info pbinfo.Info, isDefine bool) (string, initTree, error) {
+
 	if sc.Scan() != scanner.Ident {
-		return "", initType{}, errors.E(nil, "expecting ident, got %s", sc.TokenText())
+		return "", initTree{}, errors.E(nil, "expecting ident, got %s", sc.TokenText())
 	}
 
 	rootVar := sc.TokenText()
 	rootTyp, ok := st.get(rootVar)
 	if !ok {
-		return "", initType{}, errors.E(nil, "variable not found: %q", rootVar)
+		return "", initTree{}, errors.E(nil, "variable not found: %q", rootVar)
 	}
 
 	itRoot := &initTree{typ: rootTyp}
 	itLeaf, _, err := itRoot.parsePathRest(sc, info)
 	if err != nil {
-		return "", initType{}, err
+		return "", initTree{}, err
 	}
 	if sc.Scan() != scanner.EOF {
-		return "", initType{}, errors.E(nil, "expected EOF, found %q", sc.TokenText())
+		return "", initTree{}, errors.E(nil, "expected EOF, found %q", sc.TokenText())
 	}
 
 	if rootVar == "$resp" {
@@ -331,17 +348,37 @@ func writePath(sc *scanner.Scanner, st *symTab, info pbinfo.Info) (string, initT
 	for it := itRoot; len(it.keys) > 0; it = it.vals[0] {
 		if it.typ.repeated {
 			sb.WriteString("[")
-			sb.WriteString(snakeToPascal(it.keys[0]))
+			sb.WriteString(it.keys[0])
 			sb.WriteString("]")
 			continue
 		}
+
+		isMap, err := it.typ.isMap()
+		if err != nil {
+			return "", initTree{}, err
+		}
+		if isMap {
+			sb.WriteString("[")
+			sb.WriteString(it.keys[0])
+			sb.WriteString("]")
+			if isDefine && len(it.vals[0].keys) == 0 {
+				return sb.String(), *it.vals[0], nil
+			}
+
+			if isDefine && len(it.vals[0].keys) > 0 {
+				return "", initTree{}, errors.E(nil, "accessing fields of a map value object is not allowed in define statements.")
+			}
+
+			return "", initTree{}, errors.E(nil, "indexing into a map field is only allowed in define statements.")
+		}
+
 		// Use Get method instead of direct field access so we properly deal with unset messages.
 		sb.WriteString(".Get")
 		sb.WriteString(snakeToPascal(it.keys[0]))
 		sb.WriteString("()")
 	}
 
-	return sb.String(), itLeaf.typ, nil
+	return sb.String(), *itLeaf, nil
 }
 
 // writePaths translates each path into go field accessors, and joins them by commas.
@@ -351,7 +388,7 @@ func writePaths(args []string, st *symTab, gen *generator) (string, error) {
 		sb.WriteString(", ")
 
 		sc, report := initScanner(arg)
-		path, _, err := writePath(sc, st, gen.descInfo)
+		path, _, err := writePath(sc, st, gen.descInfo, false)
 		if err != nil {
 			return "", report(err)
 		}

@@ -284,7 +284,8 @@ func TestAccessMapKeyValueInResponse(t *testing.T) {
 		Rpc:       "UnaryMethod",
 		RegionTag: "awesome_region",
 		Response: []schema_v1p2.ResponseConfig{
-			{Print: []string{"The value associated with some_key is: ", `$resp.mappy_map{"some_key"}`}},
+			{Define: `my_value = $resp.mappy_map{"my_key"}`},
+			{Print: []string{"The value associated with my_key is: %s", "my_value.x"}},
 		},
 	}
 
@@ -292,6 +293,41 @@ func TestAccessMapKeyValueInResponse(t *testing.T) {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_response_map_field.want"))
+}
+
+func TestAccessMapKeyValueInResponse_Error(t *testing.T) {
+	t.Parallel()
+
+	badResponses := []schema_v1p2.ResponseConfig{
+		// Do not allow indexing into a map field
+		{Define: `my_value = $resp.mappy_map{"my_key"}.x`},
+
+		// Do not allow maps in print statement
+		{Print: []string{"%s", `$resp.mappy_map{"my_key"}`}},
+
+		// Do not allow maps in write_file statement
+		{
+			WriteFile: &schema_v1p2.WriteFileSpec{
+				FileName: []string{"%s.mp3", `$resp.mappy_map{"my_key"}`},
+				Contents: "$resp.data_bob",
+			},
+		},
+	}
+
+	for _, r := range badResponses {
+		g := initTestGenerator()
+		sp := schema_v1p2.Sample{
+			ID:        "my_sample_config",
+			Service:   "foo.FooService",
+			Rpc:       "UnaryMethod",
+			RegionTag: "awesome_region",
+			Response:  []schema_v1p2.ResponseConfig{r},
+		}
+
+		if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err == nil {
+			t.Errorf("expected error from response config: %v", r)
+		}
+	}
 }
 
 func TestAccessRepeatedFieldInResponse(t *testing.T) {
