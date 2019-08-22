@@ -329,6 +329,12 @@ func writePath(sc *scanner.Scanner, st *symTab, info pbinfo.Info) (string, initT
 
 	// TODO(pongad): This doesn't handle oneofs properly.
 	for it := itRoot; len(it.keys) > 0; it = it.vals[0] {
+		if it.typ.repeated {
+			sb.WriteString("[")
+			sb.WriteString(snakeToPascal(it.keys[0]))
+			sb.WriteString("]")
+			continue
+		}
 		// Use Get method instead of direct field access so we properly deal with unset messages.
 		sb.WriteString(".Get")
 		sb.WriteString(snakeToPascal(it.keys[0]))

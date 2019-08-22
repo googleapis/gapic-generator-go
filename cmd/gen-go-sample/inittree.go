@@ -301,6 +301,11 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 
 			t = t.index(indVal)
 
+		case '{'
+			if !t.typ
+
+
+
 		default:
 			return t, r, nil
 		}

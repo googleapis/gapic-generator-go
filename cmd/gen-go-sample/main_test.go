@@ -274,6 +274,46 @@ func TestMapOut(t *testing.T) {
 	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
 }
 
+func TestAccessMapKeyValueInResponse(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	sp := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{Print: []string{"The value associated with some_key is: ", `$resp.mappy_map{"some_key"}`}},
+		},
+	}
+
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_response_map_field.want"))
+}
+
+func TestAccessRepeatedFieldInResponse(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	sp := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{Print: []string{"The first element of the array is: %s", "$resp.a_array[0].x"}},
+		},
+	}
+
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_response_repeated_field.want"))
+}
+
 func TestWriteFile(t *testing.T) {
 	t.Parallel()
 
