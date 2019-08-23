@@ -71,6 +71,45 @@ Idiomatically the name is last element of the path but it need not be.
 For instance, the last element of the path might be the package's version, and the package would benefit
 from a more descriptive name.
 
+Bazel
+-----
+
+The generator can be executed via a Bazel BUILD file using the macro in this repo.
+
+Add the following to your WORKSPACE to import this project.
+
+```
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "com_googleapis_gapic_go",
+    strip_prefix = "gapic-generator-master",
+    urls = ["https://github.com/googleapis/gapic-generator-go/archive/master.zip"],
+)
+```
+
+_Note: do not use `master`, use a commit hash or a release tag._
+
+And invoke it in a BUILD file like so, using an example based on the [googleapis repo](https://github.com/googleapis/googleapis/tree/92bebf78345af8b2d3585220527115bda8bdedf8/google/cloud/language/v1).
+
+```
+load("@com_googleapis_gapic_go:rules_go_gapic/go_gapic.bzl", "go_library_gapic")
+
+go_library_gapic(
+  name = "language_go_gapic",
+  srcs = [
+    # BUILD target for proto_library
+    "//google/cloud/language/v1:language_proto",
+  ],
+  deps = [
+    # BUILD target for go_library_proto
+    "//google/cloud/language/v1:language_go_proto",
+  ],
+  # go-gapic-package parameter value
+  importpath = "cloud.google.com/go/language/apiv1;language",
+)
+```
+
 Docker Wrapper
 --------------
 The generator can also be executed via a Docker container. The image containes `protoc`, the microgenerator
