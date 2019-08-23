@@ -44,7 +44,6 @@ import (
 const expectedSampleConfigType = "com.google.api.codegen.samplegen.v1p2.SampleConfigProto"
 const expectedSampleConfigVersion = "1.2.0"
 
-
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
@@ -122,7 +121,7 @@ func readSampleConfigs(gen *generator, path string) error {
 	}
 	switch mode := fi.Mode(); {
 	case mode.IsDir():
-		err := filepath.Walk(path,
+		if err := filepath.Walk(path,
 			func(p string, info os.FileInfo, err error) error {
 				if err != nil {
 					return errors.E(err, "cannot read sample config file: %s", p)
@@ -135,9 +134,11 @@ func readSampleConfigs(gen *generator, path string) error {
 					return err
 				}
 				return nil
-			})
-		if err != nil {
+			}); err != nil {
 			return err
+		}
+		if len(gen.sampleConfig.Samples) == 0 {
+			return errors.E(nil, "No valid sample configs in directory: %q", path)
 		}
 
 	case mode.IsRegular():
@@ -162,7 +163,7 @@ func readOneSampleConfigFile(gen *generator, path string) error {
 	decoder := yaml.NewDecoder(f)
 	for true {
 		var sc schema_v1p2.SampleConfig
-		err := decoder.Decode(&sc); 
+		err := decoder.Decode(&sc)
 
 		if err != nil && err.Error() == "EOF" {
 			// last YAML document, all done
