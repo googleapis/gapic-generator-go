@@ -312,6 +312,12 @@ func TestAccessMapKeyValueInResponse_Error(t *testing.T) {
 				Contents: "$resp.data_bob",
 			},
 		},
+		{
+			WriteFile: &schema_v1p2.WriteFileSpec{
+				FileName: []string{"my.mp3"},
+				Contents: `$resp.mappy_map{"my_key"}`,
+			},
+		},
 	}
 
 	for _, r := range badResponses {

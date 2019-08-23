@@ -202,7 +202,7 @@ func writeDump(fnFmt string, fnArgs []string, contPath string, st *symTab, gen *
 	}
 
 	sc, report := initScanner(contPath)
-	cont, itree, err := writePath(sc, st, gen.descInfo, true)
+	cont, itree, err := writePath(sc, st, gen.descInfo, false)
 	if err != nil {
 		return report(err)
 	}
