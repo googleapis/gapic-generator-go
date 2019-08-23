@@ -122,7 +122,6 @@ func readSampleConfigs(gen *generator, path string) error {
 	}
 	switch mode := fi.Mode(); {
 	case mode.IsDir():
-		var sc schema_v1p2.SampleConfig
 		err := filepath.Walk(path,
 			func(p string, info os.FileInfo, err error) error {
 				if err != nil {
@@ -132,25 +131,9 @@ func readSampleConfigs(gen *generator, path string) error {
 					// ignore directories and non-YAML files
 					return nil
 				}
-
-				f, err := os.Open(p)
-				if err != nil {
-					return errors.E(err, "cannot read sample config file: %s", p)
+				if err := readOneSampleConfigFile(gen, p); err != nil {
+					return err
 				}
-
-				if err := yaml.NewDecoder(f).Decode(&sc); err != nil {
-					// ignore unrecognized YAML files
-					return nil
-				}
-				if sc.Type != expectedSampleConfigType {
-					// ignore non sample config files
-					return nil
-				}
-				if sc.Version != expectedSampleConfigVersion {
-					// ignore unsupported versions
-					return nil
-				}
-				gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, sc.Samples...)
 				return nil
 			})
 		if err != nil {
@@ -158,19 +141,38 @@ func readSampleConfigs(gen *generator, path string) error {
 		}
 
 	case mode.IsRegular():
-		f, err := os.Open(path)
-		if err != nil {
-			return errors.E(err, "cannot read sample config file: %s", path)
+		if err := readOneSampleConfigFile(gen, path); err != nil {
+			return err
 		}
-		if err := yaml.NewDecoder(f).Decode(&gen.sampleConfig); err != nil {
-			return errors.E(err, "invalid sample config format: %s", path)
+		if len(gen.sampleConfig.Samples) == 0 {
+			return errors.E(nil, "No valid sample configs in file: %q", path)
 		}
-		if gen.sampleConfig.Type != expectedSampleConfigType {
-			return errors.E(nil, `unsupported type: expected "com.google.api.codegen.samplegen.v1p2.SampleConfigProto", got %q`, gen.sampleConfig.Type)
+	}
+	return nil
+}
+
+// readOneSampleConfigFile decodes all yamls from a file specified by `path`,
+// and store all valid samples in the generator. Rerports any error during
+// the process.
+func readOneSampleConfigFile(gen *generator, path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return errors.E(err, "cannot read sample config file: %s", path)
+	}
+	decoder := yaml.NewDecoder(f)
+	for true {
+		var sc schema_v1p2.SampleConfig
+		err := decoder.Decode(&sc); 
+
+		if err != nil && err.Error() == "EOF" {
+			// last YAML document, all done
+			break
 		}
-		if gen.sampleConfig.Version != expectedSampleConfigVersion {
-			return errors.E(nil, `unsupported schema_version: expected 1.2.0, got %s`, gen.sampleConfig.Version)
+		if err != nil || sc.Type != expectedSampleConfigType || sc.Version != expectedSampleConfigVersion {
+			// ingore non-sample configs, unexpected config type or version
+			continue
 		}
+		gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, sc.Samples...)
 	}
 	return nil
 }
