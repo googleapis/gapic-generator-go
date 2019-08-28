@@ -231,10 +231,10 @@ func writeLoop(l *schema_v1p2.LoopSpec, st *symTab, gen *generator) error {
 
 	sc, report := initScanner(l.Collection)
 	path, itree, err := writePath(sc, st, gen.descInfo, false)
-	typ := itree.typ
 	if err = report(err); err != nil {
 		return err
 	}
+	typ := itree.typ
 
 	p("for _, %s := range %s {", snakeToCamel(l.Variable), path)
 
