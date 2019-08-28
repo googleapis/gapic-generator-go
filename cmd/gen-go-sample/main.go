@@ -44,13 +44,28 @@ import (
 const expectedSampleConfigType = "com.google.api.codegen.samplegen.v1p2.SampleConfigProto"
 const expectedSampleConfigVersion = "1.2.0"
 
+type SampleValue []string
+
+func (v *SampleValue) String() string {
+	return strings.Join(*v, ",")
+}
+
+func (v *SampleValue) Set(value string) error {
+	*v = append(*v, value)
+	return nil
+}
+
+
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
 	clientPkg := flag.String("clientpkg", "", "the package of the client, in format 'url/to/client/pkg;name'")
-	samplePath := flag.String("samples", "", "either the path to a sample config yaml or a directory containing sample config yamls. If it is a directory, the generator will look for sample config yamls in this directory recursively.")
 	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
 	outDir := flag.String("o", ".", "directory to write samples to")
+
+	var samplePaths SampleValue
+	flag.Var(&samplePaths, "sample", "path to a sample config file. There can be more than one -sample flag.")
+	
 	flag.Parse()
 
 	gen := generator{
@@ -97,7 +112,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := readSampleConfigs(&gen, *samplePath); err != nil {
+		if err := readSampleConfigs(&gen, samplePaths); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -114,66 +129,32 @@ func main() {
 
 }
 
-func readSampleConfigs(gen *generator, path string) error {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return errors.E(err, "cannot read sample config files: %s", path)
-	}
-	switch mode := fi.Mode(); {
-	case mode.IsDir():
-		if err := filepath.Walk(path,
-			func(p string, info os.FileInfo, err error) error {
-				if err != nil {
-					return errors.E(err, "cannot read sample config file: %s", p)
-				}
-				if info.IsDir() || !strings.HasSuffix(p, ".yaml") {
-					// ignore directories and non-YAML files
-					return nil
-				}
-				if err := readOneSampleConfigFile(gen, p); err != nil {
-					return err
-				}
-				return nil
-			}); err != nil {
-			return err
+func readSampleConfigs(gen *generator, paths []string) error {
+	for _, path := range paths {
+		f, err := os.Open(path)
+		if err != nil {
+			return errors.E(err, "cannot read sample config file: %s", path)
 		}
-		if len(gen.sampleConfig.Samples) == 0 {
-			return errors.E(nil, "No valid sample configs in directory: %q", path)
-		}
+		decoder := yaml.NewDecoder(f)
+		for true {
+			var sc schema_v1p2.SampleConfig
+			err := decoder.Decode(&sc)
 
-	case mode.IsRegular():
-		if err := readOneSampleConfigFile(gen, path); err != nil {
-			return err
+			if err != nil && err.Error() == "EOF" {
+				// last YAML document, all done
+				break
+			}
+			if err != nil {
+				return err
+			}
+			if sc.Type != expectedSampleConfigType {
+				return errors.E(nil, "expecting %q, got %q", expectedSampleConfigType, sc.Type)
+			}
+			if sc.Version != expectedSampleConfigVersion {
+				return errors.E(nil, "expecting %q, got %q", expectedSampleConfigVersion, sc.Version)
+			}
+			gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, sc.Samples...)
 		}
-		if len(gen.sampleConfig.Samples) == 0 {
-			return errors.E(nil, "No valid sample configs in file: %q", path)
-		}
-	}
-	return nil
-}
-
-// readOneSampleConfigFile decodes all yamls from a file specified by `path`,
-// and store all valid samples in the generator. Rerports any error during
-// the process.
-func readOneSampleConfigFile(gen *generator, path string) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return errors.E(err, "cannot read sample config file: %s", path)
-	}
-	decoder := yaml.NewDecoder(f)
-	for true {
-		var sc schema_v1p2.SampleConfig
-		err := decoder.Decode(&sc)
-
-		if err != nil && err.Error() == "EOF" {
-			// last YAML document, all done
-			break
-		}
-		if err != nil || sc.Type != expectedSampleConfigType || sc.Version != expectedSampleConfigVersion {
-			// ingore non-sample configs, unexpected config type or version
-			continue
-		}
-		gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, sc.Samples...)
 	}
 	return nil
 }
