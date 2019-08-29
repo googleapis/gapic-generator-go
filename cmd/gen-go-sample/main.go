@@ -281,6 +281,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 
 func (g *generator) disambiguateSampleIDs() error {
 	idCount := make(map[string]int)
+	hashes := make(map[string]bool)
 	samples := g.sampleConfig.Samples
 	for i := range samples {
 		// default ID to region tag
@@ -302,6 +303,10 @@ func (g *generator) disambiguateSampleIDs() error {
 			checkSum := sha256.Sum256([]byte(jsonStr))
 			encodedStr := base32.StdEncoding.EncodeToString(checkSum[:])
 			suffix := string([]rune(encodedStr)[0:8])
+			if _, ok := hashes[suffix]; ok == true {
+				return errors.E(nil, "unable to get a unique hash, multiple samples with identical contents?")
+			}
+			hashes[suffix] = true
 			samples[i].ID += suffix
 		}
 	}
