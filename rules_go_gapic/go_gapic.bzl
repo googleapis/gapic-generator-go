@@ -16,7 +16,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 
 def go_gapic_library(name, srcs, importpath, deps, grpc_service_config = None, **kwargs):
-  output_suffix = ".zip"
+  output_suffix = ".srcjar"
   file_args = {}
 
   if grpc_service_config:
@@ -37,6 +37,10 @@ def go_gapic_library(name, srcs, importpath, deps, grpc_service_config = None, *
     **kwargs
   )
 
+  # This dependecy list was copied directly from gapic-generator/rules_gapic/go.
+  # Ideally, this should be a common list used by macros in both repos.
+  #
+  # TODO(ndietz) de-dupe this dep list with gapic-generator/rules_gapic/go
   actual_deps = deps + [
     "@com_github_googleapis_gax_go//v2:go_default_library",
     "@org_golang_google_api//option:go_default_library",

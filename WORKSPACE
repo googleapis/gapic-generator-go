@@ -4,12 +4,13 @@ workspace(name = "com_googleapis_gapic_go")
 # Protobuf
 ##############################################################################
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-git_repository(
+http_archive(
     name = "com_google_protobuf",
-    tag = "v3.9.1",
-    remote = "https://github.com/protocolbuffers/protobuf",
+    strip_prefix = "protobuf-3.9.1",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.9.1.zip"],
+    sha256 = "c90d9e13564c0af85fd2912545ee47b57deded6e5a97de80395b6d2d9be64854",
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -19,7 +20,6 @@ protobuf_deps()
 ##############################################################################
 # Code Gen
 ##############################################################################
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_api_codegen",
