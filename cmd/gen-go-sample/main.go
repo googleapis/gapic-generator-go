@@ -55,7 +55,6 @@ func (v *SampleValue) Set(value string) error {
 	return nil
 }
 
-
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
@@ -65,7 +64,7 @@ func main() {
 
 	var samplePaths SampleValue
 	flag.Var(&samplePaths, "sample", "path to a sample config file. There can be more than one -sample flag.")
-	
+
 	flag.Parse()
 
 	gen := generator{
@@ -112,7 +111,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := readSampleConfigs(&gen, samplePaths); err != nil {
+		if err := readSampleConfigFiles(&gen, samplePaths); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -129,34 +128,48 @@ func main() {
 
 }
 
-func readSampleConfigs(gen *generator, paths []string) error {
+func readSampleConfigFiles(gen *generator, paths []string) error {
 	for _, path := range paths {
 		f, err := os.Open(path)
 		if err != nil {
-			return errors.E(err, "cannot read sample config file: %s", path)
+			return errors.E(err, "cannot open sample config file: %s", path)
 		}
 		decoder := yaml.NewDecoder(f)
-		for true {
-			var sc schema_v1p2.SampleConfig
-			err := decoder.Decode(&sc)
-
-			if err != nil && err.Error() == "EOF" {
-				// last YAML document, all done
-				break
-			}
-			if err != nil {
-				return err
-			}
-			if sc.Type != expectedSampleConfigType {
-				return errors.E(nil, "expecting %q, got %q", expectedSampleConfigType, sc.Type)
-			}
-			if sc.Version != expectedSampleConfigVersion {
-				return errors.E(nil, "expecting %q, got %q", expectedSampleConfigVersion, sc.Version)
-			}
-			gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, sc.Samples...)
+		config, err := readSampleConfig(decoder, path)
+		if err != nil {
+			return err
 		}
+		gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, config.Samples...)
 	}
 	return nil
+}
+
+func readSampleConfig(decoder *yaml.Decoder, fname string) (schema_v1p2.SampleConfig, error) {
+	var config schema_v1p2.SampleConfig
+	for true {
+		var sc schema_v1p2.SampleConfig
+		err := decoder.Decode(&sc)
+		if err != nil && err.Error() == "EOF" {
+			// last YAML document, all done
+			break
+		}
+		if err != nil {
+			return config, err
+		}
+		if sc.Type != expectedSampleConfigType {
+			// ignore non sample config YAMLs
+			continue
+		}
+		if sc.Version != expectedSampleConfigVersion {
+			// ignore unsupported versions
+			continue
+		}
+		config.Samples = append(config.Samples, sc.Samples...)
+	}
+	if len(config.Samples) == 0 {
+		return config, errors.E(nil, "Found no valid sample config in %q", fname)
+	}
+	return config, nil
 }
 
 func genMethodSamples(gen *generator, nofmt bool, outDir string) error {

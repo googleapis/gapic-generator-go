@@ -15,6 +15,8 @@
 package main
 
 import (
+	yaml "gopkg.in/yaml.v2"
+	"strings"
 	"testing"
 
 	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
@@ -87,5 +89,137 @@ func TestDisambiguateRepeatedSampleIDsFromRegionTags(t *testing.T) {
 	}
 	if gen.sampleConfig.Samples[2].ID != "sample1" {
 		t.Fatal(errors.E(nil, `expected "sample2", got %q`, gen.sampleConfig.Samples[2].ID))
+	}
+}
+
+func TestReadSampleConfigSingleDoc(t *testing.T) {
+	yamlStr := `
+type: com.google.api.codegen.samplegen.v1p2.SampleConfigProto
+schema_version: 1.2.0
+samples:
+- service: FooService
+  rpc: CreateFoo
+  region_tag: awesome_region
+`
+	decoder := yaml.NewDecoder(strings.NewReader(yamlStr))
+	config, err := readSampleConfig(decoder, "some.yaml")
+	if err != nil {
+		t.Fatal(errors.E(nil, "unexpected error: %q", err.Error()))
+	}
+	if len(config.Samples) != 1 {
+		t.Fatal(errors.E(nil, "expected one valid sample, got %d", len(config.Samples)))
+	}
+}
+
+func TestReadSampleConfigSingleDoc_BadTypeError(t *testing.T) {
+	yamlStr := `
+type: com.google.api.codegen.samplegen.v1p2.NotSampleConfigProto
+schema_version: 1.2.0
+samples:
+- service: FooService
+  rpc: CreateFoo
+  region_tag: awesome_region
+`
+	decoder := yaml.NewDecoder(strings.NewReader(yamlStr))
+	_, err := readSampleConfig(decoder, "some.yaml")
+	expectedErrMsg := `Found no valid sample config in "some.yaml"`
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatal(errors.E(nil, "expected error with message %q, got %q", expectedErrMsg, err.Error()))
+	}
+}
+
+func TestReadSampleConfigSingleDoc_BadSchemaVersionError(t *testing.T) {
+	yamlStr := `
+type: com.google.api.codegen.samplegen.v1p2.SampleConfigProto
+schema_version: 1.3.0
+samples:
+- service: FooService
+  rpc: CreateFoo
+  region_tag: awesome_region
+`
+	decoder := yaml.NewDecoder(strings.NewReader(yamlStr))
+	_, err := readSampleConfig(decoder, "some.yaml")
+	expectedErrMsg := `Found no valid sample config in "some.yaml"`
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatal(errors.E(nil, "expected error with message %q, got %q", expectedErrMsg, err.Error()))
+	}
+}
+
+func TestReadSampleConfig_EmptyYamlError(t *testing.T) {
+	yamlStr := ""
+	decoder := yaml.NewDecoder(strings.NewReader(yamlStr))
+	_, err := readSampleConfig(decoder, "some.yaml")
+	expectedErrMsg := `Found no valid sample config in "some.yaml"`
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatal(errors.E(nil, "expected error with message %q, got %q", expectedErrMsg, err.Error()))
+	}
+}
+
+func TestReadSampleConfigMultiDoc(t *testing.T) {
+	yamlStr := `
+type: com.google.api.codegen.samplegen.v1p2.SampleConfigProto
+schema_version: 1.2.0
+samples:
+- service: FooService
+  rpc: CreateFoo
+  region_tag: awesome_region
+---
+type: com.google.api.codegen.samplegen.v1p2.SampleConfigProto
+schema_version: 1.2.0
+samples:
+- service: FooService
+  rpc: GetFoo
+  region_tag: lame_region
+`
+	decoder := yaml.NewDecoder(strings.NewReader(yamlStr))
+	config, err := readSampleConfig(decoder, "some.yaml")
+	if err != nil {
+		t.Fatal(errors.E(nil, "unexpected error: %q", err.Error()))
+	}
+	if config.Samples[0].Rpc != "CreateFoo" {
+		t.Fatal(errors.E(nil, `expected "CreateFoo", got %q`, config.Samples[0].Rpc))
+	}
+	if config.Samples[1].Rpc != "GetFoo" {
+		t.Fatal(errors.E(nil, `expected "GetFoo", got %q`, config.Samples[1].Rpc))
+	}
+}
+
+func TestReadSampleConfigMultiDocSkipNonSampleConfig(t *testing.T) {
+	yamlStr := `
+type: com.google.api.codegen.samplegen.v1p2.SampleConfigProto
+schema_version: 1.2.0
+samples:
+- service: FooService
+  rpc: CreateFoo
+  region_tag: awesome_region
+---
+type: another_type
+`
+	decoder := yaml.NewDecoder(strings.NewReader(yamlStr))
+	config, err := readSampleConfig(decoder, "some.yaml")
+	if err != nil {
+		t.Fatal(errors.E(nil, "unexpected error: %q", err.Error()))
+	}
+	if len(config.Samples) != 1 {
+		t.Fatal(errors.E(nil, "expected one valid sample, got %d", len(config.Samples)))
+	}
+}
+
+func TestReadSampleConfigMultiDoc_BadFormatError(t *testing.T) {
+	yamlStr := `
+type: com.google.api.codegen.samplegen.v1p2.SampleConfigProto
+schema_version: 1.2.0
+samples:
+- service: FooService
+  rpc: CreateFoo
+  region_tag: awesome_region
+---
+type: another_type
+  bad_field: derp
+`
+	decoder := yaml.NewDecoder(strings.NewReader(yamlStr))
+	_, err := readSampleConfig(decoder, "some.yaml")
+	if err == nil {
+		t.Fatal(errors.E(nil, "expected error"))
 	}
 }
