@@ -63,7 +63,7 @@ func main() {
 	outDir := flag.String("o", ".", "directory to write samples to")
 
 	var samplePaths SampleValue
-	flag.Var(&samplePaths, "sample", "path to a sample config file. There can be more than one -sample flag.")
+	flag.Var(&samplePaths, "sample", "path to a sample config file. There can be more than one --sample flag.")
 
 	flag.Parse()
 
