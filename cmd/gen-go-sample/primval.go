@@ -45,7 +45,7 @@ var validPrims = [...]func(string) bool{
 }
 
 func validStrings(s string) bool {
-	return true
+	return s[0] == '"'
 }
 
 func validFloat(s string) bool {

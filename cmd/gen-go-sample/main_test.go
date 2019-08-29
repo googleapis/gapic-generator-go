@@ -16,6 +16,7 @@ package main
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -318,9 +319,19 @@ func TestAccessMapKeyValueInResponse_Error(t *testing.T) {
 				Contents: `$resp.mappy_map{"my_key"}`,
 			},
 		},
+		// strings as keys have to be quoted
+		{Define: `my_value = $resp.mappy_map{last_name}`},
 	}
 
-	for _, r := range badResponses {
+	expectedErrs := []string{
+		`accessing fields of a map value object is not allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		"invalid value for type",
+	}
+
+	for i, r := range badResponses {
 		g := initTestGenerator()
 		sp := schema_v1p2.Sample{
 			ID:        "my_sample_config",
@@ -330,8 +341,12 @@ func TestAccessMapKeyValueInResponse_Error(t *testing.T) {
 			Response:  []schema_v1p2.ResponseConfig{r},
 		}
 
-		if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err == nil {
+		err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"})
+		if err == nil {
 			t.Errorf("expected error from response config: %v", r)
+		}
+		if !strings.Contains(err.Error(), expectedErrs[i]) {
+			t.Errorf("expected error message to contain %q, got %q", expectedErrs[i], err.Error())
 		}
 	}
 }

@@ -75,6 +75,12 @@ type initTree struct {
 	// initTree is either a composite value (struct/array/map), where keys and vals are set,
 	// or a simple value, where leafVal is set.
 
+	// vals and keys keep tracks of all the child trees of this inittree and their identifiers.
+	// If the child is a protobuf field, key is the field name.
+	// If the child is an array element, key is the index.
+	// If the child is a map entry, key is the key of the entry. It has to be quoted if it's a string.
+	// If the child is a resource name entity, key is the entity name.
+
 	// Use array representation; we need order, and we probably won't
 	// have many pairs anyway.
 	keys []string
@@ -84,25 +90,33 @@ type initTree struct {
 	leafVal string
 
 	// parent tracks the parent type of this type.
-	// The parent of root is nil
+	// The parent of root is nil.
 	parent *initTree
 }
 
 // initInfo represents all the information needed to construct the request object.
 type initInfo struct {
 
-	// argNames, argTrees, flagNames keep track of information of sample function arguments
+	// argNames, argTrees, flagNames keep track of information of sample function arguments.
 	argNames  []string
 	argTrees  []*initTree
 	flagNames []string
 
-	// files represents file input nodes
+	// files represents file input nodes.
 	files []*fileInfo
 
-	// reqTree is the final initialization tree of the request object
+	// reqTree is the final initialization tree of the request object.
 	reqTree initTree
 }
 
+func (t *initTree) newChild(key string, val *initTree) {
+	t.keys = append(t.keys, key)
+	t.vals = append(t.vals, val)
+}
+
+// get returns the child tree that represents a protobuf field or resource name entity,
+// and any errors if the child tree could not be found. The child tree will be created
+// if it isn't already.
 func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 	for i, key := range t.keys {
 		if k == key {
@@ -118,8 +132,7 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		v := new(initTree)
 		v.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
 
-		t.keys = append(t.keys, k)
-		t.vals = append(t.vals, v)
+		t.newChild(k, v)
 		return v, nil
 	}
 
@@ -184,11 +197,12 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		return nil, errors.E(nil, "type %q does not have field %q", t.typ.desc.GetName(), k)
 	}
 
-	t.keys = append(t.keys, k)
-	t.vals = append(t.vals, v)
+	t.newChild(k, v)
 	return v, nil
 }
 
+// index returns the child tree that represents an array element. The child tree
+// will be created if it isn't already.
 func (t *initTree) index(k string) *initTree {
 	for i, key := range t.keys {
 		if k == key {
@@ -201,11 +215,12 @@ func (t *initTree) index(k string) *initTree {
 	v.typ.repeated = false
 	v.parent = t
 
-	t.keys = append(t.keys, k)
-	t.vals = append(t.vals, v)
+	t.newChild(k, v)
 	return v
 }
 
+// index returns the child tree that represents a map entry. The child tree
+// will be created if it isn't already.
 func (t *initTree) indexMap(k string) *initTree {
 	for i, key := range t.keys {
 		if k == key {
@@ -217,8 +232,7 @@ func (t *initTree) indexMap(k string) *initTree {
 	v.parent = t
 	v.typ = *t.typ.valueType
 
-	t.keys = append(t.keys, k)
-	t.vals = append(t.vals, v)
+	t.newChild(k, v)
 	return v
 }
 
@@ -254,18 +268,11 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 			}
 		}
 		if !valid {
-			return report(errors.E(nil, "invalid value for type %q: %q", desc.GetName(), value))
+			return report(errors.E(nil, "invalid value for type %q: %s", desc.GetName(), value))
 		}
 		t.typ.valFmt = enumFmt(info, desc)
 	default:
 		pType := t.typ.prim
-		validPrim := validPrims[pType]
-		if validPrim == nil {
-			return report(errors.E(nil, "not a primitive type: %q", pType))
-		}
-		if !validPrim(value) {
-			return report(errors.E(nil, "invalid value for type %q: %q", pType, value))
-		}
 		if pType == descriptor.FieldDescriptorProto_TYPE_BYTES {
 			value = fmt.Sprintf("%q", value)
 			t.typ.valFmt = bytesFmt()
@@ -273,6 +280,13 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 		// We need to quote string literals
 		if pType == descriptor.FieldDescriptorProto_TYPE_STRING {
 			value = fmt.Sprintf("%q", value)
+		}
+		validPrim := validPrims[pType]
+		if validPrim == nil {
+			return report(errors.E(nil, "not a primitive type: %q", pType))
+		}
+		if !validPrim(value) {
+			return report(errors.E(nil, "invalid value for type %q: %s", pType, value))
 		}
 	}
 	t.leafVal = value
@@ -325,7 +339,7 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 
 		case '[':
 			if !t.typ.repeated {
-				return nil, 0, errors.E(nil, "cannot index into singular field")
+				return nil, 0, errors.E(nil, "cannot index via [] into a non-repeated field")
 			}
 			if r := sc.Scan(); r != scanner.Int {
 				return nil, r, errors.E(nil, "expected int, found %q", sc.TokenText())
@@ -343,7 +357,7 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 				return nil, r, err
 			}
 			if !isMap {
-				return nil, r, errors.E(nil, "cannot index into a non-map field")
+				return nil, r, errors.E(nil, "cannot index via {} into a non-map field")
 			}
 
 			var tokVal string
@@ -354,7 +368,7 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 				tokVal = sc.TokenText()
 				validPrim := validPrims[t.typ.keyType.prim]
 				if !validPrim(tokVal) {
-					return nil, r, errors.E(nil, "invalid value for type %q: %q", t.typ.keyType.prim, tokVal)
+					return nil, r, errors.E(nil, "invalid value for type %q: %s", t.typ.keyType.prim, tokVal)
 				}
 			} else {
 				return nil, r, errors.E(nil, "expected string, integer or bool, got %q", tokVal)

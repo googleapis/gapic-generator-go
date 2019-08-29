@@ -366,10 +366,10 @@ func writePath(sc *scanner.Scanner, st *symTab, info pbinfo.Info, isDefine bool)
 			}
 
 			if isDefine && len(it.vals[0].keys) > 0 {
-				return "", initTree{}, errors.E(nil, "accessing fields of a map value object is not allowed in define statements.")
+				return "", initTree{}, errors.E(nil, `accessing fields of a map value object is not allowed in "define" statements.`)
 			}
 
-			return "", initTree{}, errors.E(nil, "indexing into a map field is only allowed in define statements.")
+			return "", initTree{}, errors.E(nil, `indexing into a map field is only allowed in "define" statements.`)
 		}
 
 		// Use Get method instead of direct field access so we properly deal with unset messages.
