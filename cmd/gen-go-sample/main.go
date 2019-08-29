@@ -342,7 +342,7 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, f
 
 	// Set up request object.
 	for _, fieldConf := range fieldConfs {
-		if err := itree.parseInit(fieldConf.Field, fieldConf.Value, g.descInfo); err != nil {
+		if err := itree.parseInit(fieldConf.Field, fieldConf.Value, fieldConf.Comment, g.descInfo); err != nil {
 			return initInfo{}, errors.E(err, "can't set default value: %s=%s", fieldConf.Field, fieldConf.Value)
 		}
 	}
@@ -385,7 +385,7 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, f
 				flagNames = append(flagNames, fieldConf.InputParameter)
 				argTrees = append(argTrees, subTree)
 			}
-			files = append(files, &fileInfo{fileName, varName})
+			files = append(files, &fileInfo{fileName, varName, fieldConf.Comment})
 			continue
 		}
 
@@ -440,6 +440,9 @@ func (g *generator) handleRequest(initInfo initInfo) error {
 		buf.WriteByte('\n')
 	}
 	prependLines(&buf, "// ", false)
+  if len(initInfo.argNames) > 0 {
+		buf.WriteByte('\n')
+	}
 
 	for _, info := range initInfo.files {
 		handleReadFile(info, &buf, g)

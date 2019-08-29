@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"text/scanner"
@@ -36,6 +37,8 @@ type fileInfo struct {
 	fileName string
 	// varName is the name of the local variable to hold the bytes of the file.
 	varName string
+
+	comment string
 }
 
 const fileContentSuffix = "Bytes"
@@ -82,6 +85,9 @@ func handleReadFile(info *fileInfo, buf *bytes.Buffer, g *generator) {
 	fn := info.fileName
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 
+	w := bufio.NewWriter(buf)
+	printCommentLines(w, info.comment, 0)
+	w.Flush()
 	fmt.Fprintf(buf, "%s, err := ioutil.ReadFile(%s)\n", vn, fn)
 	fmt.Fprintf(buf, "if err != nil {\n")
 	fmt.Fprintf(buf, "\treturn err\n")

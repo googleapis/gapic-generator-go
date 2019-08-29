@@ -70,6 +70,9 @@ type initTree struct {
 
 	// Text of the literal. If the literal is a string, it's already quoted.
 	leafVal string
+
+	// comment right above the field in the initialization expression
+	comment string
 }
 
 // initInfo represents all the information needed to construct the request object.
@@ -190,7 +193,7 @@ func (t *initTree) index(k string) *initTree {
 // parseInit adds a node to this initTree with given a field path and the default value
 // of the node.
 // TODO(hzyi): allow map index.
-func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error {
+func (t *initTree) parseInit(path string, value string, comment string, info pbinfo.Info) error {
 	// The first ident is treated specially to be a member of the root.
 	// Since we know the root is a struct, a dot is the only legal token anyway,
 	// so just insert a dot here so we don't need to treat the first token specially.
@@ -241,6 +244,7 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 		}
 	}
 	t.leafVal = value
+	t.comment = comment
 	return report(nil)
 }
 
@@ -401,12 +405,6 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		}
 	}
 
-	indent := func(j int) {
-		for i := 0; i < j; i++ {
-			w.WriteByte('\t')
-		}
-	}
-
 	tvals := t.vals
 	writeKey := true
 	if t.typ.repeated {
@@ -447,13 +445,19 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	}
 
 	for i, k := range t.keys {
-		indent(ind + 1)
+		printCommentLines(w, t.vals[i].comment, ind + 1)
+		if t.vals[i].typ.namePat != nil {
+			for _, v := range t.vals[i].vals {
+				printCommentLines(w, v.comment, ind + 1)
+			}
+		}
+		indent(w, ind + 1)
 
 		var closeBrace bool
 		if oneof, ok := oneofs[k]; ok {
 			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToPascal(oneof), impSpec.Name, typName, snakeToPascal(k))
 			closeBrace = true
-			indent(ind + 2)
+			indent(w, ind + 2)
 		}
 
 		if writeKey {
@@ -467,14 +471,14 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 
 		if closeBrace {
 			w.WriteString(",\n")
-			indent(ind + 1)
+			indent(w, ind + 1)
 			w.WriteByte('}')
 		}
 		w.WriteString(",\n")
 	}
 
 	if len(t.keys) != 0 {
-		indent(ind)
+		indent(w, ind)
 	}
 	w.WriteString("}")
 	return nil
@@ -510,4 +514,22 @@ func snakeToCamel(s string) string {
 		}
 	}
 	return sb.String()
+}
+
+func printCommentLines(w *bufio.Writer, comment string, ind int) {
+	if comment == "" {
+		return
+	}
+	for _, c := range strings.Split(strings.TrimRight(comment, "\n"), "\n") {
+		indent(w, ind)
+		w.WriteString("// ")
+		w.WriteString(c)
+		w.WriteByte('\n')
+	}
+}
+
+func indent(w *bufio.Writer, ind int) {
+	for i := 0; i < ind; i++ {
+		w.WriteByte('\t')
+	}
 }
