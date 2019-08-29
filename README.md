@@ -86,6 +86,14 @@ http_archive(
     strip_prefix = "gapic-generator-master",
     urls = ["https://github.com/googleapis/gapic-generator-go/archive/master.zip"],
 )
+
+load("@com_googleapis_gapic_go//:repositories.bzl", "com_googleapis_gapic_go_repositories")
+
+com_googleapis_gapic_go_repositories()
+
+load("@com_googleapis_gapic_go//:repositories_go.bzl", "com_googleapis_gapic_go_mod")
+
+com_googleapis_gapic_go_mod()
 ```
 
 _Note: do not use `master`, use a commit hash or a release tag._
