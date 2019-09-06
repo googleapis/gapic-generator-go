@@ -16,18 +16,18 @@ package schema_v1p2
 
 type SampleConfig struct {
 	Type    string
-	Version string `yaml: config_schema_version`
-	Samples []Sample
+	Version string `yaml:"schema_version"`
+	Samples []*Sample
 }
 
 type Sample struct {
-	ID              string `yaml: id`
+	ID              string `yaml:"id"`
 	Title           string
-	RegionTag       string `yaml: region_tag`
+	RegionTag       string `yaml:"region_tag"`
 	Description     string
 	Service         string
 	Rpc             string
-	CallingPatterns []string `yaml: calling_patterns`
+	CallingPatterns []string `yaml:"calling_patterns"`
 	Request         []RequestConfig
 	Response        []ResponseConfig
 }
@@ -36,8 +36,8 @@ type RequestConfig struct {
 	Field          string
 	Comment        string
 	Value          string
-	ValueIsFile    bool   `yaml: value_is_file`
-	InputParameter string `yaml: input_parameter`
+	ValueIsFile    bool   `yaml:"value_is_file"`
+	InputParameter string `yaml:"input_parameter"`
 }
 
 type ResponseConfig struct {
