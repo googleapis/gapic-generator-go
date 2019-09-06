@@ -75,7 +75,7 @@ type initTree struct {
 	// initTree is either a composite value (struct/array/map), where keys and vals are set,
 	// or a simple value, where leafVal is set.
 
-	// vals and keys keep tracks of all the child trees of this inittree and their identifiers.
+	// vals and keys keep tracks of all the child trees of this initTree and their identifiers.
 	// If the child is a protobuf field, key is the field name.
 	// If the child is an array element, key is the index.
 	// If the child is a map entry, key is the key of the entry. It has to be quoted if it's a string.
