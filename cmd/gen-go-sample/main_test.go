@@ -16,6 +16,7 @@ package main
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -272,6 +273,102 @@ func TestMapOut(t *testing.T) {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
+}
+
+func TestAccessMapKeyValueInResponse(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	sp := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{Define: `my_value = $resp.mappy_map{"my_key"}`},
+			{Print: []string{"The value associated with my_key is: %s", "my_value.x"}},
+		},
+	}
+
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_response_map_field.want"))
+}
+
+func TestAccessMapKeyValueInResponse_Error(t *testing.T) {
+	t.Parallel()
+
+	badResponses := []schema_v1p2.ResponseConfig{
+		// Do not allow indexing into a map field
+		{Define: `my_value = $resp.mappy_map{"my_key"}.x`},
+
+		// Do not allow maps in print statement
+		{Print: []string{"%s", `$resp.mappy_map{"my_key"}`}},
+
+		// Do not allow maps in write_file statement
+		{
+			WriteFile: &schema_v1p2.WriteFileSpec{
+				FileName: []string{"%s.mp3", `$resp.mappy_map{"my_key"}`},
+				Contents: "$resp.data_bob",
+			},
+		},
+		{
+			WriteFile: &schema_v1p2.WriteFileSpec{
+				FileName: []string{"my.mp3"},
+				Contents: `$resp.mappy_map{"my_key"}`,
+			},
+		},
+		// strings as keys have to be quoted
+		{Define: `my_value = $resp.mappy_map{last_name}`},
+	}
+
+	expectedErrs := []string{
+		`accessing fields of a map value object is not allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		"invalid value for type",
+	}
+
+	for i, r := range badResponses {
+		g := initTestGenerator()
+		sp := schema_v1p2.Sample{
+			ID:        "my_sample_config",
+			Service:   "foo.FooService",
+			Rpc:       "UnaryMethod",
+			RegionTag: "awesome_region",
+			Response:  []schema_v1p2.ResponseConfig{r},
+		}
+
+		err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"})
+		if err == nil {
+			t.Errorf("expected error from response config: %v", r)
+		}
+		if !strings.Contains(err.Error(), expectedErrs[i]) {
+			t.Errorf("expected error message to contain %q, got %q", expectedErrs[i], err.Error())
+		}
+	}
+}
+
+func TestAccessRepeatedFieldInResponse(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	sp := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{Print: []string{"The first element of the array is: %s", "$resp.a_array[0].x"}},
+		},
+	}
+
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_response_repeated_field.want"))
 }
 
 func TestWriteFile(t *testing.T) {

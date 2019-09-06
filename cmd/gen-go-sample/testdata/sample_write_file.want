@@ -25,6 +25,7 @@ import(
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
+
 // [START awesome_region]
 
 func sampleUnaryMethod() error {

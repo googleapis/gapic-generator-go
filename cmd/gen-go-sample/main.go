@@ -358,6 +358,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	if err != nil {
 		return err
 	}
+	p("")
 	p("// [START %s]", sampConf.RegionTag)
 	p("")
 	p("func sample%s(%s) error {", meth.GetName(), argStr)
