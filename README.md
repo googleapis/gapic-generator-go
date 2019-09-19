@@ -64,9 +64,9 @@ Invocation
 
 **Note:** The `$API_COMMON_PROTOS` variable represents a path to the [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos) directory to import the configuration annotations.
 
-The `go_gapic_opt` flag is necessary to convey configuration information not present in the protos. 
-The option's value is delimited by an equal sign. substring before the equal sign is the name of the configuration option. The substring following the equal sign is the configuration value.
-The config options include:
+The `go_gapic_opt` protoc plugin option flag is necessary to convey configuration information not present in the protos. 
+The plugin option's value is a key-value pair delimited by an equal sign `=`.
+The configuration supported by the plugin option includes:
   
   * `go-gapic-package`: the Go package of the generated client library.
     *  The substring preceding the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
