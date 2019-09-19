@@ -34,6 +34,7 @@ The generator works as a `protoc` plugin, get `protoc` from [google/protobuf](ht
 Configuration
 -------------
 The generator is configured via protobuf annotations found at [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos).
+The generator follows the guidance defined in [AIP-4210](https://aip.dev/4210)
 
 The only *required* annotation to generate a client is the service annotation `google.api.default_host` ([here](https://github.com/googleapis/api-common-protos/blob/master/google/api/client.proto#L29-L38)).
 
@@ -48,28 +49,35 @@ service Foo {
 }  
 ```
 
+If a RPC returns a `google.longrunning.Operation`, the RPC must be annotated with `google.longrunning.operation_info` in accordance with [AIP-151](https://aip.dev/151).
+
 The supported configuration annotations include:
-* File Options
-  * `google.api.package` (experimental): library packaging, metadata and documentation info; found on [api-common-protos:input-contract](https://github.com/googleapis/api-common-protos/tree/input-contract)
 * Service Options
   * `google.api.default_host`: host name used in the default service client initialization
   * `google.api.oauth_scopes`: OAuth scopes needed by the client to auth'n/z
 * Method Options
-  * `google.api.http`: when present, the `method` field is used to determine idempotency-based default retry configuration
-  * `google.longrunning.operation_info`: used to determine response type of LRO methods
+  * `google.longrunning.operation_info`: used to determine response & metadata types of LRO methods
 
 Invocation
 ----------
 `protoc -I $API_COMMON_PROTOS --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
 
-The `$API_COMMON_PROTOS` variable represents a path to the [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos) directory to import the configuration annotations.
-The `go_gapic_opt` flag is necessary because we need to know where to generated file will live.
-The substring before the equal sign is the name of this configuration option.
-The substring between the equal sign and the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
-The substring after the semicolon is the name of the package used in the `package` statement.
-Idiomatically the name is last element of the path but it need not be.
-For instance, the last element of the path might be the package's version, and the package would benefit
-from a more descriptive name.
+**Note:** The `$API_COMMON_PROTOS` variable represents a path to the [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos) directory to import the configuration annotations.
+
+The `go_gapic_opt` flag is necessary to convey configuration information not present in the protos. 
+The option's value is delimited by an equal sign. substring before the equal sign is the name of the configuration option. The substring following the equal sign is the configuration value.
+The config options include:
+  
+  * `go-gapic-package`: the Go package of the generated client library.
+    *  The substring preceding the semicolon is the import path of the package, e.g. `github.com/username/awesomeness`.
+    *  The substring after the semicolon is the name of the package used in the `package` statement.
+    
+    **Note:** Idiomatically the name is last element of the path but it need not be.
+    For instance, the last element of the path might be the package's version, and the package would benefit
+    from a more descriptive name.
+  
+  * `grpc-service-config`: the path to a gRPC ServiceConfig JSON file.
+    * This is used for client-side retry configuration in accordance with [AIP-4221](http://aip.dev/4221)
 
 Docker Wrapper
 --------------
@@ -83,7 +91,7 @@ $ docker run \
   --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
   --mount type=bind,source=$GOPATH/src,destination=/out/ \
   gcr.io/gapic-images/gapic-generator-go \
-  --go-gapic-package "<github.com/package/import/path;name>"
+  --go-gapic-package "github.com/package/import/path;name"
 ```
 
 Replace `/abs/path/to/protos` with the absolute path to the input protos and `github.com/package/import/path;name`
@@ -131,10 +139,6 @@ The generator implementation can be found in [internal/gengapic](/internal/genga
 The service client type, initialization code and any standard helpers are generated first. Then each method is generated. Any relevant helper types (i.e. pagination [Iterator](https://github.com/googleapis/google-cloud-go/wiki/Iterator-Guidelines) types, LRO helpers, etc.) for the service methods are generated following the methods.
 
 Following the client implementation, the client example file is generated, and after all services have been generated the single `doc.go` file is created.
-
-Disclaimer
-----------
-This generator is currently experimental. Please don't use it for anything mission-critical.
 
 Go Version Supported
 --------------------
