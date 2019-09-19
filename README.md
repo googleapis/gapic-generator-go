@@ -34,7 +34,7 @@ The generator works as a `protoc` plugin, get `protoc` from [google/protobuf](ht
 Configuration
 -------------
 The generator is configured via protobuf annotations found at [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos).
-The generator follows the guidance defined in [AIP-4210](https://aip.dev/4210)
+The generator follows the guidance defined in [AIP-4210](https://aip.dev/4210).
 
 The only *required* annotation to generate a client is the service annotation `google.api.default_host` ([here](https://github.com/googleapis/api-common-protos/blob/master/google/api/client.proto#L29-L38)).
 
