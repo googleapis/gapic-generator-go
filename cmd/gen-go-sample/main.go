@@ -440,9 +440,6 @@ func (g *generator) handleRequest(initInfo initInfo) error {
 		buf.WriteByte('\n')
 	}
 	prependLines(&buf, "// ", false)
-  if len(initInfo.argNames) > 0 {
-		buf.WriteByte('\n')
-	}
 
 	for _, info := range initInfo.files {
 		handleReadFile(info, &buf, g)

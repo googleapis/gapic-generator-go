@@ -38,7 +38,6 @@ func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) e
 	// theB := "foobar"
 	// theFoo := "myfoo"
 	// bobFile := "path/to/local/file/bob.txt"
-
 	// the path of a local file
 	dataAlice, err := ioutil.ReadFile("path/to/local/file/alice.txt")
 	if err != nil {

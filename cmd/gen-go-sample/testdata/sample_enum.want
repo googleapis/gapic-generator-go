@@ -34,7 +34,6 @@ func sampleUnaryMethod(myFruit foopb.AType_FruitEnum) error {
 	}
 
 	// myFruit := foopb.AType_APPLE
-
 	req := &foopb.InputType{
 		E: myFruit,
 	}
