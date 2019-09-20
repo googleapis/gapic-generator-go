@@ -17,6 +17,7 @@
 package main
 import(
  "context"
+ "errors"
  "flag"
  "fmt"
  "log"
@@ -27,18 +28,24 @@ foopb "path.to/pb/foo"
 
 // [START awesome_region]
 
-func sampleEmptyMethod() error {
+func sampleUnaryMethod() error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	req := &foopb.PageInType{}
-	if err := c.EmptyMethod(ctx, req); err != nil {
+	req := &foopb.InputType{}
+	resp, err := c.UnaryMethod(ctx, req)
+	if err != nil {
 		return err
 	}
 
+	myValue, ok := resp.GetMappyMap()["my_key"]
+	if !ok {
+		return errors.New("value not found")
+	}
+	fmt.Printf("The value associated with my_key is: %v\n", myValue.GetX())
 	return nil
 }
 
@@ -46,7 +53,7 @@ func sampleEmptyMethod() error {
 
 func main() {
 	flag.Parse()
-	if err := sampleEmptyMethod(); err != nil {
+	if err := sampleUnaryMethod(); err != nil {
 		log.Fatal(err)
 	}
 }

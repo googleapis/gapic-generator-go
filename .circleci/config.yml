@@ -23,7 +23,7 @@ workflows:
 jobs:
   format:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     steps:
       - checkout
       - run:
@@ -31,7 +31,7 @@ jobs:
           command: "! go fmt ./... 2>&1 | read"
   build:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     steps:
       - checkout
       - run: go test -mod=readonly ./...
@@ -64,7 +64,7 @@ jobs:
             GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
   publish_image:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     steps:
       - checkout
       - setup_remote_docker
