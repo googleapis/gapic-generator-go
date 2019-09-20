@@ -35,9 +35,11 @@ func bytesFmt() func(*generator, string) (string, error) {
 type fileInfo struct {
 	// fileName is the text of the file name. If it's a string literal, it's already quoted.
 	fileName string
+
 	// varName is the name of the local variable to hold the bytes of the file.
 	varName string
 
+	// comment is the user-specified comments that will be generated above this code
 	comment string
 }
 
