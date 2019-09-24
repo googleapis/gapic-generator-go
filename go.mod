@@ -9,14 +9,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.1
 	github.com/jhump/protoreflect v1.5.0
-	github.com/opennota/wd v0.0.0-20180911144301-b446539ab1e7 // indirect
-	github.com/russross/blackfriday v2.0.0+incompatible // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	golang.org/x/net v0.0.0-20190923162816-aa69164e4478 // indirect
-	golang.org/x/sys v0.0.0-20190924092210-98129a5cf4a0 // indirect
-	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/genproto v0.0.0-20190916214212-f660b8655731
-	google.golang.org/grpc v1.23.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
 
