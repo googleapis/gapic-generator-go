@@ -372,7 +372,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	}
 
 	if sampConf.Description != "" {
-		writeCommentLines(sampConf.Description)
+		writeCommentLines(fmt.Sprintf("sample%s: %s", meth.GetName(), sampConf.Description))
 		requiresNewLine = true
 	}
 
@@ -385,8 +385,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 			writeCommentLines("")
 		}
 		requiresNewLine = true
-		comment = fmt.Sprintf("%s: %s", argName, comment)
-		writeCommentLines(comment)
+		writeCommentLines(fmt.Sprintf("%s: %s", argName, comment))
 	}
 
 	// function signature and initialize a new client

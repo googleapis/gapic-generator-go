@@ -28,7 +28,7 @@ foopb "path.to/pb/foo"
 
 // [START awesome_region]
 
-// Construct a complex request object,
+// sampleUnaryMethod: Construct a complex request object,
 // send it to the server,
 // and inspect the response.
 //
