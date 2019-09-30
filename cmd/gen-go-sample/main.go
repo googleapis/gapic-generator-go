@@ -313,6 +313,7 @@ func (g *generator) disambiguateSampleIDs() error {
 	return nil
 }
 
+// TODO(hzyi): this method is getting long. Split it up.
 func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
 	ifaceName := sampConf.Service
 
@@ -362,29 +363,33 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	p("// [START %s]", sampConf.RegionTag)
 	p("")
 
-  // generate comments above the sample function
-  var emptyArr []string = nil
-  requiresNewLine := false
-  
-  if sampConf.Description != "" {
-  	writeComment(strings.TrimSuffix(sampConf.Description, "\n"), emptyArr, g)
-  	requiresNewLine = true
-  }
+	// generate comments above the sample function
+	requiresNewLine := false
 
-  for i, argName := range initInfo.argNames {
-  	comment := strings.TrimSuffix(initInfo.argTrees[i].comment, "\n")
-  	if comment == "" {
-  		continue
-  	}
-  	if requiresNewLine {
-  		writeComment("", emptyArr, g)
-  	}
-  	requiresNewLine = true
-  	comment = fmt.Sprintf("%s: %s", argName, comment)
-  	writeComment(comment, emptyArr, g)
-  }
+	writeCommentLines := func(comment string) {
+		comment = strings.TrimSpace(comment)
+		writeComment(comment, nil, g)
+	}
 
-  // function signature and initialize a new client
+	if sampConf.Description != "" {
+		writeCommentLines(sampConf.Description)
+		requiresNewLine = true
+	}
+
+	for i, argName := range initInfo.argNames {
+		comment := initInfo.argTrees[i].comment
+		if comment == "" {
+			continue
+		}
+		if requiresNewLine {
+			writeCommentLines("")
+		}
+		requiresNewLine = true
+		comment = fmt.Sprintf("%s: %s", argName, comment)
+		writeCommentLines(comment)
+	}
+
+	// function signature and initialize a new client
 	p("func sample%s(%s) error {", meth.GetName(), argStr)
 	p("  ctx := context.Background()")
 	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
