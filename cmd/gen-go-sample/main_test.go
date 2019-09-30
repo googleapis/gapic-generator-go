@@ -37,11 +37,11 @@ func TestUnary(t *testing.T) {
 		Rpc:       "UnaryMethod",
 		Service:   "foo.FooService",
 		RegionTag: "awesome_region",
-		Description: "Construct a complex request object,\nsend it to the server,\nand inspect the response.",
+		Description: "Construct a complex request object,\nsend it to the server,\nand inspect the response.\n",
 		Request: []schema_v1p2.RequestConfig{
 			{Field: "a.x", Value: "42", InputParameter: "the_x", Comment: "a single-line comment for an input parameter"},
 			{Field: "a.y", Value: "3.14159", Comment: "approximation of Pi"},
-			{Field: "b", Value: "foobar", InputParameter: "the_b", Comment: "a multi-line comment for\nan input parameter"},
+			{Field: "b", Value: "foobar", InputParameter: "the_b", Comment: "a multi-line comment for\nan input parameter\n"},
 			{Field: "e", Value: "BANANA"},
 			{Field: "f", Value: "in a oneof"},
 			{Field: "bytes", Value: "mybytes"},

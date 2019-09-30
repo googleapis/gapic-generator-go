@@ -362,17 +362,17 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	p("// [START %s]", sampConf.RegionTag)
 	p("")
 
-  // comments
-  emptyArr := make([]string, 0)
+  // generate comments above the sample function
+  var emptyArr []string = nil
   requiresNewLine := false
   
   if sampConf.Description != "" {
-  	writeComment(sampConf.Description, emptyArr, g)
+  	writeComment(strings.TrimSuffix(sampConf.Description, "\n"), emptyArr, g)
   	requiresNewLine = true
   }
 
   for i, argName := range initInfo.argNames {
-  	comment := initInfo.argTrees[i].comment
+  	comment := strings.TrimSuffix(initInfo.argTrees[i].comment, "\n")
   	if comment == "" {
   		continue
   	}
