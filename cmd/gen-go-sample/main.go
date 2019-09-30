@@ -353,7 +353,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 
 	p := g.pt.Printf
 
-	// Region tag, function signature and new client
+	// Region tag
 	argStr, err := argListStr(initInfo, g)
 	if err != nil {
 		return err
@@ -361,6 +361,30 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	p("")
 	p("// [START %s]", sampConf.RegionTag)
 	p("")
+
+  // comments
+  emptyArr := make([]string, 0)
+  requiresNewLine := false
+  
+  if sampConf.Description != "" {
+  	writeComment(sampConf.Description, emptyArr, g)
+  	requiresNewLine = true
+  }
+
+  for i, argName := range initInfo.argNames {
+  	comment := initInfo.argTrees[i].comment
+  	if comment == "" {
+  		continue
+  	}
+  	if requiresNewLine {
+  		writeComment("", emptyArr, g)
+  	}
+  	requiresNewLine = true
+  	comment = fmt.Sprintf("%s: %s", argName, comment)
+  	writeComment(comment, emptyArr, g)
+  }
+
+  // function signature and initialize a new client
 	p("func sample%s(%s) error {", meth.GetName(), argStr)
 	p("  ctx := context.Background()")
 	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
