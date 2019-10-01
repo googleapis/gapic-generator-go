@@ -522,19 +522,19 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	}
 
 	for i, k := range t.keys {
-		printCommentLines(w, t.vals[i].comment, ind + 1)
+		printCommentLines(w, t.vals[i].comment, ind+1)
 		if t.vals[i].typ.namePat != nil {
 			for _, v := range t.vals[i].vals {
-				printCommentLines(w, v.comment, ind + 1)
+				printCommentLines(w, v.comment, ind+1)
 			}
 		}
-		indent(w, ind + 1)
+		indent(w, ind+1)
 
 		var closeBrace bool
 		if oneof, ok := oneofs[k]; ok {
 			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToPascal(oneof), impSpec.Name, typName, snakeToPascal(k))
 			closeBrace = true
-			indent(w, ind + 2)
+			indent(w, ind+2)
 		}
 
 		if writeKey {
@@ -548,7 +548,7 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 
 		if closeBrace {
 			w.WriteString(",\n")
-			indent(w, ind + 1)
+			indent(w, ind+1)
 			w.WriteByte('}')
 		}
 		w.WriteString(",\n")
