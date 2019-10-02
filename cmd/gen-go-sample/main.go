@@ -16,7 +16,20 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/gensample"
+)
+
+const (
+	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 )
 
 type SampleValue []string
@@ -30,6 +43,7 @@ func (v *SampleValue) Set(value string) error {
 	return nil
 }
 
+// main is the main entry of SampleGen as a standalone program
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
@@ -37,13 +51,34 @@ func main() {
 	nofmt := flag.Bool("nofmt", false, "skip gofmt, useful for debugging code with syntax error")
 	outDir := flag.String("o", ".", "directory to write samples to")
 
-	var samplePaths SampleValue
-	flag.Var(&samplePaths, "sample", "path to a sample config file. There can be more than one --sample flag.")
+	var sampleFnames SampleValue
+	flag.Var(&sampleFnames, "sample", "path to a sample config file. There can be more than one --sample flag.")
 
 	flag.Parse()
-	gen(*descFname, samplePaths, *gapicFname, *clientPkg, *nofmt, *outDir)
-}
 
-func Plugin(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
-	
+	descBytes, err := ioutil.ReadFile(*descFname)
+	if err != nil {
+		log.Fatal(errors.E(err, "cannot read proto descriptor file"))
+	}
+
+	var desc descriptor.FileDescriptorSet
+	if err := proto.Unmarshal(descBytes, &desc); err != nil {
+		log.Fatal(errors.E(err, "error reading proto descriptor file"))
+	}
+
+	gen, err := gensample.InitGen(desc.GetFile(), sampleFnames, *gapicFname, *clientPkg, *nofmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := os.MkdirAll(*outDir, 0755); err != nil {
+		log.Fatal(err)
+	}
+
+	gen.GenMethodSamples()
+	for fname, content := range gen.Outputs {
+		if err := ioutil.WriteFile(filepath.Join(*outDir, fname), content, 0644); err != nil {
+			log.Fatal(err)
+		}
+	}
 }

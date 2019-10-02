@@ -58,6 +58,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	// parse plugin params, ignoring unknown values
+
 	for _, s := range strings.Split(*genReq.Parameter, ",") {
 		if e := strings.IndexByte(s, '='); e > 0 {
 			switch s[:e] {
@@ -93,6 +94,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 					return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
 				}
 			}
+		}
+		switch s {
+		case "sample-only":
+			return &g.resp, nil
 		}
 	}
 

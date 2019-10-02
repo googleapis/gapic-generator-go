@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gensample
 
 import (
 	"bytes"
@@ -21,19 +21,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/gensample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
@@ -43,19 +40,18 @@ import (
 const expectedSampleConfigType = "com.google.api.codegen.samplegen.v1p2.SampleConfigProto"
 const expectedSampleConfigVersion = "1.2.0"
 
-// gen is the entry point of samplegen workflow. The method is either invoked by main() in main.go,
-// when samplegen runs as a standalone program, or by Plugin() in main.go, when samplegen runs as a protoc plugin,
-// together with protoc-gen_gapic.
-func gen(descFname string, sampleFnames []string, gapicFname string, clientPkg string, nofmt bool, outDir string) {
+func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapicFname string, clientPkg string, nofmt bool) (*generator, error) {
 
 	gen := generator{
-		imports: map[pbinfo.ImportSpec]bool{},
+		imports:  map[pbinfo.ImportSpec]bool{},
+		desc:     desc,
+		descInfo: pbinfo.Of(desc),
 	}
 
 	if p := strings.IndexByte(clientPkg, ';'); p >= 0 {
 		gen.clientPkg = pbinfo.ImportSpec{Path: (clientPkg)[:p], Name: (clientPkg)[p+1:]}
 	} else {
-		log.Fatalf("need -clientPkg in 'url/to/client/pkg;name' format, got %q", clientPkg)
+		return nil, errors.E(nil, "need -clientPkg in 'url/to/client/pkg;name' format, got %q", clientPkg)
 	}
 
 	var wg sync.WaitGroup
@@ -65,7 +61,7 @@ func gen(descFname string, sampleFnames []string, gapicFname string, clientPkg s
 		defer wg.Done()
 		f, err := os.Open(gapicFname)
 		if err != nil {
-			log.Fatal(errors.E(err, "cannot read GAPIC config file"))
+			log.Fatal(errors.E(err, "cannot read GAPIC config file: %q", gapicFname))
 		}
 		defer f.Close()
 
@@ -77,84 +73,20 @@ func gen(descFname string, sampleFnames []string, gapicFname string, clientPkg s
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		descBytes, err := ioutil.ReadFile(descFname)
-		if err != nil {
-			log.Fatal(errors.E(err, "cannot read proto descriptor file"))
-		}
-
-		if err := proto.Unmarshal(descBytes, &gen.desc); err != nil {
-			log.Fatal(errors.E(err, "error reading proto descriptor file"))
-		}
-
-		gen.descInfo = pbinfo.Of(gen.desc.GetFile())
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := readSampleConfigFiles(&gen, sampleFnames); err != nil {
+		if err := gen.readSampleConfigFiles(sampleFnames); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	if err := os.MkdirAll(outDir, 0755); err != nil {
-		log.Fatal(err)
-	}
-
 	wg.Wait()
-
-	if err := genMethodSamples(&gen, nofmt, outDir); err != nil {
-		log.Fatal(err)
-	}
-
+	gen.nofmt = nofmt
+	return &gen, nil
 }
 
-func readSampleConfigFiles(gen *generator, paths []string) error {
-	for _, path := range paths {
-		f, err := os.Open(path)
-		if err != nil {
-			return errors.E(err, "cannot open sample config file: %s", path)
-		}
-		decoder := yaml.NewDecoder(f)
-		config, err := readSampleConfig(decoder, path)
-		if err != nil {
-			return err
-		}
-		gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, config.Samples...)
-	}
-	return nil
-}
-
-func readSampleConfig(decoder *yaml.Decoder, fname string) (schema_v1p2.SampleConfig, error) {
-	var config schema_v1p2.SampleConfig
-	for true {
-		var sc schema_v1p2.SampleConfig
-		err := decoder.Decode(&sc)
-		if err != nil && err.Error() == "EOF" {
-			// last YAML document, all done
-			break
-		}
-		if err != nil {
-			return config, err
-		}
-		if sc.Type != expectedSampleConfigType {
-			// ignore non sample config YAMLs
-			continue
-		}
-		if sc.Version != expectedSampleConfigVersion {
-			// ignore unsupported versions
-			continue
-		}
-		config.Samples = append(config.Samples, sc.Samples...)
-	}
-	if len(config.Samples) == 0 {
-		return config, errors.E(nil, "Found no valid sample config in %q", fname)
-	}
-	return config, nil
-}
-
-func genMethodSamples(gen *generator, nofmt bool, outDir string) error {
+func (gen *generator) GenMethodSamples() error {
 	gen.disambiguateSampleIDs()
+	gen.Outputs = make(map[string][]byte)
+
 	for _, samp := range gen.sampleConfig.Samples {
 		var iface GAPICInterface
 		var method GAPICMethod
@@ -182,28 +114,44 @@ func genMethodSamples(gen *generator, nofmt bool, outDir string) error {
 			log.Fatal(err)
 		}
 
-		content, err := gen.commit(!nofmt, time.Now().Year())
+		content, err := gen.commit(!gen.nofmt, time.Now().Year())
 		if err != nil {
 			return err
 		}
 
 		fname := samp.ID + ".go"
-		if err := ioutil.WriteFile(filepath.Join(outDir, fname), content, 0644); err != nil {
-			return err
-		}
+		gen.Outputs[fname] = content
 	}
 	return nil
 }
 
 type generator struct {
-	desc         descriptor.FileDescriptorSet
+	desc         []*descriptor.FileDescriptorProto
 	descInfo     pbinfo.Info
 	gapic        GAPICConfig
 	sampleConfig schema_v1p2.SampleConfig
 	clientPkg    pbinfo.ImportSpec
+	nofmt        bool
 
 	pt      printer.P
 	imports map[pbinfo.ImportSpec]bool
+	Outputs map[string][]byte
+}
+
+func (gen *generator) readSampleConfigFiles(paths []string) error {
+	for _, path := range paths {
+		f, err := os.Open(path)
+		if err != nil {
+			return errors.E(err, "cannot open sample config file: %s", path)
+		}
+		decoder := yaml.NewDecoder(f)
+		config, err := readSampleConfig(decoder, path)
+		if err != nil {
+			return err
+		}
+		gen.sampleConfig.Samples = append(gen.sampleConfig.Samples, config.Samples...)
+	}
+	return nil
 }
 
 func (g *generator) reset() {
@@ -643,6 +591,35 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, respConfs 
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	}
 	return nil
+}
+
+// readSampleConfig loads sample configs from a file.
+func readSampleConfig(decoder *yaml.Decoder, fname string) (schema_v1p2.SampleConfig, error) {
+	var config schema_v1p2.SampleConfig
+	for true {
+		var sc schema_v1p2.SampleConfig
+		err := decoder.Decode(&sc)
+		if err != nil && err.Error() == "EOF" {
+			// last YAML document, all done
+			break
+		}
+		if err != nil {
+			return config, err
+		}
+		if sc.Type != expectedSampleConfigType {
+			// ignore non sample config YAMLs
+			continue
+		}
+		if sc.Version != expectedSampleConfigVersion {
+			// ignore unsupported versions
+			continue
+		}
+		config.Samples = append(config.Samples, sc.Samples...)
+	}
+	if len(config.Samples) == 0 {
+		return config, errors.E(nil, "Found no valid sample config in %q", fname)
+	}
+	return config, nil
 }
 
 // prependLines adds prefix to every line in b. A line is defined as a possibly empty run
