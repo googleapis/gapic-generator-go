@@ -388,7 +388,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 		writeCommentLines(fmt.Sprintf("%s: %s", argName, comment))
 	}
 
-	// function signature and initialize a new client
+	// function signature and client initialization
 	p("func sample%s(%s) error {", meth.GetName(), argStr)
 	p("  ctx := context.Background()")
 	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
