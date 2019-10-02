@@ -79,6 +79,10 @@ The configuration supported by the plugin option includes:
   * `grpc-service-config`: the path to a gRPC ServiceConfig JSON file.
     * This is used for client-side retry configuration in accordance with [AIP-4221](http://aip.dev/4221)
 
+  * `release-level`: the client library release level.
+    * Defaults to empty, which is essentially the GA release level.
+    * Acceptable values are `alpha` and `beta`.
+
 Docker Wrapper
 --------------
 The generator can also be executed via a Docker container. The image containes `protoc`, the microgenerator
