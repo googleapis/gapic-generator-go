@@ -58,44 +58,43 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	// parse plugin params, ignoring unknown values
-
 	for _, s := range strings.Split(*genReq.Parameter, ",") {
-		if e := strings.IndexByte(s, '='); e > 0 {
-			switch s[:e] {
-			case "go-gapic-package":
-				p := strings.IndexByte(s, ';')
-
-				if p < 0 {
-					return &g.resp, errors.E(nil, paramError)
-				}
-
-				pkgPath = s[e+1 : p]
-				pkgName = s[p+1:]
-				outDir = filepath.FromSlash(pkgPath)
-			case "gapic-service-config":
-				f, err := os.Open(s[e+1:])
-				if err != nil {
-					return &g.resp, errors.E(nil, "error opening service config: %v", err)
-				}
-
-				err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
-				if err != nil {
-					return &g.resp, errors.E(nil, "error decoding service config: %v", err)
-				}
-			case "grpc-service-config":
-				data, err := os.Open(s[e+1:])
-				if err != nil {
-					return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
-				}
-
-				g.grpcConf = &conf.ServiceConfig{}
-				err = jsonpb.Unmarshal(data, g.grpcConf)
-				if err != nil {
-					return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
-				}
-			}
+		e := strings.IndexByte(s, '=')
+		if e < 0 {
+			e = len(s)
 		}
-		switch s {
+		switch s[:e] {
+		case "go-gapic-package":
+			p := strings.IndexByte(s, ';')
+
+			if p < 0 {
+				return &g.resp, errors.E(nil, paramError)
+			}
+
+			pkgPath = s[e+1 : p]
+			pkgName = s[p+1:]
+			outDir = filepath.FromSlash(pkgPath)
+		case "gapic-service-config":
+			f, err := os.Open(s[e+1:])
+			if err != nil {
+				return &g.resp, errors.E(nil, "error opening service config: %v", err)
+			}
+
+			err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
+			if err != nil {
+				return &g.resp, errors.E(nil, "error decoding service config: %v", err)
+			}
+		case "grpc-service-config":
+			data, err := os.Open(s[e+1:])
+			if err != nil {
+				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
+			}
+
+			g.grpcConf = &conf.ServiceConfig{}
+			err = jsonpb.Unmarshal(data, g.grpcConf)
+			if err != nil {
+				return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
+			}
 		case "sample-only":
 			return &g.resp, nil
 		}

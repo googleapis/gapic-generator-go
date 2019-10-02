@@ -43,7 +43,6 @@ func (v *SampleValue) Set(value string) error {
 	return nil
 }
 
-// main is the main entry of SampleGen as a standalone program
 func main() {
 	descFname := flag.String("desc", "", "proto descriptor")
 	gapicFname := flag.String("gapic", "", "gapic config")
