@@ -363,7 +363,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	p("// [START %s]", sampConf.RegionTag)
 	p("")
 
-	// generate comments above the sample function
+	// comments above the sample function
 	requiresNewLine := false
 
 	writeCommentLines := func(comment string) {
@@ -716,4 +716,43 @@ func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) {
 		}
 		b.WriteString(l)
 	}
+}
+
+// wrapComment wraps comment at 100 characters, iff comment does not contain any newline characters
+// and comment has more than 110 characters.
+//
+// comment cannot have leading or trailing white spaces.
+func wrapComment(comment string) string {
+	if strings.ContainsRune(comment, '\n') || len(comment) < 110 {
+		return comment
+	}
+
+	var output strings.Builder
+	s := 0
+	prev := -1
+
+	for true {
+		fmt.Println("what")
+		p := strings.IndexByte(comment[prev+1:], ' ')
+		// we reached the end of comment
+		if p < 0 {
+			output.WriteString(comment[s:])
+			return output.String()
+		}
+
+		p = p + prev + 1
+		if p-s > 100 {
+			// a single word has more than 100 characters
+			if prev == s-1 {
+				prev = p
+			}
+			// break the line at prev
+			output.WriteString(comment[s:prev])
+			output.WriteByte('\n')
+			s = prev + 1
+		}
+		prev = p
+	}
+
+	return ""
 }
