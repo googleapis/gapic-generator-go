@@ -21,12 +21,12 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/ptypes/duration"
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	code "google.golang.org/genproto/googleapis/rpc/code"
-	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 )
 
 func TestClientOpt(t *testing.T) {
@@ -41,7 +41,7 @@ func TestClientOpt(t *testing.T) {
 						Method:  "Zip",
 					},
 				},
-				MaxRequestMessageBytes: &wrappers.UInt32Value{Value: 123456},
+				MaxRequestMessageBytes:  &wrappers.UInt32Value{Value: 123456},
 				MaxResponseMessageBytes: &wrappers.UInt32Value{Value: 123456},
 				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
 					RetryPolicy: &conf.MethodConfig_RetryPolicy{
@@ -60,7 +60,7 @@ func TestClientOpt(t *testing.T) {
 						Service: "bar.FooService",
 					},
 				},
-				MaxRequestMessageBytes: &wrappers.UInt32Value{Value: 654321},
+				MaxRequestMessageBytes:  &wrappers.UInt32Value{Value: 654321},
 				MaxResponseMessageBytes: &wrappers.UInt32Value{Value: 654321},
 				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
 					RetryPolicy: &conf.MethodConfig_RetryPolicy{

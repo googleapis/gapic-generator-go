@@ -97,7 +97,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				if name.GetMethod() != "" {
 					base = base + "." + name.GetMethod()
 					policies[base] = mc.GetRetryPolicy()
-					
+
 					if maxReq := mc.GetMaxRequestMessageBytes(); maxReq != nil {
 						reqLimits[base] = int(maxReq.GetValue())
 					}
@@ -148,7 +148,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			mFQN := sFQN + "." + m.GetName()
 			p("%s: []gax.CallOption{", m.GetName())
 
-			if maxReq, ok := reqLimits[mFQN]; ok  {
+			if maxReq, ok := reqLimits[mFQN]; ok {
 				p("gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(%d)),", maxReq)
 			}
 

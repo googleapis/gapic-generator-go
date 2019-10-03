@@ -313,6 +313,7 @@ func (g *generator) disambiguateSampleIDs() error {
 	return nil
 }
 
+// TODO(hzyi): this method is getting long. Split it up.
 func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
 	ifaceName := sampConf.Service
 
@@ -353,7 +354,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 
 	p := g.pt.Printf
 
-	// Region tag, function signature and new client
+	// Region tag
 	argStr, err := argListStr(initInfo, g)
 	if err != nil {
 		return err
@@ -361,6 +362,33 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	p("")
 	p("// [START %s]", sampConf.RegionTag)
 	p("")
+
+	// comments above the sample function
+	requiresNewLine := false
+
+	writeCommentLines := func(comment string) {
+		comment = strings.TrimSpace(comment)
+		writeComment(comment, nil, g)
+	}
+
+	if sampConf.Description != "" {
+		writeCommentLines(fmt.Sprintf("sample%s: %s", meth.GetName(), sampConf.Description))
+		requiresNewLine = true
+	}
+
+	for i, argName := range initInfo.argNames {
+		comment := initInfo.argTrees[i].comment
+		if comment == "" {
+			continue
+		}
+		if requiresNewLine {
+			writeCommentLines("")
+		}
+		requiresNewLine = true
+		writeCommentLines(fmt.Sprintf("%s: %s", argName, comment))
+	}
+
+	// function signature and client initialization
 	p("func sample%s(%s) error {", meth.GetName(), argStr)
 	p("  ctx := context.Background()")
 	p("  c, err := %s.New%sClient(ctx)", g.clientPkg.Name, pbinfo.ReduceServName(serv.GetName(), g.clientPkg.Name))
@@ -688,4 +716,43 @@ func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) {
 		}
 		b.WriteString(l)
 	}
+}
+
+// wrapComment wraps comment at 100 characters, iff comment does not contain any newline characters
+// and comment has more than 110 characters.
+//
+// comment cannot have leading or trailing white spaces.
+func wrapComment(comment string) string {
+	if strings.ContainsRune(comment, '\n') || len(comment) < 110 {
+		return comment
+	}
+
+	var output strings.Builder
+	s := 0
+	prev := -1
+
+	for true {
+		fmt.Println("what")
+		p := strings.IndexByte(comment[prev+1:], ' ')
+		// we reached the end of comment
+		if p < 0 {
+			output.WriteString(comment[s:])
+			return output.String()
+		}
+
+		p = p + prev + 1
+		if p-s > 100 {
+			// a single word has more than 100 characters
+			if prev == s-1 {
+				prev = p
+			}
+			// break the line at prev
+			output.WriteString(comment[s:prev])
+			output.WriteByte('\n')
+			s = prev + 1
+		}
+		prev = p
+	}
+
+	return ""
 }
