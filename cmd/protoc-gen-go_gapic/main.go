@@ -56,7 +56,7 @@ func main() {
 	}
 }
 
-func merge(gapicResp *plugin.CodeGeneratorResponse, sampleResp *plugin.CodeGeneratorResponse) *plugin.CodeGeneratorResponse {
+func merge(gapicResp, sampleResp *plugin.CodeGeneratorResponse) *plugin.CodeGeneratorResponse {
 	if gapicResp.GetError() != "" {
 		return gapicResp
 	}

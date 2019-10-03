@@ -28,10 +28,6 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/gensample"
 )
 
-const (
-	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
-)
-
 type SampleValue []string
 
 func (v *SampleValue) String() string {

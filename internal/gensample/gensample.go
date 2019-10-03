@@ -40,6 +40,7 @@ import (
 const expectedSampleConfigType = "com.google.api.codegen.samplegen.v1p2.SampleConfigProto"
 const expectedSampleConfigVersion = "1.2.0"
 
+// InitGen creates a new sample generator.
 func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapicFname string, clientPkg string, nofmt bool) (*generator, error) {
 
 	gen := generator{
@@ -55,6 +56,7 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 	}
 
 	var wg sync.WaitGroup
+	errChan := make(chan error)
 
 	wg.Add(1)
 	go func() {
@@ -62,29 +64,39 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 		if gapicFname != "" {
 			f, err := os.Open(gapicFname)
 			if err != nil {
-				log.Fatal(errors.E(err, "cannot read GAPIC config file: %q", gapicFname))
+				errChan <- errors.E(err, "cannot read GAPIC config file: %q", gapicFname)
 			}
 			defer f.Close()
 
 			if err := yaml.NewDecoder(f).Decode(&gen.gapic); err != nil {
-				log.Fatal(errors.E(err, "error reading GAPIC config file"))
+				errChan <- errors.E(err, "error reading GAPIC config file: %q", gapicFname)
 			}
 		}
+		errChan <- nil
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		if err := gen.readSampleConfigFiles(sampleFnames); err != nil {
-			log.Fatal(err)
+			errChan <- err
 		}
+		errChan <- nil
 	}()
 
 	wg.Wait()
 	gen.nofmt = nofmt
+	if err := <- errChan; err != nil {
+		return nil, err
+	}
+	if err := <- errChan; err != nil {
+		return nil, err
+	}
 	return &gen, nil
 }
 
+// GenMethodSamples generators samples from protos and configurations stored in the generator,
+// and writes the generated samples to generator.Outputs.
 func (gen *generator) GenMethodSamples() error {
 	gen.disambiguateSampleIDs()
 	gen.Outputs = make(map[string][]byte)
@@ -140,6 +152,8 @@ type generator struct {
 	Outputs map[string][]byte
 }
 
+// readSampleConfigFiles loads sample configs from local files and store
+// them in generator.sampleConfig.
 func (gen *generator) readSampleConfigFiles(paths []string) error {
 	for _, path := range paths {
 		f, err := os.Open(path)
@@ -210,6 +224,11 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 	return b, nil
 }
 
+// disambiguateSampleIDs assigns unique sample IDs to each sample config.
+// User-specified sample IDs (or region tags) are used if they are unique.
+// Otherwise, the generator will generate a unique ID from the content
+// of the sample, or fail if it is unable to do so (when multiple samples
+// have identical contents).
 func (g *generator) disambiguateSampleIDs() error {
 	idCount := make(map[string]int)
 	hashes := make(map[string]bool)
@@ -244,6 +263,7 @@ func (g *generator) disambiguateSampleIDs() error {
 	return nil
 }
 
+// genSample generates one sample from sample config and gapic config.
 func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
 	ifaceName := sampConf.Service
 
