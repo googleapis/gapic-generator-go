@@ -63,6 +63,7 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 		defer wg.Done()
 		if gapicFname == "" {
 			errChan <- nil
+			return
 		}
 		f, err := os.Open(gapicFname)
 		if err != nil {
