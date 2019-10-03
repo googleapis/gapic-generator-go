@@ -318,7 +318,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	requiresNewLine := false
 
 	writeCommentLines := func(comment string) {
-		comment = wrapComments(strings.TrimSpace(comment))
+		comment = wrapComment(strings.TrimSpace(comment))
 		writeComment(comment, nil, g)
 	}
 

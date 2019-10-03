@@ -96,6 +96,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			err = jsonpb.Unmarshal(data, g.grpcConf)
 			if err != nil {
 				return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
+			}
 		case "release-level":
 			g.relLvl = strings.ToLower(s[e+1:])
 		case "sample-only":
