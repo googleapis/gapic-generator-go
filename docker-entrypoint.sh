@@ -41,8 +41,6 @@ if [ -z "$GO_GAPIC_PACKAGE" ]; then
   exit 64
 fi
 
-echo "$RELEASE_LEVEL"
-
 protoc --proto_path=/protos/ --proto_path=/in/ \
                   --gapic-validator_out=. \
                   --go_gapic_out=/out/ \
