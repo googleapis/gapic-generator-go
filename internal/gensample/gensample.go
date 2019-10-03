@@ -61,30 +61,26 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if gapicFname != "" {
-			f, err := os.Open(gapicFname)
-			if err != nil {
-				errChan <- errors.E(err, "cannot read GAPIC config file: %q", gapicFname)
-				return
-			}
-			defer f.Close()
-
-			if err := yaml.NewDecoder(f).Decode(&gen.gapic); err != nil {
-				errChan <- errors.E(err, "error reading GAPIC config file: %q", gapicFname)
-				return
-			}
+		if gapicFname == "" {
+			errChan <- nil
 		}
-		errChan <- nil
+		f, err := os.Open(gapicFname)
+		if err != nil {
+			errChan <- errors.E(err, "cannot read GAPIC config file: %q", gapicFname)
+			return
+		}
+		defer f.Close()
+
+		if err := yaml.NewDecoder(f).Decode(&gen.gapic); err != nil {
+			errChan <- errors.E(err, "error reading GAPIC config file: %q", gapicFname)
+			return
+		}
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := gen.readSampleConfigFiles(sampleFnames); err != nil {
-			errChan <- err
-			return
-		}
-		errChan <- nil
+		errChan <- gen.readSampleConfigFiles(sampleFnames)
 	}()
 
 	gen.nofmt = nofmt
