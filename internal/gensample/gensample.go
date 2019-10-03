@@ -65,11 +65,13 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 			f, err := os.Open(gapicFname)
 			if err != nil {
 				errChan <- errors.E(err, "cannot read GAPIC config file: %q", gapicFname)
+				return
 			}
 			defer f.Close()
 
 			if err := yaml.NewDecoder(f).Decode(&gen.gapic); err != nil {
 				errChan <- errors.E(err, "error reading GAPIC config file: %q", gapicFname)
+				return
 			}
 		}
 		errChan <- nil
@@ -80,18 +82,19 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 		defer wg.Done()
 		if err := gen.readSampleConfigFiles(sampleFnames); err != nil {
 			errChan <- err
+			return
 		}
 		errChan <- nil
 	}()
 
-	wg.Wait()
 	gen.nofmt = nofmt
-	if err := <- errChan; err != nil {
+	if err := <-errChan; err != nil {
 		return nil, err
 	}
-	if err := <- errChan; err != nil {
+	if err := <-errChan; err != nil {
 		return nil, err
 	}
+	wg.Wait()
 	return &gen, nil
 }
 
@@ -712,7 +715,6 @@ func wrapComment(comment string) string {
 	prev := -1
 
 	for true {
-		fmt.Println("what")
 		p := strings.IndexByte(comment[prev+1:], ' ')
 		// we reached the end of comment
 		if p < 0 {
