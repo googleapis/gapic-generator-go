@@ -28,6 +28,14 @@ foopb "path.to/pb/foo"
 
 // [START awesome_region]
 
+// sampleUnaryMethod: Construct a complex request object,
+// send it to the server,
+// and inspect the response.
+//
+// theX: a single-line comment for an input parameter
+//
+// theB: a multi-line comment for
+// an input parameter
 func sampleUnaryMethod(theX int64, theB string, theFoo string, bobFile string) error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)

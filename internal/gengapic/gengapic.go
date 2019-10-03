@@ -45,6 +45,8 @@ const (
 	emptyType  = ".google.protobuf.Empty"
 	lroType    = ".google.longrunning.Operation"
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
+	alpha      = "alpha"
+	beta       = "beta"
 )
 
 var headerParamRegexp = regexp.MustCompile(`{([_a-z]+)=`)
@@ -94,7 +96,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			err = jsonpb.Unmarshal(data, g.grpcConf)
 			if err != nil {
 				return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
-			}
+		case "release-level":
+			g.relLvl = strings.ToLower(s[e+1:])
 		case "sample-only":
 			return &g.resp, nil
 		}
@@ -184,10 +187,14 @@ type generator struct {
 	// Parsed service config from plugin option
 	serviceConfig *serviceConfig
 
+	// gRPC ServiceConfig
 	grpcConf *conf.ServiceConfig
 
 	// Auxiliary types to be generated in the package
 	aux *auxTypes
+
+	// Release level that defaults to GA/nothing
+	relLvl string
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {

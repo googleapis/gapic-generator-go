@@ -30,6 +30,24 @@ func TestDocFile(t *testing.T) {
 		},
 	}
 
-	g.genDocFile("path/to/awesome", "awesome", 42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
-	txtdiff.Diff(t, "doc_file", g.pt.String(), filepath.Join("testdata", "doc_file.want"))
+	for _, tst := range []struct {
+		relLvl, want string
+	}{
+		{
+			want: filepath.Join("testdata", "doc_file.want"),
+		},
+		{
+			relLvl: alpha,
+			want:   filepath.Join("testdata", "doc_file_alpha.want"),
+		},
+		{
+			relLvl: beta,
+			want:   filepath.Join("testdata", "doc_file_beta.want"),
+		},
+	} {
+		g.relLvl = tst.relLvl
+		g.genDocFile("path/to/awesome", "awesome", 42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
+		txtdiff.Diff(t, "doc_file", g.pt.String(), tst.want)
+		g.reset()
+	}
 }

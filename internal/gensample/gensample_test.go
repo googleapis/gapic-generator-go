@@ -33,14 +33,15 @@ func TestUnary(t *testing.T) {
 	g := initTestGenerator()
 
 	sp := schema_v1p2.Sample{
-		ID:        "my_sample_config",
-		Rpc:       "UnaryMethod",
-		Service:   "foo.FooService",
-		RegionTag: "awesome_region",
+		ID:          "my_sample_config",
+		Rpc:         "UnaryMethod",
+		Service:     "foo.FooService",
+		RegionTag:   "awesome_region",
+		Description: "Construct a complex request object,\nsend it to the server,\nand inspect the response.\n",
 		Request: []schema_v1p2.RequestConfig{
-			{Field: "a.x", Value: "42", InputParameter: "the_x"},
+			{Field: "a.x", Value: "42", InputParameter: "the_x", Comment: "a single-line comment for an input parameter"},
 			{Field: "a.y", Value: "3.14159", Comment: "approximation of Pi"},
-			{Field: "b", Value: "foobar", InputParameter: "the_b"},
+			{Field: "b", Value: "foobar", InputParameter: "the_b", Comment: "a multi-line comment for\nan input parameter\n"},
 			{Field: "e", Value: "BANANA"},
 			{Field: "f", Value: "in a oneof"},
 			{Field: "bytes", Value: "mybytes"},
@@ -425,6 +426,29 @@ func TestEnum(t *testing.T) {
 	}
 
 	compare(t, g, filepath.Join("testdata", "sample_enum.want"))
+}
+
+func TestWrapCommentNotWrapping(t *testing.T) {
+	comment := "some short comments"
+	if c := wrapComment(comment); c != comment {
+		t.Fatal(errors.E(nil, "want %q, got %q", comment, c))
+	}
+
+	comment = "some\nmulti-line\ncomments"
+	if c := wrapComment(comment); c != comment {
+		t.Fatal(errors.E(nil, "want %q, got %q", comment, c))
+	}
+}
+
+func TestWrapCommentWrapping(t *testing.T) {
+	raw := "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog again. The quick brown fox jumps over the lazy dog again and again."
+	wrapped :=
+		`The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog again. The
+quick brown fox jumps over the lazy dog again and again.`
+
+	if c := wrapComment(raw); c != wrapped {
+		t.Fatal(errors.E(nil, "want %q, got %q", wrapped, c))
+	}
 }
 
 func initTestGenerator() *generator {
