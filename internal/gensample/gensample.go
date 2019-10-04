@@ -41,12 +41,17 @@ const expectedSampleConfigType = "com.google.api.codegen.samplegen.v1p2.SampleCo
 const expectedSampleConfigVersion = "1.2.0"
 
 // InitGen creates a new sample generator.
+// sampleFnames is the filenames of all sample config files.
+// gapicFname is the filename of gapic config.
+// clientPkg is the Go package of the generated gapic client library.
+// nofmt set to true will instruct the generator not to format the generated code. This could be useful for debugging purpose.
 func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapicFname string, clientPkg string, nofmt bool) (*generator, error) {
 
 	gen := generator{
-		imports:  map[pbinfo.ImportSpec]bool{},
-		desc:     desc,
-		descInfo: pbinfo.Of(desc),
+		imports:      map[pbinfo.ImportSpec]bool{},
+		desc:         desc,
+		descInfo:     pbinfo.Of(desc),
+		sampleConfig: schema_v1p2.SampleConfig{},
 	}
 
 	if p := strings.IndexByte(clientPkg, ';'); p >= 0 {
@@ -56,26 +61,12 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 	}
 
 	var wg sync.WaitGroup
-	errChan := make(chan error)
+	errChan := make(chan error, 2)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if gapicFname == "" {
-			errChan <- nil
-			return
-		}
-		f, err := os.Open(gapicFname)
-		if err != nil {
-			errChan <- errors.E(err, "cannot read GAPIC config file: %q", gapicFname)
-			return
-		}
-		defer f.Close()
-
-		if err := yaml.NewDecoder(f).Decode(&gen.gapic); err != nil {
-			errChan <- errors.E(err, "error reading GAPIC config file: %q", gapicFname)
-			return
-		}
+		errChan <- gen.readGapicConfigFile(gapicFname)
 	}()
 
 	wg.Add(1)
@@ -83,14 +74,6 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 		defer wg.Done()
 		errChan <- gen.readSampleConfigFiles(sampleFnames)
 	}()
-
-	gen.nofmt = nofmt
-	if err := <-errChan; err != nil {
-		return nil, err
-	}
-	if err := <-errChan; err != nil {
-		return nil, err
-	}
 	wg.Wait()
 	return &gen, nil
 }
@@ -152,7 +135,7 @@ type generator struct {
 	Outputs map[string][]byte
 }
 
-// readSampleConfigFiles loads sample configs from local files and store
+// readSampleConfigFiles loads sample configs from local files and stores
 // them in generator.sampleConfig.
 func (gen *generator) readSampleConfigFiles(paths []string) error {
 	for _, path := range paths {
@@ -170,6 +153,25 @@ func (gen *generator) readSampleConfigFiles(paths []string) error {
 	return nil
 }
 
+// readGapicConfigFile loads gapic config from a local file and stores it in
+// generator.gapic.
+func (gen *generator) readGapicConfigFile(gapicFname string) error {
+	// ignore gapicFname if unspecified
+	if gapicFname == "" {
+		return nil
+	}
+	f, err := os.Open(gapicFname)
+	if err != nil {
+		return errors.E(err, "cannot read GAPIC config file: %q", gapicFname)
+	}
+	defer f.Close()
+
+	if err := yaml.NewDecoder(f).Decode(&gen.gapic); err != nil {
+		return errors.E(err, "error reading GAPIC config file: %q", gapicFname)
+	}
+	return nil
+}
+
 func (g *generator) reset() {
 	g.pt.Reset()
 	for imp := range g.imports {
@@ -177,8 +179,14 @@ func (g *generator) reset() {
 	}
 }
 
+// commit writes the internal data representation of the generator to bytes.
+// What it does can be summarized as:
+// 1) dumps license with the given year
+// 2) dumps package and imports
+// 3) dumps generated code in generator.printer
+// 4) formats the code if gofmt is true
 func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
-	// We'll gofmt unless user asks us to not, so no need to think too hard about sorting
+	// We'll gofmt unless user asks us not to, so no need to think too hard about sorting
 	// "correctly". We just want a deterministic output here.
 	var imports []pbinfo.ImportSpec
 	for imp := range g.imports {
@@ -244,7 +252,7 @@ func (g *generator) disambiguateSampleIDs() error {
 	}
 
 	for i := range samples {
-		// Generate a sample ID when the user-provided ID is empty not unique
+		// Generate a sample ID when the user-provided ID is empty or not unique
 		if samples[i].ID == "" || idCount[samples[i].ID] > 1 {
 			jsonStr, err := json.Marshal(samples[i])
 			if err != nil {
@@ -254,7 +262,7 @@ func (g *generator) disambiguateSampleIDs() error {
 			encodedStr := base32.StdEncoding.EncodeToString(checkSum[:])
 			suffix := string([]rune(encodedStr)[0:8])
 			if _, found := hashes[suffix]; found {
-				return errors.E(nil, "unable to get a unique hash, multiple samples with identical contents?")
+				return errors.E(nil, "unable to get a unique hash: multiple samples with identical contents")
 			}
 			hashes[suffix] = true
 			samples[i].ID += suffix
@@ -388,6 +396,7 @@ func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod)
 	return nil
 }
 
+// getInitInfo extracts information from request configs to prepare for generation of the request setup part of the sample.
 func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, fieldConfs []schema_v1p2.RequestConfig) (initInfo, error) {
 	var (
 		argNames  []string
@@ -504,6 +513,7 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, f
 	return initInfo, nil
 }
 
+// argListStr returns a comma-separated string of the list of arguments that sample function takes.
 func argListStr(init initInfo, g *generator) (string, error) {
 	if len(init.argNames) > 0 {
 		var sb strings.Builder
