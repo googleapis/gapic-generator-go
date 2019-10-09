@@ -556,7 +556,9 @@ func (g *generator) handleRequest(initInfo initInfo) error {
 		}
 		buf.WriteByte('\n')
 	}
-	prependLines(&buf, "// ", false)
+	if err := prependLines(&buf, "// ", false); err != nil {
+		return err
+	}
 
 	for _, info := range initInfo.files {
 		handleReadFile(info, &buf, g)
@@ -567,7 +569,9 @@ func (g *generator) handleRequest(initInfo initInfo) error {
 		return errors.E(err, "can't initialize request object")
 	}
 	buf.WriteByte('\n')
-	prependLines(&buf, "\t", true)
+	if err := prependLines(&buf, "\t", true); err != nil {
+		return err
+	}
 
 	if _, err := buf.WriteTo(g.pt.Writer()); err != nil {
 		return err
@@ -701,14 +705,14 @@ func readSampleConfig(decoder *yaml.Decoder, fname string) (schema_v1p2.SampleCo
 
 // prependLines adds prefix to every line in b. A line is defined as a possibly empty run
 // of non-newlines terminated by a newline character.
-// If b doesn't end with a newline, prependLines panics.
+// If b doesn't end with a newline, prependLines returns an error.
 // If skipEmptyLine is true, prependLines does not prepend prefix to empty lines.
-func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) {
+func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) error {
 	if b.Len() == 0 {
-		return
+		return nil
 	}
 	if b.Bytes()[b.Len()-1] != '\n' {
-		panic(errors.E(nil, "prependLines: must end with newline"))
+		return errors.E(nil, "prependLines: must end with newline")
 	}
 	// Don't split with b.Bytes; we have to make a copy of the content since we're overwriting the buffer.
 	lines := strings.SplitAfter(b.String(), "\n")
@@ -723,6 +727,7 @@ func prependLines(b *bytes.Buffer, prefix string, skipEmptyLine bool) {
 		}
 		b.WriteString(l)
 	}
+	return nil
 }
 
 // wrapComment wraps comment at 100 characters, iff comment does not contain any newline characters

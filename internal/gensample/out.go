@@ -306,7 +306,9 @@ func writeComment(cmtFmt string, cmtArgs []string, gen *generator) error {
 		return errors.E(err, "comment spec: bad format")
 	}
 	buf.WriteString("\n")
-	prependLines(&buf, "// ", false)
+	if err := prependLines(&buf, "// ", false); err != nil {
+		return err
+	}
 	cmts := strings.TrimRight(buf.String(), "\n")
 	for _, c := range strings.Split(cmts, "\n") {
 		gen.pt.Printf(c)
