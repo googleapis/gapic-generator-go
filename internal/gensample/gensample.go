@@ -131,21 +131,21 @@ func (gen *generator) GenMethodSamples() error {
 
 type generator struct {
 	// desc is the set of proto descriptors of the API
-	desc         []*descriptor.FileDescriptorProto
+	desc []*descriptor.FileDescriptorProto
 
 	// descInfo has some pre-processed information for the proto descriptors,
 	// so that looking up message or method configs is easier
-	descInfo     pbinfo.Info
-	gapic        GAPICConfig
+	descInfo pbinfo.Info
+	gapic    GAPICConfig
 
 	// sampleConfig is the sample configurations, in v1.2 schema
 	sampleConfig schema_v1p2.SampleConfig
 
 	// clientPkg is the go package of the generated Gapic client
-	clientPkg    pbinfo.ImportSpec
+	clientPkg pbinfo.ImportSpec
 
 	// if set to true, the generator will not format the generated code
-	nofmt        bool
+	nofmt bool
 
 	pt      printer.P
 	imports map[pbinfo.ImportSpec]bool
