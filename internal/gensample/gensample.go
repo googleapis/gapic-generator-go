@@ -44,7 +44,7 @@ const expectedSampleConfigVersion = "1.2.0"
 // sampleFnames is the filenames of all sample config files.
 // gapicFname is the filename of gapic config.
 // clientPkg is the Go package of the generated gapic client library.
-// nofmt set to true will instruct the generator not to format the generated code. This could be useful for debugging purpose.
+// nofmt set to true will instruct the generator not to format the generated code. This could be useful for debugging purposes.
 func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapicFname string, clientPkg string, nofmt bool) (*generator, error) {
 
 	gen := generator{
@@ -75,6 +75,13 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 		errChan <- gen.readSampleConfigFiles(sampleFnames)
 	}()
 	wg.Wait()
+
+	close(errChan)
+	for err := range errChan {
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &gen, nil
 }
 
@@ -123,7 +130,7 @@ func (gen *generator) GenMethodSamples() error {
 }
 
 type generator struct {
-	// desc is the proto descriptors of the API
+	// desc is the set of proto descriptors of the API
 	desc         []*descriptor.FileDescriptorProto
 
 	// descInfo has some pre-processed information for the proto descriptors,
@@ -190,7 +197,7 @@ func (g *generator) reset() {
 }
 
 // commit writes the internal data representation of the generator to bytes.
-// What it does can be summarized as:
+// It does the following:
 // 1) dumps license with the given year
 // 2) dumps package and imports
 // 3) dumps generated code in generator.printer
@@ -235,7 +242,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 	if gofmt {
 		b2, err := format.Source(b)
 		if err != nil {
-			return nil, errors.E(err, "syntax error, run with -nofmt to find out why?")
+			return nil, errors.E(err, "syntax error, run with -nofmt to find out why")
 		}
 		b = b2
 	}
@@ -523,7 +530,7 @@ func (g *generator) getInitInfo(inType pbinfo.ProtoType, methConf GAPICMethod, f
 	return initInfo, nil
 }
 
-// argListStr returns a comma-separated string of the list of arguments that sample function takes.
+// argListStr returns a comma-separated string of the list of arguments that the sample function takes.
 func argListStr(init initInfo, g *generator) (string, error) {
 	if len(init.argNames) > 0 {
 		var sb strings.Builder
@@ -666,7 +673,7 @@ func (g *generator) handleOut(meth *descriptor.MethodDescriptorProto, respConfs 
 // readSampleConfig loads sample configs from a file.
 func readSampleConfig(decoder *yaml.Decoder, fname string) (schema_v1p2.SampleConfig, error) {
 	var config schema_v1p2.SampleConfig
-	for true {
+	for {
 		var sc schema_v1p2.SampleConfig
 		err := decoder.Decode(&sc)
 		if err != nil && err.Error() == "EOF" {

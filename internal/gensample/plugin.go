@@ -27,11 +27,9 @@ const (
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 )
 
-// PluginEntry is the entry point of SampleGen as a protoc plugin.
-// When running gapic-generator-go as a docker image or a protoc plugin, both gapic clients
-// and samples will be generated if respective configuration is supplied. The entry point
-// of the plugin is cmd/protoc-gen_go_gapic/main.go, which will in turn call this function
-// to perform sample generation.
+// PluginEntry is the entry point of SampleGen as a protoc plugin. If gapic-generator-go
+// is called as a protoc plugin or docker image with the intention to generate samples,
+// it will eventually call this function to do so.
 func PluginEntry(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var (
 		gapicPkg     string
