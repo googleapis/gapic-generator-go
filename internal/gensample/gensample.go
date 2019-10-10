@@ -77,12 +77,18 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 	wg.Wait()
 
 	close(errChan)
+	var errMsg strings.Builder
 	for err := range errChan {
 		if err != nil {
-			return nil, err
+			errMsg.WriteString(err.Error())
+			errMsg.WriteByte(' ')
 		}
 	}
-	return &gen, nil
+	if errMsg.Len() == 0 {
+		return &gen, nil
+	}
+	errMsg.WriteString("Sample generation failed.")
+	return nil, errors.E(nil, errMsg.String())
 }
 
 // GenMethodSamples generators samples from protos and configurations stored in the generator,
