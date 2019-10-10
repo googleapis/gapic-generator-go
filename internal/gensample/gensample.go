@@ -233,6 +233,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 
 	var file bytes.Buffer
 	fmt.Fprintf(&file, license.Apache, year)
+	fmt.Fprintf(&file, "// +build sample\n\n")
 	file.WriteString("package main\n")
 	file.WriteString("import(\n")
 	for i, imp := range imports {
