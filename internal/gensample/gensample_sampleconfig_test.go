@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gensample
 
 import (
 	yaml "gopkg.in/yaml.v2"
 	"strings"
 	"testing"
 
-	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/gensample/schema_v1p2"
 )
 
 func TestDisambiguateUniqueSampleIDs(t *testing.T) {

@@ -93,6 +93,7 @@ $ docker run \
   --rm \
   --user $UID \
   --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
+  --mount type=bind,source=</abs/path/to/configs>,destination=/conf,readonly \
   --mount type=bind,source=$GOPATH/src,destination=/out/ \
   gcr.io/gapic-images/gapic-generator-go \
   --go-gapic-package "github.com/package/import/path;name"
