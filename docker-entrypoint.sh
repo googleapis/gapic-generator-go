@@ -22,6 +22,7 @@ GAPIC_CONFIG=
 SAMPLES=
 SAMPLE_ONLY=
 GAPIC_VALIDATOR_OUT=
+RELEASE_LEVEL=
 
 # enable extended globbing for flag pattern matching
 shopt -s extglob
@@ -35,6 +36,7 @@ while true; do
     --gapic-config ) GAPIC_CONFIG="gapic-config=/conf/$2"; shift 2;;
     --sample ) SAMPLES="${SAMPLES}sample=/conf/$2,"; shift 2;;
     --sample-only ) SAMPLE_ONLY="sample-only"; shift 1;;
+    --release-level ) RELEASE_LEVEL="release-level=$2"; shift 2 ;; 
     --go-gapic* ) echo "Skipping unrecognized go-gapic flag: $1" >&2; shift ;;
     --* | +([[:word:][:punct:]]) ) shift ;;
     * ) break ;;
@@ -60,6 +62,7 @@ protoc --proto_path=/protos/ --proto_path=/in/ \
                   $GAPIC_VALIDATOR_OUT \
                   --go_gapic_out=/out/ \
                   --go_gapic_opt="$GO_GAPIC_PACKAGE" \
+                  --go_gapic_opt="$RELEASE_LEVEL" \
                   --go_gapic_opt="$GAPIC_SERVICE_CONFIG" \
                   --go_gapic_opt="$GRPC_SERVICE_CONFIG" \
                   --go_gapic_opt="$GAPIC_CONFIG" \

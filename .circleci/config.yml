@@ -34,7 +34,7 @@ jobs:
       - image: circleci/golang:1.13
     steps:
       - checkout
-      - run: go test -mod=readonly ./...
+      - run: go test ./...
       - run:
           name: Check license
           command: |
