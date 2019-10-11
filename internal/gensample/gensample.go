@@ -133,8 +133,7 @@ func (gen *generator) GenMethodSamples() error {
 		gen.Outputs[fname] = content
 	}
 
-	gen.genManifest()
-	return nil
+	return gen.genManifest()
 }
 
 type generator struct {

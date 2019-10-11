@@ -17,19 +17,21 @@ package gensample
 import (
 	"bytes"
 	"fmt"
+	"strings"
+
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 )
 
 const (
 	latestSchemaVersion = "3"
 )
 
-
-func (gen *generator) genManifest() {
+func (gen *generator) genManifest() error {
 	// Do not generate sample manifest when there are no sample configs
 	if len(gen.sampleConfig.Samples) == 0 {
-		return
+		return nil
 	}
-	
+
 	var b bytes.Buffer
 	p := func(s string, args ...interface{}) {
 		fmt.Fprintf(&b, s, args...)
@@ -50,5 +52,12 @@ func (gen *generator) genManifest() {
 		p("  path: %s.go", sp.ID)
 	}
 
-	gen.Outputs["samples.manifest.yaml"] = b.Bytes()
+	api := gen.clientPkg.Name
+	pos := strings.LastIndexByte(gen.clientPkg.Path, '/')
+	if pos < 0 {
+		return errors.E(nil, "expecting clientPkg path in 'url/to/client/apiversion/' format, got %q", gen.clientPkg.Path)
+	}
+	v := strings.Replace(gen.clientPkg.Path[pos+1:], "api", "", -1)
+	gen.Outputs[fmt.Sprintf("%s.%s.go.manifest.yaml", api, v)] = b.Bytes()
+	return nil
 }
