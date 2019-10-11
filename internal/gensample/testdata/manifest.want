@@ -1,0 +1,13 @@
+type: manifest/samples
+schema_version: 3
+go: &go
+  environment: go
+  bin: go run
+  chdir: {@manifest_dir}/
+samples:
+- <<: *go
+  sample: first_sample
+  path: first_sample.go
+- <<: *go
+  sample: second_sample
+  path: second_sample.go

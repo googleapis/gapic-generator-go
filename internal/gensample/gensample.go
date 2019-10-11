@@ -132,6 +132,8 @@ func (gen *generator) GenMethodSamples() error {
 		fname := samp.ID + ".go"
 		gen.Outputs[fname] = content
 	}
+
+	gen.genManifest()
 	return nil
 }
 
