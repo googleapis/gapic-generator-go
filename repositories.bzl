@@ -26,29 +26,28 @@ def com_googleapis_gapic_go_repositories():
     _maybe(
         http_archive,
         name = "com_google_api_codegen",
-        strip_prefix = "gapic-generator-2e2645a9d10485eb92817d9a30a45f8b165989f0",
-        urls = ["https://github.com/googleapis/gapic-generator/archive/2e2645a9d10485eb92817d9a30a45f8b165989f0.zip"],
-        sha256 = "b2d79ad95ee637cbdf2e0e4108eedca8c965d0b76b6f7303a0fe609575735a45",
+        strip_prefix = "gapic-generator-32df2ec2818108329f297edeeb72bc71cf5b619b",
+        urls = ["https://github.com/googleapis/gapic-generator/archive/32df2ec2818108329f297edeeb72bc71cf5b619b.zip"],
     )
 
     _maybe(
         http_archive,
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.3/rules_go-0.19.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.19.3/rules_go-0.19.3.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/v0.20.0/rules_go-v0.20.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.20.0/rules_go-v0.20.0.tar.gz",
         ],
-        sha256 = "313f2c7a23fecc33023563f082f381a32b9b7254f727a7dd2d6380ccc6dfe09b",
+        sha256 = "078f2a9569fa9ed846e60805fb5fb167d6f6c4ece48e6d409bf5fb2154eaf0d8",
     )
 
     _maybe(
         http_archive,
         name = "bazel_gazelle",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/0.18.2/bazel-gazelle-0.18.2.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.2/bazel-gazelle-0.18.2.tar.gz",
         ],
-        sha256 = "be9296bfd64882e3c08e3283c58fcb461fa6dd3c171764fcc4cf322f60615a9b",
+        sha256 = "7fc87f4170011201b1690326e8c16c5d802836e3a0d617d8f75c3af2b23180c4",
     )
 
 def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):

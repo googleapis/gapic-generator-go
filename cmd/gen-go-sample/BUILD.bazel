@@ -1,29 +1,14 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = [
-        "bytes.go",
-        "enum.go",
-        "gapic.go",
-        "inittree.go",
-        "main.go",
-        "out.go",
-        "paging.go",
-        "primval.go",
-        "resource.go",
-        "sampmain.go",
-        "typing.go",
-    ],
+    srcs = ["main.go"],
     importpath = "github.com/googleapis/gapic-generator-go/cmd/gen-go-sample",
     visibility = ["//visibility:private"],
     deps = [
         "//internal/errors:go_default_library",
-        "//internal/license:go_default_library",
-        "//internal/pbinfo:go_default_library",
-        "//internal/printer:go_default_library",
+        "//internal/gensample:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
-        "@in_gopkg_yaml_v2//:go_default_library",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
     ],
 )
@@ -32,24 +17,4 @@ go_binary(
     name = "gen-go-sample",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
-)
-
-go_test(
-    name = "go_default_test",
-    srcs = [
-        "enum_test.go",
-        "inittree_test.go",
-        "main_test.go",
-        "resource_test.go",
-    ],
-    data = glob(["testdata/**"]),
-    embed = [":go_default_library"],
-    deps = [
-        "//internal/errors:go_default_library",
-        "//internal/pbinfo:go_default_library",
-        "//internal/txtdiff:go_default_library",
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@com_github_google_go_cmp//cmp:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
-    ],
 )

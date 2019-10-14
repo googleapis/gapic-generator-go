@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//internal/gengapic:go_default_library",
+        "//internal/gensample:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         # TODO(ndietz) figure out why this dep fails instead of the following
         # "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",

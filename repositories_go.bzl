@@ -126,8 +126,8 @@ def com_googleapis_gapic_go_mod():
     go_repository(
         name = "in_gopkg_yaml_v2",
         importpath = "gopkg.in/yaml.v2",
-        sum = "h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=",
-        version = "v2.2.2",
+        sum = "h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=",
+        version = "v2.2.4",
     )
     go_repository(
         name = "org_golang_google_appengine",
@@ -138,8 +138,8 @@ def com_googleapis_gapic_go_mod():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:dnhIt8HlkxWTUDwTelzFnLXLXxbuq1AbZhTc7BDUGTo=",
-        version = "v0.0.0-20190819204819-24fa4b261c55",
+        sum = "h1:4HYDjxeNXAOTv3o1N2tjo8UUSlhQgAD52FVkwxnWgM8=",
+        version = "v0.0.0-20191009194640-548a555dbc03",
     )
     go_repository(
         name = "org_golang_google_grpc",

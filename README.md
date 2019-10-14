@@ -113,7 +113,7 @@ _Note: do not use `master`, use a commit hash or a release tag._
 And invoke it in a BUILD file like so, using an example based on the [googleapis repo](https://github.com/googleapis/googleapis/tree/92bebf78345af8b2d3585220527115bda8bdedf8/google/cloud/language/v1).
 
 ```
-load("@com_googleapis_gapic_go:rules_go_gapic/go_gapic.bzl", "go_gapic_library")
+load("@com_googleapis_gapic_go//:rules_go_gapic/go_gapic.bzl", "go_gapic_library")
 
 go_gapic_library(
   name = "language_go_gapic",
