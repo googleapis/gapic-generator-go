@@ -21,30 +21,33 @@ import(
  "fmt"
  "log"
 
+ "google.golang.org/api/iterator"
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
+
 // [START awesome_region]
 
-func sampleLroMethod() error {
+func samplePagingMethod() error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	req := &foopb.LroInType{}
-	op, err := c.LroMethod(ctx, req)
-	if err != nil {
-		return err
+	req := &foopb.PageInType{}
+	it := c.PagingMethod(ctx, req)
+	for {
+		resp, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		fmt.Println(resp)
 	}
 
-	resp, err := op.Wait(ctx)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("x = %v\n", resp.GetA().GetX())
 	return nil
 }
 
@@ -52,7 +55,7 @@ func sampleLroMethod() error {
 
 func main() {
 	flag.Parse()
-	if err := sampleLroMethod(); err != nil {
+	if err := samplePagingMethod(); err != nil {
 		log.Fatal(err)
 	}
 }

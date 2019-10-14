@@ -24,27 +24,28 @@ import(
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
+
 // [START awesome_region]
 
-func sampleUnaryMethod() error {
+func sampleLroMethod() error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	req := &foopb.InputType{
-		ResourceField: fmt.Sprintf("foos/%s/bars/%s", "myfoo", "mybar"),
-		Group: &foopb.InputType_F2{
-			F2: &foopb.AType{},
-		},
-	}
-	resp, err := c.UnaryMethod(ctx, req)
+	req := &foopb.LroInType{}
+	op, err := c.LroMethod(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(resp)
+	resp, err := op.Wait(ctx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("x = %v\n", resp.GetA().GetX())
 	return nil
 }
 
@@ -52,7 +53,7 @@ func sampleUnaryMethod() error {
 
 func main() {
 	flag.Parse()
-	if err := sampleUnaryMethod(); err != nil {
+	if err := sampleLroMethod(); err != nil {
 		log.Fatal(err)
 	}
 }

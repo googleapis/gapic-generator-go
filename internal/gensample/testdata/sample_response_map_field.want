@@ -17,6 +17,7 @@
 package main
 import(
  "context"
+ "errors"
  "flag"
  "fmt"
  "log"
@@ -24,6 +25,7 @@ import(
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
+
 // [START awesome_region]
 
 func sampleUnaryMethod() error {
@@ -39,15 +41,11 @@ func sampleUnaryMethod() error {
 		return err
 	}
 
-	for justKey := range resp.GetMappyMap() {
-		fmt.Printf("key: %v\n", justKey)
+	myValue, ok := resp.GetMappyMap()["my_key"]
+	if !ok {
+		return errors.New("value not found")
 	}
-	for k, v := range resp.GetMappyMap() {
-		fmt.Printf("key: %v, value: %v\n", k, v)
-	}
-	for _, onlyValue := range resp.GetMappyMap() {
-		fmt.Printf("value: %v\n", onlyValue)
-	}
+	fmt.Printf("The value associated with my_key is: %v\n", myValue.GetX())
 	return nil
 }
 

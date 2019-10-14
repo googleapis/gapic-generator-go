@@ -12,6 +12,8 @@ require (
 	github.com/opennota/wd v0.0.0-20180911144301-b446539ab1e7 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	google.golang.org/genproto v0.0.0-20190819204819-24fa4b261c55
-	gopkg.in/yaml.v2 v2.2.2
+	google.golang.org/genproto v0.0.0-20191009194640-548a555dbc03
+	gopkg.in/yaml.v2 v2.2.4
 )
+
+go 1.13

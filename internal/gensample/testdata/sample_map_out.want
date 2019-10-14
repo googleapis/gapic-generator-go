@@ -24,38 +24,39 @@ import(
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
+
 // [START awesome_region]
 
-func sampleUnaryMethod(myFruit foopb.AType_FruitEnum) error {
+func sampleUnaryMethod() error {
 	ctx := context.Background()
 	c, err := foo.NewClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	// myFruit := foopb.AType_APPLE
-	req := &foopb.InputType{
-		E: myFruit,
-	}
+	req := &foopb.InputType{}
 	resp, err := c.UnaryMethod(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("call finished.\n")
+	for justKey := range resp.GetMappyMap() {
+		fmt.Printf("key: %v\n", justKey)
+	}
+	for k, v := range resp.GetMappyMap() {
+		fmt.Printf("key: %v, value: %v\n", k, v)
+	}
+	for _, onlyValue := range resp.GetMappyMap() {
+		fmt.Printf("value: %v\n", onlyValue)
+	}
 	return nil
 }
 
 // [END awesome_region]
 
 func main() {
-	myFruitArg := flag.String("my_fruit", "APPLE", "")
 	flag.Parse()
-	myFruit, ok := foopb.AType_FruitEnum_name[*myFruitArg]
-	if !ok {
-		log.fatal("enum type foopb.AType_FruitEnum does not have value %s", *myFruitArg)
-	}
-	if err := sampleUnaryMethod(foopb.AType_FruitEnum(myFruit)); err != nil {
+	if err := sampleUnaryMethod(); err != nil {
 		log.Fatal(err)
 	}
 }

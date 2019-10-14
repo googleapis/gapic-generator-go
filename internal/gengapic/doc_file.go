@@ -53,6 +53,15 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 		}
 	}
 
+	switch g.relLvl {
+	case alpha:
+		p("//")
+		p("//   NOTE: This package is in alpha. It is not stable, and is likely to change.")
+	case beta:
+		p("//")
+		p("//   NOTE: This package is in beta. It is not stable, and may be subject to changes.")
+	}
+
 	p("//")
 	p("// Use of Context")
 	p("//")

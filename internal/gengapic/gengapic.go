@@ -45,6 +45,8 @@ const (
 	emptyType  = ".google.protobuf.Empty"
 	lroType    = ".google.longrunning.Operation"
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
+	alpha      = "alpha"
+	beta       = "beta"
 )
 
 var headerParamRegexp = regexp.MustCompile(`{([_a-z]+)=`)
@@ -59,40 +61,46 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	// parse plugin params, ignoring unknown values
 	for _, s := range strings.Split(*genReq.Parameter, ",") {
-		if e := strings.IndexByte(s, '='); e > 0 {
-			switch s[:e] {
-			case "go-gapic-package":
-				p := strings.IndexByte(s, ';')
+		e := strings.IndexByte(s, '=')
+		if e < 0 {
+			e = len(s)
+		}
+		switch s[:e] {
+		case "go-gapic-package":
+			p := strings.IndexByte(s, ';')
 
-				if p < 0 {
-					return &g.resp, errors.E(nil, paramError)
-				}
-
-				pkgPath = s[e+1 : p]
-				pkgName = s[p+1:]
-				outDir = filepath.FromSlash(pkgPath)
-			case "gapic-service-config":
-				f, err := os.Open(s[e+1:])
-				if err != nil {
-					return &g.resp, errors.E(nil, "error opening service config: %v", err)
-				}
-
-				err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
-				if err != nil {
-					return &g.resp, errors.E(nil, "error decoding service config: %v", err)
-				}
-			case "grpc-service-config":
-				data, err := os.Open(s[e+1:])
-				if err != nil {
-					return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
-				}
-
-				g.grpcConf = &conf.ServiceConfig{}
-				err = jsonpb.Unmarshal(data, g.grpcConf)
-				if err != nil {
-					return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
-				}
+			if p < 0 {
+				return &g.resp, errors.E(nil, paramError)
 			}
+
+			pkgPath = s[e+1 : p]
+			pkgName = s[p+1:]
+			outDir = filepath.FromSlash(pkgPath)
+		case "gapic-service-config":
+			f, err := os.Open(s[e+1:])
+			if err != nil {
+				return &g.resp, errors.E(nil, "error opening service config: %v", err)
+			}
+
+			err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
+			if err != nil {
+				return &g.resp, errors.E(nil, "error decoding service config: %v", err)
+			}
+		case "grpc-service-config":
+			data, err := os.Open(s[e+1:])
+			if err != nil {
+				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
+			}
+
+			g.grpcConf = &conf.ServiceConfig{}
+			err = jsonpb.Unmarshal(data, g.grpcConf)
+			if err != nil {
+				return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
+			}
+		case "release-level":
+			g.relLvl = strings.ToLower(s[e+1:])
+		case "sample-only":
+			return &g.resp, nil
 		}
 	}
 
@@ -180,10 +188,14 @@ type generator struct {
 	// Parsed service config from plugin option
 	serviceConfig *serviceConfig
 
+	// gRPC ServiceConfig
 	grpcConf *conf.ServiceConfig
 
 	// Auxiliary types to be generated in the package
 	aux *auxTypes
+
+	// Release level that defaults to GA/nothing
+	relLvl string
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {

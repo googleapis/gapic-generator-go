@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gensample
 
 import (
 	"strings"
@@ -57,7 +57,7 @@ func TestTree(t *testing.T) {
 		typ: initType{desc: info.Type["RootType"]},
 	}
 	for _, fv := range fieldVals {
-		if err := root.parseInit(fv[0], fv[1], info); err != nil {
+		if err := root.parseInit(fv[0], fv[1], "", info); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -106,7 +106,7 @@ testcase:
 	} {
 		root := initTree{typ: initType{desc: info.Type["RootType"]}}
 		for _, txt := range tst {
-			if root.parseInit(txt[0], txt[1], info) != nil {
+			if root.parseInit(txt[0], txt[1], "", info) != nil {
 				continue testcase
 			}
 		}

@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gensample
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"text/scanner"
@@ -34,8 +35,12 @@ func bytesFmt() func(*generator, string) (string, error) {
 type fileInfo struct {
 	// fileName is the text of the file name. If it's a string literal, it's already quoted.
 	fileName string
+
 	// varName is the name of the local variable to hold the bytes of the file.
 	varName string
+
+	// comment is the user-specified comments that will be generated above this code
+	comment string
 }
 
 const fileContentSuffix = "Bytes"
@@ -82,6 +87,9 @@ func handleReadFile(info *fileInfo, buf *bytes.Buffer, g *generator) {
 	fn := info.fileName
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 
+	w := bufio.NewWriter(buf)
+	printCommentLines(w, info.comment, 0)
+	w.Flush()
 	fmt.Fprintf(buf, "%s, err := ioutil.ReadFile(%s)\n", vn, fn)
 	fmt.Fprintf(buf, "if err != nil {\n")
 	fmt.Fprintf(buf, "\treturn err\n")

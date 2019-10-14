@@ -19,12 +19,12 @@ import(
  "context"
  "flag"
  "fmt"
- "ioutil"
  "log"
 
 foo "path.to/client/foo"
 foopb "path.to/pb/foo"
 )
+
 // [START awesome_region]
 
 func sampleUnaryMethod() error {
@@ -40,12 +40,7 @@ func sampleUnaryMethod() error {
 		return err
 	}
 
-	if err := ioutil.WriteFile("my_bob.mp3", resp.GetDataBob(), 0644); err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile(fmt.Sprintf("my_alice_%v.mp3", resp.GetA()), bytes[](resp.GetB()), 0644), err != nil {
-		return err
-	}
+	fmt.Printf("The first element of the array is: %v\n", resp.GetAArray()[0].GetX())
 	return nil
 }
 

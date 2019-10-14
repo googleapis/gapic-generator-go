@@ -18,6 +18,11 @@
 GO_GAPIC_PACKAGE=
 GAPIC_SERVICE_CONFIG=
 GRPC_SERVICE_CONFIG=
+GAPIC_CONFIG=
+SAMPLES=
+SAMPLE_ONLY=
+GAPIC_VALIDATOR_OUT=
+RELEASE_LEVEL=
 
 # enable extended globbing for flag pattern matching
 shopt -s extglob
@@ -28,6 +33,10 @@ while true; do
     --go-gapic-package ) GO_GAPIC_PACKAGE="go-gapic-package=$2"; shift 2 ;;
     --gapic-service-config ) GAPIC_SERVICE_CONFIG="gapic-service-config=/conf/$2"; shift 2;;
     --grpc-service-config ) GRPC_SERVICE_CONFIG="grpc-service-config=/conf/$2"; shift 2;;
+    --gapic-config ) GAPIC_CONFIG="gapic-config=/conf/$2"; shift 2;;
+    --sample ) SAMPLES="${SAMPLES}sample=/conf/$2,"; shift 2;;
+    --sample-only ) SAMPLE_ONLY="sample-only"; shift 1;;
+    --release-level ) RELEASE_LEVEL="release-level=$2"; shift 2 ;; 
     --go-gapic* ) echo "Skipping unrecognized go-gapic flag: $1" >&2; shift ;;
     --* | +([[:word:][:punct:]]) ) shift ;;
     * ) break ;;
@@ -39,10 +48,24 @@ if [ -z "$GO_GAPIC_PACKAGE" ]; then
   exit 64
 fi
 
+# Trim the last comma from $SAMPLES
+if [ ! -z "$SAMPLES" ]; then
+  SAMPLES=${SAMPLES::-1}
+fi
+
+# Do not validate proto annotations if --sample-only is set
+if [ -z "$SAMPLE_ONLY" ]; then
+  GAPIC_VALIDATOR_OUT="--gapic_validator_out=."
+fi
+
 protoc --proto_path=/protos/ --proto_path=/in/ \
-                  --gapic-validator_out=. \
+                  $GAPIC_VALIDATOR_OUT \
                   --go_gapic_out=/out/ \
                   --go_gapic_opt="$GO_GAPIC_PACKAGE" \
+                  --go_gapic_opt="$RELEASE_LEVEL" \
                   --go_gapic_opt="$GAPIC_SERVICE_CONFIG" \
                   --go_gapic_opt="$GRPC_SERVICE_CONFIG" \
+                  --go_gapic_opt="$GAPIC_CONFIG" \
+                  --go_gapic_opt="$SAMPLES" \
+                  --go_gapic_opt="$SAMPLE_ONLY" \
                   `find /in/ -name *.proto`

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gensample
 
 import (
 	"strings"
@@ -45,7 +45,7 @@ var validPrims = [...]func(string) bool{
 }
 
 func validStrings(s string) bool {
-	return true
+	return s[0] == '"' && s[len(s)-1] == '"'
 }
 
 func validFloat(s string) bool {

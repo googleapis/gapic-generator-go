@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gensample
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/cmd/gen-go-sample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"github.com/googleapis/gapic-generator-go/internal/gensample/schema_v1p2"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
@@ -32,25 +33,26 @@ func TestUnary(t *testing.T) {
 	g := initTestGenerator()
 
 	sp := schema_v1p2.Sample{
-		ID:        "my_sample_config",
-		Rpc:       "UnaryMethod",
-		Service:   "foo.FooService",
-		RegionTag: "awesome_region",
+		ID:          "my_sample_config",
+		Rpc:         "UnaryMethod",
+		Service:     "foo.FooService",
+		RegionTag:   "awesome_region",
+		Description: "Construct a complex request object,\nsend it to the server,\nand inspect the response.\n",
 		Request: []schema_v1p2.RequestConfig{
-			{Field: "a.x", Value: "42", InputParameter: "the_x"},
-			{Field: "a.y", Value: "3.14159"},
-			{Field: "b", Value: "foobar", InputParameter: "the_b"},
+			{Field: "a.x", Value: "42", InputParameter: "the_x", Comment: "a single-line comment for an input parameter"},
+			{Field: "a.y", Value: "3.14159", Comment: "approximation of Pi"},
+			{Field: "b", Value: "foobar", InputParameter: "the_b", Comment: "a multi-line comment for\nan input parameter\n"},
 			{Field: "e", Value: "BANANA"},
 			{Field: "f", Value: "in a oneof"},
 			{Field: "bytes", Value: "mybytes"},
-			{Field: "data_alice", Value: "path/to/local/file/alice.txt", ValueIsFile: true},
-			{Field: "a_array[0].x", Value: "0"},
+			{Field: "data_alice", Value: "path/to/local/file/alice.txt", ValueIsFile: true, Comment: "the path of a local file"},
+			{Field: "a_array[0].x", Value: "0", Comment: "initializing an array element"},
 			{Field: "a_array[0].y", Value: "1"},
-			{Field: "a_array[1].x", Value: "2"},
+			{Field: "a_array[1].x", Value: "2", Comment: "this is a\nmulti-line comment\n"},
 			{Field: "a_array[1].y", Value: "3"},
 			{Field: "resource_field%foo", Value: "myfoo", InputParameter: "the_foo"},
 			{Field: "data_bob", Value: "path/to/local/file/bob.txt", ValueIsFile: true, InputParameter: "bob_file"},
-			{Field: "resource_field%bar", Value: "mybar"},
+			{Field: "resource_field%bar", Value: "mybar", Comment: "construct a resource name"},
 		},
 		Response: []schema_v1p2.ResponseConfig{
 			{Define: "out_a = $resp.a"},
@@ -274,6 +276,102 @@ func TestMapOut(t *testing.T) {
 	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
 }
 
+func TestAccessMapKeyValueInResponse(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	sp := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{Define: `my_value = $resp.mappy_map{"my_key"}`},
+			{Print: []string{"The value associated with my_key is: %s", "my_value.x"}},
+		},
+	}
+
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_response_map_field.want"))
+}
+
+func TestAccessMapKeyValueInResponse_Error(t *testing.T) {
+	t.Parallel()
+
+	badResponses := []schema_v1p2.ResponseConfig{
+		// Do not allow indexing into a map field
+		{Define: `my_value = $resp.mappy_map{"my_key"}.x`},
+
+		// Do not allow maps in print statement
+		{Print: []string{"%s", `$resp.mappy_map{"my_key"}`}},
+
+		// Do not allow maps in write_file statement
+		{
+			WriteFile: &schema_v1p2.WriteFileSpec{
+				FileName: []string{"%s.mp3", `$resp.mappy_map{"my_key"}`},
+				Contents: "$resp.data_bob",
+			},
+		},
+		{
+			WriteFile: &schema_v1p2.WriteFileSpec{
+				FileName: []string{"my.mp3"},
+				Contents: `$resp.mappy_map{"my_key"}`,
+			},
+		},
+		// strings as keys have to be quoted
+		{Define: `my_value = $resp.mappy_map{last_name}`},
+	}
+
+	expectedErrs := []string{
+		`accessing fields of a map value object is not allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		`indexing into a map field is only allowed in "define" statements.`,
+		"invalid value for type",
+	}
+
+	for i, r := range badResponses {
+		g := initTestGenerator()
+		sp := schema_v1p2.Sample{
+			ID:        "my_sample_config",
+			Service:   "foo.FooService",
+			Rpc:       "UnaryMethod",
+			RegionTag: "awesome_region",
+			Response:  []schema_v1p2.ResponseConfig{r},
+		}
+
+		err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"})
+		if err == nil {
+			t.Errorf("expected error from response config: %v", r)
+		}
+		if !strings.Contains(err.Error(), expectedErrs[i]) {
+			t.Errorf("expected error message to contain %q, got %q", expectedErrs[i], err.Error())
+		}
+	}
+}
+
+func TestAccessRepeatedFieldInResponse(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+	sp := schema_v1p2.Sample{
+		ID:        "my_sample_config",
+		Service:   "foo.FooService",
+		Rpc:       "UnaryMethod",
+		RegionTag: "awesome_region",
+		Response: []schema_v1p2.ResponseConfig{
+			{Print: []string{"The first element of the array is: %s", "$resp.a_array[0].x"}},
+		},
+	}
+
+	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_response_repeated_field.want"))
+}
+
 func TestWriteFile(t *testing.T) {
 	t.Parallel()
 
@@ -328,6 +426,29 @@ func TestEnum(t *testing.T) {
 	}
 
 	compare(t, g, filepath.Join("testdata", "sample_enum.want"))
+}
+
+func TestWrapCommentNotWrapping(t *testing.T) {
+	comment := "some short comments"
+	if c := wrapComment(comment); c != comment {
+		t.Fatal(errors.E(nil, "want %q, got %q", comment, c))
+	}
+
+	comment = "some\nmulti-line\ncomments"
+	if c := wrapComment(comment); c != comment {
+		t.Fatal(errors.E(nil, "want %q, got %q", comment, c))
+	}
+}
+
+func TestWrapCommentWrapping(t *testing.T) {
+	raw := "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog again. The quick brown fox jumps over the lazy dog again and again."
+	wrapped :=
+		`The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog again. The
+quick brown fox jumps over the lazy dog again and again.`
+
+	if c := wrapComment(raw); c != wrapped {
+		t.Fatal(errors.E(nil, "want %q, got %q", wrapped, c))
+	}
 }
 
 func initTestGenerator() *generator {

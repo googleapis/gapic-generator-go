@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gensample
 
 import (
 	"bufio"
@@ -44,6 +44,8 @@ type initType struct {
 	namePat *namePattern
 	prim    descriptor.FieldDescriptorProto_Type
 
+	// repeated is set to true when the field is a protobuf repeated field.
+	// repeated should be set to false when the field is a protobuf map field.
 	repeated bool
 
 	// keyType and valueType are set if the type is a protobuf map
@@ -56,12 +58,28 @@ type initType struct {
 	valFmt func(*generator, string) (string, error)
 }
 
+func (t *initType) isMap() (bool, error) {
+	if t.keyType != nil && t.valueType != nil {
+		return true, nil
+	}
+	if t.keyType == nil && t.valueType == nil {
+		return false, nil
+	}
+	return false, errors.E(nil, "internal: only one of keyType and valueType is set.")
+}
+
 // initTree represents a node in the initialization tree.
 type initTree struct {
 	typ initType
 
 	// initTree is either a composite value (struct/array/map), where keys and vals are set,
 	// or a simple value, where leafVal is set.
+
+	// vals and keys keep tracks of all the child trees of this initTree and their identifiers.
+	// If the child is a protobuf field, key is the field name.
+	// If the child is an array element, key is the index.
+	// If the child is a map entry, key is the key of the entry. It has to be quoted if it's a string.
+	// If the child is a resource name entity, key is the entity name.
 
 	// Use array representation; we need order, and we probably won't
 	// have many pairs anyway.
@@ -70,23 +88,38 @@ type initTree struct {
 
 	// Text of the literal. If the literal is a string, it's already quoted.
 	leafVal string
+
+	// comment right above the field in the initialization expression
+	comment string
+
+	// parent tracks the parent type of this type.
+	// The parent of root is nil.
+	parent *initTree
 }
 
 // initInfo represents all the information needed to construct the request object.
 type initInfo struct {
 
-	// argNames, argTrees, flagNames keep track of information of sample function arguments
+	// argNames, argTrees, flagNames keep track of information of sample function arguments.
 	argNames  []string
 	argTrees  []*initTree
 	flagNames []string
 
-	// files represents file input nodes
+	// files represents file input nodes.
 	files []*fileInfo
 
-	// reqTree is the final initialization tree of the request object
+	// reqTree is the final initialization tree of the request object.
 	reqTree initTree
 }
 
+func (t *initTree) newChild(key string, val *initTree) {
+	t.keys = append(t.keys, key)
+	t.vals = append(t.vals, val)
+}
+
+// get returns the child tree that represents a protobuf field or resource name entity,
+// and any errors if the child tree could not be found. The child tree will be created
+// if it isn't already.
 func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 	for i, key := range t.keys {
 		if k == key {
@@ -102,8 +135,7 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		v := new(initTree)
 		v.typ.prim = descriptor.FieldDescriptorProto_TYPE_STRING
 
-		t.keys = append(t.keys, k)
-		t.vals = append(t.vals, v)
+		t.newChild(k, v)
 		return v, nil
 	}
 
@@ -115,10 +147,12 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 	}
 
 	v := new(initTree)
+	v.parent = t
 	for _, f := range fields {
 		if f.GetName() != k {
 			continue
 		}
+		v.typ.repeated = f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 
 		if tn := f.GetTypeName(); tn == "" {
 			// We're a primitive type.
@@ -155,10 +189,10 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 							}
 						}
 					}
+					v.typ.repeated = false
 				}
 			}
 		}
-		v.typ.repeated = f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 
 		break
 	}
@@ -166,11 +200,12 @@ func (t *initTree) get(k string, info pbinfo.Info) (*initTree, error) {
 		return nil, errors.E(nil, "type %q does not have field %q", t.typ.desc.GetName(), k)
 	}
 
-	t.keys = append(t.keys, k)
-	t.vals = append(t.vals, v)
+	t.newChild(k, v)
 	return v, nil
 }
 
+// index returns the child tree that represents an array element. The child tree
+// will be created if it isn't already.
 func (t *initTree) index(k string) *initTree {
 	for i, key := range t.keys {
 		if k == key {
@@ -181,16 +216,33 @@ func (t *initTree) index(k string) *initTree {
 	v := new(initTree)
 	v.typ = t.typ
 	v.typ.repeated = false
+	v.parent = t
 
-	t.keys = append(t.keys, k)
-	t.vals = append(t.vals, v)
+	t.newChild(k, v)
+	return v
+}
+
+// index returns the child tree that represents a map entry. The child tree
+// will be created if it isn't already.
+func (t *initTree) indexMap(k string) *initTree {
+	for i, key := range t.keys {
+		if k == key {
+			return t.vals[i]
+		}
+	}
+
+	v := new(initTree)
+	v.parent = t
+	v.typ = *t.typ.valueType
+
+	t.newChild(k, v)
 	return v
 }
 
 // parseInit adds a node to this initTree with given a field path and the default value
 // of the node.
 // TODO(hzyi): allow map index.
-func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error {
+func (t *initTree) parseInit(path string, value string, comment string, info pbinfo.Info) error {
 	// The first ident is treated specially to be a member of the root.
 	// Since we know the root is a struct, a dot is the only legal token anyway,
 	// so just insert a dot here so we don't need to treat the first token specially.
@@ -219,18 +271,11 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 			}
 		}
 		if !valid {
-			return report(errors.E(nil, "invalid value for type %q: %q", desc.GetName(), value))
+			return report(errors.E(nil, "invalid value for type %q: %s", desc.GetName(), value))
 		}
 		t.typ.valFmt = enumFmt(info, desc)
 	default:
 		pType := t.typ.prim
-		validPrim := validPrims[pType]
-		if validPrim == nil {
-			return report(errors.E(nil, "not a primitive type: %q", pType))
-		}
-		if !validPrim(value) {
-			return report(errors.E(nil, "invalid value for type %q: %q", pType, value))
-		}
 		if pType == descriptor.FieldDescriptorProto_TYPE_BYTES {
 			value = fmt.Sprintf("%q", value)
 			t.typ.valFmt = bytesFmt()
@@ -239,8 +284,16 @@ func (t *initTree) parseInit(path string, value string, info pbinfo.Info) error 
 		if pType == descriptor.FieldDescriptorProto_TYPE_STRING {
 			value = fmt.Sprintf("%q", value)
 		}
+		validPrim := validPrims[pType]
+		if validPrim == nil {
+			return report(errors.E(nil, "not a primitive type: %q", pType))
+		}
+		if !validPrim(value) {
+			return report(errors.E(nil, "invalid value for type %q: %s", pType, value))
+		}
 	}
 	t.leafVal = value
+	t.comment = comment
 	return report(nil)
 }
 
@@ -253,6 +306,7 @@ func (t *initTree) parseSampleArgPath(txt string, info pbinfo.Info, varName stri
 
 	var cp initTree
 	cp = *t
+	cp.parent = nil
 	*t = initTree{leafVal: varName}
 
 	return &cp, report(nil)
@@ -289,7 +343,7 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 
 		case '[':
 			if !t.typ.repeated {
-				return nil, 0, errors.E(nil, "cannot index into singular field")
+				return nil, 0, errors.E(nil, "cannot index via [] into a non-repeated field")
 			}
 			if r := sc.Scan(); r != scanner.Int {
 				return nil, r, errors.E(nil, "expected int, found %q", sc.TokenText())
@@ -300,6 +354,33 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 			}
 
 			t = t.index(indVal)
+
+		case '{':
+			isMap, err := t.typ.isMap()
+			if err != nil {
+				return nil, r, err
+			}
+			if !isMap {
+				return nil, r, errors.E(nil, "cannot index via {} into a non-map field")
+			}
+
+			var tokVal string
+			if r := sc.Scan(); r == scanner.Int || r == scanner.String || r == scanner.Ident {
+				// Note we don't yet support use a locally defined a variable (by the `define:` directive)
+				// as a map key. scanner.Ident is here to handle the case when key is a bool value, as
+				// `true` and `false` (without quote) are parsed as scanner.Ident.
+				tokVal = sc.TokenText()
+				validPrim := validPrims[t.typ.keyType.prim]
+				if !validPrim(tokVal) {
+					return nil, r, errors.E(nil, "invalid value for type %q: %s", t.typ.keyType.prim, tokVal)
+				}
+			} else {
+				return nil, r, errors.E(nil, "expected string, integer or bool, got %q", tokVal)
+			}
+			if r := sc.Scan(); r != '}' {
+				return nil, r, errors.E(nil, "expected '}', found %q", sc.TokenText())
+			}
+			t = t.indexMap(tokVal)
 
 		default:
 			return t, r, nil
@@ -401,12 +482,6 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 		}
 	}
 
-	indent := func(j int) {
-		for i := 0; i < j; i++ {
-			w.WriteByte('\t')
-		}
-	}
-
 	tvals := t.vals
 	writeKey := true
 	if t.typ.repeated {
@@ -447,13 +522,19 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 	}
 
 	for i, k := range t.keys {
-		indent(ind + 1)
+		printCommentLines(w, t.vals[i].comment, ind+1)
+		if t.vals[i].typ.namePat != nil {
+			for _, v := range t.vals[i].vals {
+				printCommentLines(w, v.comment, ind+1)
+			}
+		}
+		indent(w, ind+1)
 
 		var closeBrace bool
 		if oneof, ok := oneofs[k]; ok {
 			fmt.Fprintf(w, "%s: &%s.%s_%s{\n", snakeToPascal(oneof), impSpec.Name, typName, snakeToPascal(k))
 			closeBrace = true
-			indent(ind + 2)
+			indent(w, ind+2)
 		}
 
 		if writeKey {
@@ -467,14 +548,14 @@ func (t *initTree) print(w *bufio.Writer, g *generator, ind int) error {
 
 		if closeBrace {
 			w.WriteString(",\n")
-			indent(ind + 1)
+			indent(w, ind+1)
 			w.WriteByte('}')
 		}
 		w.WriteString(",\n")
 	}
 
 	if len(t.keys) != 0 {
-		indent(ind)
+		indent(w, ind)
 	}
 	w.WriteString("}")
 	return nil
@@ -510,4 +591,22 @@ func snakeToCamel(s string) string {
 		}
 	}
 	return sb.String()
+}
+
+func printCommentLines(w *bufio.Writer, comment string, ind int) {
+	if comment == "" {
+		return
+	}
+	for _, c := range strings.Split(strings.TrimRight(comment, "\n"), "\n") {
+		indent(w, ind)
+		w.WriteString("// ")
+		w.WriteString(c)
+		w.WriteByte('\n')
+	}
+}
+
+func indent(w *bufio.Writer, ind int) {
+	for i := 0; i < ind; i++ {
+		w.WriteByte('\t')
+	}
 }
