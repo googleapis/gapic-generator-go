@@ -1,0 +1,56 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "bytes.go",
+        "enum.go",
+        "gapic.go",
+        "genmanifest.go",
+        "gensample.go",
+        "inittree.go",
+        "out.go",
+        "paging.go",
+        "plugin.go",
+        "primval.go",
+        "resource.go",
+        "sampmain.go",
+        "typing.go",
+    ],
+    importpath = "github.com/googleapis/gapic-generator-go/internal/gensample",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/errors:go_default_library",
+        "//internal/gensample/schema_v1p2:go_default_library",
+        "//internal/license:go_default_library",
+        "//internal/pbinfo:go_default_library",
+        "//internal/printer:go_default_library",
+        "@in_gopkg_yaml_v2//:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "enum_test.go",
+        "genmanifest_test.go",
+        "gensample_sampleconfig_test.go",
+        "gensample_test.go",
+        "inittree_test.go",
+        "resource_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = [
+        "//internal/errors:go_default_library",
+        "//internal/gensample/schema_v1p2:go_default_library",
+        "//internal/pbinfo:go_default_library",
+        "//internal/txtdiff:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@in_gopkg_yaml_v2//:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+    ],
+)
