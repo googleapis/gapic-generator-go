@@ -46,8 +46,8 @@ func (gen *generator) genManifest() error {
 	p("schema_version: %s", latestSchemaVersion)
 	p("go: &go")
 	p("  environment: go")
-	p("  invocation: go run {path}")
-	p("  chdir: {@manifest_dir}/")
+	p("  invocation: go run {path} @args")
+	p("  chdir: '{@manifest_dir}/'")
 	p("samples:")
 
 	for _, sp := range gen.sampleConfig.Samples {
