@@ -29,8 +29,8 @@ def go_gapic_library(name, srcs, importpath, deps, release_level="", grpc_servic
     deps = srcs,
     plugin = Label("//cmd/protoc-gen-go_gapic"),
     plugin_args = [
-      "go-gapic-package="+importpath,
-      "release-level="+release_level,
+      "go-gapic-package={}".format(importpath),
+      "release-level={}".format(release_level),
     ],
     plugin_file_args = file_args,
     output_type = "go_gapic",
