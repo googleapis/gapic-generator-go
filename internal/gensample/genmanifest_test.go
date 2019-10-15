@@ -84,6 +84,7 @@ func TestGenManifest_BadClientPkg_Fail(t *testing.T) {
 				},
 			},
 		},
+		// Path is not in the format of `url/to/client/apiv1;name`
 		clientPkg: pbinfo.ImportSpec{Path: "bad_path", Name: "foo"},
 		Outputs:   make(map[string][]byte),
 	}

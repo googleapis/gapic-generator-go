@@ -26,6 +26,9 @@ const (
 	latestSchemaVersion = "3"
 )
 
+// genManifest generates manifest file to be consumed by sample-tester.
+// See https://sample-tester.readthedocs.io/en/stable/defining-tests/manifest-reference.html
+// for the format of the manifest file.
 func (gen *generator) genManifest() error {
 	// Do not generate sample manifest when there are no sample configs
 	if len(gen.sampleConfig.Samples) == 0 {
@@ -38,11 +41,12 @@ func (gen *generator) genManifest() error {
 		b.WriteByte('\n')
 	}
 
+	p("---")
 	p("type: manifest/samples")
 	p("schema_version: %s", latestSchemaVersion)
 	p("go: &go")
 	p("  environment: go")
-	p("  bin: go run")
+	p("  invocation: go run {path}")
 	p("  chdir: {@manifest_dir}/")
 	p("samples:")
 
