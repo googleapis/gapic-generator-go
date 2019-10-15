@@ -28,6 +28,7 @@ def com_googleapis_gapic_go_repositories():
         name = "com_google_api_codegen",
         strip_prefix = "gapic-generator-32df2ec2818108329f297edeeb72bc71cf5b619b",
         urls = ["https://github.com/googleapis/gapic-generator/archive/32df2ec2818108329f297edeeb72bc71cf5b619b.zip"],
+        sha256 = "e0baddd9c12aea4434dc786e7656ce036bd76d273649d9df38fb08f7c41fdfc7",
     )
 
     _maybe(

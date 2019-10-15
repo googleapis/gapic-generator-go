@@ -15,7 +15,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 
-def go_gapic_library(name, srcs, importpath, deps, grpc_service_config = None, **kwargs):
+def go_gapic_library(name, srcs, importpath, deps, release_level="", grpc_service_config = None, **kwargs):
   output_suffix = ".srcjar"
   file_args = {}
 
@@ -30,6 +30,7 @@ def go_gapic_library(name, srcs, importpath, deps, grpc_service_config = None, *
     plugin = Label("//cmd/protoc-gen-go_gapic"),
     plugin_args = [
       "go-gapic-package="+importpath,
+      "release-level="+release_level,
     ],
     plugin_file_args = file_args,
     output_type = "go_gapic",
