@@ -6,6 +6,7 @@ go_library(
         "bytes.go",
         "enum.go",
         "gapic.go",
+        "genmanifest.go",
         "gensample.go",
         "inittree.go",
         "out.go",
@@ -34,6 +35,7 @@ go_test(
     name = "go_default_test",
     srcs = [
         "enum_test.go",
+        "genmanifest_test.go",
         "gensample_sampleconfig_test.go",
         "gensample_test.go",
         "inittree_test.go",
