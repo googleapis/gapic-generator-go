@@ -14,7 +14,7 @@
 
 load("@bazel_gazelle//:deps.bzl", "go_repository")
 
-def com_googleapis_gapic_go_mod():
+def com_googleapis_gapic_generator_go_mod():
     go_repository(
         name = "co_honnef_go_tools",
         importpath = "honnef.co/go/tools",

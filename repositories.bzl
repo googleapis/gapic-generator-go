@@ -14,7 +14,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def com_googleapis_gapic_go_repositories():
+def com_googleapis_gapic_generator_go_repositories():
     _maybe(
         http_archive,
         name = "com_google_protobuf",

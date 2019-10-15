@@ -94,18 +94,18 @@ Add the following to your WORKSPACE to import this project.
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-    name = "com_googleapis_gapic_go",
+    name = "com_googleapis_gapic_generator_go",
     strip_prefix = "gapic-generator-master",
     urls = ["https://github.com/googleapis/gapic-generator-go/archive/master.zip"],
 )
 
-load("@com_googleapis_gapic_go//:repositories.bzl", "com_googleapis_gapic_go_repositories")
+load("@com_googleapis_gapic_generator_go//:repositories.bzl", "com_googleapis_gapic_generator_go_repositories")
 
-com_googleapis_gapic_go_repositories()
+com_googleapis_gapic_generator_go_repositories()
 
-load("@com_googleapis_gapic_go//:repositories_go.bzl", "com_googleapis_gapic_go_mod")
+load("@com_googleapis_gapic_generator_go//:repositories_go.bzl", "com_googleapis_gapic_generator_go_mod")
 
-com_googleapis_gapic_go_mod()
+com_googleapis_gapic_generator_go_mod()
 ```
 
 _Note: do not use `master`, use a commit hash or a release tag._
@@ -113,7 +113,7 @@ _Note: do not use `master`, use a commit hash or a release tag._
 And invoke it in a BUILD file like so, using an example based on the [googleapis repo](https://github.com/googleapis/googleapis/tree/92bebf78345af8b2d3585220527115bda8bdedf8/google/cloud/language/v1).
 
 ```
-load("@com_googleapis_gapic_go//:rules_go_gapic/go_gapic.bzl", "go_gapic_library")
+load("@com_googleapis_gapic_generator_go//:rules_go_gapic/go_gapic.bzl", "go_gapic_library")
 
 go_gapic_library(
   name = "language_go_gapic",
