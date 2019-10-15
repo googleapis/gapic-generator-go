@@ -102,10 +102,6 @@ http_archive(
 load("@com_googleapis_gapic_generator_go//:repositories.bzl", "com_googleapis_gapic_generator_go_repositories")
 
 com_googleapis_gapic_generator_go_repositories()
-
-load("@com_googleapis_gapic_generator_go//:repositories_go.bzl", "com_googleapis_gapic_generator_go_mod")
-
-com_googleapis_gapic_generator_go_mod()
 ```
 
 _Note: do not use `master`, use a commit hash or a release tag._
