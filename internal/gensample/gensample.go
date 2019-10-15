@@ -132,7 +132,8 @@ func (gen *generator) GenMethodSamples() error {
 		fname := samp.ID + ".go"
 		gen.Outputs[fname] = content
 	}
-	return nil
+
+	return gen.genManifest()
 }
 
 type generator struct {
