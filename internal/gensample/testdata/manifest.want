@@ -3,8 +3,8 @@ type: manifest/samples
 schema_version: 3
 go: &go
   environment: go
-  invocation: go run {path}
-  chdir: {@manifest_dir}/
+  invocation: go run {path} @args
+  chdir: '{@manifest_dir}/'
 samples:
 - <<: *go
   sample: first_sample
