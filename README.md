@@ -193,3 +193,8 @@ Go Version Supported
 The generator itself supports the latest version.
 
 The generated code is compatible with Go 1.6.
+
+Contributing
+------------
+
+If you are looking to contribute to the project, please see CONTRIBUTING.md for guidelines.
