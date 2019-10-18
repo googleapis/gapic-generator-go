@@ -27,7 +27,6 @@ go install ./cmd/gen-go-sample
 
 Invocation
 ===========================
-
 ### Run sample generator as a standalone program
 ```
 gen-go-sample \
@@ -37,6 +36,7 @@ gen-go-sample \
   -desc 'path/to/proto/descriptor.desc' \
   -sample path/to/sample.yaml \
   -sample path/to/another_sample.yaml \
+  -desc 'path/to/proto/descriptor.desc'
 ```
 
 Or to generate the descriptor files on the fly, run
@@ -104,7 +104,3 @@ $ docker run \
   --sample "path/to/another/sample/config.yaml" \
   --gapic "path/to/gapic/config.yaml"
 ```
-
-
-
-

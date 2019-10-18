@@ -132,7 +132,8 @@ func (gen *generator) GenMethodSamples() error {
 		fname := samp.ID + ".go"
 		gen.Outputs[fname] = content
 	}
-	return nil
+
+	return gen.genManifest()
 }
 
 type generator struct {
@@ -232,6 +233,7 @@ func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
 	firstNonStd := sort.Search(len(imports), func(i int) bool { return strings.IndexByte(imports[i].Path, '.') >= 0 })
 
 	var file bytes.Buffer
+	fmt.Fprintf(&file, "// +build sample\n\n")
 	fmt.Fprintf(&file, license.Apache, year)
 	file.WriteString("package main\n")
 	file.WriteString("import(\n")
