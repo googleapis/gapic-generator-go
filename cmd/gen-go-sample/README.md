@@ -28,7 +28,7 @@ go install ./cmd/gen-go-sample
 Invocation
 ===========================
 
-## Run sample generator as a standalone program
+### Run sample generator as a standalone program
 ```
 gen-go-sample \
   -clientpkg 'url/to/client/pkg;name' \
@@ -76,7 +76,7 @@ gen-go-sample \
   ${samples[@]}
 ```
 
-## Run sample generator as an add-on of the client library generator
+### Run sample generator as an add-on of the client library generator
 The sample generator also works as an add-on of the client library generator. All you need to do to enable sample generation
 is passing sample configurations and gapic config (for the time being) to the generator.
 
