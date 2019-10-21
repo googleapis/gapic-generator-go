@@ -83,6 +83,12 @@ The configuration supported by the plugin option includes:
     * Defaults to empty, which is essentially the GA release level.
     * Acceptable values are `alpha` and `beta`.
 
+  * `sample`: path to sample configuration files.
+    * This is used for sample generation. Refer to [sample generation guide](./cmd/gen-go-sample/README.md) for more details.
+
+  * `gapic`: path to the legacy gapic configuration file.
+    * This is used for sample generation only. Both gapic config itself and this option will be deprecated soon. Refer to [sample generation guide](./cmd/gen-go-sample/README.md) for more details.
+
 Bazel
 -----
 
@@ -152,7 +158,7 @@ An equivalent invocation using `gapic.sh` is:
 $ gapic.sh \
   --image gcr.io/gapic-images/gapic-generator-go \
   --in /abs/path/to/protos \
-  --out $GOPATH/src\ 
+  --out $GOPATH/src \
   --go-gapic-package "<github.com/package/import/path;name>"
 ```
 

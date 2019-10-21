@@ -27,8 +27,15 @@ fi
 
 OUT=${OUT:-testdata/out}
 
+for sample in $GOOGLEAPIS/google/cloud/language/v1/samples/*.yaml
+do
+	samples+=('-sample')
+	samples+=($sample)
+done
+
 ./gen-go-sample $* \
   -clientpkg 'cloud.google.com/go/language/apiv1;language' \
   -gapic "$GOOGLEAPIS/google/cloud/language/v1/language_gapic.yaml" \
   -o "$OUT" \
-  -desc <(protoc -o /dev/stdout --include_imports -I "$COMMON_PROTO" -I "$GOOGLEAPIS" "$GOOGLEAPIS"/google/cloud/language/v1/*.proto)
+  -desc <(protoc -o /dev/stdout --include_imports -I "$COMMON_PROTO" -I "$GOOGLEAPIS" "$GOOGLEAPIS"/google/cloud/language/v1/*.proto) \
+  ${samples[@]}
