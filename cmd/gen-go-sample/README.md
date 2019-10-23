@@ -35,8 +35,7 @@ gen-go-sample \
   -o [OUTPUT_DIR] \
   -desc 'path/to/proto/descriptor.desc' \
   -sample path/to/sample.yaml \
-  -sample path/to/another_sample.yaml \
-  -desc 'path/to/proto/descriptor.desc'
+  -sample path/to/another_sample.yaml
 ```
 
 Or to generate the descriptor files on the fly, run
