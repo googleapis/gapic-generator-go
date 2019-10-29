@@ -4,9 +4,6 @@ FROM debian:stable-slim
 COPY --from=gcr.io/gapic-images/api-common-protos:latest /usr/local/bin/protoc /usr/local/bin/protoc
 COPY --from=gcr.io/gapic-images/api-common-protos:latest /protos/ /protos/
 
-# Add gapic-config-validator plugin
-COPY --from=gcr.io/gapic-images/gapic-config-validator /usr/local/bin/protoc-gen-gapic-validator /usr/local/bin/protoc-gen-gapic-validator
-
 # Add protoc-gen-go_gapic binary
 COPY protoc-gen-go_gapic /usr/local/bin
 

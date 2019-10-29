@@ -21,7 +21,6 @@ GRPC_SERVICE_CONFIG=
 GAPIC_CONFIG=
 SAMPLES=
 SAMPLE_ONLY=
-GAPIC_VALIDATOR_OUT=
 RELEASE_LEVEL=
 
 # enable extended globbing for flag pattern matching
@@ -53,13 +52,7 @@ if [ ! -z "$SAMPLES" ]; then
   SAMPLES=${SAMPLES::-1}
 fi
 
-# Do not validate proto annotations if --sample-only is set
-if [ -z "$SAMPLE_ONLY" ]; then
-  GAPIC_VALIDATOR_OUT="--gapic_validator_out=."
-fi
-
 protoc --proto_path=/protos/ --proto_path=/in/ \
-                  $GAPIC_VALIDATOR_OUT \
                   --go_gapic_out=/out/ \
                   --go_gapic_opt="$GO_GAPIC_PACKAGE" \
                   --go_gapic_opt="$RELEASE_LEVEL" \
