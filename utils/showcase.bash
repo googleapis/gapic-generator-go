@@ -23,15 +23,18 @@ fi
 
 go install ./cmd/protoc-gen-go_gapic
 
-SHOWCASE_SEMVER=0.3.0
+SHOWCASE_SEMVER=0.6.0
 
 pushd showcase
 rm -rf gen
 mkdir gen
 
+curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/showcase_grpc_service_config.json
+
 protoc \
 	--go_gapic_out ./gen \
 	--go_gapic_opt 'go-gapic-package=cloud.google.com/go/showcase/apiv1beta1;showcase' \
+	--go_gapic_opt 'grpc-service-config=showcase_grpc_service_config.json' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
 	google/showcase/v1beta1/echo.proto
 

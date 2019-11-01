@@ -32,3 +32,4 @@ clean:
 	rm -rf cmd/protoc-gen-go_cli/testdata	
 	rm -rf showcase/gen
 	rm -f showcase/gapic-showcase
+	rm -f showcase/showcase_grpc_service_config.json
