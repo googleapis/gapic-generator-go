@@ -41,6 +41,9 @@ func PluginEntry(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResp
 	nofmt := false
 
 	resp := plugin.CodeGeneratorResponse{}
+	if genReq.Parameter == nil {
+		return &resp, errors.E(nil, paramError)
+	}
 	for _, s := range strings.Split(*genReq.Parameter, ",") {
 		if e := strings.IndexByte(s, '='); e > 0 {
 			switch s[:e] {
