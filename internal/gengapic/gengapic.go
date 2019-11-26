@@ -49,7 +49,7 @@ const (
 	beta       = "beta"
 )
 
-var headerParamRegexp = regexp.MustCompile(`{([_\.a-z]+)=`)
+var headerParamRegexp = regexp.MustCompile(`{([_.a-z]+)=`)
 
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var pkgPath, pkgName, outDir string
