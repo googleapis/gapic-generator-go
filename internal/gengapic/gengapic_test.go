@@ -166,7 +166,7 @@ func TestGenMethod(t *testing.T) {
 	}
 
 	opts := &descriptor.MethodOptions{}
-	ext := &annotations.HttpRule{Pattern: &annotations.HttpRule_Get{Get: "/v1/{field_name=projects/*/foo/*}/bars/{other=bar/*/baz/*}/buz"}}
+	ext := &annotations.HttpRule{Pattern: &annotations.HttpRule_Get{Get: "/v1/{field_name.nested=projects/*/foo/*}/bars/{other=bar/*/baz/*}/buz"}}
 	proto.SetExtension(opts, annotations.E_Http, ext)
 
 	file := &descriptor.FileDescriptorProto{
