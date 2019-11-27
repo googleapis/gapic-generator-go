@@ -153,8 +153,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "in_gopkg_yaml_v2",
         importpath = "gopkg.in/yaml.v2",
-        sum = "h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=",
-        version = "v2.2.4",
+        sum = "h1:VUgggvou5XRW9mHwD/yXxIYSMtY0zoKQf/v226p2nyo=",
+        version = "v2.2.7",
     )
     _maybe(
         go_repository,
@@ -167,8 +167,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:4HYDjxeNXAOTv3o1N2tjo8UUSlhQgAD52FVkwxnWgM8=",
-        version = "v0.0.0-20191009194640-548a555dbc03",
+        sum = "h1:51D++eCgOHufw5VfDE9Uzqyyc+OyQIjb9hkYy9LN5Fk=",
+        version = "v0.0.0-20191115221424-83cc0476cb11",
     )
     _maybe(
         go_repository,
