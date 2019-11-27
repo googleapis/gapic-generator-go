@@ -487,9 +487,15 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 	}
 
 	if len(headers) > 0 {
+		seen := map[string]bool{}
 		var formats, values strings.Builder
 		for _, h := range headers {
 			field := h[1]
+			// skip fields that have multiple patterns, they use the same accessor
+			if _, dupe := seen[field]; dupe {
+				continue
+			}
+			seen[field] = true
 
 			// URL encode key & values separately per aip.dev/4222.
 			// Encode the key ahead of time to reduce clutter
@@ -615,6 +621,8 @@ func snakeToCamel(s string) string {
 }
 
 func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
+	var matches [][]string
+
 	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 	if m == nil || m.GetOptions() == nil || err == proto.ErrMissingExtension {
 		return nil, nil
@@ -622,19 +630,30 @@ func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error
 		return nil, err
 	}
 
-	pattern := ""
-	switch http := eHTTP.(*annotations.HttpRule); http.GetPattern().(type) {
-	case *annotations.HttpRule_Get:
-		pattern = http.GetGet()
-	case *annotations.HttpRule_Post:
-		pattern = http.GetPost()
-	case *annotations.HttpRule_Patch:
-		pattern = http.GetPatch()
-	case *annotations.HttpRule_Put:
-		pattern = http.GetPut()
-	case *annotations.HttpRule_Delete:
-		pattern = http.GetDelete()
+	http := eHTTP.(*annotations.HttpRule)
+	rules := []*annotations.HttpRule{http}
+	if len(http.GetAdditionalBindings()) > 0 {
+		rules = append(rules, http.GetAdditionalBindings()...)
 	}
 
-	return headerParamRegexp.FindAllStringSubmatch(pattern, -1), nil
+	for _, rule := range rules {
+		pattern := ""
+
+		switch rule.GetPattern().(type) {
+		case *annotations.HttpRule_Get:
+			pattern = rule.GetGet()
+		case *annotations.HttpRule_Post:
+			pattern = rule.GetPost()
+		case *annotations.HttpRule_Patch:
+			pattern = rule.GetPatch()
+		case *annotations.HttpRule_Put:
+			pattern = rule.GetPut()
+		case *annotations.HttpRule_Delete:
+			pattern = rule.GetDelete()
+		}
+
+		matches = append(matches, headerParamRegexp.FindAllStringSubmatch(pattern, -1)...)
+	}
+
+	return matches, nil
 }
