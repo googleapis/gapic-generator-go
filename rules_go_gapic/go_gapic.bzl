@@ -15,14 +15,24 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 
-def go_gapic_library(name, srcs, importpath, deps, release_level="", grpc_service_config = None, **kwargs):
+def go_gapic_library(
+  name,
+  srcs,
+  importpath,
+  deps,
+  release_level = "",
+  grpc_service_config = None,
+  service_yaml = None,
+  **kwargs):
+
   output_suffix = ".srcjar"
   file_args = {}
 
   if grpc_service_config:
-    file_args = {
-      grpc_service_config: "grpc-service-config",
-    }
+    file_args[grpc_service_config] =  "grpc-service-config"
+
+  if service_yaml:
+    file_args[service_yaml] = "gapic-service-config"
 
   proto_custom_library(
     name = name,
