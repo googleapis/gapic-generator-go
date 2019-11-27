@@ -19,9 +19,9 @@ def com_googleapis_gapic_generator_go_repositories():
     _maybe(
         http_archive,
         name = "com_google_api_codegen",
-        strip_prefix = "gapic-generator-32df2ec2818108329f297edeeb72bc71cf5b619b",
-        urls = ["https://github.com/googleapis/gapic-generator/archive/32df2ec2818108329f297edeeb72bc71cf5b619b.zip"],
-        sha256 = "e0baddd9c12aea4434dc786e7656ce036bd76d273649d9df38fb08f7c41fdfc7",
+        strip_prefix = "gapic-generator-a79e9ea3fcf686a80d92461a4788c5bcf55cea5a",
+        urls = ["https://github.com/googleapis/gapic-generator/archive/a79e9ea3fcf686a80d92461a4788c5bcf55cea5a.zip"],
+        sha256 = "c6a13fd221189458ad9eeb1de1f40e21bd80f0063bf05b9fa243722c18577f17",
     )
     _maybe(
         go_repository,
