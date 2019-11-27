@@ -632,9 +632,7 @@ func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error
 
 	http := eHTTP.(*annotations.HttpRule)
 	rules := []*annotations.HttpRule{http}
-	if len(http.GetAdditionalBindings()) > 0 {
-		rules = append(rules, http.GetAdditionalBindings()...)
-	}
+	rules = append(rules, http.GetAdditionalBindings()...)
 
 	for _, rule := range rules {
 		pattern := ""
