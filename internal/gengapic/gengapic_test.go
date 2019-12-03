@@ -217,12 +217,6 @@ func TestGenMethod(t *testing.T) {
 			Options:    opts,
 		},
 		{
-			Name:       proto.String("GetBigThing"),
-			InputType:  proto.String(".my.pkg.InputType"),
-			OutputType: proto.String(".google.longrunning.Operation"),
-			Options:    opts,
-		},
-		{
 			Name:       proto.String("GetManyThings"),
 			InputType:  proto.String(".my.pkg.PageInputType"),
 			OutputType: proto.String(".my.pkg.PageOutputType"),
@@ -256,14 +250,6 @@ methods:
 	for _, m := range meths {
 		g.pt.Reset()
 
-		// Just add this everywhere. Only LRO method will pick it up.
-		if m.Options != nil {
-			lroType := &longrunning.OperationInfo{
-				ResponseType: "OutputType",
-			}
-			proto.SetExtension(m.Options, longrunning.E_OperationInfo, lroType)
-		}
-
 		g.aux = &auxTypes{
 			iters: map[string]*iterType{},
 		}
@@ -281,6 +267,83 @@ methods:
 
 		for _, iter := range g.aux.iters {
 			g.pagingIter(iter)
+		}
+
+		txtdiff.Diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+	}
+}
+
+func TestGenLRO(t *testing.T) {
+	inputType := &descriptor.DescriptorProto{
+		Name: proto.String("InputType"),
+	}
+	outputType := &descriptor.DescriptorProto{
+		Name: proto.String("OutputType"),
+	}
+
+	file := &descriptor.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+	serv := &descriptor.ServiceDescriptorProto{}
+
+	var g generator
+	g.imports = map[pbinfo.ImportSpec]bool{}
+
+	commonTypes(&g)
+	for _, typ := range []*descriptor.DescriptorProto{
+		inputType, outputType,
+	} {
+		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+	g.descInfo.ParentFile[serv] = file
+
+	emptyLRO := &longrunning.OperationInfo{
+		ResponseType: emptyValue,
+	}
+	emptyLROOpts := &descriptor.MethodOptions{}
+	proto.SetExtension(emptyLROOpts, longrunning.E_OperationInfo, emptyLRO)
+
+	respLRO := &longrunning.OperationInfo{
+		ResponseType: "OutputType",
+	}
+	respLROOpts := &descriptor.MethodOptions{}
+	proto.SetExtension(respLROOpts, longrunning.E_OperationInfo, respLRO)
+
+	lros := []*descriptor.MethodDescriptorProto{
+		{
+			Name:       proto.String("EmptyLRO"),
+			InputType:  proto.String(".my.pkg.InputType"),
+			OutputType: proto.String(".google.longrunning.Operation"),
+			Options:    emptyLROOpts,
+		},
+		{
+			Name:       proto.String("RespLRO"),
+			InputType:  proto.String(".my.pkg.InputType"),
+			OutputType: proto.String(".google.longrunning.Operation"),
+			Options:    respLROOpts,
+		},
+	}
+
+lros:
+	for _, m := range lros {
+		g.pt.Reset()
+
+		g.aux = &auxTypes{}
+
+		if err := g.genMethod("Foo", serv, m); err != nil {
+			t.Error(err)
+			continue
+		}
+
+		for _, m := range g.aux.lros {
+			if err := g.lroType("MyService", serv, m); err != nil {
+				t.Error(err)
+				continue lros
+			}
 		}
 
 		txtdiff.Diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))

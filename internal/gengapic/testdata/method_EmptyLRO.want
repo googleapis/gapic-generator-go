@@ -1,30 +1,29 @@
-func (c *FooClient) GetBigThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*GetBigThingOperation, error) {
-	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v&%s=%v&%s=%v", "field_name.nested", url.QueryEscape(req.GetFieldName().GetNested()), "other", url.QueryEscape(req.GetOther()), "another", url.QueryEscape(req.GetAnother())))
-	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
-	opts = append(c.CallOptions.GetBigThing[0:len(c.CallOptions.GetBigThing):len(c.CallOptions.GetBigThing)], opts...)
+func (c *FooClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*EmptyLROOperation, error) {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.EmptyLRO[0:len(c.CallOptions.EmptyLRO):len(c.CallOptions.EmptyLRO)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.fooClient.GetBigThing(ctx, req, settings.GRPC...)
+		resp, err = c.fooClient.EmptyLRO(ctx, req, settings.GRPC...)
 		return err
 	}, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return &GetBigThingOperation{
+	return &EmptyLROOperation{
 		lro: longrunning.InternalNewOperation(c.LROClient, resp),
 	}, nil
 }
 
-// GetBigThingOperation manages a long-running operation from GetBigThing.
-type GetBigThingOperation struct {
+// EmptyLROOperation manages a long-running operation from EmptyLRO.
+type EmptyLROOperation struct {
 	lro *longrunning.Operation
 }
 
-// GetBigThingOperation returns a new GetBigThingOperation from a given name.
-// The name must be that of a previously created GetBigThingOperation, possibly from a different process.
-func (c *MyServiceClient) GetBigThingOperation(name string) *GetBigThingOperation {
-	return &GetBigThingOperation{
+// EmptyLROOperation returns a new EmptyLROOperation from a given name.
+// The name must be that of a previously created EmptyLROOperation, possibly from a different process.
+func (c *MyServiceClient) EmptyLROOperation(name string) *EmptyLROOperation {
+	return &EmptyLROOperation{
 		lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),
 	}
 }
@@ -32,12 +31,12 @@ func (c *MyServiceClient) GetBigThingOperation(name string) *GetBigThingOperatio
 // Wait blocks until the long-running operation is completed, returning the response and any errors encountered.
 //
 // See documentation of Poll for error-handling information.
-func (op *GetBigThingOperation) Wait(ctx context.Context, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
-	var resp mypackagepb.OutputType
+func (op *EmptyLROOperation) Wait(ctx context.Context, opts ...gax.CallOption) error {
+	var resp emptypb.Empty
 	if err := op.lro.WaitWithInterval(ctx, &resp, time.Minute, opts...); err != nil {
-		return nil, err
+		return err
 	}
-	return &resp, nil
+	return nil
 }
 
 // Poll fetches the latest state of the long-running operation.
@@ -47,8 +46,8 @@ func (op *GetBigThingOperation) Wait(ctx context.Context, opts ...gax.CallOption
 // If Poll succeeds and the operation has completed successfully,
 // op.Done will return true, and the response of the operation is returned.
 // If Poll succeeds and the operation has not completed, the returned response and error are both nil.
-func (op *GetBigThingOperation) Poll(ctx context.Context, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
-	var resp mypackagepb.OutputType
+func (op *EmptyLROOperation) Poll(ctx context.Context, opts ...gax.CallOption) (*emptypb.Empty, error) {
+	var resp emptypb.Empty
 	if err := op.lro.Poll(ctx, &resp, opts...); err != nil {
 		return nil, err
 	}
@@ -59,13 +58,13 @@ func (op *GetBigThingOperation) Poll(ctx context.Context, opts ...gax.CallOption
 }
 
 // Done reports whether the long-running operation has completed.
-func (op *GetBigThingOperation) Done() bool {
+func (op *EmptyLROOperation) Done() bool {
 	return op.lro.Done()
 }
 
 // Name returns the name of the long-running operation.
 // The name is assigned by the server and is unique within the service from which the operation is created.
-func (op *GetBigThingOperation) Name() string {
+func (op *EmptyLROOperation) Name() string {
 	return op.lro.Name()
 }
 

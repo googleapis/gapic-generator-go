@@ -22,6 +22,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
+	"google.golang.org/genproto/googleapis/longrunning"
 )
 
 func TestExample(t *testing.T) {
@@ -79,6 +80,18 @@ func TestExample(t *testing.T) {
 		},
 	}
 
+	emptyLRO := &longrunning.OperationInfo{
+		ResponseType: emptyValue,
+	}
+	emptyLROOpts := &descriptor.MethodOptions{}
+	proto.SetExtension(emptyLROOpts, longrunning.E_OperationInfo, emptyLRO)
+
+	respLRO := &longrunning.OperationInfo{
+		ResponseType: "my.pkg.OutputType",
+	}
+	respLROOpts := &descriptor.MethodOptions{}
+	proto.SetExtension(respLROOpts, longrunning.E_OperationInfo, respLRO)
+
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
 		inputType, outputType, pageInputType, pageOutputType,
@@ -116,6 +129,18 @@ func TestExample(t *testing.T) {
 				OutputType:      proto.String(".my.pkg.OutputType"),
 				ServerStreaming: proto.Bool(true),
 				ClientStreaming: proto.Bool(true),
+			},
+			{
+				Name:       proto.String("EmptyLRO"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(".google.longrunning.Operation"),
+				Options:    emptyLROOpts,
+			},
+			{
+				Name:       proto.String("RespLRO"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(".google.longrunning.Operation"),
+				Options:    respLROOpts,
 			},
 		},
 	}
