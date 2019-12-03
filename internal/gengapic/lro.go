@@ -161,18 +161,23 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("//")
 		p("// See documentation of Poll for error-handling information.")
 
-		// only return an error when response_type is google.protobuf.Empty
 		returnType := fmt.Sprintf("(*%s, error)", respType)
+		returnErr := "nil, err"
+		returnResp := "&resp, nil"
+
+		// only return an error when response_type is google.protobuf.Empty
 		if respType == "emptypb.Empty" {
 			returnType = "error"
+			returnErr = "err"
+			returnResp = "nil"
 		}
 
 		p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) %s {", lroType, returnType)
 		p("  var resp %s", respType)
 		p("  if err := op.lro.WaitWithInterval(ctx, &resp, time.Minute, opts...); err != nil {")
-		p("    return nil, err")
+		p("    return %s", returnErr)
 		p("  }")
-		p("  return &resp, nil")
+		p("  return %s", returnResp)
 		p("}")
 		p("")
 
