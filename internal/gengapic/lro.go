@@ -166,7 +166,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		returnResp := "&resp, nil"
 
 		// only return an error when response_type is google.protobuf.Empty
-		if respType == "emptypb.Empty" {
+		if opInfo.GetResponseType() == emptyValue {
 			returnType = "error"
 			returnErr = "err"
 			returnResp = "nil"

@@ -15,9 +15,13 @@
 package gengapic
 
 import (
+	"strings"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/genproto/googleapis/longrunning"
 )
 
 func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
@@ -117,6 +121,18 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 func (g *generator) exampleLROCall(m *descriptor.MethodDescriptorProto) {
 	p := g.printf
+	retVars := "resp, err :="
+
+	// if response_type is google.protobuf.Empty, don't generate a "resp" var
+	eLRO, err := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
+	if err == nil {
+		opInfo := eLRO.(*longrunning.OperationInfo)
+		if opInfo.GetResponseType() == emptyValue {
+			// no new variables when this is used
+			// therefore don't attempt to delcare it
+			retVars = "err ="
+		}
+	}
 
 	p("op, err := c.%s(ctx, req)", *m.Name)
 	p("if err != nil {")
@@ -124,12 +140,15 @@ func (g *generator) exampleLROCall(m *descriptor.MethodDescriptorProto) {
 	p("}")
 	p("")
 
-	p("resp, err := op.Wait(ctx)")
+	p("%s op.Wait(ctx)", retVars)
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
-	p("// TODO: Use resp.")
-	p("_ = resp")
+	// generate response handling snippet
+	if strings.Contains(retVars, "resp") {
+		p("// TODO: Use resp.")
+		p("_ = resp")
+	}
 }
 
 func (g *generator) exampleUnaryCall(m *descriptor.MethodDescriptorProto) {

@@ -132,3 +132,51 @@ func ExampleFooClient_BidiThings() {
 	}
 }
 
+func ExampleFooClient_EmptyLRO() {
+	// import mypackagepb "mypackage"
+
+	ctx := context.Background()
+	c, err := Bar.NewFooClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+	}
+	op, err := c.EmptyLRO(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	err = op.Wait(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+}
+
+func ExampleFooClient_RespLRO() {
+	// import mypackagepb "mypackage"
+
+	ctx := context.Background()
+	c, err := Bar.NewFooClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+	}
+	op, err := c.RespLRO(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	resp, err := op.Wait(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// TODO: Use resp.
+	_ = resp
+}
+
