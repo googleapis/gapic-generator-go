@@ -45,6 +45,8 @@ const (
 	emptyType = ".google.protobuf.Empty"
 	lroType   = ".google.longrunning.Operation"
 	// used when google.protobuf.Empty is the value of an annotation, which isn't resolved by protoc
+	//
+	// TODO(ndietz): https://github.com/googleapis/gapic-generator-go/issues/260
 	emptyValue = "google.protobuf.Empty"
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 	alpha      = "alpha"
