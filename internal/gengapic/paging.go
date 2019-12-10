@@ -48,8 +48,17 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			return &iterType{}, err
 		}
 
-		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, eType.GetName())
-		pt.iterTypeName = eType.GetName() + "Iterator"
+		// Prepend parent Message name for nested Messages
+		// to match the generated Go type name.
+		typ := eType
+		typeName := typ.GetName()
+		for parent, ok := g.descInfo.ParentElement[typ]; ok; parent, ok = g.descInfo.ParentElement[typ] {
+			typeName = fmt.Sprintf("%s_%s", parent.GetName(), typeName)
+			typ = parent
+		}
+
+		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, typeName)
+		pt.iterTypeName = typeName + "Iterator"
 
 		pt.elemImports = []pbinfo.ImportSpec{imp}
 
