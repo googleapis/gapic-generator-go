@@ -155,23 +155,25 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
 	}
 
+	// setup function return statements
+	returnType := fmt.Sprintf("(*%s, error)", respType)
+	returnErr := "nil, err"
+	returnResp := "&resp, nil"
+	returnNil := "nil, nil"
+
+	// only return an error when response_type is google.protobuf.Empty
+	if opInfo.GetResponseType() == emptyValue {
+		returnType = "error"
+		returnErr = "err"
+		returnResp = "nil"
+		returnNil = "nil"
+	}
+
 	// Wait
 	{
 		p("// Wait blocks until the long-running operation is completed, returning the response and any errors encountered.")
 		p("//")
 		p("// See documentation of Poll for error-handling information.")
-
-		returnType := fmt.Sprintf("(*%s, error)", respType)
-		returnErr := "nil, err"
-		returnResp := "&resp, nil"
-
-		// only return an error when response_type is google.protobuf.Empty
-		if opInfo.GetResponseType() == emptyValue {
-			returnType = "error"
-			returnErr = "err"
-			returnResp = "nil"
-		}
-
 		p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) %s {", lroType, returnType)
 		p("  var resp %s", respType)
 		p("  if err := op.lro.WaitWithInterval(ctx, &resp, time.Minute, opts...); err != nil {")
@@ -197,15 +199,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// If Poll succeeds and the operation has completed successfully,")
 		p("// op.Done will return true, and the response of the operation is returned.")
 		p("// If Poll succeeds and the operation has not completed, the returned response and error are both nil.")
-		p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
+		p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) %s {", lroType, returnType)
 		p("  var resp %s", respType)
 		p("  if err := op.lro.Poll(ctx, &resp, opts...); err != nil {")
-		p("    return nil, err")
+		p("    return %s", returnErr)
 		p("  }")
 		p("  if !op.Done() {")
-		p("    return nil, nil")
+		p("    return %s", returnNil)
 		p("  }")
-		p("  return &resp, nil")
+		p("  return %s", returnResp)
 		p("}")
 		p("")
 	}
