@@ -46,15 +46,15 @@ func (op *EmptyLROOperation) Wait(ctx context.Context, opts ...gax.CallOption) e
 // If Poll succeeds and the operation has completed successfully,
 // op.Done will return true, and the response of the operation is returned.
 // If Poll succeeds and the operation has not completed, the returned response and error are both nil.
-func (op *EmptyLROOperation) Poll(ctx context.Context, opts ...gax.CallOption) (*emptypb.Empty, error) {
+func (op *EmptyLROOperation) Poll(ctx context.Context, opts ...gax.CallOption) error {
 	var resp emptypb.Empty
 	if err := op.lro.Poll(ctx, &resp, opts...); err != nil {
-		return nil, err
+		return err
 	}
 	if !op.Done() {
-		return nil, nil
+		return nil
 	}
-	return &resp, nil
+	return nil
 }
 
 // Done reports whether the long-running operation has completed.
