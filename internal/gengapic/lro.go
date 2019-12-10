@@ -155,13 +155,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
 	}
 
-	// setup function return statements
+	// Setup method signature return type and
+	// corresponding return statements.
 	returnType := fmt.Sprintf("(*%s, error)", respType)
 	returnErr := "nil, err"
 	returnResp := "&resp, nil"
 	returnNil := "nil, nil"
 
-	// only return an error when response_type is google.protobuf.Empty
+	// Reduce method signature return type to just an error
+	// when response_type is google.protobuf.Empty.
 	if opInfo.GetResponseType() == emptyValue {
 		returnType = "error"
 		returnErr = "err"
