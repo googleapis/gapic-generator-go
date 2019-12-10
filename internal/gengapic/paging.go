@@ -143,7 +143,7 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 		min := elemFields[0].GetNumber()
 		for _, elem := range elemFields {
 			if elem.GetNumber() < min {
-				return nil, fmt.Errorf("%s looks like paging method, but can't determine repeated field to use in %s", *m.Name, outType.GetName())
+				return nil, fmt.Errorf("%s: can't pick repeated field in %s based on aip.dev/4233", *m.Name, outType.GetName())
 			}
 		}
 	}
