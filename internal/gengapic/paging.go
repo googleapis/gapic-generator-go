@@ -48,8 +48,17 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			return &iterType{}, err
 		}
 
-		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, eType.GetName())
-		pt.iterTypeName = eType.GetName() + "Iterator"
+		// Prepend parent Message name for nested Messages
+		// to match the generated Go type name.
+		typ := eType
+		typeName := typ.GetName()
+		for parent, ok := g.descInfo.ParentElement[typ]; ok; parent, ok = g.descInfo.ParentElement[typ] {
+			typeName = fmt.Sprintf("%s_%s", parent.GetName(), typeName)
+			typ = parent
+		}
+
+		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, typeName)
+		pt.iterTypeName = typeName + "Iterator"
 
 		pt.elemImports = []pbinfo.ImportSpec{imp}
 
@@ -129,7 +138,14 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 		return nil, fmt.Errorf("%s looks like paging method, but can't find repeated field in %s", *m.Name, outType.GetName())
 	}
 	if len(elemFields) > 1 {
-		return nil, fmt.Errorf("%s looks like paging method, but too many repeated fields in %s", *m.Name, outType.GetName())
+		// ensure that the first repeated field visited has the lowest field number
+		// according to https://aip.dev/4233, and use that one.
+		min := elemFields[0].GetNumber()
+		for _, elem := range elemFields {
+			if elem.GetNumber() < min {
+				return nil, fmt.Errorf("%s: can't pick repeated field in %s based on aip.dev/4233", *m.Name, outType.GetName())
+			}
+		}
 	}
 	return elemFields[0], nil
 }

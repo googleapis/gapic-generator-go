@@ -32,9 +32,17 @@ func TestPagingField(t *testing.T) {
 	}
 
 	resField := &descriptor.FieldDescriptorProto{
-		Name:  proto.String("resource"),
-		Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-		Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+		Name:   proto.String("resource"),
+		Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+		Label:  labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+		Number: proto.Int32(1),
+	}
+
+	otherRepField := &descriptor.FieldDescriptorProto{
+		Name:   proto.String("unreachable"),
+		Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+		Label:  labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+		Number: proto.Int32(0),
 	}
 
 	g := &generator{}
@@ -87,9 +95,9 @@ func TestPagingField(t *testing.T) {
 					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 				},
-				// Too many repeated field
+				// resource is not first repeated field in message
 				resField,
-				resField,
+				otherRepField,
 			},
 		},
 	}
