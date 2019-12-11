@@ -35,8 +35,8 @@ func init() {
 }
 
 // This script is run in CI when a new version tag is pushed to master. This script
-// archives compiled executables of the gapic-generator-go plugin tool for distribution
-// via GitHub releases.
+// archives compiled executables of the gapic-generator-go plugin tool and creates
+// a GitHub release with for the given tag and commitish using the given GitHub token.
 //
 // This script must be run from the root directory of the gapic-generator-go repository.
 //
@@ -72,7 +72,7 @@ func main() {
 		"github.com/inconshreveable/mousetrap",
 		"github.com/tcnksm/ghr")
 
-	// Compile binaries
+	// Compile plugin binaries.
 	stagingDir := filepath.Join(outDir, "binaries")
 	osArchs := []string{
 		"windows/amd64",
@@ -101,12 +101,11 @@ func main() {
 			"-C",
 			filepath.Dir(files[0]),
 			filepath.Base(files[0]))
-		util.Execute(
-			"rm",
-			"-r",
-			dir)
+		// Remove the individual binary directory.
+		util.Execute("rm", "-r", dir)
 	}
 
+	// Execute GitHub release of artifacts.
 	util.Execute(
 		"ghr",
 		"-t="+token,
