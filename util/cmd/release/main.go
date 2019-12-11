@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main contains a script that is run in CI when a new version tag is pushed to master.
+// This script archives compiled executables of the gapic-generator-go plugin tool and creates
+// a GitHub release with for the given tag and commitish using the given GitHub token.
+//
+// This script must be run from the root directory of the gapic-generator-go repository.
+//
+// Usage: go run ./util/cmd/release -version=v1.2.3 -token=$GITHUB_TOKEN -commitish=abc123
 package main
 
 import (
@@ -34,13 +41,6 @@ func init() {
 	flag.StringVar(&version, "version", "", "the version tag [required]")
 }
 
-// This script is run in CI when a new version tag is pushed to master. This script
-// archives compiled executables of the gapic-generator-go plugin tool and creates
-// a GitHub release with for the given tag and commitish using the given GitHub token.
-//
-// This script must be run from the root directory of the gapic-generator-go repository.
-//
-// Usage: go run ./util/cmd/release -version=v1.2.3 -token=$GITHUB_TOKEN -commitish=abc123
 func main() {
 	flag.Parse()
 	if commitish == "" {
