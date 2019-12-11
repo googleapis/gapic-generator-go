@@ -37,8 +37,7 @@ jobs:
       - run: go test ./...
       - run:
           name: Check license
-          command: |
-            find -name '*.go' -not -name '*.pb.go' | xargs go run util/cmd/license/main.go --
+          command: go run ./util/cmd/license
       - run: go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
       - run:
           name: verify error conformance

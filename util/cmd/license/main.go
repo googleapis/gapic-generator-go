@@ -16,10 +16,11 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"io"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 var sentinels = [][]byte{
@@ -30,31 +31,59 @@ var sentinels = [][]byte{
 }
 
 func main() {
-	flag.Parse()
-
 	var buf [600]byte
 	exitCode := 0
 
-	for _, fname := range flag.Args() {
-		f, err := os.Open(fname)
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error: unable to get working dir: %+v", err)
+	}
+
+	// Recursively walk the project and check the license header of all
+	// non-Protobuf Go files.
+	err = filepath.Walk(pwd, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
-		n, err := io.ReadFull(f, buf[:])
-		if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
-			log.Fatal(err)
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, ".pb.go") {
+			return nil
 		}
 
-		f.Close()
-
-		for _, s := range sentinels {
-			if bytes.Index(buf[:n], s) < 0 {
-				log.Printf("file doesn't have license header, can't find %q: %s", s, fname)
-				exitCode = 1
-			}
+		clean, err := check(path, buf)
+		if !clean {
+			exitCode = 1
 		}
+
+		return err
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	os.Exit(exitCode)
+}
+
+func check(fname string, buf [600]byte) (bool, error) {
+	clean := true
+	f, err := os.Open(fname)
+	if err != nil {
+		return false, err
+	}
+
+	n, err := io.ReadFull(f, buf[:])
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return false, err
+	}
+
+	f.Close()
+
+	for _, s := range sentinels {
+		if bytes.Index(buf[:n], s) < 0 {
+			log.Printf("invalid license header, can't find %q: %s", s, fname)
+			clean = false
+		}
+	}
+
+	return clean, nil
 }

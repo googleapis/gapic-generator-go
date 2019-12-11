@@ -5,9 +5,6 @@ image:
 	docker build -t gcr.io/gapic-images/gapic-generator-go .
 	rm protoc-gen-go_gapic
 
-check-license:
-	find -name '*.go' -not -name '*.pb.go' | xargs go run ./util/cmd/license --
-
 test-go-cli:
 	go test github.com/googleapis/gapic-generator-go/internal/gencli
 	./cmd/protoc-gen-go_cli/test.sh
