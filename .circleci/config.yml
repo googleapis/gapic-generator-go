@@ -11,7 +11,7 @@ workflows:
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
-      - publish_image:
+      - release:
           requires:
             - build
             - format
@@ -38,7 +38,7 @@ jobs:
       - run:
           name: Check license
           command: |
-            find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
+            find -name '*.go' -not -name '*.pb.go' | xargs go run util/cmd/license/main.go --
       - run: go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
       - run:
           name: verify error conformance
@@ -53,7 +53,7 @@ jobs:
             curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip > protobuf/protoc.zip
             unzip -d protobuf protobuf/protoc.zip
             export PATH=$PATH:$(pwd)/protobuf/bin            
-            ./utils/showcase.bash
+            ./util/showcase.bash
       - run:
           name: Run Google APIs test gen
           command: |
@@ -62,12 +62,19 @@ jobs:
             mv googleapis-master googleapis
             export PATH=$PATH:$(pwd)/protobuf/bin
             GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
-  publish_image:
+  release:
     docker:
       - image: circleci/golang:1.13
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Make GitHub Release
+          command: |
+            go run ./util/cmd/release \
+              -version=${CIRCLE_TAG} \
+              -commitish=${CIRCLE_SHA1} \
+              -token=${GITHUB_TOKEN}
       - run:
           name: Build Docker image.
           command: make image

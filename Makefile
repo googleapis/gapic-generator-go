@@ -6,7 +6,7 @@ image:
 	rm protoc-gen-go_gapic
 
 check-license:
-	find -name '*.go' -not -name '*.pb.go' | xargs go run utils/license.go --
+	find -name '*.go' -not -name '*.pb.go' | xargs go run ./util/cmd/license --
 
 test-go-cli:
 	go test github.com/googleapis/gapic-generator-go/internal/gencli
@@ -20,7 +20,7 @@ golden:
 
 test:
 	go test ./...
-	./utils/showcase.bash
+	./util/showcase.bash
 
 install:
 	go install ./cmd/protoc-gen-go_gapic
