@@ -30,6 +30,7 @@ type Sample struct {
 	CallingPatterns []string `yaml:"calling_patterns"`
 	Request         []RequestConfig
 	Response        []ResponseConfig
+	SampleType      []string `yaml:"sample_type"`
 }
 
 type RequestConfig struct {
