@@ -78,7 +78,7 @@ func TestUnary(t *testing.T) {
 		Name:              "UnaryMethod",
 		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
 	}
-	if err := g.genSample(sp, methConf); err != nil {
+	if err := g.genStandaloneSample(sp, methConf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -118,7 +118,7 @@ func TestSample_InitError(t *testing.T) {
 			},
 		}
 
-		if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err == nil {
+		if err := g.genStandaloneSample(sp, GAPICMethod{Name: "UnaryMethod"}); err == nil {
 			t.Errorf("expected error from init config: %s", fieldVal)
 		}
 	}
@@ -133,7 +133,7 @@ func TestSample_InitError(t *testing.T) {
 		RegionTag: "awesome_region",
 	}
 
-	if err := g.genSample(sp, GAPICMethod{Name: "LroMethod"}); err == nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "LroMethod"}); err == nil {
 		t.Errorf("expected error from missing config")
 	}
 
@@ -150,7 +150,7 @@ func TestPaging(t *testing.T) {
 		Rpc:       "PagingMethod",
 		RegionTag: "awesome_region",
 	}
-	if err := g.genSample(sp, GAPICMethod{Name: "PagingMethod"}); err != nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "PagingMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
@@ -179,7 +179,7 @@ func TestLro(t *testing.T) {
 		},
 	}
 
-	if err := g.genSample(sp, methConf); err != nil {
+	if err := g.genStandaloneSample(sp, methConf); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_lro.want"))
@@ -206,7 +206,7 @@ func TestEmptyObject(t *testing.T) {
 		FieldNamePatterns: map[string]string{"resource_field": "foobar_thing"},
 	}
 
-	if err := g.genSample(sp, methConf); err != nil {
+	if err := g.genStandaloneSample(sp, methConf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -224,7 +224,7 @@ func TestEmpty(t *testing.T) {
 		RegionTag: "awesome_region",
 	}
 
-	if err := g.genSample(sp, GAPICMethod{Name: "EmptyMethod"}); err != nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "EmptyMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_empty.want"))
@@ -270,7 +270,7 @@ func TestMapOut(t *testing.T) {
 			},
 		},
 	}
-	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_map_out.want"))
@@ -291,7 +291,7 @@ func TestAccessMapKeyValueInResponse(t *testing.T) {
 		},
 	}
 
-	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_response_map_field.want"))
@@ -342,7 +342,7 @@ func TestAccessMapKeyValueInResponse_Error(t *testing.T) {
 			Response:  []schema_v1p2.ResponseConfig{r},
 		}
 
-		err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"})
+		err := g.genStandaloneSample(sp, GAPICMethod{Name: "UnaryMethod"})
 		if err == nil {
 			t.Errorf("expected error from response config: %v", r)
 		}
@@ -366,7 +366,7 @@ func TestAccessRepeatedFieldInResponse(t *testing.T) {
 		},
 	}
 
-	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_response_repeated_field.want"))
@@ -397,7 +397,7 @@ func TestWriteFile(t *testing.T) {
 		},
 	}
 
-	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 	compare(t, g, filepath.Join("testdata", "sample_write_file.want"))
@@ -421,7 +421,7 @@ func TestEnum(t *testing.T) {
 		},
 	}
 
-	if err := g.genSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "UnaryMethod"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -449,6 +449,48 @@ quick brown fox jumps over the lazy dog again and again.`
 	if c := wrapComment(raw); c != wrapped {
 		t.Fatal(errors.E(nil, "want %q, got %q", wrapped, c))
 	}
+}
+
+func TestRequestingIncodeSamples(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+
+	sp := schema_v1p2.Sample{
+		ID:         "my_sample_config",
+		Service:    "foo.FooService",
+		Rpc:        "PagingMethod",
+		RegionTag:  "awesome_region",
+		SampleType: []string{"incode"},
+	}
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "PagingMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	out, err := g.commit(false, 2018)
+	if err != nil {
+		t.Errorf("unexpected error committing in-code sample: %q", err)
+	}
+	if size := len(out); size != 0 {
+		t.Errorf("expected standalone sample size of 0, got size of %d", size)
+	}
+}
+
+func TestRequestingIncodeAndStandaloneSamples(t *testing.T) {
+	t.Parallel()
+
+	g := initTestGenerator()
+
+	sp := schema_v1p2.Sample{
+		ID:         "my_sample_config",
+		Service:    "foo.FooService",
+		Rpc:        "PagingMethod",
+		RegionTag:  "awesome_region",
+		SampleType: []string{"incode", "standalone"},
+	}
+	if err := g.genStandaloneSample(sp, GAPICMethod{Name: "PagingMethod"}); err != nil {
+		t.Fatal(err)
+	}
+	compare(t, g, filepath.Join("testdata", "sample_paging.want"))
 }
 
 func initTestGenerator() *generator {

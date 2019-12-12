@@ -79,3 +79,7 @@ func (p *P) Bytes() []byte {
 func (p *P) String() string {
 	return p.buf.String()
 }
+
+func (p *P) Len() int {
+	return p.buf.Len()
+}
