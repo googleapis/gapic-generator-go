@@ -14,6 +14,14 @@
 
 package schema_v1p2
 
+const (
+	// These values are used in Sample.SampleType to denote taht
+	// the config applies to standalone samples or to in-code
+	// (language doc) samples.
+	sampleTypeStandalone = "standalone"
+	sampleTypeDoc        = "incode"
+)
+
 type SampleConfig struct {
 	Type    string
 	Version string `yaml:"schema_version"`
@@ -30,6 +38,7 @@ type Sample struct {
 	CallingPatterns []string `yaml:"calling_patterns"`
 	Request         []RequestConfig
 	Response        []ResponseConfig
+	SampleType      []string `yaml:"sample_type"`
 }
 
 type RequestConfig struct {
@@ -60,4 +69,29 @@ type LoopSpec struct {
 type WriteFileSpec struct {
 	Contents string
 	FileName []string `yaml: file_name`
+}
+
+// IsStandaloneSample returns true iff s.SampleType specifies s should
+// generate standalone samples.
+func (s *Sample) IsStandaloneSample() bool {
+	if len(s.SampleType) == 0 {
+		return true
+	}
+	for _, t := range s.SampleType {
+		if t == sampleTypeStandalone {
+			return true
+		}
+	}
+	return false
+}
+
+// IsDocSample returns true iff s.SampleType specifies s should
+// generate in-code (language doc) samples.
+func (s *Sample) IsDocSample() bool {
+	for _, t := range s.SampleType {
+		if t == sampleTypeDoc {
+			return true
+		}
+	}
+	return false
 }

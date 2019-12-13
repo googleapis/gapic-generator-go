@@ -91,7 +91,7 @@ func InitGen(desc []*descriptor.FileDescriptorProto, sampleFnames []string, gapi
 	return nil, errors.E(nil, errMsg.String())
 }
 
-// GenMethodSamples generators samples from protos and configurations stored in the generator,
+// GenMethodSamples generates samples from protos and configurations stored in the generator,
 // and writes the generated samples to generator.Outputs.
 func (gen *generator) GenMethodSamples() error {
 	gen.disambiguateSampleIDs()
@@ -119,7 +119,7 @@ func (gen *generator) GenMethodSamples() error {
 		}
 
 		gen.reset()
-		if err := gen.genSample(*samp, method); err != nil {
+		if err := gen.genStandaloneSample(*samp, method); err != nil {
 			err = errors.E(err, "generating: %s.%s:%s", iface.Name, method.Name, samp.ID)
 			log.Fatal(err)
 		}
@@ -203,13 +203,16 @@ func (g *generator) reset() {
 	}
 }
 
-// commit writes the internal data representation of the generator to bytes.
+// commit writes the internal data representation of the generator (if non-empty) to bytes.
 // It does the following:
 // 1) dumps license with the given year
 // 2) dumps package and imports
 // 3) dumps generated code in generator.printer
 // 4) formats the code if gofmt is true
 func (g *generator) commit(gofmt bool, year int) ([]byte, error) {
+	if g.pt.Len() == 0 {
+		return nil, nil
+	}
 	// We'll gofmt unless user asks us not to, so no need to think too hard about sorting
 	// "correctly". We just want a deterministic output here.
 	var imports []pbinfo.ImportSpec
@@ -296,9 +299,14 @@ func (g *generator) disambiguateSampleIDs() error {
 	return nil
 }
 
-// genSample generates one sample from sample config and gapic config.
+// genStandaloneSample generates one standalone sample from sample config and
+// gapic config.
 // TODO(hzyi): this method is getting long. Split it up.
-func (g *generator) genSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
+func (g *generator) genStandaloneSample(sampConf schema_v1p2.Sample, methConf GAPICMethod) error {
+	if !sampConf.IsStandaloneSample() {
+		return nil
+	}
+
 	ifaceName := sampConf.Service
 
 	// Preparation
