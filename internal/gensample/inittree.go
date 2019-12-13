@@ -284,11 +284,11 @@ func (t *initTree) parseInit(path string, value string, comment string, info pbi
 		if pType == descriptor.FieldDescriptorProto_TYPE_STRING {
 			value = fmt.Sprintf("%q", value)
 		}
-		validPrim := validPrims[pType]
-		if validPrim == nil {
+		validate := primitiveValidator[pType]
+		if validate == nil {
 			return report(errors.E(nil, "not a primitive type: %q", pType))
 		}
-		if !validPrim(value) {
+		if !validate(value) {
 			return report(errors.E(nil, "invalid value for type %q: %s", pType, value))
 		}
 	}
@@ -370,8 +370,8 @@ func (t *initTree) parsePathRest(sc *scanner.Scanner, info pbinfo.Info) (*initTr
 				// as a map key. scanner.Ident is here to handle the case when key is a bool value, as
 				// `true` and `false` (without quote) are parsed as scanner.Ident.
 				tokVal = sc.TokenText()
-				validPrim := validPrims[t.typ.keyType.prim]
-				if !validPrim(tokVal) {
+				validate := primitiveValidator[t.typ.keyType.prim]
+				if !validate(tokVal) {
 					return nil, r, errors.E(nil, "invalid value for type %q: %s", t.typ.keyType.prim, tokVal)
 				}
 			} else {

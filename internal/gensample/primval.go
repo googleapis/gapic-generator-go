@@ -20,10 +20,10 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-// validPrims contains functions to check value-validity for primitive types.
+// primitiveValidator contains functions to check value-validity for primitive types.
 // Functions only perform cursory checking; since we use scanner for tokenizing,
 // they must already be a valid token of some type.
-var validPrims = [...]func(string) bool{
+var primitiveValidator = [...]func(string) bool{
 	descriptor.FieldDescriptorProto_TYPE_BOOL: func(s string) bool { return s == "true" || s == "false" },
 
 	descriptor.FieldDescriptorProto_TYPE_BYTES:  validStrings,
