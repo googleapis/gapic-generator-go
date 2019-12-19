@@ -32,7 +32,6 @@
 //
 // For information about setting deadlines, reusing contexts, and more
 // please visit godoc.org/cloud.google.com/go.
-
 package awesome // import "path/to/awesome"
 
 import (
