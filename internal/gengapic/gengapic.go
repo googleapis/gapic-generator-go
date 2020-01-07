@@ -598,9 +598,17 @@ func upperFirst(s string) string {
 
 func camelToSnake(s string) string {
 	var sb strings.Builder
-	for i, r := range s {
+	runes := []rune(s)
+
+	for i, r := range runes {
 		if unicode.IsUpper(r) && i != 0 {
-			sb.WriteByte('_')
+			// An uppercase rune followed by a lowercase
+			// rune indicates the start of a word,
+			// keeping uppercase acronyms together.
+			next := i + 1
+			if len(runes) > next && !unicode.IsUpper(runes[next]) {
+				sb.WriteByte('_')
+			}
 		}
 		sb.WriteRune(unicode.ToLower(r))
 	}

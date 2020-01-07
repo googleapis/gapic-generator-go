@@ -95,6 +95,9 @@ func TestReduceServName(t *testing.T) {
 		{"FooServiceV2", "foo", ""},
 
 		{"FooV2Bar", "", "FooV2Bar"},
+
+		// IAM should be replaced with Iam
+		{"IAMCredentials", "credentials", "IamCredentials"},
 	} {
 		if got := pbinfo.ReduceServName(tst.in, tst.pkg); got != tst.want {
 			t.Errorf("pbinfo.ReduceServName(%q, %q) = %q, want %q", tst.in, tst.pkg, got, tst.want)
@@ -365,5 +368,19 @@ func Test_buildAccessor(t *testing.T) {
 				t.Errorf("buildAccessor() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Test_camelToSnake(t *testing.T) {
+	for _, tst := range []struct {
+		in, want string
+	}{
+		{"IAMCredentials", "iam_credentials"},
+		{"DLP", "dlp"},
+		{"OsConfig", "os_config"},
+	} {
+		if got := camelToSnake(tst.in); got != tst.want {
+			t.Errorf("camelToSnake(%q) = %q, want %q", tst.in, got, tst.want)
+		}
 	}
 }
