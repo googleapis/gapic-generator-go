@@ -7,12 +7,12 @@ require (
 	github.com/golang-commonmark/mdurl v0.0.0-20180910110917-8d018c6567d6 // indirect
 	github.com/golang-commonmark/puny v0.0.0-20180910110745-050be392d8b8 // indirect
 	github.com/golang/protobuf v1.3.2
-	github.com/google/go-cmp v0.3.1
-	github.com/jhump/protoreflect v1.5.0
+	github.com/google/go-cmp v0.4.0
+	github.com/jhump/protoreflect v1.6.0
 	github.com/opennota/wd v0.0.0-20180911144301-b446539ab1e7 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f
+	google.golang.org/genproto v0.0.0-20200113173426-e1de0a7b01eb
 	gopkg.in/yaml.v2 v2.2.7
 )
 

@@ -202,5 +202,16 @@ func ReduceServName(svc, pkg string) string {
 	if strings.EqualFold(svc, pkg) {
 		svc = ""
 	}
+
+	// This is a special case for IAM and should not be
+	// extended to support any new API name containing
+	// an acronym.
+	//
+	// In order to avoid a breaking change for IAM
+	// clients, we must keep consistent identifier casing.
+	if strings.Contains(svc, "IAM") {
+		svc = strings.ReplaceAll(svc, "IAM", "Iam")
+	}
+
 	return svc
 }
