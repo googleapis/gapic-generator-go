@@ -11,6 +11,10 @@ workflows:
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
+      - bazel-test:
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
       - release:
           requires:
             - build
@@ -61,6 +65,27 @@ jobs:
             mv googleapis-master googleapis
             export PATH=$PATH:$(pwd)/protobuf/bin
             GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
+  bazel-test:
+    environment:
+      BAZEL_VERSION: 2.0.0
+      PYTHON_VERSION: 3.5.2
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Set Python version
+          command: |
+            pyenv global ${PYTHON_VERSION}
+      - run:
+          name: Install Bazel
+          command: |
+            wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh -O bazel_installer.sh
+            chmod +x bazel_installer.sh
+            ./bazel_installer.sh --user
+      - run:
+          name: Run tests for repo
+          command: |
+              bazel test //...
   release:
     docker:
       - image: circleci/golang:1.13
