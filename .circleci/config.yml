@@ -68,7 +68,7 @@ jobs:
   bazel-test:
     environment:
       BAZEL_VERSION: 2.0.0
-      PYTHON_VERSION: 3.6.5
+      PYTHON_VERSION: 3.6.2
     machine: true
     steps:
       - checkout
