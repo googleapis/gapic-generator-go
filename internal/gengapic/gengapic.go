@@ -377,7 +377,7 @@ type auxTypes struct {
 // genMethod generates a single method from a client. m must be a method declared in serv.
 // If the generated method requires an auxillary type, it is added to aux.
 func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
-	if m.GetOutputType() == lroType {
+	if g.isLRO(m) {
 		g.aux.lros = append(g.aux.lros, m)
 		return g.lroCall(servName, m)
 	}
@@ -566,6 +566,12 @@ func (g *generator) comment(s string) {
 			g.printf("// %s", l)
 		}
 	}
+}
+
+// isLRO determines if a given Method is a longrunning operation, ignoring
+// those defined by the longrunning proto package.
+func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
+	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
 }
 
 // grpcClientField reports the field name to store gRPC client.

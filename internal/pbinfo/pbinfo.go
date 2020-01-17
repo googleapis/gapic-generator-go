@@ -75,6 +75,9 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 		}
 		for _, s := range f.Service {
 			info.ParentFile[s] = f
+			for _, m := range s.Method {
+				info.ParentFile[m] = f
+			}
 		}
 
 		// Type

@@ -189,7 +189,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	var hasLRO bool
 	for _, m := range serv.Method {
-		if *m.OutputType == lroType {
+		if g.isLRO(m) {
 			hasLRO = true
 			break
 		}

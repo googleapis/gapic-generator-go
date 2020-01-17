@@ -384,3 +384,37 @@ func Test_camelToSnake(t *testing.T) {
 		}
 	}
 }
+
+func Test_isLRO(t *testing.T) {
+	lroGetOp := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("GetOperation"),
+		OutputType: proto.String(".google.longrunning.Operation"),
+	}
+
+	actualLRO := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("SuperLongRPC"),
+		OutputType: proto.String(".google.longrunning.Operation"),
+	}
+
+	var g generator
+	g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
+		lroGetOp: &descriptor.FileDescriptorProto{
+			Package: proto.String("google.longrunning"),
+		},
+		actualLRO: &descriptor.FileDescriptorProto{
+			Package: proto.String("my.pkg"),
+		},
+	}
+
+	for _, tst := range []struct {
+		in   *descriptor.MethodDescriptorProto
+		want bool
+	}{
+		{lroGetOp, false},
+		{actualLRO, true},
+	} {
+		if got := g.isLRO(tst.in); got != tst.want {
+			t.Errorf("isLRO(%v) = %v, want %v", tst.in, got, tst.want)
+		}
+	}
+}
