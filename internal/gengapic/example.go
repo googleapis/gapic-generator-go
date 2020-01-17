@@ -104,7 +104,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	if pf != nil {
 		g.examplePagingCall(m)
-	} else if *m.OutputType == lroType {
+	} else if g.isLRO(m) {
 		g.exampleLROCall(m)
 	} else if *m.OutputType == emptyType {
 		g.exampleEmptyCall(m)
