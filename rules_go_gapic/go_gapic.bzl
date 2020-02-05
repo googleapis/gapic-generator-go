@@ -23,6 +23,8 @@ def go_gapic_library(
   release_level = "",
   grpc_service_config = None,
   service_yaml = None,
+  samples = [],
+  sample_only = False,
   **kwargs):
 
   output_suffix = ".srcjar"
@@ -34,14 +36,23 @@ def go_gapic_library(
   if service_yaml:
     file_args[service_yaml] = "gapic-service-config"
 
+  if samples:
+    for path in samples:
+        file_args[path] = "sample"
+
+  plugin_args = [
+    "go-gapic-package={}".format(importpath),
+    "release-level={}".format(release_level),
+  ]
+
+  if sample_only:
+    plugin_args.append("sample-only={}".format(sample_only))
+
   proto_custom_library(
     name = name,
     deps = srcs,
     plugin = Label("//cmd/protoc-gen-go_gapic"),
-    plugin_args = [
-      "go-gapic-package={}".format(importpath),
-      "release-level={}".format(release_level),
-    ],
+    plugin_args = plugin_args,
     plugin_file_args = file_args,
     output_type = "go_gapic",
     output_suffix = output_suffix,
