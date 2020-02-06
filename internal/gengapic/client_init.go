@@ -207,8 +207,8 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 		p("type %sClient struct {", servName)
 
-		p("// The connection to the service.")
-		p("conn *grpc.ClientConn")
+		p("// Connection pool of gRPC connections to the service.")
+		p("connPool gtransport.ConnPool")
 		p("")
 
 		p("// The gRPC API client.")
@@ -247,28 +247,28 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("//")
 		g.comment(g.comments[serv])
 		p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-		p("  conn, err := transport.DialGRPC(ctx, append(default%sClientOptions(), opts...)...)", servName)
+		p("  connPool, err := gtransport.DialPool(ctx, append(default%sClientOptions(), opts...)...)", servName)
 		p("  if err != nil {")
 		p("    return nil, err")
 		p("  }")
 		p("  c := &%sClient{", servName)
-		p("    conn:        conn,")
+		p("    connPool:    connPool,")
 		p("    CallOptions: default%sCallOptions(),", servName)
 		p("")
-		p("    %s: %s.New%sClient(conn),", grpcClientField(servName), imp.Name, serv.GetName())
+		p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
 		p("  }")
 		p("  c.setGoogleClientInfo()")
 		p("")
 
 		if hasLRO {
-			p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, option.WithGRPCConn(conn))")
+			p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))")
 			p("  if err != nil {")
-			p("    // This error \"should not happen\", since we are just reusing old connection")
+			p("    // This error \"should not happen\", since we are just reusing old connection pool")
 			p("    // and never actually need to dial.")
-			p("    // If this does happen, we could leak conn. However, we cannot close conn:")
-			p("    // If the user invoked the function with option.WithGRPCConn,")
+			p("    // If this does happen, we could leak connp. However, we cannot close conn:")
+			p("    // If the user invoked the constructor with option.WithGRPCConn,")
 			p("    // we would close a connection that's still in use.")
-			p("    // TODO(pongad): investigate error conditions.")
+			p("    // TODO: investigate error conditions.")
 			p("    return nil, err")
 			p("  }")
 		}
@@ -277,15 +277,17 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("}")
 		p("")
 
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/transport"}] = true
+		g.imports[pbinfo.ImportSpec{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 	}
 
 	// Connection()
 	{
-		p("// Connection returns the client's connection to the API service.")
+		p("// Connection returns a connection to the API service.")
+		p("//")
+		p("// Deprecated.")
 		p("func (c *%sClient) Connection() *grpc.ClientConn {", servName)
-		p("  return c.conn")
+		p("  return c.connPool.Conn()")
 		p("}")
 		p("")
 	}
@@ -295,7 +297,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("// Close closes the connection to the API service. The user should invoke this when")
 		p("// the client is no longer required.")
 		p("func (c *%sClient) Close() error {", servName)
-		p("  return c.conn.Close()")
+		p("  return c.connPool.Close()")
 		p("}")
 		p("")
 	}
