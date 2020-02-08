@@ -46,7 +46,7 @@ def go_gapic_library(
   ]
 
   if sample_only:
-    plugin_args.append("sample-only={}".format(sample_only))
+    plugin_args.append("sample-only")
 
   proto_custom_library(
     name = name,
