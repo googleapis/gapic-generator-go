@@ -23,6 +23,7 @@ def go_gapic_library(
   release_level = "",
   grpc_service_config = None,
   service_yaml = None,
+  gapic_yaml = None,
   samples = [],
   sample_only = False,
   **kwargs):
@@ -35,6 +36,9 @@ def go_gapic_library(
 
   if service_yaml:
     file_args[service_yaml] = "gapic-service-config"
+  
+  if gapic_yaml:
+    file_args[gapic_yaml] = "gapic-config"
 
   if samples:
     for path in samples:

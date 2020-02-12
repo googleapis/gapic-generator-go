@@ -147,6 +147,10 @@ following attributes:
 
   * `service_yaml`: a label for a service YAML file.
     * _Note: This option will eventually be deprecated._
+  * `sample`: a path to a sample config file. There 
+  can exist multiples of this.
+  * `gapic_yaml`: path to a gapic configuration file.
+  * `sample_only`: if present, directs the generator to forgo client generation and generate only samples.
 
 Docker Wrapper
 --------------
