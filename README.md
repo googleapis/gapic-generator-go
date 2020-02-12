@@ -150,6 +150,7 @@ following attributes:
   * `sample`: a path to a sample config file. There 
   can exist multiples of this.
   * `gapic_yaml`: path to a gapic configuration file.
+    * _Note: This config is only used to generate samples only._
   * `sample_only`: if present, directs the generator to forgo client generation and generate only samples.
 
 Docker Wrapper
