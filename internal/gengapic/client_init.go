@@ -160,7 +160,13 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				p("gax.WithRetry(func() gax.Retryer {")
 				p("  return gax.OnCodes([]codes.Code{")
 				for _, c := range rp.GetRetryableStatusCodes() {
-					p("    codes.%s,", snakeToCamel(c.String()))
+					// Go uses the American-English spelling with a single "L"
+					code := c.String()
+					if code == "CANCELLED" {
+						code = "CANCELED"
+					}
+
+					p("    codes.%s,", snakeToCamel(code))
 				}
 				p("	 }, gax.Backoff{")
 				// this ignores max_attempts
