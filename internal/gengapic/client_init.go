@@ -24,6 +24,7 @@ import (
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
 func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -160,13 +161,14 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				p("gax.WithRetry(func() gax.Retryer {")
 				p("  return gax.OnCodes([]codes.Code{")
 				for _, c := range rp.GetRetryableStatusCodes() {
+					cstr := c.String()
+
 					// Go uses the American-English spelling with a single "L"
-					code := c.String()
-					if code == "CANCELLED" {
-						code = "CANCELED"
+					if c == code.Code_CANCELLED {
+						cstr = "Canceled"
 					}
 
-					p("    codes.%s,", snakeToCamel(code))
+					p("    codes.%s,", snakeToCamel(cstr))
 				}
 				p("	 }, gax.Backoff{")
 				// this ignores max_attempts
