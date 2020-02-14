@@ -86,8 +86,6 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 	return &pt, nil
 }
 
-// TODO(pongad): this will probably need to read from annotations later.
-
 // pagingField reports the "resource field" to be iterated over by paginating method m.
 // If the method is not a paging method, pagingField returns (nil, nil).
 // If the method looks like a paging method, but the field cannot be determined, pagingField errors.
@@ -96,6 +94,18 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 		hasSize, hasToken, hasNextToken bool
 		elemFields                      []*descriptor.FieldDescriptorProto
 	)
+
+	// TODO: remove this once the next version of the Talent API is published.
+	//
+	// This is a workaround to disable auto-pagination for specifc RPCs in
+	// Talent v4beta1. The API team will make their API non-conforming in the
+	// next version.
+	//
+	// This should not be done for any other API.
+	if g.descInfo.ParentFile[m].GetPackage() == "google.cloud.talent.v4beta1" &&
+		(m.GetName() == "SearchProfiles" || m.GetName() == "SearchJobs") {
+		return nil, nil
+	}
 
 	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
