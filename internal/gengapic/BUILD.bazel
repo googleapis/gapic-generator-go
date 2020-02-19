@@ -26,6 +26,7 @@ go_library(
         "@com_github_golang_protobuf//jsonpb:go_default_library_gen",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@go_googleapis//google/api:annotations_go_proto",
+        "@go_googleapis//google/rpc:code_go_proto",
         "@go_googleapis//google/longrunning:longrunning_go_proto",
         "@in_gopkg_yaml_v2//:go_default_library",
         "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",

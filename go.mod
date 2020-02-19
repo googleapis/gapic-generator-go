@@ -12,7 +12,7 @@ require (
 	github.com/opennota/wd v0.0.0-20180911144301-b446539ab1e7 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	google.golang.org/genproto v0.0.0-20200212121238-0849286c0f0e
+	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5
 	gopkg.in/yaml.v2 v2.2.8
 )
 
