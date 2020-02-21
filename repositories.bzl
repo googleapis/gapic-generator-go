@@ -27,8 +27,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "co_honnef_go_tools",
         importpath = "honnef.co/go/tools",
-        sum = "h1:XJP7lxbSxWLOMNdBE4B/STaqVy6L73o0knwj2vIlxnw=",
-        version = "v0.0.0-20190102054323-c2f93a96b099",
+        sum = "h1:/hemPrYIhOhy8zYrNj+069zDB68us2sMGsfkFJO0iZs=",
+        version = "v0.0.0-20190523083050-ea95bdfd59fc",
     )
     _maybe(
         go_repository,
@@ -39,10 +39,31 @@ def com_googleapis_gapic_generator_go_repositories():
     )
     _maybe(
         go_repository,
+        name = "com_github_census_instrumentation_opencensus_proto",
+        importpath = "github.com/census-instrumentation/opencensus-proto",
+        sum = "h1:glEXhBS5PSLLv4IXzLA5yPRVX4bilULVyxxbrfOtDAk=",
+        version = "v0.2.1",
+    )
+    _maybe(
+        go_repository,
         name = "com_github_client9_misspell",
         importpath = "github.com/client9/misspell",
         sum = "h1:ta993UF76GwbvJcIo3Y68y/M3WxlpEHPWIGDkJYwzJI=",
         version = "v0.3.4",
+    )
+    _maybe(
+        go_repository,
+        name = "com_github_envoyproxy_go_control_plane",
+        importpath = "github.com/envoyproxy/go-control-plane",
+        sum = "h1:4cmBvAEBNJaGARUEs3/suWRyfyBfhf7I60WBZq+bv2w=",
+        version = "v0.9.1-0.20191026205805-5f8ba28d4473",
+    )
+    _maybe(
+        go_repository,
+        name = "com_github_envoyproxy_protoc_gen_validate",
+        importpath = "github.com/envoyproxy/protoc-gen-validate",
+        sum = "h1:EQciDnbrYxy13PgWoY8AqoxGiPrpgBZ1R8UNe3ddc+A=",
+        version = "v0.1.0",
     )
     _maybe(
         go_repository,
@@ -97,22 +118,22 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "com_github_golang_protobuf",
         importpath = "github.com/golang/protobuf",
-        sum = "h1:6nsPYzhq5kReh6QImI3k5qWzO4PEbvbIW2cwSfR/6xs=",
-        version = "v1.3.2",
+        sum = "h1:gyjaxf+svBWX08ZjK86iN9geUJF0H6gp2IRKX6Nf6/I=",
+        version = "v1.3.3",
     )
     _maybe(
         go_repository,
         name = "com_github_google_go_cmp",
         importpath = "github.com/google/go-cmp",
-        sum = "h1:Xye71clBPdm5HgqGwUkwhbynsUJZhDbS20FvLhQ2izg=",
-        version = "v0.3.1",
+        sum = "h1:xsAVV57WRhGj6kEIi8ReJzQlHHqcBYCElAvkovg3B/4=",
+        version = "v0.4.0",
     )
     _maybe(
         go_repository,
         name = "com_github_jhump_protoreflect",
         importpath = "github.com/jhump/protoreflect",
-        sum = "h1:NgpVT+dX71c8hZnxHof2M7QDK7QtohIJ7DYycjnkyfc=",
-        version = "v1.5.0",
+        sum = "h1:h5jfMVslIg6l29nsMs0D8Wj17RDVdNYti0vDN/PZZoE=",
+        version = "v1.6.0",
     )
     _maybe(
         go_repository,
@@ -120,6 +141,13 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/opennota/wd",
         sum = "h1:cVQhwfBgiKTMAdYPbVeuIiTkdY59qZ3sp5RpyO8CNtg=",
         version = "v0.0.0-20180911144301-b446539ab1e7",
+    )
+    _maybe(
+        go_repository,
+        name = "com_github_prometheus_client_model",
+        importpath = "github.com/prometheus/client_model",
+        sum = "h1:gQz4mCbXsO+nc9n1hCxHcGA3Zx3Eo+UHZoInFGUIXNM=",
+        version = "v0.0.0-20190812154241-14fe0d1b01d4",
     )
     _maybe(
         go_repository,
@@ -153,8 +181,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "in_gopkg_yaml_v2",
         importpath = "gopkg.in/yaml.v2",
-        sum = "h1:VUgggvou5XRW9mHwD/yXxIYSMtY0zoKQf/v226p2nyo=",
-        version = "v2.2.7",
+        sum = "h1:obN1ZagJSUGI0Ek/LBmuj4SNLPfIny3KsKFopxRdj10=",
+        version = "v2.2.8",
     )
     _maybe(
         go_repository,
@@ -167,15 +195,22 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:51D++eCgOHufw5VfDE9Uzqyyc+OyQIjb9hkYy9LN5Fk=",
-        version = "v0.0.0-20191115221424-83cc0476cb11",
+        sum = "h1:jB9+PJSvu5tBfmJHy/OVapFdjDF3WvpkqRhxqrmzoEU=",
+        version = "v0.0.0-20200218151345-dad8c97a84f5",
     )
     _maybe(
         go_repository,
         name = "org_golang_google_grpc",
         importpath = "google.golang.org/grpc",
-        sum = "h1:cfg4PD8YEdSFnm7qLV4++93WcmhH2nIUhMjhdCvl3j8=",
-        version = "v1.19.0",
+        sum = "h1:rRYRFMVgRv6E0D70Skyfsr28tDXIuuPZyWGMPdMcnXg=",
+        version = "v1.27.0",
+    )
+    _maybe(
+        go_repository,
+        name = "org_golang_x_crypto",
+        importpath = "golang.org/x/crypto",
+        sum = "h1:VklqNMn3ovrHsnt90PveolxSbWFaJdECFbxSq0Mqo2M=",
+        version = "v0.0.0-20190308221718-c2843e01d9a2",
     )
     _maybe(
         go_repository,
@@ -188,15 +223,15 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_x_lint",
         importpath = "golang.org/x/lint",
-        sum = "h1:GmgasJE571dBGXS7E282h2rIZj+KvCLV8z5I6QXbKNI=",
-        version = "v0.0.0-20190227174305-5b3e6a55c961",
+        sum = "h1:XQyxROzUlZH+WIQwySDgnISgOivlhjIEwaQaJEJrrN0=",
+        version = "v0.0.0-20190313153728-d0100b6bd8b3",
     )
     _maybe(
         go_repository,
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
-        sum = "h1:HuTn7WObtcDo9uEEU7rEqL0jYthdXAmZ6PP+meazmaU=",
-        version = "v0.0.0-20190213061140-3a22650c66bd",
+        sum = "h1:oWX7TPOiFAMXLq8o0ikBYfCJVlRHBcsciT5bXOrH628=",
+        version = "v0.0.0-20190311183353-d8887717615a",
     )
     _maybe(
         go_repository,
@@ -209,15 +244,15 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_x_sync",
         importpath = "golang.org/x/sync",
-        sum = "h1:Bl/8QSvNqXvPGPGXa2z5xUTmV7VDcZyvRZ+QQXkXTZQ=",
-        version = "v0.0.0-20181108010431-42b317875d0f",
+        sum = "h1:8gQV6CLnAEikrhgkHFbMAEhagSSnXWGV915qUMm9mrU=",
+        version = "v0.0.0-20190423024810-112230192c58",
     )
     _maybe(
         go_repository,
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:Ve1ORMCxvRmSXBwJK+t3Oy+V2vRW2OetUQBq4rJIkZE=",
-        version = "v0.0.0-20180830151530-49385e6e1522",
+        sum = "h1:1BGLXjeY4akVXGgbC9HugT3Jv3hCI0z56oJR5vAMgBU=",
+        version = "v0.0.0-20190215142949-d0b11bdaac8a",
     )
     _maybe(
         go_repository,
@@ -230,8 +265,15 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
-        sum = "h1:vamGzbGri8IKo20MQncCuljcQ5uAO6kaCeawQPVblAI=",
-        version = "v0.0.0-20190226205152-f727befe758c",
+        sum = "h1:5Beo0mZN8dRzgrMMkDp0jc8YXQKx9DiJ2k1dkvGsn5A=",
+        version = "v0.0.0-20190524140312-2c0ae7006135",
+    )
+    _maybe(
+        go_repository,
+        name = "org_golang_x_xerrors",
+        importpath = "golang.org/x/xerrors",
+        sum = "h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=",
+        version = "v0.0.0-20191204190536-9bdfabe68543",
     )
 
 def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):
