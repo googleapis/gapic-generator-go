@@ -137,11 +137,6 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			}
 		}
 
-		if len(policies) > 0 {
-			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
-			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
-		}
-
 		// read retry params from gRPC ServiceConfig
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 		p("  return &%sCallOptions{", servName)
@@ -177,6 +172,10 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				p("		Multiplier: %.2f,", rp.GetBackoffMultiplier())
 				p("	 })")
 				p("}),")
+
+				// include imports necessary for retry configuration
+				g.imports[pbinfo.ImportSpec{Path: "time"}] = true
+				g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
 			}
 			p("},")
 		}
