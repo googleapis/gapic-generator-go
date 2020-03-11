@@ -15,6 +15,7 @@
 load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 load("@io_bazel_rules_go//go/private:rules/rule.bzl", "go_rule")
 load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_library")
+load("//:rules_go_gapic/go_gapic_repositories.bzl", "go_gapic_deps_list")
 
 def _go_gapic_postprocessed_srcjar_impl(ctx):
     go_ctx = go_context(ctx)
@@ -131,22 +132,7 @@ def go_gapic_library(
     **kwargs
   )
 
-  actual_deps = deps + [
-    "@com_github_googleapis_gax_go_v2//:go_default_library",
-    "@org_golang_google_api//option:go_default_library",
-    "@org_golang_google_api//iterator:go_default_library",
-    "@org_golang_google_api//transport/grpc:go_default_library",
-    "@org_golang_google_grpc//:go_default_library",
-    "@org_golang_google_grpc//codes:go_default_library",
-    "@org_golang_google_grpc//metadata:go_default_library",
-    "@com_github_golang_protobuf//proto:go_default_library",
-    "@com_github_golang_protobuf//ptypes:go_default_library",
-    "@com_github_golang_protobuf//ptypes/empty:go_default_library",
-    "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
-    "@org_golang_google_genproto//protobuf/field_mask:go_default_library",
-    "@com_google_googleapis//google/rpc:status_go_proto",
-    "@org_golang_google_grpc//status:go_default_library",
-  ]
+  actual_deps = deps + go_gapic_deps_list
 
   main_file = ":%s" % srcjar_name + output_suffix
   main_dir = "%s_main" % srcjar_name

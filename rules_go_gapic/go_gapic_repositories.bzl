@@ -14,6 +14,23 @@
 
 load("@bazel_gazelle//:deps.bzl", "go_repository")
 
+go_gapic_deps_list = [
+    "@com_github_googleapis_gax_go_v2//:go_default_library",
+    "@org_golang_google_api//option:go_default_library",
+    "@org_golang_google_api//iterator:go_default_library",
+    "@org_golang_google_api//transport/grpc:go_default_library",
+    "@org_golang_google_grpc//:go_default_library",
+    "@org_golang_google_grpc//codes:go_default_library",
+    "@org_golang_google_grpc//metadata:go_default_library",
+    "@com_github_golang_protobuf//proto:go_default_library",
+    "@com_github_golang_protobuf//ptypes:go_default_library",
+    "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+    "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+    "@org_golang_google_genproto//protobuf/field_mask:go_default_library",
+    "@com_google_googleapis//google/rpc:status_go_proto",
+    "@org_golang_google_grpc//status:go_default_library",
+]
+
 def go_gapic_repositories(
         omit_com_github_googleapis_gax_go = False,
         omit_org_golang_google_api = False,
