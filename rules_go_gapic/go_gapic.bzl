@@ -115,6 +115,7 @@ def go_gapic_library(
   srcjar_name = name+"_srcjar"
   raw_srcjar_name = srcjar_name+"_raw"
   output_suffix = ".srcjar"
+
   proto_custom_library(
     name = raw_srcjar_name,
     deps = srcs,
@@ -132,8 +133,6 @@ def go_gapic_library(
     **kwargs
   )
 
-  actual_deps = deps + go_gapic_deps_list
-
   main_file = ":%s" % srcjar_name + output_suffix
   main_dir = "%s_main" % srcjar_name
 
@@ -142,6 +141,8 @@ def go_gapic_library(
     srcjar = main_file,
     extension = ".go",
   )
+
+  actual_deps = deps + go_gapic_deps_list
 
   go_library(
     name = name,

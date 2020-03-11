@@ -14,6 +14,9 @@
 
 load("@bazel_gazelle//:deps.bzl", "go_repository")
 
+# List of Go dependencies for the GAPIC necessary for compiling the go_library
+# go_gapic_library. Colocated with go_gapic_repositories to keep the GAPIC deps
+# together.
 go_gapic_deps_list = [
     "@com_github_googleapis_gax_go_v2//:go_default_library",
     "@org_golang_google_api//option:go_default_library",
