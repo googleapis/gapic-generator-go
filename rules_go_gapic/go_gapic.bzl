@@ -15,7 +15,6 @@
 load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 load("@io_bazel_rules_go//go/private:rules/rule.bzl", "go_rule")
 load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_library")
-load("//:rules_go_gapic/go_gapic_repositories.bzl", "go_gapic_deps_list")
 
 def _go_gapic_postprocessed_srcjar_impl(ctx):
     go_ctx = go_context(ctx)
@@ -29,9 +28,6 @@ def _go_gapic_postprocessed_srcjar_impl(ctx):
 
     formatter = _get_gofmt(go_ctx)
 
-    # Note the script is more complicated than it intuitively should be because of limitations
-    # inherent to bazel execution environment: no absolute paths allowed, the generated artifacts
-    # must ensure uniqueness within a build.
     script = """
     unzip -q {gapic_srcjar} -d {output_dir_path}
     {formatter} -w -l {output_dir_path}
@@ -142,7 +138,22 @@ def go_gapic_library(
     extension = ".go",
   )
 
-  actual_deps = deps + go_gapic_deps_list
+  actual_deps = deps + [
+    "@com_github_googleapis_gax_go_v2//:go_default_library",
+    "@org_golang_google_api//option:go_default_library",
+    "@org_golang_google_api//iterator:go_default_library",
+    "@org_golang_google_api//transport/grpc:go_default_library",
+    "@org_golang_google_grpc//:go_default_library",
+    "@org_golang_google_grpc//codes:go_default_library",
+    "@org_golang_google_grpc//metadata:go_default_library",
+    "@com_github_golang_protobuf//proto:go_default_library",
+    "@com_github_golang_protobuf//ptypes:go_default_library",
+    "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+    "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+    "@org_golang_google_genproto//protobuf/field_mask:go_default_library",
+    "@com_google_googleapis//google/rpc:status_go_proto",
+    "@org_golang_google_grpc//status:go_default_library",
+  ]
 
   go_library(
     name = name,
