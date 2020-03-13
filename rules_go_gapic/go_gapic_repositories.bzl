@@ -14,65 +14,54 @@
 
 load("@bazel_gazelle//:deps.bzl", "go_repository")
 
-def go_gapic_repositories(
-        omit_com_github_googleapis_gax_go = False,
-        omit_org_golang_google_api = False,
-        omit_org_golang_x_oauth2 = False,
-        omit_com_github_google_go_cmp = False,
-        omit_io_opencensus_go = False):
-    if not omit_com_github_googleapis_gax_go:
-        com_github_googleapis_gax_go()
-    if not omit_org_golang_google_api:
-        org_golang_google_api()
-    if not omit_org_golang_x_oauth2:
-        org_golang_x_oauth2()
-    if not omit_com_github_google_go_cmp:
-        com_github_google_go_cmp()
-    if not omit_io_opencensus_go:
-        io_opencensus_go()
-
-def com_github_googleapis_gax_go():
-    go_repository(
+def go_gapic_repositories():
+    _maybe(
+        go_repository,
         name = "com_github_googleapis_gax_go_v2",
         importpath = "github.com/googleapis/gax-go/v2",
         sum = "h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+Tv3SM=",
         version = "v2.0.5",
     )
-
-def org_golang_google_api():
-    go_repository(
+    _maybe(
+        go_repository,
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
         sum = "h1:jz2KixHX7EcCPiQrySzPdnYT7DbINAypCqKZ1Z7GM40=",
         version = "v0.20.0",
     )
-
-def org_golang_x_oauth2():
-    go_repository(
+    _maybe(
+        go_repository,
         name = "org_golang_x_oauth2",
         importpath = "golang.org/x/oauth2",
         sum = "h1:TzXSXBo42m9gQenoE3b9BGiEpg5IG2JkU5FkPIawgtw=",
         version = "v0.0.0-20200107190931-bf48bf16ab8d",
     )
-
-def com_github_google_go_cmp():
-    go_repository(
+    _maybe(
+        go_repository,
         name = "com_github_google_go_cmp",
         importpath = "github.com/google/go-cmp/cmp",
         sum = "h1:xsAVV57WRhGj6kEIi8ReJzQlHHqcBYCElAvkovg3B/4=",
         version = "v0.4.0",
     )
-
-def io_opencensus_go():
-    go_repository(
+    _maybe(
+        go_repository,
         name = "io_opencensus_go",
         importpath = "go.opencensus.io",
         sum = "h1:8sGtKOrtQqkN1bp2AtX+misvLIlOmsEsNd+9NIcPEm8=",
         version = "v0.22.3",
     )
-    go_repository(
+    _maybe(
+        go_repository,
         name = "com_github_golang_groupcache",
         importpath = "github.com/golang/groupcache",
         sum = "h1:ZgQEtGgCBiWRM39fZuwSd1LwSqqSW0hOdXCYYDX0R3I=",
         version = "v0.0.0-20190702054246-869f871628b6",
     )
+
+def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):
+    if not name.startswith(strip_repo_prefix):
+        return
+    repo_name = name[len(strip_repo_prefix):]
+    if repo_name in native.existing_rules():
+        return
+    repo_rule(name = repo_name, **kwargs)
