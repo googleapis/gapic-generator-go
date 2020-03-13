@@ -129,15 +129,6 @@ def go_gapic_library(
     **kwargs
   )
 
-  main_file = ":%s" % srcjar_name + output_suffix
-  main_dir = "%s_main" % srcjar_name
-
-  unzipped_srcjar(
-    name = main_dir,
-    srcjar = main_file,
-    extension = ".go",
-  )
-
   actual_deps = deps + [
     "@com_github_googleapis_gax_go_v2//:go_default_library",
     "@org_golang_google_api//option:go_default_library",
@@ -154,6 +145,15 @@ def go_gapic_library(
     "@com_google_googleapis//google/rpc:status_go_proto",
     "@org_golang_google_grpc//status:go_default_library",
   ]
+
+  main_file = ":%s" % srcjar_name + output_suffix
+  main_dir = "%s_main" % srcjar_name
+
+  unzipped_srcjar(
+    name = main_dir,
+    srcjar = main_file,
+    extension = ".go",
+  )
 
   go_library(
     name = name,
