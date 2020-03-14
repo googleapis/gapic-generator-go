@@ -12,8 +12,65 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
+load("@io_bazel_rules_go//go/private:rules/rule.bzl", "go_rule")
+load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_library")
+
+def _go_gapic_postprocessed_srcjar_impl(ctx):
+    go_ctx = go_context(ctx)
+
+    gapic_srcjar = ctx.file.gapic_srcjar
+    output_main = ctx.outputs.main
+    output_test = ctx.outputs.test
+
+    output_dir_name = ctx.label.name
+    output_dir_path = "%s/%s" % (output_main.dirname, output_dir_name)
+
+    formatter = _get_gofmt(go_ctx)
+
+    script = """
+    unzip -q {gapic_srcjar} -d {output_dir_path}
+    {formatter} -w -l {output_dir_path}
+    pushd .
+    cd {output_dir_path}
+    zip -q -r {output_dir_name}-test.srcjar . -i ./*_test.go
+    find . -name "*_test.go" -delete
+    zip -q -r {output_dir_name}.srcjar . -i ./*.go
+    popd
+    mv {output_dir_path}/{output_dir_name}-test.srcjar {output_test}
+    mv {output_dir_path}/{output_dir_name}.srcjar {output_main}
+    """.format(
+        gapic_srcjar = gapic_srcjar.path,
+        output_dir_name = output_dir_name,
+        output_dir_path = output_dir_path,
+        formatter = formatter.path,
+        output_main = output_main.path,
+        output_test = output_test.path,
+    )
+
+    ctx.actions.run_shell(
+        inputs = [gapic_srcjar],
+        tools = [formatter],
+        command = script,
+        outputs = [output_main, output_test],
+    )
+
+_go_gapic_postprocessed_srcjar = go_rule(
+  _go_gapic_postprocessed_srcjar_impl,
+  attrs = {
+      "gapic_srcjar": attr.label(mandatory = True, allow_single_file = True),
+  },
+  outputs = {
+      "main": "%{name}.srcjar",
+      "test": "%{name}-test.srcjar",
+  },
+)
+
+def _get_gofmt(go_ctx):
+  for tool in go_ctx.sdk.tools:
+      if tool.basename == "gofmt":
+          return tool
+  return None
 
 def go_gapic_library(
   name,
@@ -28,7 +85,6 @@ def go_gapic_library(
   sample_only = False,
   **kwargs):
 
-  output_suffix = ".srcjar"
   file_args = {}
 
   if grpc_service_config:
@@ -52,8 +108,12 @@ def go_gapic_library(
   if sample_only:
     plugin_args.append("sample-only")
 
+  srcjar_name = name+"_srcjar"
+  raw_srcjar_name = srcjar_name+"_raw"
+  output_suffix = ".srcjar"
+
   proto_custom_library(
-    name = name,
+    name = raw_srcjar_name,
     deps = srcs,
     plugin = Label("//cmd/protoc-gen-go_gapic"),
     plugin_args = plugin_args,
@@ -63,15 +123,17 @@ def go_gapic_library(
     **kwargs
   )
 
-  # This dependecy list was copied directly from gapic-generator/rules_gapic/go.
-  # Ideally, this should be a common list used by macros in both repos.
-  #
-  # TODO(ndietz) de-dupe this dep list with gapic-generator/rules_gapic/go
+  _go_gapic_postprocessed_srcjar(
+    name = srcjar_name,
+    gapic_srcjar = ":%s" % raw_srcjar_name,
+    **kwargs
+  )
+
   actual_deps = deps + [
-    "@com_github_googleapis_gax_go//v2:go_default_library",
+    "@com_github_googleapis_gax_go_v2//:go_default_library",
     "@org_golang_google_api//option:go_default_library",
     "@org_golang_google_api//iterator:go_default_library",
-    "@org_golang_google_api//transport:go_default_library",
+    "@org_golang_google_api//transport/grpc:go_default_library",
     "@org_golang_google_grpc//:go_default_library",
     "@org_golang_google_grpc//codes:go_default_library",
     "@org_golang_google_grpc//metadata:go_default_library",
@@ -84,8 +146,8 @@ def go_gapic_library(
     "@org_golang_google_grpc//status:go_default_library",
   ]
 
-  main_file = ":%s" % name + output_suffix
-  main_dir = "%s_main" % name
+  main_file = ":%s" % srcjar_name + output_suffix
+  main_dir = "%s_main" % srcjar_name
 
   unzipped_srcjar(
     name = main_dir,
@@ -94,8 +156,18 @@ def go_gapic_library(
   )
 
   go_library(
-    name = name+"_pkg",
+    name = name,
     srcs = [":%s" % main_dir],
     deps = actual_deps,
     importpath = importpath,
+  )
+
+  test_file = ":%s-test.srcjar" % srcjar_name
+  test_dir = "%s_test" % srcjar_name
+
+  unzipped_srcjar(
+    name = test_dir,
+    srcjar = test_file,
+    extension = ".go",
+    **kwargs
   )

@@ -107,7 +107,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_googleapis_gapic_generator_go",
-    strip_prefix = "gapic-generator-master",
+    strip_prefix = "gapic-generator-go-master",
     urls = ["https://github.com/googleapis/gapic-generator-go/archive/master.zip"],
 )
 
@@ -121,7 +121,7 @@ _Note: do not use `master`, use a commit hash or a release tag._
 And invoke it in a BUILD file like so, using an example based on the [googleapis repo](https://github.com/googleapis/googleapis/tree/92bebf78345af8b2d3585220527115bda8bdedf8/google/cloud/language/v1).
 
 ```
-load("@com_googleapis_gapic_generator_go//:rules_go_gapic/go_gapic.bzl", "go_gapic_library")
+load("@com_googleapis_gapic_generator_go//rules_go_gapic:go_gapic.bzl", "go_gapic_library")
 
 go_gapic_library(
   name = "language_go_gapic",
@@ -147,10 +147,13 @@ following attributes:
 
   * `service_yaml`: a label for a service YAML file.
     * _Note: This option will eventually be deprecated._
-  * `sample`: a path to a sample config file. There 
+
+  * `samples`: a path to a sample config file. There 
   can exist multiples of this.
+
   * `gapic_yaml`: path to a gapic configuration file.
     * _Note: This config is only used to generate samples._
+
   * `sample_only`: if present, directs the generator to forgo client generation and generate only samples.
 
 Docker Wrapper
