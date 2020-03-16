@@ -69,6 +69,10 @@ func TestMDPlain(t *testing.T) {
 			in:   "## Heading",
 			want: "Heading",
 		},
+		{
+			in:   "html <a href=\"/link/to/some#thing\">\n with a softbreak</a> <br> test",
+			want: "html with a softbreak (at /link/to/some#thing) \n test",
+		},
 	} {
 		got := MDPlain(tst.in)
 		if got != tst.want {
