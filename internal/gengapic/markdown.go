@@ -62,7 +62,7 @@ func (m *mdRenderer) plain(t markdown.Token) {
 	case *markdown.CodeInline:
 		m.sb.WriteString(t.Content)
 	case *markdown.Softbreak:
-		// soft breaks in a link aren't supported
+		// Softbreaks in a link aren't supported
 		if m.linkOpen {
 			return
 		}
