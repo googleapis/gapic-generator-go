@@ -106,9 +106,12 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		if err != nil {
 			return fmt.Errorf("unable to resolve google.longrunning.operation_info.response_type value %q in rpc %q", opInfo.GetResponseType(), mFQN)
 		}
-		g.imports[respSpec] = true
 
-		respType = fmt.Sprintf("%s.%s", respSpec.Name, name)
+		if fullName != emptyType {
+			g.imports[respSpec] = true
+
+			respType = fmt.Sprintf("%s.%s", respSpec.Name, name)
+		}
 	}
 
 	hasMeta := opInfo.GetMetadataType() != ""

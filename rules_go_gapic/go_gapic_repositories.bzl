@@ -57,6 +57,13 @@ def go_gapic_repositories():
         sum = "h1:ZgQEtGgCBiWRM39fZuwSd1LwSqqSW0hOdXCYYDX0R3I=",
         version = "v0.0.0-20190702054246-869f871628b6",
     )
+    _maybe(
+        go_repository,
+        name = "com_github_googleapis_gax_go",
+        importpath = "github.com/googleapis/gax-go",
+        sum = "h1:9dMLqhaibYONnDRcnHdUs9P8Mw64jLlZTYlDe3leBtQ=",
+        version = "v1.0.3",
+    )
 
 def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):
     if not name.startswith(strip_repo_prefix):
