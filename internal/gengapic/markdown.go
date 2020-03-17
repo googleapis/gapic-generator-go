@@ -46,6 +46,9 @@ type mdRenderer struct {
 	// to nest, though I'm not sure if that'd be a valid Markdown.
 	linkTargets []string
 	listLevel   int
+	// linkOpen indicates where there is an HTML link tag opened in order to prevent
+	// printing softbreaks that would be empty lines in the tag value.
+	linkOpen bool
 }
 
 func (m *mdRenderer) plain(t markdown.Token) {
@@ -59,6 +62,11 @@ func (m *mdRenderer) plain(t markdown.Token) {
 	case *markdown.CodeInline:
 		m.sb.WriteString(t.Content)
 	case *markdown.Softbreak:
+		// Softbreaks in a link aren't supported
+		if m.linkOpen {
+			return
+		}
+
 		m.sb.WriteByte('\n')
 		// indent multiple line list items according to list level
 		m.indent()
@@ -105,11 +113,13 @@ func (m *mdRenderer) html(t *markdown.HTMLInline) {
 	} else if matches := linkParser.FindStringSubmatch(t.Content); len(matches) > 1 {
 		// parse out href
 		m.linkTargets = append(m.linkTargets, matches[1])
+		m.linkOpen = true
 	} else if t.Content == "</a>" {
 		// print link
 		l := len(m.linkTargets)
 		fmt.Fprintf(&m.sb, " (at %s)", m.linkTargets[l-1])
 		m.linkTargets = m.linkTargets[:l-1]
+		m.linkOpen = false
 	}
 }
 
