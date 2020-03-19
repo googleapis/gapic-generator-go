@@ -65,6 +65,13 @@ func (f *Flag) GenFlag() string {
 		case "string":
 			def = `""`
 		case "int32", "int64", "int", "uint32", "uint64":
+			// set default page_size to 10 because 0 seems to short circuit the RPC
+			if f.FieldName == "PageSize" {
+				def = "10"
+				f.Usage = fmt.Sprintf("Default is %s. %s", def, f.Usage)
+				break
+			}
+
 			def = "0"
 		case "float32", "float64":
 			def = "0.0"
