@@ -145,8 +145,9 @@ var {{$methodCmdVar}} = &cobra.Command{
 			{{ range .Flags }}
 			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}
 			{{ if .Repeated }}
-			for _, val := range {{ .VarName }} {
-				{{ $.InputMessageVar }}.{{ .FieldName }} = append({{ $enumType }}({{ $enumType }}_value[strings.ToUpper(val)]))
+			for _, in := range {{ .VarName }} {
+				val := {{ $enumType }}({{ $enumType }}_value[strings.ToUpper(in)])
+				{{ $.InputMessageVar }}.{{ .FieldName }} = append({{ $.InputMessageVar }}.{{ .FieldName }}, val)
 			}
 			{{ else }}
 			{{ $.InputMessageVar }}.{{ .FieldName }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
