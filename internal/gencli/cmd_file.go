@@ -59,7 +59,7 @@ var {{$oneOfVal.VarName}} {{if $oneOfVal.IsNested }}{{ $oneOfVal.MessageImport.N
 {{ if and ( .IsMessage ) .Repeated }}
 var {{ .VarName }} []string
 {{ else if ( .IsEnum ) }}
-var {{ .VarName }} string
+var {{ .VarName }} {{if .Repeated }}[]{{ end }}string
 {{ end }}
 {{ end }}
 
@@ -143,8 +143,15 @@ var {{$methodCmdVar}} = &cobra.Command{
 			{{ end }}
 			{{ if .HasEnums }}
 			{{ range .Flags }}
-			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}
-			{{ $.InputMessageVar }}.{{ .FieldName }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
+			{{ if ( .IsEnum ) }}{{ $enumType := (print .MessageImport.Name "." .Message ) }}{{ $requestField := (print $.InputMessageVar "." .FieldName ) }}
+			{{ if .Repeated }}
+			for _, in := range {{ .VarName }} {
+				val := {{ $enumType }}({{ $enumType }}_value[strings.ToUpper(in)])
+				{{ $requestField }} = append({{ $requestField }}, val)
+			}
+			{{ else }}
+			{{ $requestField }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
+			{{ end }}
 			{{ end }} 
 			{{ end }}
 			{{ end }}
