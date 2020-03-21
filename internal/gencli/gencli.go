@@ -334,13 +334,13 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		VarName:       cmd.InputMessageVar + dotToCamel(title(oneOfPrefix+field.GetName())),
 	}
 
-	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
-
 	// evaluate field behavior
 	outputOnly, flag.Required = g.getFieldBehavior(field)
 	if outputOnly {
 		return
 	}
+
+	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
 	if flag.Required {
 		flag.Usage = "Required. " + flag.Usage
@@ -450,8 +450,6 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		}
 
-		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
-
 		// evaluate field behavior
 		outputOnly, flag.Required = g.getFieldBehavior(field)
 		if flag.Required {
@@ -463,6 +461,8 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 		if (flag.IsBytes() && flag.Repeated) || outputOnly {
 			continue
 		}
+
+		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
 		// build the variable name this field belongs to
 		n := title(flag.Name)
