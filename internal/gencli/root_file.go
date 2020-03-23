@@ -26,8 +26,8 @@ const (
 package main
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -72,11 +72,13 @@ func printVerboseInput(srv, mthd string, data interface{}) {
 func printMessage(data interface{}) {
 	var s string
 
-	if OutputJSON {
-		d, _ := json.MarshalIndent(data, "", "  ")
-		s = string(d)
-	} else if msg, ok := data.(proto.Message); ok {
+	if msg, ok := data.(proto.Message); ok {
 		s = msg.String()
+		if OutputJSON {
+			var b bytes.Buffer
+			marshaler.Marshal(&b, msg)
+			s = b.String()
+		}
 	} else if page, ok := data.(map[string]interface{}); ok {
 		s = fmt.Sprintf("%v", page)
 	}
