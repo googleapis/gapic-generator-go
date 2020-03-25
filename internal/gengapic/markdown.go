@@ -23,7 +23,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/golang-commonmark/markdown"
+	"gitlab.com/golang-commonmark/markdown"
 )
 
 var linkParser = regexp.MustCompile(`<a href=["'](.+)["']`)
