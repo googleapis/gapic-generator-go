@@ -23,10 +23,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/golang-commonmark/markdown"
+	"gitlab.com/golang-commonmark/markdown"
 )
 
 var linkParser = regexp.MustCompile(`<a href=["'](.+)["']`)
+var referenceParser = regexp.MustCompile(`\[(.+)\]\[(.*)\]`)
 
 func MDPlain(s string) string {
 	var mdr mdRenderer
@@ -58,7 +59,11 @@ func (m *mdRenderer) plain(t markdown.Token) {
 			m.plain(c)
 		}
 	case *markdown.Text:
-		m.sb.WriteString(t.Content)
+		// Strip reference links, like [Foo][bar.Foo], that are invalid markdown
+		// in the context of individual protobuf comments, down to just the
+		// link text, which in this case is "Foo".
+		content := referenceParser.ReplaceAllString(t.Content, "$1")
+		m.sb.WriteString(content)
 	case *markdown.CodeInline:
 		m.sb.WriteString(t.Content)
 	case *markdown.Softbreak:

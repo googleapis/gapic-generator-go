@@ -73,6 +73,10 @@ func TestMDPlain(t *testing.T) {
 			in:   "html <a href=\"/link/to/some#thing\">\n with a softbreak</a> <br> test",
 			want: "html with a softbreak (at /link/to/some#thing) \n test",
 		},
+		{
+			in:   "link to [a search engine](https://www.google.com) with request type [Search][foo.bar.v1.Search].",
+			want: "link to a search engine (at https://www.google.com) with request type Search.",
+		},
 	} {
 		got := MDPlain(tst.in)
 		if got != tst.want {
