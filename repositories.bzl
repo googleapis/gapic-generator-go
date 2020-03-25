@@ -67,41 +67,6 @@ def com_googleapis_gapic_generator_go_repositories():
     )
     _maybe(
         go_repository,
-        name = "com_github_golang_commonmark_html",
-        importpath = "github.com/golang-commonmark/html",
-        sum = "h1:FeNEDxIy7XouGTJKiJ9Ze5vUbcAIW/FRhQbtKBNmEz8=",
-        version = "v0.0.0-20180910111043-7d7c804e1d46",
-    )
-    _maybe(
-        go_repository,
-        name = "com_github_golang_commonmark_linkify",
-        importpath = "github.com/golang-commonmark/linkify",
-        sum = "h1:TkuRzcq232K5ytXtQ+BPicsjYWZgt/lS6gJ5HqcUifQ=",
-        version = "v0.0.0-20180910111149-f05efb453a0e",
-    )
-    _maybe(
-        go_repository,
-        name = "com_github_golang_commonmark_markdown",
-        importpath = "github.com/golang-commonmark/markdown",
-        sum = "h1:YaQaotRjMcVth1VzHUEQlD2oeyQAglA7CXdxp9QLvKM=",
-        version = "v0.0.0-20180910011815-a8f139058164",
-    )
-    _maybe(
-        go_repository,
-        name = "com_github_golang_commonmark_mdurl",
-        importpath = "github.com/golang-commonmark/mdurl",
-        sum = "h1:XkgfhPs5AotQfcu3EfDEjyAUx91KdtjrxHXYGnZJhoU=",
-        version = "v0.0.0-20180910110917-8d018c6567d6",
-    )
-    _maybe(
-        go_repository,
-        name = "com_github_golang_commonmark_puny",
-        importpath = "github.com/golang-commonmark/puny",
-        sum = "h1:DUgQdQmDg4sk4SfNR+qOkXcopGz36BL02vp/V7WbPQI=",
-        version = "v0.0.0-20180910110745-050be392d8b8",
-    )
-    _maybe(
-        go_repository,
         name = "com_github_golang_glog",
         importpath = "github.com/golang/glog",
         sum = "h1:VKtxabqXZkF25pY9ekfRL6a582T4P37/31XEstQ5p58=",
@@ -118,8 +83,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "com_github_golang_protobuf",
         importpath = "github.com/golang/protobuf",
-        sum = "h1:gyjaxf+svBWX08ZjK86iN9geUJF0H6gp2IRKX6Nf6/I=",
-        version = "v1.3.3",
+        sum = "h1:F768QJ1E9tib+q5Sc8MkdJi1RxLTbRcTf8LJV56aRls=",
+        version = "v1.3.5",
     )
     _maybe(
         go_repository,
@@ -134,13 +99,6 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/jhump/protoreflect",
         sum = "h1:h5jfMVslIg6l29nsMs0D8Wj17RDVdNYti0vDN/PZZoE=",
         version = "v1.6.0",
-    )
-    _maybe(
-        go_repository,
-        name = "com_github_opennota_wd",
-        importpath = "github.com/opennota/wd",
-        sum = "h1:cVQhwfBgiKTMAdYPbVeuIiTkdY59qZ3sp5RpyO8CNtg=",
-        version = "v0.0.0-20180911144301-b446539ab1e7",
     )
     _maybe(
         go_repository,
@@ -162,6 +120,48 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/shurcooL/sanitized_anchor_name",
         sum = "h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=",
         version = "v1.0.0",
+    )
+    _maybe(
+        go_repository,
+        name = "com_gitlab_golang_commonmark_html",
+        importpath = "gitlab.com/golang-commonmark/html",
+        sum = "h1:K+bMSIx9A7mLES1rtG+qKduLIXq40DAzYHtb0XuCukA=",
+        version = "v0.0.0-20191124015941-a22733972181",
+    )
+    _maybe(
+        go_repository,
+        name = "com_gitlab_golang_commonmark_linkify",
+        importpath = "gitlab.com/golang-commonmark/linkify",
+        sum = "h1:oYrL81N608MLZhma3ruL8qTM4xcpYECGut8KSxRY59g=",
+        version = "v0.0.0-20191026162114-a0c2df6c8f82",
+    )
+    _maybe(
+        go_repository,
+        name = "com_gitlab_golang_commonmark_markdown",
+        importpath = "gitlab.com/golang-commonmark/markdown",
+        sum = "h1:HsZm6XaTpEgZiZqcXZkUbG6BNtSZE3XyCTfo52YBoDY=",
+        version = "v0.0.0-20191127184510-91b5b3c99c19",
+    )
+    _maybe(
+        go_repository,
+        name = "com_gitlab_golang_commonmark_mdurl",
+        importpath = "gitlab.com/golang-commonmark/mdurl",
+        sum = "h1:qqjvoVXdWIcZCLPMlzgA7P9FZWdPGPvP/l3ef8GzV6o=",
+        version = "v0.0.0-20191124015652-932350d1cb84",
+    )
+    _maybe(
+        go_repository,
+        name = "com_gitlab_golang_commonmark_puny",
+        importpath = "gitlab.com/golang-commonmark/puny",
+        sum = "h1:Wku8eEdeJqIOFHtrfkYUByc4bCaTeA6fL0UJgfEiFMI=",
+        version = "v0.0.0-20191124015043-9f83538fa04f",
+    )
+    _maybe(
+        go_repository,
+        name = "com_gitlab_opennota_wd",
+        importpath = "gitlab.com/opennota/wd",
+        sum = "h1:uPZaMiz6Sz0PZs3IZJWpU5qHKGNy///1pacZC9txiUI=",
+        version = "v0.0.0-20180912061657-c5d65f63c638",
     )
     _maybe(
         go_repository,
@@ -195,8 +195,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:jB9+PJSvu5tBfmJHy/OVapFdjDF3WvpkqRhxqrmzoEU=",
-        version = "v0.0.0-20200218151345-dad8c97a84f5",
+        sum = "h1:5aI3/f/3eCZps9xwoEnmgfDJDhMbnJpfqeGpjVNgVEI=",
+        version = "v0.0.0-20200319113533-08878b785e9c",
     )
     _maybe(
         go_repository,
@@ -258,8 +258,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_x_text",
         importpath = "golang.org/x/text",
-        sum = "h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=",
-        version = "v0.3.0",
+        sum = "h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=",
+        version = "v0.3.2",
     )
     _maybe(
         go_repository,
