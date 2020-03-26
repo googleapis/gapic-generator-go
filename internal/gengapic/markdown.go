@@ -27,7 +27,7 @@ import (
 )
 
 var linkParser = regexp.MustCompile(`<a href=["'](.+)["']`)
-var referenceParser = regexp.MustCompile(`\[(.+)\]\[(.*)\]`)
+var referenceParser = regexp.MustCompile(`\[([a-zA-Z1-9\.\_]+)\]\[[a-zA-Z1-9\.\_]*\]`)
 
 func MDPlain(s string) string {
 	var mdr mdRenderer
