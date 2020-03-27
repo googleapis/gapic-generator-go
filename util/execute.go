@@ -25,3 +25,12 @@ func Execute(args ...string) {
 		log.Fatalf("%s", output)
 	}
 }
+
+// ExecuteWithOutput runs the given strings as a command and returns the output.
+func ExecuteWithOutput(args ...string) string {
+	out, err := exec.Command(args[0], args[1:]...).Output()
+	if err != nil {
+		log.Fatalf("%s", err)
+	}
+	return string(out)
+}

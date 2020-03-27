@@ -20,6 +20,18 @@ Test everything and run Showcase integration tests:
 
     make test
 
+When opening a PR, please prefix the title with the main component the change effects.
+These chould be one of `gapic`, `gencli`, `samples`, `bazel`, or `chore`. For example:
+
+    gapic: strip reference links in comments
+
+    gencli: ignore output_only enums
+    
+    bazel: copy go_gapic_assembly_pkg macro impl
+
+This allows the release automation to categorize the commits in the release notes.
+If omitted, the PR title will be changed by a maintainer prior to submission.
+
 ## Bazel BUILD files
 
 All of the normal Go tooling is sufficient to develop this project, the Makefile utilizes them.
@@ -39,8 +51,8 @@ Tags always begin with a `v` and follow semver.
 
     git tag v1.2.3 && git push upstream --tags
 
-A GitHub release must be made manually and should include change notes of all the commits made
-since the last release.
+A GitHub release will be made automatically with release notes generated based on the commit
+messages of commits since the previous tag.
 
 ## Contributor License Agreement
 

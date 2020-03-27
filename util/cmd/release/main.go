@@ -109,9 +109,98 @@ func main() {
 	util.Execute(
 		"ghr",
 		"-t="+token,
+		"-n="+version,
+		"-b='"+notes(version)+"'",
 		"-u=googleapis",
 		"-r=gapic-generator-go",
 		"-c="+commitish,
 		version,
 		stagingDir)
+}
+
+// notes collects the commit messages since the previous tag, aggregates
+// dependency updates into one message, and returns formatted release notes.
+func notes(version string) string {
+	previous := util.ExecuteWithOutput(
+		"git",
+		"describe",
+		"--abbrev=0",
+		"--tags",
+		version+"^",
+	)
+	previous = strings.TrimSpace(previous)
+
+	output := util.ExecuteWithOutput(
+		"git",
+		"log",
+		previous+"..HEAD",
+		"--oneline",
+		"--pretty=format:%s",
+	)
+
+	var hasDeps bool
+	var gapic, bazel, gencli, chore, samples, other []string
+	for _, msg := range strings.Split(output, "\n") {
+		split := strings.Split(msg, ":")
+		comp := split[0]
+
+		switch comp {
+		case "gapic":
+			gapic = append(gapic, "*"+split[1])
+		case "bazel":
+			bazel = append(bazel, "*"+split[1])
+		case "gencli":
+			gencli = append(gencli, "*"+split[1])
+		case "chore(deps)":
+			hasDeps = true
+		case "chore":
+			chore = append(chore, "*"+split[1])
+		case "samples":
+			samples = append(samples, "*"+split[1])
+		default:
+			other = append(other, "* "+msg)
+		}
+	}
+
+	if hasDeps {
+		chore = append(chore, "* update dependencies (see history)")
+	}
+
+	var notes strings.Builder
+	if len(gapic) > 0 {
+		notes.WriteString("# gapic\n\n")
+		notes.WriteString(strings.Join(gapic, "\n"))
+		notes.WriteString("\n\n")
+	}
+
+	if len(bazel) > 0 {
+		notes.WriteString("# bazel\n\n")
+		notes.WriteString(strings.Join(bazel, "\n"))
+		notes.WriteString("\n\n")
+	}
+
+	if len(gencli) > 0 {
+		notes.WriteString("# gencli\n\n")
+		notes.WriteString(strings.Join(gencli, "\n"))
+		notes.WriteString("\n\n")
+	}
+
+	if len(samples) > 0 {
+		notes.WriteString("# samples\n\n")
+		notes.WriteString(strings.Join(samples, "\n"))
+		notes.WriteString("\n\n")
+	}
+
+	if len(chore) > 0 {
+		notes.WriteString("# chores\n\n")
+		notes.WriteString(strings.Join(chore, "\n"))
+		notes.WriteString("\n\n")
+	}
+
+	if len(other) > 0 {
+		notes.WriteString("# other\n\n")
+		notes.WriteString(strings.Join(other, "\n"))
+	}
+
+	return notes.String()
 }
