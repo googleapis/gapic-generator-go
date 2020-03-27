@@ -167,19 +167,25 @@ func format(commits []string) string {
 		split := strings.Split(msg, ":")
 		comp := split[0]
 
+		var content string
+		if len(split) > 1 {
+			// rejoin the rest of the message in case there were rogue semicolons
+			content = strings.TrimSpace(strings.Join(split[1:], ":"))
+		}
+
 		switch comp {
 		case "gapic":
-			gapic = append(gapic, "*"+split[1])
+			gapic = append(gapic, "* "+content)
 		case "bazel":
-			bazel = append(bazel, "*"+split[1])
+			bazel = append(bazel, "* "+content)
 		case "gencli":
-			gencli = append(gencli, "*"+split[1])
+			gencli = append(gencli, "* "+content)
 		case "chore(deps)":
 			hasDeps = true
 		case "chore":
-			chore = append(chore, "*"+split[1])
+			chore = append(chore, "* "+content)
 		case "samples":
-			samples = append(samples, "*"+split[1])
+			samples = append(samples, "* "+content)
 		default:
 			other = append(other, "* "+msg)
 		}

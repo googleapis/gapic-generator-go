@@ -16,11 +16,14 @@ package main
 
 import (
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
-func Test_format(t *testing.T) {
+func TestFormat(t *testing.T) {
 	in := []string{
 		"gapic: foo bar baz",
+		"gapic: extra : semicolon",
 		"bazel: foo bar baz",
 		"gencli: foo bar baz",
 		"samples: foo bar baz",
@@ -33,6 +36,7 @@ func Test_format(t *testing.T) {
 	want := `# gapic
 
 * foo bar baz
+* extra : semicolon
 
 # bazel
 
@@ -57,7 +61,7 @@ func Test_format(t *testing.T) {
 * malformed message`
 
 	got := format(in)
-	if got != want {
-		t.Errorf("format(%q)=%q, want %q", in, got, want)
+	if diff := cmp.Diff(got, want); diff != "" {
+		t.Errorf("(got=-, want=+):%s", diff)
 	}
 }
