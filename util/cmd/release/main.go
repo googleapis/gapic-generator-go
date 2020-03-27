@@ -27,10 +27,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/googleapis/gapic-generator-go/util"
 )
 
 var version, token, commitish string
@@ -65,7 +64,7 @@ func main() {
 	// Get cross compiler & GitHub release helper
 	// Mousetrap is a windows dependency that is not implicitly got since
 	// we only get the linux dependencies.
-	util.Execute(
+	execute(
 		"go",
 		"get",
 		"github.com/mitchellh/gox",
@@ -81,7 +80,7 @@ func main() {
 		"linux/arm",
 	}
 	for _, osArch := range osArchs {
-		util.Execute(
+		execute(
 			"gox",
 			fmt.Sprintf("-osarch=%s", osArch),
 			"-output",
@@ -94,7 +93,7 @@ func main() {
 		// The windows binaries are suffixed with '.exe'. This allows us to create
 		// tarballs of the executables whether or not they contain a suffix.
 		files, _ := filepath.Glob(filepath.Join(dir, "protoc-gen-go_gapic*"))
-		util.Execute(
+		execute(
 			"tar",
 			"-zcf",
 			dir+".tar.gz",
@@ -102,11 +101,11 @@ func main() {
 			filepath.Dir(files[0]),
 			filepath.Base(files[0]))
 		// Remove the individual binary directory.
-		util.Execute("rm", "-r", dir)
+		execute("rm", "-r", dir)
 	}
 
 	// Execute GitHub release of artifacts.
-	util.Execute(
+	execute(
 		"ghr",
 		"-t="+token,
 		"-n="+version,
@@ -118,10 +117,26 @@ func main() {
 		stagingDir)
 }
 
+// execute runs the given strings as a command.
+func execute(cmd string, args ...string) {
+	if output, err := exec.Command(cmd, args...).CombinedOutput(); err != nil {
+		log.Fatalf("%s", output)
+	}
+}
+
+// executeWithOutput runs the given strings as a command and returns the output.
+func executeWithOutput(cmd string, args ...string) string {
+	out, err := exec.Command(cmd, args...).Output()
+	if err != nil {
+		log.Fatalf("%s", err)
+	}
+	return string(out)
+}
+
 // notes collects the commit messages since the previous tag, aggregates
 // dependency updates into one message, and returns formatted release notes.
 func notes(version string) string {
-	previous := util.ExecuteWithOutput(
+	previous := executeWithOutput(
 		"git",
 		"describe",
 		"--abbrev=0",
@@ -130,17 +145,25 @@ func notes(version string) string {
 	)
 	previous = strings.TrimSpace(previous)
 
-	output := util.ExecuteWithOutput(
+	output := executeWithOutput(
 		"git",
 		"log",
 		previous+"..HEAD",
 		"--oneline",
 		"--pretty=format:%s",
 	)
+	commits := strings.Split(output, "\n")
 
+	return format(commits)
+}
+
+// format parses the given commits messages and formats them into release notes
+// organized by component.
+func format(commits []string) string {
 	var hasDeps bool
 	var gapic, bazel, gencli, chore, samples, other []string
-	for _, msg := range strings.Split(output, "\n") {
+
+	for _, msg := range commits {
 		split := strings.Split(msg, ":")
 		comp := split[0]
 
