@@ -164,14 +164,14 @@ func format(commits []string) string {
 	var gapic, bazel, gencli, chore, samples, other []string
 
 	for _, msg := range commits {
-		split := strings.Split(msg, ":")
-		comp := split[0]
-
-		var content string
-		if len(split) > 1 {
-			// rejoin the rest of the message in case there were rogue semicolons
-			content = strings.TrimSpace(strings.Join(split[1:], ":"))
+		sep := strings.Index(msg, ":")
+		if sep == -1 {
+			other = append(other, "* "+msg)
+			continue
 		}
+
+		comp := msg[:sep]
+		content := strings.TrimSpace(msg[sep+1:])
 
 		switch comp {
 		case "gapic":
