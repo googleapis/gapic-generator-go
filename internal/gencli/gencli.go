@@ -413,6 +413,11 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 
 	for _, field := range msg.GetFields() {
 		if oneof := field.GetOneOf(); oneof != nil {
+			// add fmt for oneof choice error formatting
+			putImport(cmd.Imports, &pbinfo.ImportSpec{
+				Path: "fmt",
+			})
+
 			// build oneof option selector flags
 			g.buildOneOfSelectors(cmd, msg, prefix)
 
@@ -469,7 +474,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 
 		// oneof option fields exclude the actual field name
 		// from the var name
-		if flag.IsOneOfField && !flag.IsMessage() {
+		if flag.IsOneOfField && !flag.IsMessage() && !flag.IsEnum() {
 			n = n[:strings.LastIndex(n, ".")]
 		}
 
@@ -513,6 +518,12 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 				cmd.NestedMessages = append(cmd.NestedMessages, n)
 
 				p := prefix + field.GetName() + "."
+				// exclude the field name when assessing a nested message
+				// that is part of a oneof field that is also nested message
+				if isInNested && isOneOf {
+					p = prefix
+				}
+
 				flags = append(flags, g.buildFieldFlags(cmd, nested, p, isOneOf)...)
 				continue
 			}
