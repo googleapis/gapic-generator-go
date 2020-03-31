@@ -59,6 +59,8 @@ type Command struct {
 	ServerStreaming   bool
 	ClientStreaming   bool
 	Paged             bool
+	HasPageSize       bool
+	HasPageToken      bool
 	IsLRO             bool
 	HasEnums          bool
 	SubCommands       []*Command
@@ -539,9 +541,13 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 			flag.MessageImport = *pkg
 		}
 
-		if name := field.GetName(); name == "page_token" || name == "page_size" {
-			cmd.Paged = true
+		if name := field.GetName(); name == "page_token" {
+			cmd.HasPageToken = true
+		} else if name == "page_size" {
+			cmd.HasPageSize = true
 		}
+
+		cmd.Paged = cmd.HasPageSize && cmd.HasPageToken
 
 		flags = append(flags, &flag)
 	}
