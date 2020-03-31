@@ -521,7 +521,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 				if isOneOf {
 					fieldName := title(strings.TrimPrefix(flag.Name, flag.OneOfSelector+"."))
 
-					// nested message fields that belong to a nested message
+					// Nested message fields that belong to a nested message
 					// oneof but aren't a oneof themselves don't have a
 					// OneOfSelector to TrimPrefix.
 					//
