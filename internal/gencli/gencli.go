@@ -193,7 +193,7 @@ func (g *gcli) genCommands() {
 
 				if !cmd.ClientStreaming {
 					// build input fields into flags
-					cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, "", false)...)
+					cmd.Flags = append(cmd.Flags, g.buildFieldFlags(&cmd, msg, nil, "", false)...)
 
 					if cmd.HasEnums {
 						putImport(cmd.Imports, &pbinfo.ImportSpec{
@@ -383,7 +383,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		p := oneOfPrefix + field.GetName() + "."
 
 		// recursively add singular, nested message fields
-		flags = append(flags, g.buildFieldFlags(cmd, nested, p, true)...)
+		flags = append(flags, g.buildFieldFlags(cmd, nested, field, p, true)...)
 
 		cmd.OneOfSelectors[oneOfField].OneOfs[field.GetName()] = &flag
 
@@ -406,7 +406,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 	return flags
 }
 
-func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix string, isOneOf bool) []*Flag {
+func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent *desc.FieldDescriptor, prefix string, isOneOf bool) []*Flag {
 	var flags []*Flag
 	var outputOnly bool
 
@@ -478,6 +478,12 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 		// from the var name
 		if flag.IsOneOfField && !flag.IsMessage() && !flag.IsEnum() {
 			n = n[:strings.LastIndex(n, ".")]
+
+			// A primitive field of a nested message belonging to a nested
+			// message oneof field shouldn't use its parent's name in VarName.
+			if parent != nil && parent.GetOneOf() == nil {
+				n = strings.TrimSuffix(n, title(parent.GetName()))
+			}
 		}
 
 		flag.VarName = cmd.InputMessageVar + dotToCamel(n)
@@ -514,19 +520,27 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, prefix
 				// the selector prefix to be trimmed
 				if isOneOf {
 					fieldName := title(strings.TrimPrefix(flag.Name, flag.OneOfSelector+"."))
+
+					// nested message fields that belong to a nested message
+					// oneof but aren't a oneof themselves don't have a
+					// OneOfSelector to TrimPrefix.
+					//
+					// NOTE(ndietz): this is not a solid fix for further depth.
+					// A rewrite might be needed.
+					if isInNested && field.GetOneOf() == nil {
+						flag.VarName += title(dotToCamel(prefix))
+						split := strings.Split(prefix, ".")
+						fieldName = title(split[len(split)-2]) + "." + title(field.GetName())
+					}
+
 					n.FieldName = flag.VarName + "." + fieldName
 				}
 
 				cmd.NestedMessages = append(cmd.NestedMessages, n)
 
 				p := prefix + field.GetName() + "."
-				// exclude the field name when assessing a nested message
-				// that is part of a oneof field that is also nested message
-				if isInNested && isOneOf {
-					p = prefix
-				}
 
-				flags = append(flags, g.buildFieldFlags(cmd, nested, p, isOneOf)...)
+				flags = append(flags, g.buildFieldFlags(cmd, nested, field, p, isOneOf)...)
 				continue
 			}
 		} else if flag.IsEnum() {
