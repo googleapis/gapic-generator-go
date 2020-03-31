@@ -107,3 +107,13 @@ func (f *Flag) IsEnum() bool {
 func (f *Flag) IsBytes() bool {
 	return f.Type == descriptor.FieldDescriptorProto_TYPE_BYTES
 }
+
+// EnumFieldAccess constructs the input message field accessor for an enum
+// assignment.
+func (f *Flag) EnumFieldAccess(inputVar string) string {
+	if f.IsOneOfField {
+		seg := strings.LastIndex(f.FieldName, ".")
+		inputVar = strings.TrimSuffix(f.VarName, f.FieldName[seg+1:])
+	}
+	return fmt.Sprintf("%s.%s", inputVar, f.FieldName)
+}
