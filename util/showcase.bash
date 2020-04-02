@@ -23,7 +23,7 @@ fi
 
 go install ./cmd/protoc-gen-go_gapic
 
-SHOWCASE_SEMVER=0.6.0
+SHOWCASE_SEMVER=0.7.0
 
 pushd showcase
 rm -rf gen
@@ -32,15 +32,18 @@ mkdir gen
 curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/showcase_grpc_service_config.json
 
 protoc \
+	--go_out=plugins=grpc:./gen \
 	--go_gapic_out ./gen \
-	--go_gapic_opt 'go-gapic-package=cloud.google.com/go/showcase/apiv1beta1;showcase' \
+	--go_gapic_opt 'go-gapic-package=github.com/googleapis/gapic-showcase/client;client' \
 	--go_gapic_opt 'grpc-service-config=showcase_grpc_service_config.json' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
 	google/showcase/v1beta1/echo.proto
 
-pushd gen/cloud.google.com/go/showcase
-go mod init cloud.google.com/go/showcase
+pushd gen/github.com/googleapis/gapic-showcase
+go mod init github.com/googleapis/gapic-showcase
 popd
+
+go mod edit -replace=github.com/googleapis/gapic-showcase=./gen/github.com/googleapis/gapic-showcase
 
 hostos=$(go env GOHOSTOS)
 hostarch=$(go env GOHOSTARCH)
@@ -57,4 +60,6 @@ stop_showcase() {
 trap stop_showcase EXIT
 
 go test -count=1 ./...
+
+go mod edit -dropreplace github.com/googleapis/gapic-showcase
 popd
