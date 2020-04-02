@@ -21,11 +21,8 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	return
 fi
 
-go install ./cmd/protoc-gen-go_gapic
-
 SHOWCASE_SEMVER=0.7.0
 
-pushd showcase
 rm -rf gen
 mkdir gen
 
@@ -62,4 +59,3 @@ trap stop_showcase EXIT
 go test -count=1 ./...
 
 go mod edit -dropreplace github.com/googleapis/gapic-showcase
-popd
