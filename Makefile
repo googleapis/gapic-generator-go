@@ -17,7 +17,7 @@ golden:
 test:
 	go test ./...
 	go install ./cmd/protoc-gen-go_gapic
-	pushd showcase; ./showcase.bash; popd
+	cd showcase; ./showcase.bash; cd ..
 
 install:
 	go install ./cmd/protoc-gen-go_gapic
