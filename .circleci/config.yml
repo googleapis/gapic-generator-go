@@ -43,7 +43,7 @@ jobs:
           name: Check license
           command: go run ./util/cmd/license
       - run: go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
-      - run: go install github.com/goalng/protobuf/protoc-gen-go
+      - run: go install github.com/golang/protobuf/protoc-gen-go
       - run:
           name: verify error conformance
           command: |
