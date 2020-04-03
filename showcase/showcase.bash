@@ -49,11 +49,12 @@ curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWC
 ./gapic-showcase run &
 showcase_pid=$!
 
-stop_showcase() {
+go test -count=1 ./...
+test_exit=$?
+
+cleanup() {
 	kill $showcase_pid
 	# Wait for the process to die, but don't report error from the kill.
-	wait $showcase_pid || true
+	wait $showcase_pid || exit $test_exit
 }
-trap stop_showcase EXIT
-
-go test -count=1 ./...
+trap cleanup EXIT
