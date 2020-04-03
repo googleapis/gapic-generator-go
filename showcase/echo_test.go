@@ -16,10 +16,7 @@ package showcase_integration
 
 import (
 	"context"
-	"flag"
 	"io"
-	"log"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -28,31 +25,12 @@ import (
 	showcase "github.com/googleapis/gapic-showcase/client"
 	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
 	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var client *showcase.EchoClient
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
-	conn, err := grpc.Dial("localhost:7469", grpc.WithInsecure())
-	if err != nil {
-		log.Fatal(err)
-	}
-	clientOpt := option.WithGRPCConn(conn)
-	client, err = showcase.NewEchoClient(context.Background(), clientOpt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	os.Exit(m.Run())
-}
-
+var echo *showcase.EchoClient
 func TestEcho(t *testing.T) {
 	t.Parallel()
 	content := "hello world!"
@@ -61,7 +39,7 @@ func TestEcho(t *testing.T) {
 			Content: content,
 		},
 	}
-	resp, err := client.Echo(context.Background(), req)
+	resp, err := echo.Echo(context.Background(), req)
 
 	if err != nil {
 		t.Fatal(err)
@@ -79,7 +57,7 @@ func TestEcho_error(t *testing.T) {
 			Error: &spb.Status{Code: int32(val)},
 		},
 	}
-	resp, err := client.Echo(context.Background(), req)
+	resp, err := echo.Echo(context.Background(), req)
 
 	if resp != nil {
 		t.Errorf("Echo() = %v, wanted error %d", resp, val)
@@ -94,7 +72,7 @@ func TestExpand(t *testing.T) {
 	t.Parallel()
 	content := "The rain in Spain stays mainly on the plain!"
 	req := &showcasepb.ExpandRequest{Content: content}
-	s, err := client.Expand(context.Background(), req)
+	s, err := echo.Expand(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +96,7 @@ func TestExpand(t *testing.T) {
 func TestCollect(t *testing.T) {
 	t.Parallel()
 	content := "The rain in Spain stays mainly on the plain!"
-	s, err := client.Collect(context.Background())
+	s, err := echo.Collect(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +118,7 @@ func TestCollect(t *testing.T) {
 func TestChat(t *testing.T) {
 	t.Parallel()
 	content := "The rain in Spain stays mainly on the plain!"
-	s, err := client.Chat(context.Background())
+	s, err := echo.Chat(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +155,7 @@ func TestWait(t *testing.T) {
 			Success: &showcasepb.WaitResponse{Content: content},
 		},
 	}
-	op, err := client.Wait(context.Background(), req)
+	op, err := echo.Wait(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -202,7 +180,7 @@ func TestWait_timeout(t *testing.T) {
 		},
 	}
 	ctx, _ := context.WithTimeout(context.Background(), 1*time.Millisecond)
-	resp, err := client.Wait(ctx, req)
+	resp, err := echo.Wait(ctx, req)
 
 	if err == nil {
 		t.Errorf("Wait() = %v, want error", resp)
@@ -214,7 +192,7 @@ func TestPagination(t *testing.T) {
 	str := "foo bar biz baz"
 	expected := strings.Split(str, " ")
 	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2}
-	iter := client.PagedExpand(context.Background(), req)
+	iter := echo.PagedExpand(context.Background(), req)
 
 	ndx := 0
 	for {
@@ -237,7 +215,7 @@ func TestPaginationWithToken(t *testing.T) {
 	str := "ab cd ef gh ij kl"
 	expected := strings.Split(str, " ")[1:]
 	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2, PageToken: "1"}
-	iter := client.PagedExpand(context.Background(), req)
+	iter := echo.PagedExpand(context.Background(), req)
 
 	ndx := 0
 	for {
@@ -267,7 +245,7 @@ func TestBlock(t *testing.T) {
 			Success: &showcasepb.BlockResponse{Content: content},
 		},
 	}
-	resp, err := client.Block(context.Background(), req)
+	resp, err := echo.Block(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -286,7 +264,7 @@ func TestBlock_timeout(t *testing.T) {
 		},
 	}
 	ctx, _ := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	resp, err := client.Block(ctx, req)
+	resp, err := echo.Block(ctx, req)
 	if err == nil {
 		t.Errorf("Block() = %v, want error", resp)
 	}

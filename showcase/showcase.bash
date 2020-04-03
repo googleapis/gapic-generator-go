@@ -34,7 +34,7 @@ protoc \
 	--go_gapic_opt 'go-gapic-package=github.com/googleapis/gapic-showcase/client;client' \
 	--go_gapic_opt 'grpc-service-config=showcase_grpc_service_config.json' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
-	google/showcase/v1beta1/echo.proto
+	google/showcase/v1beta1/echo.proto google/showcase/v1beta1/identity.proto
 
 pushd gen/github.com/googleapis/gapic-showcase
 go mod init github.com/googleapis/gapic-showcase
@@ -57,5 +57,3 @@ stop_showcase() {
 trap stop_showcase EXIT
 
 go test -count=1 ./...
-
-go mod edit -dropreplace github.com/googleapis/gapic-showcase
