@@ -27,6 +27,13 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
+func (g *generator) clientHook(servName string) {
+	p := g.printf
+
+	p("var new%sClientHook clientHook", servName)
+	p("")
+}
+
 func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
@@ -254,7 +261,13 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("//")
 		g.comment(g.comments[serv])
 		p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-		p("  connPool, err := gtransport.DialPool(ctx, append(default%sClientOptions(), opts...)...)", servName)
+		p("  defaultOpts := default%sClientOptions()", servName)
+		p("")
+		p("  if new%sClientHook != nil {", servName)
+		p("    defaultOpts = append(defaultOpts, new%sClientHook(ctx, clientHookParams{})...)", servName)
+		p("  }")
+		p("")
+		p("  connPool, err := gtransport.DialPool(ctx, append(defaultOpts, opts...)...)")
 		p("  if err != nil {")
 		p("    return nil, err")
 		p("  }")

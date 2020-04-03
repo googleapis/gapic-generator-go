@@ -38,8 +38,12 @@ import (
 	"strings"
 	"unicode"
 
+	"google.golang.org/api/option"
 	"google.golang.org/grpc/metadata"
 )
+
+type clientHookParams struct{}
+type clientHook func(context.Context, clientHookParams) []option.ClientOption
 
 const versionClient = "UNKNOWN"
 

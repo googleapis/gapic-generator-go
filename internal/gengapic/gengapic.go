@@ -44,7 +44,7 @@ const (
 	emptyValue = "google.protobuf.Empty"
 	// protoc puts a dot in front of name, signaling that the name is fully qualified.
 	emptyType  = "." + emptyValue
-	lroType = ".google.longrunning.Operation"
+	lroType    = ".google.longrunning.Operation"
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 	alpha      = "alpha"
 	beta       = "beta"
@@ -311,6 +311,8 @@ func (g *generator) reset() {
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
 	servName := pbinfo.ReduceServName(*serv.Name, pkgName)
+
+	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
 		return err
 	}
