@@ -19,13 +19,13 @@ type FooClient struct {
 //
 // Foo service does stuff.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
-	defaultOpts := defaultFooClientOptions()
+	clientOpts := defaultFooClientOptions()
 
 	if newFooClientHook != nil {
-		defaultOpts = append(defaultOpts, newFooClientHook(ctx, clientHookParams{})...)
+		clientOpts = append(clientOpts, newFooClientHook(ctx, clientHookParams{})...)
 	}
 
-	connPool, err := gtransport.DialPool(ctx, append(defaultOpts, opts...)...)
+	connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)
 	if err != nil {
 		return nil, err
 	}
