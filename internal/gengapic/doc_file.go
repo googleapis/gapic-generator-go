@@ -90,7 +90,7 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("// For more information on implementing a client constructor hook, see")
 	p("// https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.")
 	p("type clientHookParams struct{}")
-	p("type clientHook func(context.Context, clientHookParams) []option.ClientOption")
+	p("type clientHook func(context.Context, clientHookParams) ([]option.ClientOption, error)")
 	p("")
 
 	p("const versionClient = %q", "UNKNOWN")
