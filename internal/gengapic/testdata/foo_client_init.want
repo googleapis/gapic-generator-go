@@ -22,7 +22,11 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 	clientOpts := defaultFooClientOptions()
 
 	if newFooClientHook != nil {
-		clientOpts = append(clientOpts, newFooClientHook(ctx, clientHookParams{})...)
+		hookOpts, err := newFooClientHook(ctx, clientHookParams{})
+		if err != nil {
+			return nil, err
+		}
+		clientOpts = append(clientOpts, hookOpts...)
 	}
 
 	connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)
