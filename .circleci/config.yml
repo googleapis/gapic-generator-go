@@ -43,6 +43,7 @@ jobs:
           name: Check license
           command: go run ./util/cmd/license
       - run: go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
+      - run: go install github.com/golang/protobuf/protoc-gen-go
       - run:
           name: verify error conformance
           command: |
@@ -53,10 +54,10 @@ jobs:
           name: Run Showcase
           command: |
             mkdir protobuf
-            curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip > protobuf/protoc.zip
+            curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip > protobuf/protoc.zip
             unzip -d protobuf protobuf/protoc.zip
             export PATH=$PATH:$(pwd)/protobuf/bin            
-            ./util/showcase.bash
+            make test
       - run:
           name: Run Google APIs test gen
           command: |

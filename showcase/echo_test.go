@@ -12,56 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package showcase_integration
+package showcase
 
 import (
 	"context"
-	"flag"
 	"io"
-	"log"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
-	showcase "cloud.google.com/go/showcase/apiv1beta1"
 	durationpb "github.com/golang/protobuf/ptypes/duration"
-	genprotopb "github.com/googleapis/gapic-showcase/server/genproto"
+	showcase "github.com/googleapis/gapic-showcase/client"
+	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
 	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var client *showcase.EchoClient
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
-	conn, err := grpc.Dial("localhost:7469", grpc.WithInsecure())
-	if err != nil {
-		log.Fatal(err)
-	}
-	clientOpt := option.WithGRPCConn(conn)
-	client, err = showcase.NewEchoClient(context.Background(), clientOpt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	os.Exit(m.Run())
-}
-
+var echo *showcase.EchoClient
 func TestEcho(t *testing.T) {
 	t.Parallel()
 	content := "hello world!"
-	req := &genprotopb.EchoRequest{
-		Response: &genprotopb.EchoRequest_Content{
+	req := &showcasepb.EchoRequest{
+		Response: &showcasepb.EchoRequest_Content{
 			Content: content,
 		},
 	}
-	resp, err := client.Echo(context.Background(), req)
+	resp, err := echo.Echo(context.Background(), req)
 
 	if err != nil {
 		t.Fatal(err)
@@ -74,12 +52,12 @@ func TestEcho(t *testing.T) {
 func TestEcho_error(t *testing.T) {
 	t.Parallel()
 	val := codes.Canceled
-	req := &genprotopb.EchoRequest{
-		Response: &genprotopb.EchoRequest_Error{
+	req := &showcasepb.EchoRequest{
+		Response: &showcasepb.EchoRequest_Error{
 			Error: &spb.Status{Code: int32(val)},
 		},
 	}
-	resp, err := client.Echo(context.Background(), req)
+	resp, err := echo.Echo(context.Background(), req)
 
 	if resp != nil {
 		t.Errorf("Echo() = %v, wanted error %d", resp, val)
@@ -93,8 +71,8 @@ func TestEcho_error(t *testing.T) {
 func TestExpand(t *testing.T) {
 	t.Parallel()
 	content := "The rain in Spain stays mainly on the plain!"
-	req := &genprotopb.ExpandRequest{Content: content}
-	s, err := client.Expand(context.Background(), req)
+	req := &showcasepb.ExpandRequest{Content: content}
+	s, err := echo.Expand(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,14 +96,14 @@ func TestExpand(t *testing.T) {
 func TestCollect(t *testing.T) {
 	t.Parallel()
 	content := "The rain in Spain stays mainly on the plain!"
-	s, err := client.Collect(context.Background())
+	s, err := echo.Collect(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	for _, str := range strings.Split(content, " ") {
-		s.Send(&genprotopb.EchoRequest{
-			Response: &genprotopb.EchoRequest_Content{Content: str}})
+		s.Send(&showcasepb.EchoRequest{
+			Response: &showcasepb.EchoRequest_Content{Content: str}})
 	}
 
 	resp, err := s.CloseAndRecv()
@@ -140,13 +118,13 @@ func TestCollect(t *testing.T) {
 func TestChat(t *testing.T) {
 	t.Parallel()
 	content := "The rain in Spain stays mainly on the plain!"
-	s, err := client.Chat(context.Background())
+	s, err := echo.Chat(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, str := range strings.Split(content, " ") {
-		s.Send(&genprotopb.EchoRequest{
-			Response: &genprotopb.EchoRequest_Content{Content: str}})
+		s.Send(&showcasepb.EchoRequest{
+			Response: &showcasepb.EchoRequest_Content{Content: str}})
 	}
 	s.CloseSend()
 	resps := []string{}
@@ -169,15 +147,15 @@ func TestChat(t *testing.T) {
 func TestWait(t *testing.T) {
 	t.Parallel()
 	content := "hello world!"
-	req := &genprotopb.WaitRequest{
-		End: &genprotopb.WaitRequest_Ttl{
+	req := &showcasepb.WaitRequest{
+		End: &showcasepb.WaitRequest_Ttl{
 			Ttl: &durationpb.Duration{Nanos: 100},
 		},
-		Response: &genprotopb.WaitRequest_Success{
-			Success: &genprotopb.WaitResponse{Content: content},
+		Response: &showcasepb.WaitRequest_Success{
+			Success: &showcasepb.WaitResponse{Content: content},
 		},
 	}
-	op, err := client.Wait(context.Background(), req)
+	op, err := echo.Wait(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,16 +171,16 @@ func TestWait(t *testing.T) {
 func TestWait_timeout(t *testing.T) {
 	t.Parallel()
 	content := "hello world!"
-	req := &genprotopb.WaitRequest{
-		End: &genprotopb.WaitRequest_Ttl{
+	req := &showcasepb.WaitRequest{
+		End: &showcasepb.WaitRequest_Ttl{
 			Ttl: &durationpb.Duration{Seconds: 1},
 		},
-		Response: &genprotopb.WaitRequest_Success{
-			Success: &genprotopb.WaitResponse{Content: content},
+		Response: &showcasepb.WaitRequest_Success{
+			Success: &showcasepb.WaitResponse{Content: content},
 		},
 	}
 	ctx, _ := context.WithTimeout(context.Background(), 1*time.Millisecond)
-	resp, err := client.Wait(ctx, req)
+	resp, err := echo.Wait(ctx, req)
 
 	if err == nil {
 		t.Errorf("Wait() = %v, want error", resp)
@@ -213,8 +191,8 @@ func TestPagination(t *testing.T) {
 	t.Parallel()
 	str := "foo bar biz baz"
 	expected := strings.Split(str, " ")
-	req := &genprotopb.PagedExpandRequest{Content: str, PageSize: 2}
-	iter := client.PagedExpand(context.Background(), req)
+	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2}
+	iter := echo.PagedExpand(context.Background(), req)
 
 	ndx := 0
 	for {
@@ -236,8 +214,8 @@ func TestPaginationWithToken(t *testing.T) {
 	t.Parallel()
 	str := "ab cd ef gh ij kl"
 	expected := strings.Split(str, " ")[1:]
-	req := &genprotopb.PagedExpandRequest{Content: str, PageSize: 2, PageToken: "1"}
-	iter := client.PagedExpand(context.Background(), req)
+	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2, PageToken: "1"}
+	iter := echo.PagedExpand(context.Background(), req)
 
 	ndx := 0
 	for {
@@ -261,13 +239,13 @@ func TestPaginationWithToken(t *testing.T) {
 func TestBlock(t *testing.T) {
 	t.Parallel()
 	content := "hello world!"
-	req := &genprotopb.BlockRequest{
+	req := &showcasepb.BlockRequest{
 		ResponseDelay: &durationpb.Duration{Nanos: 1000},
-		Response: &genprotopb.BlockRequest_Success{
-			Success: &genprotopb.BlockResponse{Content: content},
+		Response: &showcasepb.BlockRequest_Success{
+			Success: &showcasepb.BlockResponse{Content: content},
 		},
 	}
-	resp, err := client.Block(context.Background(), req)
+	resp, err := echo.Block(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -279,14 +257,14 @@ func TestBlock(t *testing.T) {
 func TestBlock_timeout(t *testing.T) {
 	t.Parallel()
 	content := "hello world!"
-	req := &genprotopb.BlockRequest{
+	req := &showcasepb.BlockRequest{
 		ResponseDelay: &durationpb.Duration{Seconds: 1},
-		Response: &genprotopb.BlockRequest_Success{
-			Success: &genprotopb.BlockResponse{Content: content},
+		Response: &showcasepb.BlockRequest_Success{
+			Success: &showcasepb.BlockResponse{Content: content},
 		},
 	}
 	ctx, _ := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	resp, err := client.Block(ctx, req)
+	resp, err := echo.Block(ctx, req)
 	if err == nil {
 		t.Errorf("Block() = %v, want error", resp)
 	}
