@@ -33,7 +33,7 @@ func TestUserCRUD(t *testing.T) {
 	create := &showcasepb.CreateUserRequest{
 		User: &showcasepb.User{
 			DisplayName: "Jane Doe",
-			Email:       "janedoe@email.com",
+			Email:       "janedoe@example.com",
 		},
 	}
 
