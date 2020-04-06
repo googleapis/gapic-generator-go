@@ -22,12 +22,25 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/ptypes/duration"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	code "google.golang.org/genproto/googleapis/rpc/code"
 )
+
+func TestClientHook(t *testing.T) {
+	var g generator
+
+	g.clientHook("Foo")
+	got := g.pt.String()
+	want := "var newFooClientHook clientHook\n\n"
+
+	if diff := cmp.Diff(got, want); diff != "" {
+		t.Errorf("clientHook() (-got,+want): %s", diff)
+	}
+}
 
 func TestClientOpt(t *testing.T) {
 	var g generator
