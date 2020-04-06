@@ -1,4 +1,4 @@
-module showcase_integration
+module showcase
 
 go 1.13
 
