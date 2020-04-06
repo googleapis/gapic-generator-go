@@ -16,7 +16,8 @@ golden:
 
 test:
 	go test ./...
-	./util/showcase.bash
+	go install ./cmd/protoc-gen-go_gapic
+	cd showcase; ./showcase.bash; cd ..
 
 install:
 	go install ./cmd/protoc-gen-go_gapic
@@ -29,3 +30,4 @@ clean:
 	rm -rf showcase/gen
 	rm -f showcase/gapic-showcase
 	rm -f showcase/showcase_grpc_service_config.json
+	cd showcase; go mod edit -dropreplace github.com/googleapis/gapic-showcase
