@@ -109,7 +109,7 @@ func main() {
 		"ghr",
 		"-t="+token,
 		"-n="+version,
-		"-b='"+notes(version)+"'",
+		"-b="+notes(version),
 		"-u=googleapis",
 		"-r=gapic-generator-go",
 		"-c="+commitish,
