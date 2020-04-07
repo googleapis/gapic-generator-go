@@ -55,8 +55,6 @@ func printMessage(data interface{}) {
 			marshaler.Marshal(&b, msg)
 			s = b.String()
 		}
-	} else if page, ok := data.(map[string]interface{}); ok {
-		s = fmt.Sprintf("%v", page)
 	}
 
 	fmt.Println(s)
