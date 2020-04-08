@@ -276,32 +276,16 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 		{{ end }}
 		{{ else if and .Paged (not .IsLRO ) }}
-		// get requested page
-		var items []interface{}
-		data := make(map[string]interface{})
-
-		// PageSize could be an integer with a specific precision.
-		// Doing standard i := 0; i < PageSize; i++ creates i as
-		// an int, creating a potential type mismatch. 
-		for i := {{ .InputMessageVar }}.PageSize; i > 0; i-- {
-			item, err := iter.Next()
-			if err == iterator.Done {
-				err = nil
-				break
-			} else if err != nil {
-				return err
-			}
-
-			items = append(items, item)
+		// populate iterator with a page
+		_, err = iter.Next()
+		if err != nil && err != iterator.Done {
+			return err
 		}
-
-		data["page"] = items
-		data["nextToken"] = iter.PageInfo().Token
 
 		if Verbose {
 			fmt.Print("Output: ")
 		}
-		printMessage(data)
+		printMessage(iter.Response)
 		{{ else if not .IsLRO }}
 		if Verbose {
 			fmt.Print("Output: ")
