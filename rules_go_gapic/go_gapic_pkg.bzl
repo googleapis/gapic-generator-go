@@ -32,7 +32,7 @@ def _go_gapic_src_pkg_impl(ctx):
                 if dep_file.extension == "srcjar":
                     srcjars.append(dep_file)
 
-    paths = construct_package_dir_paths(ctx.attr.package_dir, ctx.outputs.pkg, ctx.label.name)
+    paths = construct_package_dir_paths(None, ctx.outputs.pkg, ctx.label.name)
     script = """
     for srcjar in {srcjars}; do
         mkdir -p {package_dir_path}
@@ -49,7 +49,10 @@ def _go_gapic_src_pkg_impl(ctx):
             mkdir -p {package_dir_path}/${{src_str%:*}}
             cp -f ${{src_str#*:}} {package_dir_path}/${{src_str%:*}}
         fi
-        chmod 644 {package_dir_path}/${{src_str%:*}}/*
+        # dest_dir_path is split again, on the ';' delimiter, for the
+        # Go importpath that includes the package name following ';'
+        s=${{src_str%:*}}
+        chmod 644 {package_dir_path}/${{s%;*}}/*
     done
     cd {package_dir_path}
     tar -zchpf {package_dir}.tar.gz {package_dir_expr}*
