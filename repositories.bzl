@@ -195,8 +195,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:5aI3/f/3eCZps9xwoEnmgfDJDhMbnJpfqeGpjVNgVEI=",
-        version = "v0.0.0-20200319113533-08878b785e9c",
+        sum = "h1:j7CmVRD4Kec0+f8VuBAc2Ak2MFfXm5Q2/RxuJLL+76E=",
+        version = "v0.0.0-20200413115906-b5235f65be36",
     )
     _maybe(
         go_repository,
