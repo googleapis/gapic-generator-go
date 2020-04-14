@@ -31,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 	var genReq plugin.CodeGeneratorRequest
-	if err := genReq.Unmarshal(reqBytes); err != nil {
+	if err := proto.Unmarshal(reqBytes, &genReq); err != nil {
 		log.Fatal(err)
 	}
 
