@@ -1,3 +1,4 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
@@ -14,7 +15,6 @@ proto_library(
 
 go_proto_library(
     name = "grpc_service_config_go_proto",
-    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
     importpath = "github.com/googleapis/gapic-generator-go/internal/grpc_service_config",
     proto = ":grpc_service_config_proto",
     visibility = ["//:__subpackages__"],
