@@ -174,9 +174,14 @@ func TestGenMethod(t *testing.T) {
 			Get: "/v1/{field_name.nested=projects/*/foo/*}/bars/{other=bar/*/baz/*}/buz",
 		},
 		AdditionalBindings: []*annotations.HttpRule{
-			&annotations.HttpRule{
+			{
 				Pattern: &annotations.HttpRule_Post{
 					Post: "/v1/{field_name.nested=projects/*/foo/*}/bars/{another=bar/*/baz/*}/buz",
+				},
+			},
+			{
+				Pattern: &annotations.HttpRule_Post{
+					Post: "/v1/{field_name.nested=projects/*/foo/*}/bars/{another=bar/*/baz/*}/buz/{biz}/booz",
 				},
 			},
 		},
