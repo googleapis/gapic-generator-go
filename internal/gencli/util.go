@@ -16,6 +16,7 @@ package gencli
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -99,10 +100,11 @@ func dotToCamel(name string) (s string) {
 func oneofTypeName(field, inputMsgType string, flag *Flag) string {
 	upperField := title(field)
 	if flag.IsNested {
-		tname := fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, flag.Message, title(field))
+		tname := fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, flag.Message, upperField)
 		
 		if flag.IsMessage() {
-			tnested := fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, flag.Message, upperField)
+			selector := flag.OneOfSelector[strings.LastIndex(flag.OneOfSelector, ".")+1:]
+			tnested := fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, title(selector), upperField)
 			if tname == tnested {
 				tname += "_"
 			}
