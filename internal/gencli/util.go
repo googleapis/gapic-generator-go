@@ -16,7 +16,6 @@ package gencli
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
