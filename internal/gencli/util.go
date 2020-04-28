@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/jhump/protoreflect/desc"
 )
 
 const (
@@ -98,19 +99,22 @@ func dotToCamel(name string) (s string) {
 
 func oneofTypeName(field, inputMsgType string, flag *Flag) string {
 	upperField := title(field)
+	tname := fmt.Sprintf("%s_%s", inputMsgType, upperField)
+
 	if flag.IsNested {
-		tname := fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, flag.Message, upperField)
-		
-		if flag.IsMessage() {
-			selector := flag.OneOfSelector[strings.LastIndex(flag.OneOfSelector, ".")+1:]
-			tnested := fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, title(selector), upperField)
-			if tname == tnested {
+		tname = fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, flag.Message, upperField)
+	}
+
+	if flag.IsMessage() {
+		p := flag.MsgDesc.GetParent()
+		// This is a nested message definition, check it against oneof type name
+		if par, ok := p.(*desc.MessageDescriptor); ok {
+			nname := par.GetName() + "_" + flag.MsgDesc.GetName()
+			if strings.HasSuffix(tname, nname) {
 				tname += "_"
 			}
 		}
-
-		return tname
 	}
-	
-	return fmt.Sprintf("%s_%s", inputMsgType, upperField)
+
+	return tname
 }

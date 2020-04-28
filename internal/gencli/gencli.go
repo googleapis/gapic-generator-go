@@ -381,6 +381,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 			return
 		}
 		flag.MessageImport = *pkg
+		flag.MsgDesc = nested
 
 		cmd.NestedMessages = append(cmd.NestedMessages, &NestedMessage{
 			FieldName: flag.VarName + "." + flag.FieldName,
