@@ -52,7 +52,7 @@ var {{ $pollingOperationVar }} string
 {{ range $key, $val := .OneOfSelectors }}
 var {{ $val.VarName }} string
 {{ range $oneOfKey, $oneOfVal := $val.OneOfs}}
-var {{$oneOfVal.VarName}} {{if $oneOfVal.IsNested }}{{ $oneOfVal.MessageImport.Name }}.{{ $oneOfVal.Message }}{{ else }}{{ $.InputMessage }}{{ end }}_{{ ( title $oneOfKey ) }}
+var {{$oneOfVal.VarName}} {{ ( oneofTypeName $oneOfKey $.InputMessage $oneOfVal ) }}
 {{ end }}
 {{ end }}
 {{ range .Flags }}
@@ -387,6 +387,7 @@ var cmdTemplateCompiled *template.Template
 func init() {
 	helpers := make(template.FuncMap)
 	helpers["title"] = title
+	helpers["oneofTypeName"] = oneofTypeName
 
 	cmdTemplateCompiled = template.Must(template.New("cmd").Funcs(helpers).Parse(cmdTemplate))
 }
