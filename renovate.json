@@ -11,7 +11,15 @@
     ],
     "postUpdateOptions": ["gomodTidy"]
   },
-  "assignees": [
+  "reviewers": [
     "noahdietz"
+  ],
+  "rebaseWhen": "behind-base-branch",
+  "labels": ["automerge"],
+  "packageRules": [
+    {
+      "packageNames": ["google.golang.org/genproto"],
+      "extends": ["schedule:on friday after 12pm"]
+    }
   ]
 }
