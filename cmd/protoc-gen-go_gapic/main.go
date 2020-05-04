@@ -46,6 +46,7 @@ func main() {
 	}
 
 	genResp = merge(genResp, sampleResp)
+	genResp.SupportedFeatures = proto.Uint64(uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
 
 	outBytes, err := proto.Marshal(genResp)
 	if err != nil {
