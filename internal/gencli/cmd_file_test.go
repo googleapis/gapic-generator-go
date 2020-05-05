@@ -58,6 +58,7 @@ func TestCommandFile(t *testing.T) {
 				VarName:   "CreateTodoInput",
 				Type:      descriptor.FieldDescriptorProto_TYPE_BOOL,
 				Usage:     "task completion status",
+				Optional:  true,
 			},
 			&Flag{
 				Name:          "priority",
@@ -67,9 +68,11 @@ func TestCommandFile(t *testing.T) {
 				Message:       "Priority",
 				MessageImport: pbinfo.ImportSpec{Name: "todopb"},
 				VarName:       "CreateTodoInputPriority",
+				Optional:      true,
 			},
 		},
-		HasEnums: true,
+		HasEnums:    true,
+		HasOptional: true,
 	}
 
 	// LRO

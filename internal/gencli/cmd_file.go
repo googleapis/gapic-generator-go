@@ -60,6 +60,8 @@ var {{$oneOfVal.VarName}} {{if $oneOfVal.IsNested }}{{ $oneOfVal.MessageImport.N
 var {{ .VarName }} []string
 {{ else if ( .IsEnum ) }}
 var {{ .VarName }} {{if .Repeated }}[]{{ end }}string
+{{ else if .Optional }}
+var {{ ( .OptionalVarName ) }} {{ ( .GoTypeForPrim ) }}
 {{ end }}
 {{ end }}
 
@@ -128,7 +130,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 				return err
 			}
 			{{ end }}
-		} {{ if or .OneOfSelectors .HasEnums }} else {
+		} {{ if or .OneOfSelectors .HasEnums .HasOptional }} else {
 			{{ if .OneOfSelectors }}
 			{{ range $key, $val := .OneOfSelectors }}
 			switch {{ .VarName }} {
@@ -150,10 +152,26 @@ var {{$methodCmdVar}} = &cobra.Command{
 				{{ $requestField }} = append({{ $requestField }}, val)
 			}
 			{{ else }}
+			{{ if .Optional }}
+			if cmd.Flags().Changed("{{ .Name }}") {
+				e := {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
+				{{ $requestField }} = &e
+			}
+			{{ else }}
 			{{ $requestField }} = {{ $enumType }}({{ $enumType }}_value[strings.ToUpper({{ .VarName }})])
 			{{ end }}
-			{{ end }} 
 			{{ end }}
+			{{ end }}
+			{{ end }}
+			{{ end }}
+			{{ if .HasOptional }}
+			{{ range .Flags }}
+			{{ if and .Optional ( not ( .IsEnum )) }}
+			if cmd.Flags().Changed("{{ .Name }}") {
+				{{ .Accessor }} = &{{ ( .OptionalVarName ) }}
+			}
+			{{ end }}
+			{{ end }} 
 			{{ end }}
 		}
 		{{ end }}

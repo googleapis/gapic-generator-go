@@ -17,6 +17,8 @@ package gencli
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -38,6 +40,10 @@ type Flag struct {
 	SliceAccessor string
 	IsOneOfField  bool
 	IsNested      bool
+	Optional      bool
+
+	// Accessor is only set after calling GenFlag
+	Accessor string
 }
 
 // GenFlag generates the pflag API call for this flag
@@ -88,6 +94,12 @@ func (f *Flag) GenFlag() string {
 		name = f.VarName
 	}
 
+	f.Accessor = name
+
+	if f.Optional && !f.IsEnum() {
+		name = f.OptionalVarName()
+	}
+
 	str = fmt.Sprintf(`%sVar(&%s, "%s", %s, "%s")`, fType, name, f.Name, def, f.Usage)
 
 	return str
@@ -116,4 +128,18 @@ func (f *Flag) EnumFieldAccess(inputVar string) string {
 		inputVar = strings.TrimSuffix(f.VarName, f.FieldName[seg+1:])
 	}
 	return fmt.Sprintf("%s.%s", inputVar, f.FieldName)
+}
+
+// OptionalVarName constructs the place holder variable name for a proto3
+// optional field.
+func (f *Flag) OptionalVarName() string {
+	s := f.VarName + "." + f.FieldName
+	s = dotToCamel(s)
+	r, w := utf8.DecodeRuneInString(s)
+	return string(unicode.ToLower(r)) + s[w:]
+}
+
+// GoTypeForPrim returns the name of the Go type for a primitive proto type.
+func (f *Flag) GoTypeForPrim() string {
+	return pbinfo.GoTypeForPrim[f.Type]
 }
