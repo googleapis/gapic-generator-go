@@ -300,6 +300,12 @@ func (g *gcli) genCommands() {
 
 func (g *gcli) buildOneOfSelectors(cmd *Command, msg *desc.MessageDescriptor, prefix string) {
 	for _, field := range msg.GetOneOfs() {
+		// proto3_optional fields are represented as a oneof
+		// with the same field name preceded by a "_"
+		if strings.HasPrefix(field.GetName(), "_") {
+			continue
+		}
+
 		flag := Flag{
 			Name:     prefix + field.GetName(),
 			Type:     descriptor.FieldDescriptorProto_TYPE_STRING,
