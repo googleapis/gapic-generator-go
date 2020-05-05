@@ -29,6 +29,7 @@ mkdir gen
 curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/showcase_grpc_service_config.json
 
 protoc \
+	--experimental_allow_proto3_optional \
 	--go_out=plugins=grpc:./gen \
 	--go_gapic_out ./gen \
 	--go_gapic_opt 'go-gapic-package=github.com/googleapis/gapic-showcase/client;client' \
