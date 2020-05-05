@@ -63,6 +63,7 @@ type Command struct {
 	HasPageToken      bool
 	IsLRO             bool
 	HasEnums          bool
+	HasOptional       bool
 	SubCommands       []*Command
 }
 
@@ -414,7 +415,9 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 	isInNested := msg.GetFullyQualifiedName() != cmd.InputMessageType
 
 	for _, field := range msg.GetFields() {
-		if oneof := field.GetOneOf(); oneof != nil {
+		proto3optional := field.AsFieldDescriptorProto().GetProto3Optional()
+
+		if oneof := field.GetOneOf(); oneof != nil && !proto3optional {
 			// add fmt for oneof choice error formatting
 			putImport(cmd.Imports, &pbinfo.ImportSpec{
 				Path: "fmt",
@@ -457,6 +460,10 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		}
 
+		// Optional messages aren't handled differently because they are already
+		// pointers to a struct.
+		flag.Optional = proto3optional && !flag.IsMessage()
+
 		// evaluate field behavior
 		outputOnly, flag.Required = g.getFieldBehavior(field)
 		if flag.Required {
@@ -469,6 +476,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 			continue
 		}
 
+		cmd.HasOptional = cmd.HasOptional || flag.Optional
 		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
 		// build the variable name this field belongs to

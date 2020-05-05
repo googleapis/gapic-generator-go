@@ -12,6 +12,8 @@ var CreateTodoInput todopb.Todo
 
 var CreateTodoFromFile string
 
+var createTodoInputDone bool
+
 var CreateTodoInputPriority string
 
 func init() {
@@ -19,7 +21,7 @@ func init() {
 
 	CreateTodoCmd.Flags().StringVar(&CreateTodoInput.Task, "task", "", "task to complete")
 
-	CreateTodoCmd.Flags().BoolVar(&CreateTodoInput.Done, "done", false, "task completion status")
+	CreateTodoCmd.Flags().BoolVar(&createTodoInputDone, "done", false, "task completion status")
 
 	CreateTodoCmd.Flags().StringVar(&CreateTodoInputPriority, "priority", "", "importance of the task")
 
@@ -57,7 +59,14 @@ var CreateTodoCmd = &cobra.Command{
 
 		} else {
 
-			CreateTodoInput.Priority = todopb.Priority(todopb.Priority_value[strings.ToUpper(CreateTodoInputPriority)])
+			if cmd.Flags().Changed("priority") {
+				e := todopb.Priority(todopb.Priority_value[strings.ToUpper(CreateTodoInputPriority)])
+				CreateTodoInput.Priority = &e
+			}
+
+			if cmd.Flags().Changed("done") {
+				CreateTodoInput.Done = &createTodoInputDone
+			}
 
 		}
 
