@@ -14,79 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# Usage: COMMON_PROTO=path/to/api-common-protos [OUT=out/dir] ./test.sh
-#
-# If OUT is not set, files are written to testdata/out, which is gitignore'd.
-# To integration test, set OUT=$GOPATH/src. The script will overwrite old files,
-# and you can see changes by git-diff-ing the cloud.google.com/go repo.
-#
-# We need proto annotations that's not stable yet. Use the input-contract branch of both repos.
-
 set -e
 
 # setup variables
 GCLI="github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_cli"
-GCLI_SRC=${GCLI_SRC:-$GOPATH/src/$GCLI}
+GCLI_SRC=${GCLI_SRC:-cmd/protoc-gen-go_cli}
 
 OUT=${OUT:-$GCLI_SRC/testdata}
 TESTPROTOS=${TESTPROTOS:-$GCLI_SRC/testprotos}
-KIOSK_PROTOS=${KIOSK_PROTOS:-$GCLI_SRC/testprotos/kiosk}
 SHOW_PROTOS=${SHOW_PROTOS:-$GCLI_SRC/testprotos/showcase}
-COMMON_PROTOS=${COMMON_PROTOS:-$OUT/common}
-
-KIOSK_GAPIC=${KIOSK_GAPIC:-$GCLI/testdata/kiosk/gapic}
 
 # make test output directories
-mkdir -p "$OUT/kiosk"
 mkdir -p "$OUT/showcase"
 
 # make test proto directories
-mkdir -p $KIOSK_PROTOS
 mkdir -p $SHOW_PROTOS
 
-# download api-common-protos:input-contract branch
-rm -f input-contract.zip api-common-protos-input-contract
-curl -L -O https://github.com/googleapis/api-common-protos/archive/input-contract.zip
-unzip -q input-contract.zip
-rm -f input-contract.zip
-mv -f api-common-protos-input-contract $COMMON_PROTOS
-
-# download kiosk proto
-curl -L -O https://raw.githubusercontent.com/googleapis/kiosk/master/protos/kiosk.proto
-mv kiosk.proto $KIOSK_PROTOS/
-
-SHOWCASE_VERSION=0.1.1
+SHOWCASE_VERSION=0.9.0
 
 # download gapic-showcase proto descriptor set
 curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_VERSION/gapic-showcase-$SHOWCASE_VERSION.desc
 mv gapic-showcase-$SHOWCASE_VERSION.desc $SHOW_PROTOS/
 
-# install gapic microgenerator plugin
-go install "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic"
-
 # install CLI generator plugin
 go install $GCLI
 
-# generate kiosk gapic & go_cli
-protoc -I $KIOSK_PROTOS \
-  -I $COMMON_PROTOS \
-  --go_out=plugins=grpc:$GOPATH/src \
-  --go_gapic_out $GOPATH/src \
-  --go_gapic_opt "go-gapic-package=$KIOSK_GAPIC"';gapic' \
-  --go_cli_out $OUT/kiosk \
-  --go_cli_opt "gapic=$KIOSK_GAPIC" \
-  --go_cli_opt "root=testkctl" \
-  --go_cli_opt "fmt=false" \
-  $KIOSK_PROTOS/kiosk.proto
-
 # generate gapic-showcase gapic & go_cli
 protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-$SHOWCASE_VERSION.desc \
-  --go_out=plugins=grpc:$GOPATH/src \
-  --go_gapic_out $GOPATH/src \
-  --go_gapic_opt "go-gapic-package=github.com/gapic-showcase/client;client" \
   --go_cli_out $OUT/showcase \
-  --go_cli_opt "gapic=github.com/gapic-showcase/client;client" \
+  --go_cli_opt "gapic=github.com/googleapis/gapic-showcase/client;client" \
   --go_cli_opt "root=testshowctl" \
   --go_cli_opt "fmt=false" \
   google/showcase/v1beta1/echo.proto \
@@ -94,11 +50,10 @@ protoc --descriptor_set_in=$SHOW_PROTOS/gapic-showcase-$SHOWCASE_VERSION.desc \
   google/showcase/v1beta1/messaging.proto \
   google/showcase/v1beta1/testing.proto
 
-# build each go_cli for sanity check
+# build showcase go_cli for sanity check
 d=$(pwd)
-cd $OUT/kiosk
-go build
-cd ../showcase
+cd $OUT/showcase
+go mod init github.com/googleapis/gapic-generator-go/testshowctl
 go build
 cd $d
 
