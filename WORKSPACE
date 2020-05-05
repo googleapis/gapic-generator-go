@@ -11,6 +11,8 @@ http_archive(
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
+protobuf_deps()
+
 # TODO(ndietz) replace this with the next version (v0.22.5?) of rules_go
 # that contains github.com/golang/protobuf v1.4.1 and google.golang.org/protobuf
 # v1.22.0
@@ -55,8 +57,6 @@ go_repository(
     sum = "h1:ZFgWrT+bLgsYPirOnRfKLYJLvssAegOj/hgyMFdJZe0=",
     version = "v1.4.1",
 )
-
-protobuf_deps()
 
 go_rules_dependencies()
 
