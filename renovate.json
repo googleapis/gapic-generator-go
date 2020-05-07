@@ -13,5 +13,13 @@
   },
   "assignees": [
     "noahdietz"
+  ],
+  "rebaseWhen": "behind-base-branch",
+  "labels": ["automerge"],
+  "packageRules": [
+    {
+      "packageNames": ["google.golang.org/genproto"],
+      "schedule": "after 12pm on monday"
+    }
   ]
 }
