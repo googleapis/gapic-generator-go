@@ -9,9 +9,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # to not depend on a release candidate.
 http_archive(
     name = "com_google_protobuf",
-    strip_prefix = "protobuf-3.12.0-rc1",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.12.0-rc1.tar.gz"],
-    sha256 = "f9c6433581be5209085d7a347fbaf16477f423969922bdc2f31faa66e7e3c6d6",
+    strip_prefix = "protobuf-3.12.0-rc2",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.12.0-rc2.tar.gz"],
+    sha256 = "afaa4f65e7e97adb10b32b7c699b7b6be4090912b471028ef0f40ccfb271f96a",
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
