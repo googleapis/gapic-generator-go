@@ -167,8 +167,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "com_google_cloud_go",
         importpath = "cloud.google.com/go",
-        sum = "h1:e0WKqKTd5BnrG8aKH3J3h+QvEIQtSUcf2n5UZ5ZgLtQ=",
-        version = "v0.26.0",
+        sum = "h1:EpMNVUorLiZIELdMZbCYX/ByTFCdoYopYAGxaGVz9ms=",
+        version = "v0.57.0",
     )
     _maybe(
         go_repository,
