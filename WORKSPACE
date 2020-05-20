@@ -4,9 +4,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "com_google_protobuf",
-    strip_prefix = "protobuf-3.12.0",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.12.0.tar.gz"],
-    sha256 = "946ba5371e423e1220d2cbefc1f65e69a1e81ca5bab62a03d66894172983cfcd",
+    strip_prefix = "protobuf-3.12.1",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.12.1.tar.gz"],
+    sha256 = "cb9b3f9d625b5739a358268eb3421de11cacd90025f5f7672c3930553eca810e",
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
