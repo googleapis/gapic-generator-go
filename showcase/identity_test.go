@@ -34,6 +34,8 @@ func TestUserCRUD(t *testing.T) {
 		User: &showcasepb.User{
 			DisplayName: "Jane Doe",
 			Email:       "janedoe@example.com",
+			Nickname:    proto.String("Doe"),
+			HeightFeet:  proto.Float64(6.2),
 		},
 	}
 
@@ -57,6 +59,18 @@ func TestUserCRUD(t *testing.T) {
 	}
 	if usr.GetUpdateTime() == nil {
 		t.Errorf("CreateUser().UpdateTime was unexpectedly empty")
+	}
+	if usr.GetNickname() != want.GetNickname() {
+		t.Errorf("CreateUser().Nickname = %q, want = %q", usr.GetNickname(), want.GetNickname())
+	}
+	if usr.GetHeightFeet() != want.GetHeightFeet() {
+		t.Errorf("CreateUser().HeightFeet = %f, want = %f", usr.GetHeightFeet(), want.GetHeightFeet())
+	}
+	if usr.Age != nil {
+		t.Errorf("CreateUser().Age was unexpectedly set to: %d", usr.GetAge())
+	}
+	if usr.EnableNotifications != nil {
+		t.Errorf("CreateUser().EnableNotifications was unexpectedly set to: %v", usr.GetEnableNotifications())
 	}
 
 	list := &showcasepb.ListUsersRequest{
@@ -93,9 +107,11 @@ func TestUserCRUD(t *testing.T) {
 
 	update := &showcasepb.UpdateUserRequest{
 		User: &showcasepb.User{
-			Name:        got.GetName(),
-			DisplayName: got.GetDisplayName(),
-			Email:       "janedoe@jane.com",
+			Name:                got.GetName(),
+			DisplayName:         got.GetDisplayName(),
+			Email:               "janedoe@jane.com",
+			HeightFeet:          proto.Float64(6.0),
+			EnableNotifications: proto.Bool(true),
 		},
 	}
 
@@ -109,6 +125,18 @@ func TestUserCRUD(t *testing.T) {
 	}
 	if updated.GetEmail() == usr.GetEmail() {
 		t.Errorf("UpdateUser().Email was not updated as expected")
+	}
+	if updated.GetNickname() != usr.GetNickname() {
+		t.Errorf("UpdateUser().Nickname = %q, want = %q", updated.GetNickname(), usr.GetNickname())
+	}
+	if updated.GetHeightFeet() == usr.GetHeightFeet() {
+		t.Errorf("UpdateUser().HeightFeet was not updated as expected")
+	}
+	if updated.EnableNotifications == nil || !updated.GetEnableNotifications() {
+		t.Errorf("UpdateUser().EnableNotifications was not updated as expected")
+	}
+	if updated.Age != nil {
+		t.Errorf("UpdateUser().Age was unexpectedly updated")
 	}
 
 	err = identity.DeleteUser(ctx, &showcasepb.DeleteUserRequest{
