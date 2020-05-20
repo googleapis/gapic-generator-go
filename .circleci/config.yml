@@ -50,13 +50,11 @@ jobs:
             go install github.com/googleapis/gapic-config-validator/cmd/gapic-error-conformance
             gapic-error-conformance -plugin=protoc-gen-go_gapic -plugin_opts="go-gapic-package=foo.com/bar/v1;bar"
       # Install protoc, showcase.bash needs it
-      #
-      # TODO(ndietz) change to depend on stable 3.12.0 once released.
       - run:
           name: Run Showcase
           command: |
             mkdir protobuf
-            curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.12.0-rc1/protoc-3.12.0-rc-1-linux-x86_64.zip > protobuf/protoc.zip
+            curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.12.0/protoc-3.12.0-linux-x86_64.zip > protobuf/protoc.zip
             unzip -d protobuf protobuf/protoc.zip
             export PATH=$PATH:$(pwd)/protobuf/bin            
             make test

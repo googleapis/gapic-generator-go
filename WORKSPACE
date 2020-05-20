@@ -2,11 +2,6 @@ workspace(name = "com_googleapis_gapic_generator_go")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# We depend on a release candidate because it contains the proto3_optional
-# feature.
-#
-# TODO(ndietz) Replace this with stable 3.12.0 version when it is released so as
-# to not depend on a release candidate.
 http_archive(
     name = "com_google_protobuf",
     strip_prefix = "protobuf-3.12.0",
