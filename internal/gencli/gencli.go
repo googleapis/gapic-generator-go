@@ -461,6 +461,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 			Name:         prefix + field.GetName(),
 			FieldName:    title(prefix + field.GetName()),
 			Type:         field.GetType(),
+			IsMap:        field.IsMap(),
 			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 			IsOneOfField: isOneOf,
 			IsNested:     isInNested,
@@ -485,6 +486,14 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 
 		cmd.HasOptional = cmd.HasOptional || flag.Optional
 		cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
+
+		if flag.IsMap {
+			// add "strings" import for key=value string split
+			putImport(cmd.Imports, &pbinfo.ImportSpec{
+				Path: "strings",
+			})
+			flag.Usage = "key=value pairs. " + flag.Usage
+		}
 
 		// build the variable name this field belongs to
 		n := title(flag.Name)
