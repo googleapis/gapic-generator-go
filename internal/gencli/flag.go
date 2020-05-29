@@ -41,6 +41,7 @@ type Flag struct {
 	SliceAccessor string
 	IsOneOfField  bool
 	IsNested      bool
+	IsMap         bool
 	Optional      bool
 
 	// Accessor is only set after calling GenFlag

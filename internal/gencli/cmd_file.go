@@ -177,7 +177,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		{{ end }}
 		{{ end }}
 		{{ range .Flags }}
-		{{ if and ( .IsMessage ) .Repeated }}
+		{{ if and ( .IsMessage ) .Repeated (not .IsMap)}}
 		// unmarshal JSON strings into slice of structs
 		for _, item := range {{ .VarName }} {
 			tmp := {{ .MessageImport.Name }}.{{ .Message }}{}
@@ -187,6 +187,17 @@ var {{$methodCmdVar}} = &cobra.Command{
 			}
 
 			{{ .SliceAccessor }} = append({{ .SliceAccessor }}, &tmp)
+		}
+		{{ end }}
+		{{ if .IsMap }}
+		for _, item := range {{ .VarName }} {
+			split := strings.Split(item, "=")
+			if len(split) < 2 {
+				err = fmt.Errorf("Invalid map item: %q", item)
+				return
+			}
+
+			{{ .SliceAccessor }}[split[0]] = split[1]
 		}
 		{{ end }}
 		{{ end }}
