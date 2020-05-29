@@ -492,6 +492,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 			putImport(cmd.Imports, &pbinfo.ImportSpec{
 				Path: "strings",
 			})
+			flag.Usage = "key=value pairs. " + flag.Usage
 		}
 
 		// build the variable name this field belongs to
