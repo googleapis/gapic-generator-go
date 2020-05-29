@@ -42,7 +42,10 @@ type Flag struct {
 	IsOneOfField  bool
 	IsNested      bool
 	Optional      bool
-	MsgDesc       *desc.MessageDescriptor
+
+	// Accessor is only set after calling GenFlag
+	Accessor string
+	MsgDesc  *desc.MessageDescriptor
 }
 
 // GenFlag generates the pflag API call for this flag
@@ -92,6 +95,8 @@ func (f *Flag) GenFlag() string {
 	if len(f.OneOfs) > 0 || f.IsEnum() {
 		name = f.VarName
 	}
+
+	f.Accessor = name
 
 	if f.Optional && !f.IsEnum() {
 		name = f.OptionalVarName()
