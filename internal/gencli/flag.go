@@ -22,6 +22,7 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/jhump/protoreflect/desc"
 )
 
 // Flag is used to represent fields as flags
@@ -44,6 +45,7 @@ type Flag struct {
 
 	// Accessor is only set after calling GenFlag
 	Accessor string
+	MsgDesc  *desc.MessageDescriptor
 }
 
 // GenFlag generates the pflag API call for this flag
