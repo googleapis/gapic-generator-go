@@ -165,13 +165,6 @@ def com_googleapis_gapic_generator_go_repositories():
     )
     _maybe(
         go_repository,
-        name = "com_google_cloud_go",
-        importpath = "cloud.google.com/go",
-        sum = "h1:EpMNVUorLiZIELdMZbCYX/ByTFCdoYopYAGxaGVz9ms=",
-        version = "v0.57.0",
-    )
-    _maybe(
-        go_repository,
         name = "in_gopkg_check_v1",
         importpath = "gopkg.in/check.v1",
         sum = "h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=",

@@ -155,11 +155,15 @@ def go_gapic_library(
     extension = ".go",
   )
 
+  # Strip the trailing package alias so that this
+  # generated library can shade com_google_cloud_go
+  # go_library targets.
+  imp = importpath[:importpath.index(";")]
   go_library(
     name = name,
     srcs = [":%s" % main_dir],
     deps = actual_deps,
-    importpath = importpath,
+    importpath = imp,
   )
 
   test_file = ":%s-test.srcjar" % srcjar_name

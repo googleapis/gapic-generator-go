@@ -64,6 +64,18 @@ def go_gapic_repositories():
         sum = "h1:9dMLqhaibYONnDRcnHdUs9P8Mw64jLlZTYlDe3leBtQ=",
         version = "v1.0.3",
     )
+    # This is a pseudo-cycle, because Go GAPIC's depend on
+    # common packages in the same mono-repo, particularly the
+    # longrunning package.
+    _maybe(
+        go_repository,
+        name = "com_google_cloud_go",
+        importpath = "cloud.google.com/go",
+        sum = "h1:EpMNVUorLiZIELdMZbCYX/ByTFCdoYopYAGxaGVz9ms=",
+        version = "v0.57.0",
+        # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
+        build_extra_args = ["-exclude=longrunning/autogen/info.go"],
+    )
 
 def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):
     if not name.startswith(strip_repo_prefix):
