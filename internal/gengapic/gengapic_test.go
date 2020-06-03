@@ -151,6 +151,23 @@ func TestGenMethod(t *testing.T) {
 			},
 		},
 	}
+	pageInputTypeOptional := &descriptor.DescriptorProto{
+		Name: proto.String("PageInputTypeOptional"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{
+				Name:           proto.String("page_size"),
+				Type:           typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Proto3Optional: proto.Bool(true),
+			},
+			{
+				Name:           proto.String("page_token"),
+				Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Proto3Optional: proto.Bool(true),
+			},
+		},
+	}
 	paginatedField := &descriptor.FieldDescriptorProto{
 		Name:  proto.String("items"),
 		Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
@@ -201,7 +218,7 @@ func TestGenMethod(t *testing.T) {
 
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
-		inputType, outputType, pageInputType, pageOutputType,
+		inputType, outputType, pageInputType, pageInputTypeOptional, pageOutputType,
 	} {
 		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
 		g.descInfo.ParentFile[typ] = file
@@ -227,6 +244,12 @@ func TestGenMethod(t *testing.T) {
 		{
 			Name:       proto.String("GetManyThings"),
 			InputType:  proto.String(".my.pkg.PageInputType"),
+			OutputType: proto.String(".my.pkg.PageOutputType"),
+			Options:    opts,
+		},
+		{
+			Name:       proto.String("GetManyThingsOptional"),
+			InputType:  proto.String(".my.pkg.PageInputTypeOptional"),
 			OutputType: proto.String(".my.pkg.PageOutputType"),
 			Options:    opts,
 		},

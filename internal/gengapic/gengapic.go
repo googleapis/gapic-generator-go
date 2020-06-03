@@ -672,3 +672,15 @@ func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error
 
 	return matches, nil
 }
+
+// isOptional returns true if the named Field in the given Message
+// is proto3_optional.
+func isOptional(m *descriptor.DescriptorProto, n string) bool {
+	for _, f := range m.GetField() {
+		if f.GetName() == n {
+			return f.GetProto3Optional()
+		}
+	}
+
+	return false
+}

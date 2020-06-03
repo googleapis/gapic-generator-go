@@ -161,8 +161,8 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 }
 
 func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt *iterType) error {
-	inType := g.descInfo.Type[*m.InputType]
-	outType := g.descInfo.Type[*m.OutputType]
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
@@ -172,6 +172,18 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	outSpec, err := g.descInfo.ImportSpec(outType)
 	if err != nil {
 		return err
+	}
+
+	max := "math.MaxInt32"
+	ps := "int32(pageSize)"
+	if isOptional(inType, "page_size") {
+		max = fmt.Sprintf("proto.Int32(%s)", max)
+		ps = fmt.Sprintf("proto.Int32(%s)", ps)
+	}
+
+	tok := "pageToken"
+	if isOptional(inType, "page_token") {
+		tok = fmt.Sprintf("proto.String(%s)", tok)
 	}
 
 	p := g.printf
@@ -189,15 +201,15 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
-	p("  req.PageToken = pageToken")
+	p("  req.PageToken = %s", tok)
 	p("  if pageSize > math.MaxInt32 {")
-	p("    req.PageSize = math.MaxInt32")
+	p("    req.PageSize = %s", max)
 	p("  } else {")
-	p("    req.PageSize = int32(pageSize)")
+	p("    req.PageSize = %s", ps)
 	p("  }")
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
-	p("    resp, err = %s", grpcClientCall(servName, *m.Name))
+	p("    resp, err = %s", grpcClientCall(servName, m.GetName()))
 	p("    return err")
 	p("  }, opts...)")
 	p("  if err != nil {")
@@ -205,7 +217,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("  }")
 	p("")
 	p("  it.Response = resp")
-	p("  return resp.%s, resp.NextPageToken, nil", snakeToCamel(*elemField.Name))
+	p("  return resp.Get%s(), resp.GetNextPageToken(), nil", snakeToCamel(elemField.GetName()))
 	p("}")
 
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")
@@ -218,8 +230,8 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("}")
 
 	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
-	p("it.pageInfo.MaxSize = int(req.PageSize)")
-	p("it.pageInfo.Token = req.PageToken")
+	p("it.pageInfo.MaxSize = int(req.GetPageSize())")
+	p("it.pageInfo.Token = req.GetPageToken()")
 	p("return it")
 
 	p("}")
