@@ -72,7 +72,7 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("// To close the open connection, use the Close() method.")
 	p("//")
 	p("// For information about setting deadlines, reusing contexts, and more")
-	p("// please visit godoc.org/cloud.google.com/go.")
+	p("// please visit pkg.go.dev/cloud.google.com/go.")
 	p("package %s // import %q", pkgName, pkgPath)
 	p("")
 
