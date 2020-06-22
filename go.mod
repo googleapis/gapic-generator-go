@@ -5,7 +5,7 @@ require (
 	github.com/google/go-cmp v0.5.0
 	github.com/jhump/protoreflect v1.6.1
 	gitlab.com/golang-commonmark/markdown v0.0.0-20191127184510-91b5b3c99c19
-	google.golang.org/genproto v0.0.0-20200615140333-fd031eab31e7
+	google.golang.org/genproto v0.0.0-20200622133129-d0ee0c36e670
 	gopkg.in/yaml.v2 v2.3.0
 )
 
