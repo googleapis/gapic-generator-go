@@ -45,11 +45,11 @@ func TestClientHook(t *testing.T) {
 func TestClientOpt(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.grpcConf = &conf.ServiceConfig{
+	cpb := conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
-			&conf.MethodConfig{
+			{
 				Name: []*conf.MethodConfig_Name{
-					&conf.MethodConfig_Name{
+					{
 						Service: "bar.FooService",
 						Method:  "Zip",
 					},
@@ -67,9 +67,9 @@ func TestClientOpt(t *testing.T) {
 					},
 				},
 			},
-			&conf.MethodConfig{
+			{
 				Name: []*conf.MethodConfig_Name{
-					&conf.MethodConfig_Name{
+					{
 						Service: "bar.FooService",
 					},
 				},
@@ -88,6 +88,7 @@ func TestClientOpt(t *testing.T) {
 			},
 		},
 	}
+	g.grpcConf = conf.New(cpb)
 
 	serv := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),

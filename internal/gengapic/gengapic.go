@@ -93,11 +93,12 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
 			}
 
-			g.grpcConf = &conf.ServiceConfig{}
-			err = jsonpb.Unmarshal(data, g.grpcConf)
+			cpb := conf.ServiceConfig{}
+			err = jsonpb.Unmarshal(data, &cpb)
 			if err != nil {
 				return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
 			}
+			g.grpcConf = conf.New(cpb)
 		case "release-level":
 			g.relLvl = strings.ToLower(s[e+1:])
 		case "sample-only":
@@ -190,7 +191,7 @@ type generator struct {
 	serviceConfig *serviceConfig
 
 	// gRPC ServiceConfig
-	grpcConf *conf.ServiceConfig
+	grpcConf conf.Config
 
 	// Auxiliary types to be generated in the package
 	aux *auxTypes

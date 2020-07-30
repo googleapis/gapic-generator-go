@@ -20,7 +20,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/ptypes/duration"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -82,84 +81,23 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	// defaultCallOptions
 	{
 		sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName())
-		policies := map[string]*conf.MethodConfig_RetryPolicy{}
-		reqLimits := map[string]int{}
-		resLimits := map[string]int{}
-
-		var methCfgs []*conf.MethodConfig
-		if g.grpcConf != nil {
-			methCfgs = g.grpcConf.GetMethodConfig()
-		}
-
-		// gather retry policies from MethodConfigs
-		for _, mc := range methCfgs {
-			for _, name := range mc.GetName() {
-				base := name.GetService()
-
-				// skip the Name entry if it's not the current service
-				if base != sFQN {
-					continue
-				}
-
-				// individual method config, overwrites service-level config
-				if name.GetMethod() != "" {
-					base = base + "." + name.GetMethod()
-					policies[base] = mc.GetRetryPolicy()
-
-					if maxReq := mc.GetMaxRequestMessageBytes(); maxReq != nil {
-						reqLimits[base] = int(maxReq.GetValue())
-					}
-
-					if maxRes := mc.GetMaxResponseMessageBytes(); maxRes != nil {
-						resLimits[base] = int(maxRes.GetValue())
-					}
-
-					continue
-				}
-
-				// service-level config, apply to all *unset* methods
-				for _, m := range serv.GetMethod() {
-					// build fully-qualified name
-					fqn := base + "." + m.GetName()
-
-					// set retry config
-					if _, ok := policies[fqn]; !ok {
-						policies[fqn] = mc.GetRetryPolicy()
-					}
-
-					// set max request size limit
-					if maxReq := mc.GetMaxRequestMessageBytes(); maxReq != nil {
-						if _, ok := reqLimits[fqn]; !ok {
-							reqLimits[fqn] = int(maxReq.GetValue())
-						}
-					}
-
-					// set max response size limit
-					if maxRes := mc.GetMaxResponseMessageBytes(); maxRes != nil {
-						if _, ok := resLimits[fqn]; !ok {
-							resLimits[fqn] = int(maxRes.GetValue())
-						}
-					}
-				}
-			}
-		}
+		c := g.grpcConf
 
 		// read retry params from gRPC ServiceConfig
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 		p("  return &%sCallOptions{", servName)
 		for _, m := range serv.GetMethod() {
-			mFQN := sFQN + "." + m.GetName()
-			p("%s: []gax.CallOption{", m.GetName())
-
-			if maxReq, ok := reqLimits[mFQN]; ok {
+			mn := m.GetName()
+			p("%s: []gax.CallOption{", mn)
+			if maxReq, ok := c.GetRequestLimit(sFQN, mn); ok {
 				p("gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(%d)),", maxReq)
 			}
 
-			if maxRes, ok := resLimits[mFQN]; ok {
+			if maxRes, ok := c.GetResponseLimit(sFQN, mn); ok {
 				p("gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(%d)),", maxRes)
 			}
 
-			if rp, ok := policies[mFQN]; ok && rp != nil {
+			if rp, ok := c.GetRetryPolicy(sFQN, mn); ok && rp != nil {
 				p("gax.WithRetry(func() gax.Retryer {")
 				p("  return gax.OnCodes([]codes.Code{")
 				for _, c := range rp.GetRetryableStatusCodes() {
@@ -174,8 +112,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 				}
 				p("	 }, gax.Backoff{")
 				// this ignores max_attempts
-				p("		Initial:    %d * time.Millisecond,", durationToMillis(rp.GetInitialBackoff()))
-				p("		Max:        %d * time.Millisecond,", durationToMillis(rp.GetMaxBackoff()))
+				p("		Initial:    %d * time.Millisecond,", conf.ToMillis(rp.GetInitialBackoff()))
+				p("		Max:        %d * time.Millisecond,", conf.ToMillis(rp.GetMaxBackoff()))
 				p("		Multiplier: %.2f,", rp.GetBackoffMultiplier())
 				p("	 })")
 				p("}),")
@@ -192,10 +130,6 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	}
 
 	return nil
-}
-
-func durationToMillis(d *duration.Duration) int64 {
-	return d.GetSeconds()*1000 + int64(d.GetNanos()/1000000)
 }
 
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
