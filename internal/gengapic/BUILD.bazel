@@ -31,7 +31,6 @@ go_library(
         "@in_gopkg_yaml_v2//:go_default_library",
         "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
-        "@io_bazel_rules_go//proto/wkt:duration_go_proto",
     ],
 )
 
