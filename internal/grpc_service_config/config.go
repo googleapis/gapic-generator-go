@@ -79,9 +79,9 @@ func New(data []byte) (Config, error) {
 	}, nil
 }
 
-// RetryPolicy returns the retryPolicy and if a mapping was present for the
-// given fully-qualified Service name and simple Method name. A config mapping
-// for a specific Method takes precendence over a Service-level mapping.
+// RetryPolicy returns the retryPolicy and a presence flag for the
+// given fully-qualified Service and simple Method names. A config assignment
+// for a specific Method takes precendence over a Service-level assignment.
 func (c Config) RetryPolicy(s, m string) (*MethodConfig_RetryPolicy, bool) {
 	// Favor the policy defined for a fully-qualified Method name.
 	policy, ok := c.policies[s+"."+m]
@@ -94,9 +94,9 @@ func (c Config) RetryPolicy(s, m string) (*MethodConfig_RetryPolicy, bool) {
 	return policy, ok
 }
 
-// Timeout returns the timeout in milliseconds and if the value was present
-// for the given fully-qualified Service name and simple Method name. A config
-// mapping for a specific Method takes precendence over a Service-level mapping.
+// Timeout returns the timeout in milliseconds and a presence flag for the given
+// fully-qualified Service and simple Method names. A config assignment for the
+// specific Method takes precendence over a Service-level assignment.
 func (c Config) Timeout(s, m string) (int64, bool) {
 	// Favor the timeout defined for a fully-qualified Method name.
 	timeout, ok := c.timeouts[s+"."+m]
@@ -122,10 +122,9 @@ func ToMillis(d *duration.Duration) int64 {
 	return dur.Milliseconds()
 }
 
-// RequestLimit returns the request limit in bytes and if the value was
-// present for the given fully-qualified Service name and simple Method name. A
-// config mapping for a specific Method takes precendence over a Service-level
-// mapping.
+// RequestLimit returns the request limit in bytes and a presence flag for the
+// given fully-qualified Service and simple Method names. A config assignment
+// for a specific Method takes precendence over a Service-level assignment.
 func (c Config) RequestLimit(s, m string) (int, bool) {
 	// Favor the limit defined for a fully-qualified Method name.
 	lim, ok := c.reqLimits[s+"."+m]
@@ -138,10 +137,9 @@ func (c Config) RequestLimit(s, m string) (int, bool) {
 	return lim, ok
 }
 
-// ResponseLimit returns the response limit in bytes and if the value was
-// present for the given fully-qualified Service name and simple Method name. A
-// config mapping for a specific Method takes precendence over a Service-level
-// mapping.
+// ResponseLimit returns the response limit in bytes and a presence flag for the
+// given fully-qualified Service and simple Method names. A config assignment
+// for a specific Method takes precendence over a Service-level assignment.
 func (c Config) ResponseLimit(s, m string) (int, bool) {
 	// Favor the limit defined for a fully-qualified Method name.
 	lim, ok := c.resLimits[s+"."+m]
