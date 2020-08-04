@@ -30,6 +30,7 @@ go_library(
     deps = [
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
+        "@org_golang_google_protobuf//encoding/protojson:go_default_library",
     ],
 )
 
@@ -42,6 +43,7 @@ go_test(
         "@go_googleapis//google/rpc:code_go_proto",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
         "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+        "@org_golang_google_protobuf//encoding/protojson:go_default_library",
         "@org_golang_google_protobuf//proto:go_default_library",
     ],
 )
