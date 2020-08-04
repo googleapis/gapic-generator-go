@@ -72,10 +72,10 @@ func New(c ServiceConfig) Config {
 	}
 }
 
-// GetRetryPolicy returns the retryPolicy and if a mapping was present for the
+// RetryPolicy returns the retryPolicy and if a mapping was present for the
 // given fully-qualified Service name and simple Method name. A config mapping
 // for a specific Method takes precendence over a Service-level mapping.
-func (c Config) GetRetryPolicy(s, m string) (*MethodConfig_RetryPolicy, bool) {
+func (c Config) RetryPolicy(s, m string) (*MethodConfig_RetryPolicy, bool) {
 	// Favor the policy defined for a fully-qualified Method name.
 	policy, ok := c.policies[s+"."+m]
 	if ok {
@@ -87,10 +87,10 @@ func (c Config) GetRetryPolicy(s, m string) (*MethodConfig_RetryPolicy, bool) {
 	return policy, ok
 }
 
-// GetTimeout returns the timeout in milliseconds and if the value was present
+// Timeout returns the timeout in milliseconds and if the value was present
 // for the given fully-qualified Service name and simple Method name. A config
 // mapping for a specific Method takes precendence over a Service-level mapping.
-func (c Config) GetTimeout(s, m string) (int64, bool) {
+func (c Config) Timeout(s, m string) (int64, bool) {
 	// Favor the timeout defined for a fully-qualified Method name.
 	timeout, ok := c.timeouts[s+"."+m]
 	if ok {
@@ -115,11 +115,11 @@ func ToMillis(d *duration.Duration) int64 {
 	return dur.Milliseconds()
 }
 
-// GetRequestLimit returns the request limit in bytes and if the value was
+// RequestLimit returns the request limit in bytes and if the value was
 // present for the given fully-qualified Service name and simple Method name. A
 // config mapping for a specific Method takes precendence over a Service-level
 // mapping.
-func (c Config) GetRequestLimit(s, m string) (int, bool) {
+func (c Config) RequestLimit(s, m string) (int, bool) {
 	// Favor the limit defined for a fully-qualified Method name.
 	lim, ok := c.reqLimits[s+"."+m]
 	if ok {
@@ -131,11 +131,11 @@ func (c Config) GetRequestLimit(s, m string) (int, bool) {
 	return lim, ok
 }
 
-// GetResponseLimit returns the response limit in bytes and if the value was
+// ResponseLimit returns the response limit in bytes and if the value was
 // present for the given fully-qualified Service name and simple Method name. A
 // config mapping for a specific Method takes precendence over a Service-level
 // mapping.
-func (c Config) GetResponseLimit(s, m string) (int, bool) {
+func (c Config) ResponseLimit(s, m string) (int, bool) {
 	// Favor the limit defined for a fully-qualified Method name.
 	lim, ok := c.resLimits[s+"."+m]
 	if ok {

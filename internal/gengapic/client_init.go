@@ -89,15 +89,15 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		for _, m := range serv.GetMethod() {
 			mn := m.GetName()
 			p("%s: []gax.CallOption{", mn)
-			if maxReq, ok := c.GetRequestLimit(sFQN, mn); ok {
+			if maxReq, ok := c.RequestLimit(sFQN, mn); ok {
 				p("gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(%d)),", maxReq)
 			}
 
-			if maxRes, ok := c.GetResponseLimit(sFQN, mn); ok {
+			if maxRes, ok := c.ResponseLimit(sFQN, mn); ok {
 				p("gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(%d)),", maxRes)
 			}
 
-			if rp, ok := c.GetRetryPolicy(sFQN, mn); ok && rp != nil {
+			if rp, ok := c.RetryPolicy(sFQN, mn); ok && rp != nil {
 				p("gax.WithRetry(func() gax.Retryer {")
 				p("  return gax.OnCodes([]codes.Code{")
 				for _, c := range rp.GetRetryableStatusCodes() {

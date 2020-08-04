@@ -121,16 +121,16 @@ func Test_GetTimeout(t *testing.T) {
 	}
 
 	want := ToMillis(c.timeouts[s])
-	if got, ok := c.GetTimeout(s, "dne"); !ok || got != want {
+	if got, ok := c.Timeout(s, "dne"); !ok || got != want {
 		t.Errorf("%s: expected %d got %d", t.Name(), want, got)
 	}
 
 	want = ToMillis(c.timeouts[mFQN])
-	if got, ok := c.GetTimeout(s, m); !ok || got != want {
+	if got, ok := c.Timeout(s, m); !ok || got != want {
 		t.Errorf("%s: expected %d got %d", t.Name(), want, got)
 	}
 
-	if got, ok := c.GetTimeout("dne", "dne"); ok {
+	if got, ok := c.Timeout("dne", "dne"); ok {
 		t.Errorf("%s: expected !ok got %d", t.Name(), got)
 	}
 }
@@ -161,16 +161,16 @@ func Test_GetRetryPolicy(t *testing.T) {
 	}
 
 	want := c.policies[s]
-	if got, ok := c.GetRetryPolicy(s, "dne"); !ok || !cmp.Equal(got, want, cmp.Comparer(proto.Equal)) {
+	if got, ok := c.RetryPolicy(s, "dne"); !ok || !cmp.Equal(got, want, cmp.Comparer(proto.Equal)) {
 		t.Errorf("%s: expected %v got %v", t.Name(), want, got)
 	}
 
 	want = c.policies[mFQN]
-	if got, ok := c.GetRetryPolicy(s, m); !ok || !cmp.Equal(got, want, cmp.Comparer(proto.Equal)) {
+	if got, ok := c.RetryPolicy(s, m); !ok || !cmp.Equal(got, want, cmp.Comparer(proto.Equal)) {
 		t.Errorf("%s: expected %v got %v", t.Name(), want, got)
 	}
 
-	if got, ok := c.GetRetryPolicy("dne", "dne"); ok {
+	if got, ok := c.RetryPolicy("dne", "dne"); ok {
 		t.Errorf("%s: expected !ok got %v", t.Name(), got)
 	}
 }
@@ -187,16 +187,16 @@ func Test_GetRequestLimit(t *testing.T) {
 	}
 
 	want := c.reqLimits[s]
-	if got, ok := c.GetRequestLimit(s, "dne"); !ok || got != want {
+	if got, ok := c.RequestLimit(s, "dne"); !ok || got != want {
 		t.Errorf("%s: expected %d got %d", t.Name(), want, got)
 	}
 
 	want = c.reqLimits[mFQN]
-	if got, ok := c.GetRequestLimit(s, m); !ok || got != want {
+	if got, ok := c.RequestLimit(s, m); !ok || got != want {
 		t.Errorf("%s: expected %d got %d", t.Name(), want, got)
 	}
 
-	if got, ok := c.GetRequestLimit("dne", "dne"); ok {
+	if got, ok := c.RequestLimit("dne", "dne"); ok {
 		t.Errorf("%s: expected !ok got %d", t.Name(), got)
 	}
 }
@@ -213,16 +213,16 @@ func Test_GetResponseLimit(t *testing.T) {
 	}
 
 	want := c.resLimits[s]
-	if got, ok := c.GetResponseLimit(s, "dne"); !ok || got != want {
+	if got, ok := c.ResponseLimit(s, "dne"); !ok || got != want {
 		t.Errorf("%s: expected %d got %d", t.Name(), want, got)
 	}
 
 	want = c.resLimits[mFQN]
-	if got, ok := c.GetResponseLimit(s, m); !ok || got != want {
+	if got, ok := c.ResponseLimit(s, m); !ok || got != want {
 		t.Errorf("%s: expected %d got %d", t.Name(), want, got)
 	}
 
-	if got, ok := c.GetResponseLimit("dne", "dne"); ok {
+	if got, ok := c.ResponseLimit("dne", "dne"); ok {
 		t.Errorf("%s: expected !ok got %d", t.Name(), got)
 	}
 }
