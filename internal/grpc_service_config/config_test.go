@@ -23,7 +23,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func Test_Parse(t *testing.T) {
+func TestParse(t *testing.T) {
 	in := ServiceConfig{
 		MethodConfig: []*MethodConfig{
 			{
@@ -109,7 +109,7 @@ func Test_Parse(t *testing.T) {
 	}
 }
 
-func Test_GetTimeout(t *testing.T) {
+func TestTimeout(t *testing.T) {
 	s := "bar.FooService"
 	m := "Zip"
 	mFQN := s + "." + m
@@ -135,7 +135,7 @@ func Test_GetTimeout(t *testing.T) {
 	}
 }
 
-func Test_GetRetryPolicy(t *testing.T) {
+func TestRetryPolicy(t *testing.T) {
 	s := "bar.FooService"
 	m := "Zip"
 	mFQN := s + "." + m
@@ -175,7 +175,7 @@ func Test_GetRetryPolicy(t *testing.T) {
 	}
 }
 
-func Test_GetRequestLimit(t *testing.T) {
+func TestRequestLimit(t *testing.T) {
 	s := "bar.FooService"
 	m := "Zip"
 	mFQN := s + "." + m
@@ -201,7 +201,7 @@ func Test_GetRequestLimit(t *testing.T) {
 	}
 }
 
-func Test_GetResponseLimit(t *testing.T) {
+func TestResponseLimit(t *testing.T) {
 	s := "bar.FooService"
 	m := "Zip"
 	mFQN := s + "." + m
