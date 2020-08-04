@@ -28,6 +28,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	code "google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestClientHook(t *testing.T) {
@@ -45,7 +46,7 @@ func TestClientHook(t *testing.T) {
 func TestClientOpt(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	cpb := conf.ServiceConfig{
+	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
 			{
 				Name: []*conf.MethodConfig_Name{
@@ -88,7 +89,14 @@ func TestClientOpt(t *testing.T) {
 			},
 		},
 	}
-	g.grpcConf = conf.New(cpb)
+	data, err := protojson.Marshal(cpb)
+	if err != nil {
+		t.Error(err)
+	}
+	g.grpcConf, err = conf.New(data)
+	if err != nil {
+		t.Error(err)
+	}
 
 	serv := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),

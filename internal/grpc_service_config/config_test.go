@@ -20,11 +20,12 @@ import (
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/go-cmp/cmp"
 	code "google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
 func TestParse(t *testing.T) {
-	in := ServiceConfig{
+	c := &ServiceConfig{
 		MethodConfig: []*MethodConfig{
 			{
 				Name: []*MethodConfig_Name{
@@ -69,6 +70,10 @@ func TestParse(t *testing.T) {
 			},
 		},
 	}
+	data, err := protojson.Marshal(c)
+	if err != nil {
+		t.Error(err)
+	}
 
 	want := Config{
 		policies: map[string]*MethodConfig_RetryPolicy{
@@ -103,7 +108,10 @@ func TestParse(t *testing.T) {
 		},
 	}
 
-	got := New(in)
+	got, err := New(data)
+	if err != nil {
+		t.Error(err)
+	}
 	if diff := cmp.Diff(got, want, cmp.Comparer(proto.Equal), cmp.AllowUnexported(Config{})); diff != "" {
 		t.Errorf("%s: %s", t.Name(), diff)
 	}

@@ -18,6 +18,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	duration "github.com/golang/protobuf/ptypes/duration"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // Config represents parsed mapping of the gRPC ServiceConfig contents
@@ -32,7 +33,13 @@ type Config struct {
 // New traverses the given gRPC ServiceConfig into more accessible constructs
 // mapped by the names to the specific config values. Use the accessors on the
 // resulting Config to retrieve values for a Service or Method.
-func New(c ServiceConfig) Config {
+func New(data []byte) (Config, error) {
+	c := ServiceConfig{}
+	err := protojson.Unmarshal(data, &c)
+	if err != nil {
+		return Config{}, err
+	}
+
 	policies := map[string]*MethodConfig_RetryPolicy{}
 	timeouts := map[string]*duration.Duration{}
 	reqLimits := map[string]int{}
@@ -69,7 +76,7 @@ func New(c ServiceConfig) Config {
 		timeouts:  timeouts,
 		reqLimits: reqLimits,
 		resLimits: resLimits,
-	}
+	}, nil
 }
 
 // RetryPolicy returns the retryPolicy and if a mapping was present for the

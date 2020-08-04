@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -28,7 +29,6 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -88,17 +88,20 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				return &g.resp, errors.E(nil, "error decoding service config: %v", err)
 			}
 		case "grpc-service-config":
-			data, err := os.Open(s[e+1:])
+			f, err := os.Open(s[e+1:])
 			if err != nil {
 				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
 			}
 
-			cpb := conf.ServiceConfig{}
-			err = jsonpb.Unmarshal(data, &cpb)
+			data, err := ioutil.ReadAll(f)
 			if err != nil {
-				return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
+				return &g.resp, errors.E(nil, "error reading gRPC service config: %v", err)
 			}
-			g.grpcConf = conf.New(cpb)
+
+			g.grpcConf, err = conf.New(data)
+			if err != nil {
+				return &g.resp, errors.E(nil, "error parsing gPRC service config: %v", err)
+			}
 		case "release-level":
 			g.relLvl = strings.ToLower(s[e+1:])
 		case "sample-only":
