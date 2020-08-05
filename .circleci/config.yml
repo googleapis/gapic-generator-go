@@ -68,7 +68,7 @@ jobs:
             GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
   bazel-test:
     environment:
-      BAZEL_VERSION: 2.2.0
+      BAZEL_VERSION: 3.4.1
       PYTHON_VERSION: 3.5.2
     machine: true
     steps:

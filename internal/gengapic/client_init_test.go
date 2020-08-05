@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"bytes"
 	"path/filepath"
 	"testing"
 
@@ -28,6 +29,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	code "google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestClientHook(t *testing.T) {
@@ -45,11 +47,11 @@ func TestClientHook(t *testing.T) {
 func TestClientOpt(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.grpcConf = &conf.ServiceConfig{
+	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
-			&conf.MethodConfig{
+			{
 				Name: []*conf.MethodConfig_Name{
-					&conf.MethodConfig_Name{
+					{
 						Service: "bar.FooService",
 						Method:  "Zip",
 					},
@@ -67,9 +69,9 @@ func TestClientOpt(t *testing.T) {
 					},
 				},
 			},
-			&conf.MethodConfig{
+			{
 				Name: []*conf.MethodConfig_Name{
-					&conf.MethodConfig_Name{
+					{
 						Service: "bar.FooService",
 					},
 				},
@@ -87,6 +89,15 @@ func TestClientOpt(t *testing.T) {
 				},
 			},
 		},
+	}
+	data, err := protojson.Marshal(cpb)
+	if err != nil {
+		t.Error(err)
+	}
+	in := bytes.NewReader(data)
+	g.grpcConf, err = conf.New(in)
+	if err != nil {
+		t.Error(err)
 	}
 
 	serv := &descriptor.ServiceDescriptorProto{

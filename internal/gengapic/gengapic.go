@@ -28,7 +28,6 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -88,15 +87,14 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				return &g.resp, errors.E(nil, "error decoding service config: %v", err)
 			}
 		case "grpc-service-config":
-			data, err := os.Open(s[e+1:])
+			f, err := os.Open(s[e+1:])
 			if err != nil {
 				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
 			}
 
-			g.grpcConf = &conf.ServiceConfig{}
-			err = jsonpb.Unmarshal(data, g.grpcConf)
+			g.grpcConf, err = conf.New(f)
 			if err != nil {
-				return &g.resp, errors.E(nil, "error unmarshaling gPRC service config: %v", err)
+				return &g.resp, errors.E(nil, "error parsing gPRC service config: %v", err)
 			}
 		case "release-level":
 			g.relLvl = strings.ToLower(s[e+1:])
@@ -190,7 +188,7 @@ type generator struct {
 	serviceConfig *serviceConfig
 
 	// gRPC ServiceConfig
-	grpcConf *conf.ServiceConfig
+	grpcConf conf.Config
 
 	// Auxiliary types to be generated in the package
 	aux *auxTypes
