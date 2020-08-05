@@ -11,9 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package grpc_service_config
 
 import (
+	"io"
+	"io/ioutil"
 	"log"
 
 	"github.com/golang/protobuf/ptypes"
@@ -33,9 +36,14 @@ type Config struct {
 // New traverses the given gRPC ServiceConfig into more accessible constructs
 // mapped by the names to the specific config values. Use the accessors on the
 // resulting Config to retrieve values for a Service or Method.
-func New(data []byte) (Config, error) {
+func New(in io.Reader) (Config, error) {
+	data, err := ioutil.ReadAll(in)
+	if err != nil {
+		return Config{}, err
+	}
+
 	c := ServiceConfig{}
-	err := protojson.Unmarshal(data, &c)
+	err = protojson.Unmarshal(data, &c)
 	if err != nil {
 		return Config{}, err
 	}

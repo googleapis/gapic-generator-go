@@ -14,6 +14,7 @@
 package grpc_service_config
 
 import (
+	"bytes"
 	"testing"
 
 	duration "github.com/golang/protobuf/ptypes/duration"
@@ -74,6 +75,7 @@ func TestParse(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	in := bytes.NewReader(data)
 
 	want := Config{
 		policies: map[string]*MethodConfig_RetryPolicy{
@@ -108,7 +110,7 @@ func TestParse(t *testing.T) {
 		},
 	}
 
-	got, err := New(data)
+	got, err := New(in)
 	if err != nil {
 		t.Error(err)
 	}

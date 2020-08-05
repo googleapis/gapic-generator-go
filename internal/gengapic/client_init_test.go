@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"bytes"
 	"path/filepath"
 	"testing"
 
@@ -93,7 +94,8 @@ func TestClientOpt(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	g.grpcConf, err = conf.New(data)
+	in := bytes.NewReader(data)
+	g.grpcConf, err = conf.New(in)
 	if err != nil {
 		t.Error(err)
 	}

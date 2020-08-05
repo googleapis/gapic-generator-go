@@ -16,7 +16,6 @@ package gengapic
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -93,12 +92,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
 			}
 
-			data, err := ioutil.ReadAll(f)
-			if err != nil {
-				return &g.resp, errors.E(nil, "error reading gRPC service config: %v", err)
-			}
-
-			g.grpcConf, err = conf.New(data)
+			g.grpcConf, err = conf.New(f)
 			if err != nil {
 				return &g.resp, errors.E(nil, "error parsing gPRC service config: %v", err)
 			}
