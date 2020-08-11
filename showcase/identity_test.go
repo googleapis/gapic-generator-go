@@ -28,6 +28,7 @@ import (
 var identity *showcase.IdentityClient
 
 func TestUserCRUD(t *testing.T) {
+	defer check(t)
 	ctx := context.Background()
 
 	create := &showcasepb.CreateUserRequest{

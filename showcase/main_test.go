@@ -25,6 +25,18 @@ import (
 	"google.golang.org/grpc"
 )
 
+func init() {
+	// These "leaks" are created by the client connection not being closed at the
+	// end of an individual test. This is not an issue for us, because the client
+	// connection is shared across tests and closed by the TestMain. We are more
+	// concerned with leaking contexts used in tests by GAPICs.
+	//
+	// TODO(noahdietz): explore refactoring tests to using individual connections.
+	registerIgnoreGoroutine("google.golang.org/grpc/internal/transport.newHTTP2Client")
+	registerIgnoreGoroutine("google.golang.org/grpc.newCCBalancerWrapper")
+	registerIgnoreGoroutine("google.golang.org/grpc.(*addrConn).connect")
+}
+
 func TestMain(m *testing.M) {
 	flag.Parse()
 
@@ -32,6 +44,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer conn.Close()
 	opt := option.WithGRPCConn(conn)
 	ctx := context.Background()
 
@@ -39,11 +52,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer echo.Close()
 
 	identity, err = showcase.NewIdentityClient(ctx, opt)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer identity.Close()
 
 	os.Exit(m.Run())
 }
