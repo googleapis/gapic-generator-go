@@ -31,8 +31,9 @@ import (
 )
 
 var echo *showcase.EchoClient
+
 func TestEcho(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "hello world!"
 	req := &showcasepb.EchoRequest{
 		Response: &showcasepb.EchoRequest_Content{
@@ -50,7 +51,7 @@ func TestEcho(t *testing.T) {
 }
 
 func TestEcho_error(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	val := codes.Canceled
 	req := &showcasepb.EchoRequest{
 		Response: &showcasepb.EchoRequest_Error{
@@ -69,7 +70,7 @@ func TestEcho_error(t *testing.T) {
 }
 
 func TestExpand(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "The rain in Spain stays mainly on the plain!"
 	req := &showcasepb.ExpandRequest{Content: content}
 	s, err := echo.Expand(context.Background(), req)
@@ -94,7 +95,7 @@ func TestExpand(t *testing.T) {
 }
 
 func TestCollect(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "The rain in Spain stays mainly on the plain!"
 	s, err := echo.Collect(context.Background())
 	if err != nil {
@@ -116,7 +117,7 @@ func TestCollect(t *testing.T) {
 }
 
 func TestChat(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "The rain in Spain stays mainly on the plain!"
 	s, err := echo.Chat(context.Background())
 	if err != nil {
@@ -145,7 +146,7 @@ func TestChat(t *testing.T) {
 }
 
 func TestWait(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "hello world!"
 	req := &showcasepb.WaitRequest{
 		End: &showcasepb.WaitRequest_Ttl{
@@ -169,7 +170,7 @@ func TestWait(t *testing.T) {
 }
 
 func TestWait_timeout(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "hello world!"
 	req := &showcasepb.WaitRequest{
 		End: &showcasepb.WaitRequest_Ttl{
@@ -179,16 +180,21 @@ func TestWait_timeout(t *testing.T) {
 			Success: &showcasepb.WaitResponse{Content: content},
 		},
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 1*time.Millisecond)
-	resp, err := echo.Wait(ctx, req)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
 
+	op, err := echo.Wait(ctx, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := op.Wait(ctx)
 	if err == nil {
-		t.Errorf("Wait() = %v, want error", resp)
+		t.Errorf("Wait() = %+v, want error", resp)
 	}
 }
 
 func TestPagination(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	str := "foo bar biz baz"
 	expected := strings.Split(str, " ")
 	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2}
@@ -211,7 +217,7 @@ func TestPagination(t *testing.T) {
 }
 
 func TestPaginationWithToken(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	str := "ab cd ef gh ij kl"
 	expected := strings.Split(str, " ")[1:]
 	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2, PageToken: "1"}
@@ -237,7 +243,7 @@ func TestPaginationWithToken(t *testing.T) {
 }
 
 func TestBlock(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "hello world!"
 	req := &showcasepb.BlockRequest{
 		ResponseDelay: &durationpb.Duration{Nanos: 1000},
@@ -255,7 +261,7 @@ func TestBlock(t *testing.T) {
 }
 
 func TestBlock_timeout(t *testing.T) {
-	t.Parallel()
+	defer check(t)
 	content := "hello world!"
 	req := &showcasepb.BlockRequest{
 		ResponseDelay: &durationpb.Duration{Seconds: 1},
@@ -263,7 +269,9 @@ func TestBlock_timeout(t *testing.T) {
 			Success: &showcasepb.BlockResponse{Content: content},
 		},
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
 	resp, err := echo.Block(ctx, req)
 	if err == nil {
 		t.Errorf("Block() = %v, want error", resp)
