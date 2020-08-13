@@ -272,8 +272,11 @@ func TestBlock_timeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
+	want := status.New(codes.DeadlineExceeded, "context deadline exceeded")
 	resp, err := echo.Block(ctx, req)
 	if err == nil {
 		t.Errorf("Block() = %v, want error", resp)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want.Code() || got.Message() != want.Message() {
+		t.Errorf("Block() = %v, want %v", err, want)
 	}
 }
