@@ -58,9 +58,8 @@ func Test_Sequence_Empty(t *testing.T) {
 
 	a := attempts[0]
 	d, _ := ctx.Deadline()
-	ad := a.GetAttemptDeadline().AsTime()
-	if ad.Equal(d) || (ad.Before(d) && d.Sub(ad) < 1*time.Millisecond) {
-		t.Errorf("%s: server deadline = %v client deadline = %v", t.Name(), ad, d)
+	if diff := d.Sub(a.GetAttemptDeadline().AsTime()); diff > time.Millisecond {
+		t.Errorf("%s: difference between server and client deadline was more than 1ms: %v", t.Name(), diff.Milliseconds())
 	}
 }
 
