@@ -1,4 +1,9 @@
 func (c *FooClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*EmptyLROOperation, error) {
+	if _, ok := ctx.Deadline(); !ok {
+		cctx, cancel := context.WithTimeout(ctx, 10000 * time.Millisecond)
+		defer cancel()
+		ctx = cctx
+	}
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	opts = append(c.CallOptions.EmptyLRO[0:len(c.CallOptions.EmptyLRO):len(c.CallOptions.EmptyLRO)], opts...)
 	var resp *longrunningpb.Operation

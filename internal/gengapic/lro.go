@@ -25,6 +25,8 @@ import (
 )
 
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	s := g.descInfo.ParentElement[m]
+	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
 	inType := g.descInfo.Type[m.GetInputType()]
 	outType := g.descInfo.Type[m.GetOutputType()]
 
@@ -38,11 +40,13 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 		return err
 	}
 
-	lroType := lroTypeName(*m.Name)
+	lroType := lroTypeName(m.GetName())
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		servName, *m.Name, inSpec.Name, inType.GetName(), lroType)
+		servName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+
+	g.deadline(sFQN, m.GetName())
 
 	err = g.insertMetadata(m)
 	if err != nil {
@@ -53,7 +57,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
-	p("    resp, err = %s", grpcClientCall(servName, *m.Name))
+	p("    resp, err = %s", grpcClientCall(servName, m.GetName()))
 	p("    return err")
 	p("  }, opts...)")
 	p("  if err != nil {")
@@ -74,7 +78,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 
 func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	mFQN := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
-	lroType := lroTypeName(*m.Name)
+	lroType := lroTypeName(m.GetName())
 	p := g.printf
 
 	eLRO, err := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
@@ -137,7 +141,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 
 	// Type definition
 	{
-		p("// %s manages a long-running operation from %s.", lroType, *m.Name)
+		p("// %s manages a long-running operation from %s.", lroType, m.GetName())
 		p("type %s struct {", lroType)
 		p("  lro *longrunning.Operation")
 		p("}")
