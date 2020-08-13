@@ -276,7 +276,7 @@ func TestBlock_timeout(t *testing.T) {
 	resp, err := echo.Block(ctx, req)
 	if err == nil {
 		t.Errorf("Block() = %v, want error", resp)
-	} else if got, ok := status.FromError(err); !ok || got.Code() != want.Code() || got.Message() != want.Message() {
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want.Code() {
 		t.Errorf("Block() = %v, want %v", err, want)
 	}
 }
