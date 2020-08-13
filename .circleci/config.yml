@@ -27,7 +27,7 @@ workflows:
 jobs:
   format:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.15
     steps:
       - checkout
       - run:
@@ -35,7 +35,7 @@ jobs:
           command: "! go fmt ./... 2>&1 | read"
   build:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.15
     steps:
       - checkout
       - run: go test ./...
@@ -89,7 +89,7 @@ jobs:
               bazel test //...
   release:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.15
     steps:
       - checkout
       - setup_remote_docker
