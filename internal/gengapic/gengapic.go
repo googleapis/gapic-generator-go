@@ -47,6 +47,7 @@ const (
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 	alpha      = "alpha"
 	beta       = "beta"
+	disableDeadlinesVar = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
 )
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z]+)`)
@@ -495,7 +496,7 @@ func (g *generator) deadline(s, m string) {
 		return
 	}
 
-	g.printf("if _, ok := ctx.Deadline(); !ok {")
+	g.printf("if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {")
 	g.printf("  cctx, cancel := context.WithTimeout(ctx, %d * time.Millisecond)", t)
 	g.printf("  defer cancel()")
 	g.printf("  ctx = cctx")

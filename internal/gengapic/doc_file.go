@@ -78,8 +78,10 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 
 	p("import (")
 	p("%s%q", "\t", "context")
+	p("%s%q", "\t", "os")
 	p("%s%q", "\t", "runtime")
 	p("%s%q", "\t", "strings")
+	p("%s%q", "\t", "strconv")
 	p("%s%q", "\t", "unicode")
 	p("")
 	p("%s%q", "\t", "google.golang.org/api/option")
@@ -105,6 +107,17 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("    }")
 	p("  }")
 	p("  return metadata.NewOutgoingContext(ctx, out)")
+	p("}")
+	p("")
+
+	p("func checkDisableDeadlines() (bool, error) {")
+	p("  raw, ok := os.LookupEnv(%q)", disableDeadlinesVar)
+	p("  if !ok {")
+	p("    return false, nil")
+	p("  }")
+	p("")
+	p("  b, err := strconv.ParseBool(raw)")
+	p("  return b, err")
 	p("}")
 	p("")
 
