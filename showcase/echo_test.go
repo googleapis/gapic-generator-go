@@ -275,8 +275,8 @@ func TestBlock_timeout(t *testing.T) {
 	want := status.New(codes.DeadlineExceeded, "context deadline exceeded")
 	resp, err := echo.Block(ctx, req)
 	if err == nil {
-		t.Errorf("Block() = %v, want error", resp)
+		t.Errorf("Block() got %+v, want %+v", resp, want)
 	} else if got, ok := status.FromError(err); !ok || got.Code() != want.Code() {
-		t.Errorf("Block() = %v, want %v", err, want)
+		t.Errorf("Block() got %+v, want %+v", err, want)
 	}
 }
