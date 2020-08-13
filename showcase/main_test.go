@@ -60,5 +60,11 @@ func TestMain(m *testing.M) {
 	}
 	defer identity.Close()
 
+	sequenceClient, err = showcase.NewSequenceClient(ctx, opt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sequenceClient.Close()
+
 	os.Exit(m.Run())
 }
