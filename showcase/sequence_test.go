@@ -63,6 +63,38 @@ func Test_Sequence_Empty(t *testing.T) {
 	}
 }
 
+func Test_Sequence_Empty_DefaultDeadline(t *testing.T) {
+	defer check(t)
+	seq, err := sequenceClient.CreateSequence(context.Background(), &showcasepb.CreateSequenceRequest{})
+	if err != nil {
+		t.Errorf("%s: unexpected err %+v", t.Name(), err)
+	}
+
+	start := time.Now()
+	err = sequenceClient.AttemptSequence(context.Background(), &showcasepb.AttemptSequenceRequest{Name: seq.GetName()})
+	if err != nil {
+		t.Errorf("%s: unexpected err %+v", t.Name(), err)
+	}
+
+	r := seq.GetName() + "/sequenceReport"
+	report, err := sequenceClient.GetSequenceReport(context.Background(), &showcasepb.GetSequenceReportRequest{Name: r})
+	if err != nil {
+		t.Errorf("%s: unexpected err %+v", t.Name(), err)
+	}
+
+	attempts := report.GetAttempts()
+	if len(attempts) != 1 {
+		t.Errorf("%s: expected number of attempts to be 1 but was %d", t.Name(), len(attempts))
+	}
+
+	a := attempts[0]
+	// Ensure that the default deadline of ~10s was set.
+	d := start.Add(time.Second * 10)
+	if diff := d.Sub(a.GetAttemptDeadline().AsTime()); diff > time.Millisecond {
+		t.Errorf("%s: difference between server and client deadline was more than 1ms: %v", t.Name(), diff.Milliseconds())
+	}
+}
+
 func Test_Sequence_Retry(t *testing.T) {
 	defer check(t)
 	responses := []*showcasepb.Sequence_Response{
