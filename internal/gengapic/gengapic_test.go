@@ -15,15 +15,19 @@
 package gengapic
 
 import (
+	"bytes"
 	"path/filepath"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/ptypes/duration"
+	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestComment(t *testing.T) {
@@ -211,10 +215,33 @@ func TestGenMethod(t *testing.T) {
 			GoPackage: proto.String("mypackage"),
 		},
 	}
-	serv := &descriptor.ServiceDescriptorProto{}
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+	}
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	cpb := &conf.ServiceConfig{
+		MethodConfig: []*conf.MethodConfig{
+			{
+				Name: []*conf.MethodConfig_Name{
+					{
+						Service: "my.pkg.Foo",
+					},
+				},
+				Timeout: &duration.Duration{Seconds: 10},
+			},
+		},
+	}
+	data, err := protojson.Marshal(cpb)
+	if err != nil {
+		t.Error(err)
+	}
+	in := bytes.NewReader(data)
+	g.grpcConf, err = conf.New(in)
+	if err != nil {
+		t.Error(err)
+	}
 
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
@@ -280,6 +307,7 @@ func TestGenMethod(t *testing.T) {
 methods:
 	for _, m := range meths {
 		g.pt.Reset()
+		g.descInfo.ParentElement[m] = serv
 
 		g.aux = &auxTypes{
 			iters: map[string]*iterType{},
@@ -318,10 +346,33 @@ func TestGenLRO(t *testing.T) {
 			GoPackage: proto.String("mypackage"),
 		},
 	}
-	serv := &descriptor.ServiceDescriptorProto{}
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+	}
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	cpb := &conf.ServiceConfig{
+		MethodConfig: []*conf.MethodConfig{
+			{
+				Name: []*conf.MethodConfig_Name{
+					{
+						Service: "my.pkg.Foo",
+					},
+				},
+				Timeout: &duration.Duration{Seconds: 10},
+			},
+		},
+	}
+	data, err := protojson.Marshal(cpb)
+	if err != nil {
+		t.Error(err)
+	}
+	in := bytes.NewReader(data)
+	g.grpcConf, err = conf.New(in)
+	if err != nil {
+		t.Error(err)
+	}
 
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
@@ -331,6 +382,7 @@ func TestGenLRO(t *testing.T) {
 		g.descInfo.ParentFile[typ] = file
 	}
 	g.descInfo.ParentFile[serv] = file
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{}
 
 	emptyLRO := &longrunning.OperationInfo{
 		ResponseType: emptyValue,
@@ -362,6 +414,7 @@ func TestGenLRO(t *testing.T) {
 lros:
 	for _, m := range lros {
 		g.pt.Reset()
+		g.descInfo.ParentElement[m] = serv
 
 		g.aux = &auxTypes{}
 

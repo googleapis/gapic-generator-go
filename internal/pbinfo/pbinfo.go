@@ -77,6 +77,7 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 			info.ParentFile[s] = f
 			for _, m := range s.Method {
 				info.ParentFile[m] = f
+				info.ParentElement[m] = s
 			}
 		}
 

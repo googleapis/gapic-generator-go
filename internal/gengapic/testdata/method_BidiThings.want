@@ -1,7 +1,7 @@
-func (c *FooClient) BidiThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb._BidiThingsClient, error) {
+func (c *FooClient) BidiThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb.Foo_BidiThingsClient, error) {
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	opts = append(c.CallOptions.BidiThings[0:len(c.CallOptions.BidiThings):len(c.CallOptions.BidiThings)], opts...)
-	var resp mypackagepb._BidiThingsClient
+	var resp mypackagepb.Foo_BidiThingsClient
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
 		resp, err = c.fooClient.BidiThings(ctx, settings.GRPC...)

@@ -17,6 +17,7 @@ package showcase
 import (
 	"context"
 	"io"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -25,6 +26,7 @@ import (
 	showcase "github.com/googleapis/gapic-showcase/client"
 	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -278,5 +280,49 @@ func TestBlock_timeout(t *testing.T) {
 		t.Errorf("Block() got %+v, want %+v", resp, want)
 	} else if got, ok := status.FromError(err); !ok || got.Code() != want.Code() {
 		t.Errorf("Block() got %+v, want %+v", err, want)
+	}
+}
+
+func TestBlock_default_timeout(t *testing.T) {
+	defer check(t)
+	content := "hello world!"
+	req := &showcasepb.BlockRequest{
+		ResponseDelay: &durationpb.Duration{Seconds: 6},
+		Response: &showcasepb.BlockRequest_Success{
+			Success: &showcasepb.BlockResponse{Content: content},
+		},
+	}
+
+	want := status.New(codes.DeadlineExceeded, "context deadline exceeded")
+	resp, err := echo.Block(context.Background(), req)
+	if err == nil {
+		t.Errorf("Block() got %+v, want %+v", resp, want)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want.Code() {
+		t.Errorf("Block() got %+v, want %+v", err, want)
+	}
+}
+
+func TestBlock_disable_default_timeout(t *testing.T) {
+	defer check(t)
+	content := "hello world!"
+	req := &showcasepb.BlockRequest{
+		ResponseDelay: &durationpb.Duration{Seconds: 11},
+		Response: &showcasepb.BlockRequest_Success{
+			Success: &showcasepb.BlockResponse{Content: content},
+		},
+	}
+
+	os.Setenv("GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE", "true")
+	e, err := showcase.NewEchoClient(context.Background(), option.WithGRPCConn(echo.Connection()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := e.Block(context.Background(), req)
+	if err != nil {
+		t.Error(err)
+	}
+	if resp.GetContent() != content {
+		t.Errorf("Block() = %q, want %q", resp.GetContent(), content)
 	}
 }
