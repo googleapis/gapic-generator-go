@@ -306,7 +306,7 @@ func TestBlock_disable_default_timeout(t *testing.T) {
 	defer check(t)
 	content := "hello world!"
 	req := &showcasepb.BlockRequest{
-		ResponseDelay: &durationpb.Duration{Seconds: 6},
+		ResponseDelay: &durationpb.Duration{Seconds: 11},
 		Response: &showcasepb.BlockRequest_Success{
 			Success: &showcasepb.BlockResponse{Content: content},
 		},
