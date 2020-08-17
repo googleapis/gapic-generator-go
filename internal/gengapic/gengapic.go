@@ -47,6 +47,7 @@ const (
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 	alpha      = "alpha"
 	beta       = "beta"
+	disableDeadlinesVar = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
 )
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z]+)`)
@@ -405,6 +406,8 @@ func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescripto
 }
 
 func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	s := g.descInfo.ParentElement[m]
+	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
 	inType := g.descInfo.Type[*m.InputType]
 	outType := g.descInfo.Type[*m.OutputType]
 
@@ -420,7 +423,9 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p := g.printf
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		servName, *m.Name, inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+		servName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+
+	g.deadline(sFQN, m.GetName())
 
 	err = g.insertMetadata(m)
 	if err != nil {
@@ -449,6 +454,8 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 }
 
 func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	s := g.descInfo.ParentElement[m]
+	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
 	inType := g.descInfo.Type[*m.InputType]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
@@ -460,6 +467,8 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 
 	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		servName, m.GetName(), inSpec.Name, inType.GetName())
+
+	g.deadline(sFQN, m.GetName())
 
 	err = g.insertMetadata(m)
 	if err != nil {
@@ -479,6 +488,19 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 
 	g.imports[inSpec] = true
 	return nil
+}
+
+func (g *generator) deadline(s, m string) {
+	t, ok := g.grpcConf.Timeout(s, m)
+	if !ok {
+		return
+	}
+
+	g.printf("if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {")
+	g.printf("  cctx, cancel := context.WithTimeout(ctx, %d * time.Millisecond)", t)
+	g.printf("  defer cancel()")
+	g.printf("  ctx = cctx")
+	g.printf("}")
 }
 
 func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
