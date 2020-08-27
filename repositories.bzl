@@ -19,9 +19,8 @@ def com_googleapis_gapic_generator_go_repositories():
     _maybe(
         http_archive,
         name = "com_google_api_codegen",
-        strip_prefix = "gapic-generator-a79e9ea3fcf686a80d92461a4788c5bcf55cea5a",
-        urls = ["https://github.com/googleapis/gapic-generator/archive/a79e9ea3fcf686a80d92461a4788c5bcf55cea5a.zip"],
-        sha256 = "c6a13fd221189458ad9eeb1de1f40e21bd80f0063bf05b9fa243722c18577f17",
+        strip_prefix = "gapic-generator-2.4.5",
+        urls = ["https://github.com/googleapis/gapic-generator/archive/v2.4.5.zip"],
     )
     _maybe(
         go_repository,
@@ -90,8 +89,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "com_github_google_go_cmp",
         importpath = "github.com/google/go-cmp",
-        sum = "h1:/QaMHBdZ26BB3SSst0Iwl10Epc+xhTquomWX0oZEB6w=",
-        version = "v0.5.0",
+        sum = "h1:X2ev0eStA3AbceY54o37/0PQ/UWqKEiiO2dKL5OPaFM=",
+        version = "v0.5.2",
     )
     _maybe(
         go_repository,
@@ -260,8 +259,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:L8iMEkPD/F6k/2Ui4/kfwRn5edLwHtfuj/+KK0nlU/E=",
-        version = "v0.0.0-20200706141556-5779274c8e96",
+        sum = "h1:wboULUXGF3c5qdUnKp+6gLAccE6PRpa/czkYvQ4UXv8=",
+        version = "v0.0.0-20200815001618-f69a88009b70",
     )
     _maybe(
         go_repository,
@@ -274,8 +273,8 @@ def com_googleapis_gapic_generator_go_repositories():
         go_repository,
         name = "org_golang_google_protobuf",
         importpath = "google.golang.org/protobuf",
-        sum = "h1:UhZDfRO8JRQru4/+LlLE0BRKGF8L+PICnvYZmx/fEGA=",
-        version = "v1.24.0",
+        sum = "h1:Ejskq+SyPohKW+1uil0JJMtmHCgJPJ/qWTxr8qp+R4c=",
+        version = "v1.25.0",
     )
     _maybe(
         go_repository,
