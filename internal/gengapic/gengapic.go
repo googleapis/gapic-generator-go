@@ -42,11 +42,11 @@ import (
 const (
 	emptyValue = "google.protobuf.Empty"
 	// protoc puts a dot in front of name, signaling that the name is fully qualified.
-	emptyType  = "." + emptyValue
-	lroType    = ".google.longrunning.Operation"
-	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
-	alpha      = "alpha"
-	beta       = "beta"
+	emptyType           = "." + emptyValue
+	lroType             = ".google.longrunning.Operation"
+	paramError          = "need parameter in format: go-gapic-package=client/import/path;packageName"
+	alpha               = "alpha"
+	beta                = "beta"
 	disableDeadlinesVar = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
 )
 
@@ -501,6 +501,8 @@ func (g *generator) deadline(s, m string) {
 	g.printf("  defer cancel()")
 	g.printf("  ctx = cctx")
 	g.printf("}")
+
+	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 }
 
 func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
