@@ -66,7 +66,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if e < 0 {
 			e = len(s)
 		}
-		switch s[:e] {
+		key, val := s[:e], s[e+1:]
+		switch key {
 		case "go-gapic-package":
 			p := strings.IndexByte(s, ';')
 
@@ -78,7 +79,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			pkgName = s[p+1:]
 			outDir = filepath.FromSlash(pkgPath)
 		case "gapic-service-config":
-			f, err := os.Open(s[e+1:])
+			f, err := os.Open(val)
 			if err != nil {
 				return &g.resp, errors.E(nil, "error opening service config: %v", err)
 			}
@@ -88,7 +89,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				return &g.resp, errors.E(nil, "error decoding service config: %v", err)
 			}
 		case "grpc-service-config":
-			f, err := os.Open(s[e+1:])
+			f, err := os.Open(val)
 			if err != nil {
 				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
 			}
@@ -97,8 +98,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			if err != nil {
 				return &g.resp, errors.E(nil, "error parsing gPRC service config: %v", err)
 			}
+		case "module":
+			g.modulePrefix = val
 		case "release-level":
-			g.relLvl = strings.ToLower(s[e+1:])
+			g.relLvl = strings.ToLower(val)
 		case "sample-only":
 			return &g.resp, nil
 		}
@@ -106,6 +109,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	if pkgPath == "" || pkgName == "" || outDir == "" {
 		return &g.resp, errors.E(nil, paramError)
+	}
+
+	if g.modulePrefix != "" && strings.HasPrefix(outDir, g.modulePrefix) {
+		outDir = strings.TrimPrefix(outDir, g.modulePrefix+"/")
 	}
 
 	g.init(genReq.ProtoFile)
@@ -196,6 +203,10 @@ type generator struct {
 
 	// Release level that defaults to GA/nothing
 	relLvl string
+
+	// The Go module prefix to strip from the go-gapic-package
+	// used as the generated file name.
+	modulePrefix string
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
