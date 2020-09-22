@@ -78,6 +78,9 @@ The configuration supported by the plugin option includes:
     **Note:** Idiomatically the name is last element of the path but it need not be.
     For instance, the last element of the path might be the package's version, and the package would benefit
     from a more descriptive name.
+
+  * `module`: prefix to be stripped from the `go-gapic-package` used in the generated filenames.
+     * _Note: This option is not supported from the Bazel interface._
   
   * `grpc-service-config`: the path to a gRPC ServiceConfig JSON file.
     * This is used for client-side retry configuration in accordance with [AIP-4221](http://aip.dev/4221)
