@@ -62,10 +62,16 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	// parse plugin params, ignoring unknown values
 	for _, s := range strings.Split(*genReq.Parameter, ",") {
+		// check for the boolean flag, sample-only, that disables client generation
+		if s == "sample-only" {
+			return &g.resp, nil
+		}
+
 		e := strings.IndexByte(s, '=')
 		if e < 0 {
-			e = len(s)
+			return &g.resp, errors.E(nil, "invalid plugin option format, must be key=value: %s", s)
 		}
+
 		key, val := s[:e], s[e+1:]
 		switch key {
 		case "go-gapic-package":
@@ -102,8 +108,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			g.modulePrefix = val
 		case "release-level":
 			g.relLvl = strings.ToLower(val)
-		case "sample-only":
-			return &g.resp, nil
 		}
 	}
 
@@ -111,7 +115,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		return &g.resp, errors.E(nil, paramError)
 	}
 
-	if g.modulePrefix != "" && strings.HasPrefix(outDir, g.modulePrefix) {
+	if g.modulePrefix != "" {
+		if !strings.HasPrefix(outDir, g.modulePrefix) {
+			return &g.resp, errors.E(nil, "go-gapic-package %q does not match prefix %q", outDir, g.modulePrefix)
+		}
 		outDir = strings.TrimPrefix(outDir, g.modulePrefix+"/")
 	}
 
