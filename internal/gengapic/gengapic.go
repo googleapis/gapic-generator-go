@@ -73,6 +73,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		}
 
 		key, val := s[:e], s[e+1:]
+		if val == "" {
+			return &g.resp, errors.E(nil, "invalid plugin option value, missing value in key=value: %s", s)
+		}
+
 		switch key {
 		case "go-gapic-package":
 			p := strings.IndexByte(s, ';')
