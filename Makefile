@@ -25,7 +25,7 @@ install:
 	go install ./cmd/protoc-gen-go_cli
 
 update-bazel-repos:
-	bazel run //:gazelle -- update-repos -from_file=go.mod -prune
+	bazel run //:gazelle -- update-repos -from_file=go.mod -prune -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
 	sed -i ''  's/    "go_repository",//g' repositories.bzl
 
 clean:

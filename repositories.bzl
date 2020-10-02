@@ -19,7 +19,7 @@ load(
     gazelle_go_repository = "go_repository",
 )
 
-def go_modules():
+def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "co_honnef_go_tools",
         importpath = "honnef.co/go/tools",
@@ -94,7 +94,8 @@ def go_modules():
     )
     go_repository(
         name = "com_github_jhump_protoreflect",
-        # Manually added in order to disable testproto BUILD file generation.
+        # Added in order to disable testproto BUILD file generation.
+        # This should be retained by gazelle.
         build_file_proto_mode = "disable",
         importpath = "github.com/jhump/protoreflect",
         sum = "h1:qJ7piXPrjP3mDrfHf5ATkxfLix8ANs226vpo0aACOn0=",
@@ -195,6 +196,12 @@ def go_modules():
         importpath = "gitlab.com/opennota/wd",
         sum = "h1:uPZaMiz6Sz0PZs3IZJWpU5qHKGNy///1pacZC9txiUI=",
         version = "v0.0.0-20180912061657-c5d65f63c638",
+    )
+    _maybe(
+        http_archive,
+        name = "com_google_api_codegen",
+        strip_prefix = "gapic-generator-2.4.5",
+        urls = ["https://github.com/googleapis/gapic-generator/archive/v2.4.5.zip"],
     )
     go_repository(
         name = "com_google_cloud_go",
@@ -310,15 +317,6 @@ def go_modules():
         sum = "h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=",
         version = "v0.0.0-20191204190536-9bdfabe68543",
     )
-
-def com_googleapis_gapic_generator_go_repositories():
-    _maybe(
-        http_archive,
-        name = "com_google_api_codegen",
-        strip_prefix = "gapic-generator-2.4.5",
-        urls = ["https://github.com/googleapis/gapic-generator/archive/v2.4.5.zip"],
-    )
-    go_modules()
 
 def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):
     if not name.startswith(strip_repo_prefix):

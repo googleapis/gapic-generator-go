@@ -38,11 +38,11 @@ http_archive(
 )
 
 # gazelle:repo bazel_gazelle
-# gazelle:repository_macro repositories.bzl%go_modules
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
 gazelle_dependencies()
 
 load("//:repositories.bzl", "com_googleapis_gapic_generator_go_repositories")
 
+# gazelle:repository_macro repositories.bzl%com_googleapis_gapic_generator_go_repositories
 com_googleapis_gapic_generator_go_repositories()
