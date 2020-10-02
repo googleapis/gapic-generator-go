@@ -43,7 +43,8 @@ When new files are added, or existing ones are deleted or moved, the appropriate
 be updated. This can, and should, be done automatically via Gazelle e.g. `bazel run //:gazelle`.
 
 If there are changes to the `go.mod`, an equivalent change must be made on the `repositories.bzl`
-macro that defines the Go repository dependencies.
+macro that defines the Go repository dependencies. This can be done manually or by executing the
+Make target: `make update-bazel-repos`.
 
 ## Releases
 
