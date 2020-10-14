@@ -102,8 +102,10 @@ def go_gapic_library(
 
   plugin_args = [
     "go-gapic-package={}".format(importpath),
-    "release-level={}".format(release_level),
   ]
+
+  if release_level:
+    plugin_args.append("release-level={}".format(release_level))
 
   if sample_only:
     plugin_args.append("sample-only")
