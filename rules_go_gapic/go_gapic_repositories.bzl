@@ -26,36 +26,36 @@ def go_gapic_repositories():
         go_repository,
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:zS+Q/CJJnVlXpXQVIz+lH0ZT2lBuT2ac7XD8Y/3w6hY=",
-        version = "v0.21.0",
+        sum = "h1:+gL0XvACeMIvpwLZ5rQZzLn5cwOsgg8dIcfJ2SYfBVw=",
+        version = "v0.33.0",
     )
     _maybe(
         go_repository,
         name = "org_golang_x_oauth2",
         importpath = "golang.org/x/oauth2",
-        sum = "h1:TzXSXBo42m9gQenoE3b9BGiEpg5IG2JkU5FkPIawgtw=",
-        version = "v0.0.0-20200107190931-bf48bf16ab8d",
+        sum = "h1:ld7aEMNHoBnnDAX15v1T6z31v8HwR2A9FYOuAhWqkwc=",
+        version = "v0.0.0-20200902213428-5d25da1a8d43",
     )
     _maybe(
         go_repository,
         name = "com_github_google_go_cmp",
         importpath = "github.com/google/go-cmp/cmp",
-        sum = "h1:xsAVV57WRhGj6kEIi8ReJzQlHHqcBYCElAvkovg3B/4=",
-        version = "v0.4.0",
+        sum = "h1:X2ev0eStA3AbceY54o37/0PQ/UWqKEiiO2dKL5OPaFM=",
+        version = "v0.5.2",
     )
     _maybe(
         go_repository,
         name = "io_opencensus_go",
         importpath = "go.opencensus.io",
-        sum = "h1:8sGtKOrtQqkN1bp2AtX+misvLIlOmsEsNd+9NIcPEm8=",
-        version = "v0.22.3",
+        sum = "h1:dntmOdLpSpHlVqbW5Eay97DelsZHe+55D+xC6i0dDS0=",
+        version = "v0.22.5",
     )
     _maybe(
         go_repository,
         name = "com_github_golang_groupcache",
         importpath = "github.com/golang/groupcache",
-        sum = "h1:ZgQEtGgCBiWRM39fZuwSd1LwSqqSW0hOdXCYYDX0R3I=",
-        version = "v0.0.0-20190702054246-869f871628b6",
+        sum = "h1:1r7pUrabqp18hOBcwBwiTsbnFeTZHV9eER/QT5JVZxY=",
+        version = "v0.0.0-20200121045136-8c9f03a8e57e",
     )
     _maybe(
         go_repository,
@@ -71,8 +71,8 @@ def go_gapic_repositories():
         go_repository,
         name = "com_google_cloud_go",
         importpath = "cloud.google.com/go",
-        sum = "h1:EpMNVUorLiZIELdMZbCYX/ByTFCdoYopYAGxaGVz9ms=",
-        version = "v0.57.0",
+        sum = "h1:ujhG1RejZYi+HYfJNlgBh3j/bVKD8DewM7AkJ5UPyBc=",
+        version = "v0.70.0",
         # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
         build_extra_args = ["-exclude=longrunning/autogen/info.go"],
     )
