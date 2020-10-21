@@ -109,7 +109,7 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	if err := proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.bar.com")); err != nil {
+	if err := proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -143,7 +143,7 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	if err := proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, proto.String("foo.bar.com:1234")); err != nil {
+	if err := proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234")); err != nil {
 		t.Fatal(err)
 	}
 
