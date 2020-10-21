@@ -65,7 +65,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 		p("func default%sClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
-		p("    option.WithEndpoint(%q),", host)
+		p("    internaloption.WithDefaultEndpoint(%q),", host)
+		p("    internaloption.WithDefaultMTLSEndpoint(%q),", generateDefaultMTLSEndpoint(host))
 		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
@@ -76,6 +77,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 		g.imports[pbinfo.ImportSpec{Path: "math"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
 	}
 
 	// defaultCallOptions
@@ -284,4 +286,27 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 	}
 
 	return nil
+}
+
+// generateDefaultMTLSEndpoint attempts to derive the mTLS version of the
+// defaultEndpoint via regex, and returns defaultEndpoint if unsuccessful.
+//
+// We need to applying the following 2 transformations:
+// 1. pubsub.googleapis.com to pubsub.mtls.googleapis.com
+// 2. pubsub.sandbox.googleapis.com to pubsub.mtls.sandbox.googleapis.com
+//
+// This function is needed because the default mTLS endpoint is currently
+// not part of the service proto. In the future, we should update the
+// service proto to include a new "google.api.default_mtls_host" option.
+func generateDefaultMTLSEndpoint(defaultEndpoint string) string {
+	var domains = []string{
+		".sandbox.googleapis.com", // must come first because .googleapis.com is a substring
+		".googleapis.com",
+	}
+	for _, domain := range domains {
+		if strings.Contains(defaultEndpoint, domain) {
+			return strings.Replace(defaultEndpoint, domain, ".mtls"+domain, -1)
+		}
+	}
+	return defaultEndpoint
 }

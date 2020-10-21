@@ -7,7 +7,8 @@ type FooCallOptions struct {
 
 func defaultFooClientOptions() []option.ClientOption {
 	return []option.ClientOption{
-		option.WithEndpoint("foo.bar.com:443"),
+		internaloption.WithDefaultEndpoint("foo.googleapis.com:443"),
+		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:443"),
 		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
 		option.WithScopes(DefaultAuthScopes()...),
 		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(

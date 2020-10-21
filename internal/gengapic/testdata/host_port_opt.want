@@ -5,7 +5,8 @@ type BarCallOptions struct {
 
 func defaultBarClientOptions() []option.ClientOption {
 	return []option.ClientOption{
-		option.WithEndpoint("foo.bar.com:1234"),
+		internaloption.WithDefaultEndpoint("foo.googleapis.com:1234"),
+		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:1234"),
 		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
 		option.WithScopes(DefaultAuthScopes()...),
 		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
