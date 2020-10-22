@@ -16,4 +16,4 @@ permissionRules:
   - team: actools
     permission: admin
   - team: actools-go
-    permission: write
+    permission: push
