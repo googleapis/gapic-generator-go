@@ -68,8 +68,8 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("    internaloption.WithDefaultEndpoint(%q),", host)
 		p("    internaloption.WithDefaultMTLSEndpoint(%q),", generateDefaultMTLSEndpoint(host))
 		p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
-		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 		p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
+		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 		p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
 		p("      grpc.MaxCallRecvMsgSize(math.MaxInt32))),")
 		p("  }")
@@ -320,9 +320,11 @@ func generateDefaultAudience(host string) string {
 	if !strings.Contains(aud, "://") {
 		aud = "https://" + aud
 	}
-	// Remove port if present.
+	// Remove port, and everything after, if present.
 	if strings.Count(aud, ":") > 1 {
-		aud = aud[:strings.LastIndex(aud, ":")]
+		firstIndex := strings.Index(aud, ":")
+		secondIndex := strings.Index(aud[firstIndex+1:], ":") + firstIndex + 1
+		aud = aud[:secondIndex]
 	}
 	// Add trailing slash if not present.
 	if !strings.HasSuffix(aud, "/") {

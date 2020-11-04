@@ -210,22 +210,24 @@ func TestClientInit(t *testing.T) {
 }
 
 func TestGenerateDefaultAudience(t *testing.T) {
-	want := "https://foo.googleapis.com/"
 	tests := []struct {
 		name string
 		host string
+		want string
 	}{
-		{name: "plain host", host: "foo.googleapis.com"},
-		{name: "host with port", host: "foo.googleapis.com:443"},
-		{name: "host with scheme", host: "https://foo.googleapis.com"},
-		{name: "host with scheme and port", host: "https://foo.googleapis.com:1234"},
-		{name: "host is a proper audience", host: want},
+		{name: "plain host", host: "foo.googleapis.com", want: "https://foo.googleapis.com/"},
+		{name: "host with port", host: "foo.googleapis.com:443", want: "https://foo.googleapis.com/"},
+		{name: "host with scheme", host: "https://foo.googleapis.com", want: "https://foo.googleapis.com/"},
+		{name: "host with scheme and port", host: "https://foo.googleapis.com:1234", want: "https://foo.googleapis.com/"},
+		{name: "host is a proper audience", host: "https://foo.googleapis.com/", want: "https://foo.googleapis.com/"},
+		{name: "host with non-http scheme", host: "ftp://foo.googleapis.com", want: "ftp://foo.googleapis.com/"},
+		{name: "host with path", host: "foo.googleapis.com:443/extra/path", want: "https://foo.googleapis.com/"},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := generateDefaultAudience(tc.host); got != want {
-				t.Errorf("generateDefaultAudience(%q) = %q, want %q", tc.host, got, want)
+			if got := generateDefaultAudience(tc.host); got != tc.want {
+				t.Errorf("generateDefaultAudience(%q) = %q, want %q", tc.host, got, tc.want)
 			}
 		})
 	}
