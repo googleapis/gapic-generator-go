@@ -499,3 +499,46 @@ func Test_isLRO(t *testing.T) {
 		}
 	}
 }
+
+func Test_transportParse(t *testing.T) {
+	for _, tst := range []struct {
+		param        string
+		expectedOpts options
+		expectErr    bool
+	}{
+		{
+			param: "transport=grpc,go-gapic-package=path;pkg",
+			expectedOpts: options{
+				transports: []Transport{grpc},
+				pkgPath:    "path",
+				pkgName:    "pkg",
+				outDir:     "path",
+			},
+			expectErr: false,
+		},
+		{
+			param: "transport=rest+grpc,go-gapic-package=path;pkg",
+			expectedOpts: options{
+				transports: []Transport{rest, grpc},
+				pkgPath:    "path",
+				pkgName:    "pkg",
+				outDir:     "path",
+			},
+			expectErr: false,
+		},
+		{
+			param:        "transport=tcp,go-gapic-package=path;pkg",
+			expectedOpts: options{},
+			expectErr:    true,
+		},
+	} {
+		opts, err := ParseOptions(&tst.param)
+		if tst.expectErr {
+			if err == nil {
+				t.Errorf("ParseOptions(%s) expected error", tst.param)
+			}
+		} else if !OptsEqual(opts, &tst.expectedOpts) {
+			t.Errorf("ParseOptions(%s) = %v, want %v", tst.param, opts, tst.expectedOpts)
+		}
+	}
+}

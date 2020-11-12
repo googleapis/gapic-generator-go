@@ -26,8 +26,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	yaml "gopkg.in/yaml.v2"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -37,6 +35,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -52,29 +51,75 @@ const (
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z]+)`)
 
-func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
-	var pkgPath, pkgName, outDir string
-	var g generator
+type Transport int
 
-	if genReq.Parameter == nil {
-		return &g.resp, errors.E(nil, paramError)
+const (
+	grpc Transport = iota
+	rest
+)
+
+type options struct {
+	pkgPath           string
+	pkgName           string
+	outDir            string
+	relLvl            string
+	modulePrefix      string
+	grpcConfPath      string
+	serviceConfigPath string
+	sampleOnly        bool
+	transports        []Transport
+}
+
+func TransportSliceEqual(a, b []Transport) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func OptsEqual(a, b *options) bool {
+	if a == nil {
+		return b == nil
+	}
+
+	return a.pkgPath == b.pkgPath &&
+		a.pkgName == b.pkgName &&
+		a.outDir == b.outDir &&
+		a.relLvl == b.relLvl &&
+		a.modulePrefix == b.modulePrefix &&
+		a.grpcConfPath == b.grpcConfPath &&
+		a.serviceConfigPath == b.serviceConfigPath &&
+		a.sampleOnly == b.sampleOnly &&
+		TransportSliceEqual(a.transports, b.transports)
+}
+
+func ParseOptions(parameter *string) (*options, error) {
+	opts := options{sampleOnly: false}
+
+	if parameter == nil {
+		return nil, errors.E(nil, paramError)
 	}
 
 	// parse plugin params, ignoring unknown values
-	for _, s := range strings.Split(*genReq.Parameter, ",") {
+	for _, s := range strings.Split(*parameter, ",") {
 		// check for the boolean flag, sample-only, that disables client generation
 		if s == "sample-only" {
-			return &g.resp, nil
+			return &options{sampleOnly: true}, nil
 		}
 
 		e := strings.IndexByte(s, '=')
 		if e < 0 {
-			return &g.resp, errors.E(nil, "invalid plugin option format, must be key=value: %s", s)
+			return nil, errors.E(nil, "invalid plugin option format, must be key=value: %s", s)
 		}
 
 		key, val := s[:e], s[e+1:]
 		if val == "" {
-			return &g.resp, errors.E(nil, "invalid plugin option value, missing value in key=value: %s", s)
+			return nil, errors.E(nil, "invalid plugin option value, missing value in key=value: %s", s)
 		}
 
 		switch key {
@@ -82,51 +127,82 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			p := strings.IndexByte(s, ';')
 
 			if p < 0 {
-				return &g.resp, errors.E(nil, paramError)
+				return nil, errors.E(nil, paramError)
 			}
 
-			pkgPath = s[e+1 : p]
-			pkgName = s[p+1:]
-			outDir = filepath.FromSlash(pkgPath)
+			opts.pkgPath = s[e+1 : p]
+			opts.pkgName = s[p+1:]
+			opts.outDir = filepath.FromSlash(opts.pkgPath)
 		case "gapic-service-config":
-			f, err := os.Open(val)
-			if err != nil {
-				return &g.resp, errors.E(nil, "error opening service config: %v", err)
-			}
-
-			err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
-			if err != nil {
-				return &g.resp, errors.E(nil, "error decoding service config: %v", err)
-			}
+			opts.serviceConfigPath = val
 		case "grpc-service-config":
-			f, err := os.Open(val)
-			if err != nil {
-				return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
-			}
-
-			g.grpcConf, err = conf.New(f)
-			if err != nil {
-				return &g.resp, errors.E(nil, "error parsing gPRC service config: %v", err)
-			}
+			opts.grpcConfPath = val
 		case "module":
-			g.modulePrefix = val
+			opts.modulePrefix = val
 		case "release-level":
-			g.relLvl = strings.ToLower(val)
+			opts.relLvl = strings.ToLower(val)
+		case "transport":
+			for _, t := range strings.Split(val, "+") {
+				switch t {
+				case "grpc":
+					opts.transports = append(opts.transports, grpc)
+				case "rest":
+					opts.transports = append(opts.transports, rest)
+				default:
+					return nil, errors.E(nil, "invalid transport option: %s", t)
+				}
+			}
 		}
 	}
 
-	if pkgPath == "" || pkgName == "" || outDir == "" {
-		return &g.resp, errors.E(nil, paramError)
+	if opts.pkgPath == "" || opts.pkgName == "" || opts.outDir == "" {
+		return nil, errors.E(nil, paramError)
 	}
 
-	if g.modulePrefix != "" {
-		if !strings.HasPrefix(outDir, g.modulePrefix) {
-			return &g.resp, errors.E(nil, "go-gapic-package %q does not match prefix %q", outDir, g.modulePrefix)
+	if opts.modulePrefix != "" {
+		if !strings.HasPrefix(opts.outDir, opts.modulePrefix) {
+			return nil, errors.E(nil, "go-gapic-package %q does not match prefix %q", opts.outDir, opts.modulePrefix)
 		}
-		outDir = strings.TrimPrefix(outDir, g.modulePrefix+"/")
+		opts.outDir = strings.TrimPrefix(opts.outDir, opts.modulePrefix+"/")
 	}
 
+	return &opts, nil
+}
+
+func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+	var g generator
 	g.init(genReq.ProtoFile)
+
+	opts, err := ParseOptions(genReq.Parameter)
+	if err != nil {
+		return &g.resp, err
+	}
+
+	if opts.serviceConfigPath != "" {
+		f, err := os.Open(opts.serviceConfigPath)
+		if err != nil {
+			return &g.resp, errors.E(nil, "error opening service config: %v", err)
+		}
+		defer f.Close()
+
+		err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
+		if err != nil {
+			return &g.resp, errors.E(nil, "error decoding service config: %v", err)
+		}
+	}
+	if opts.grpcConfPath != "" {
+		f, err := os.Open(opts.grpcConfPath)
+		if err != nil {
+			return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
+		}
+		defer f.Close()
+
+		g.grpcConf, err = conf.New(f)
+		if err != nil {
+			return &g.resp, errors.E(nil, "error parsing gPRC service config: %v", err)
+		}
+	}
+	g.opts = opts
 
 	var genServs []*descriptor.ServiceDescriptorProto
 	for _, f := range genReq.ProtoFile {
@@ -149,20 +225,20 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		// Keep the current behavior for now, but we could revisit this later.
 		outFile := pbinfo.ReduceServName(s.GetName(), "")
 		outFile = camelToSnake(outFile)
-		outFile = filepath.Join(outDir, outFile)
+		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		g.reset()
-		if err := g.gen(s, pkgName); err != nil {
+		if err := g.gen(s, g.opts.pkgName); err != nil {
 			return &g.resp, err
 		}
-		g.commit(outFile+"_client.go", pkgName)
+		g.commit(outFile+"_client.go", g.opts.pkgName)
 
 		g.reset()
-		if err := g.genExampleFile(s, pkgName); err != nil {
+		if err := g.genExampleFile(s, g.opts.pkgName); err != nil {
 			return &g.resp, errors.E(err, "example: %s", s.GetName())
 		}
-		g.imports[pbinfo.ImportSpec{Name: pkgName, Path: pkgPath}] = true
-		g.commit(outFile+"_client_example_test.go", pkgName+"_test")
+		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
+		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test")
 	}
 
 	g.reset()
@@ -170,9 +246,9 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	if err != nil {
 		return &g.resp, err
 	}
-	g.genDocFile(pkgPath, pkgName, time.Now().Year(), scopes)
+	g.genDocFile(g.opts.pkgPath, g.opts.pkgName, time.Now().Year(), scopes)
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(filepath.Join(outDir, "doc.go")),
+		Name:    proto.String(filepath.Join(g.opts.outDir, "doc.go")),
 		Content: proto.String(g.pt.String()),
 	})
 
@@ -218,6 +294,10 @@ type generator struct {
 	// The Go module prefix to strip from the go-gapic-package
 	// used as the generated file name.
 	modulePrefix string
+
+	// Options for the generator determining module names, transports,
+	// config file paths, etc.
+	opts *options
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
