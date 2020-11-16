@@ -29,14 +29,14 @@ import (
 //
 // Since it's the only file that needs to write package documentation and canonical import,
 // it does not use g.commit().
-func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []string) {
+func (g *generator) genDocFile(year int, scopes []string) {
 	p := g.printf
 
 	p(license.Apache, year)
 	p("")
 
 	if g.apiName != "" {
-		p("// Package %s is an auto-generated package for the", pkgName)
+		p("// Package %s is an auto-generated package for the", g.opts.pkgName)
 		p("// %s.", g.apiName)
 	}
 
@@ -73,7 +73,7 @@ func (g *generator) genDocFile(pkgPath, pkgName string, year int, scopes []strin
 	p("//")
 	p("// For information about setting deadlines, reusing contexts, and more")
 	p("// please visit pkg.go.dev/cloud.google.com/go.")
-	p("package %s // import %q", pkgName, pkgPath)
+	p("package %s // import %q", g.opts.pkgName, g.opts.pkgPath)
 	p("")
 
 	p("import (")

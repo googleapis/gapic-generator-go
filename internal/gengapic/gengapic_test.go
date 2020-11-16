@@ -17,6 +17,7 @@ package gengapic
 import (
 	"bytes"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -527,11 +528,6 @@ func Test_transportParse(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			param:        "transport=tcp,go-gapic-package=path;pkg",
-			expectedOpts: options{},
-			expectErr:    true,
-		},
-		{
 			param: "go-gapic-package=path;pkg",
 			expectedOpts: options{
 				transports: []Transport{grpc},
@@ -540,14 +536,50 @@ func Test_transportParse(t *testing.T) {
 				outDir:     "path",
 			},
 		},
+		{
+			param: "module=path,go-gapic-package=path/to/out;pkg",
+			expectedOpts: options{
+				transports:   []Transport{grpc},
+				pkgPath:      "path/to/out",
+				pkgName:      "pkg",
+				outDir:       "to/out",
+				modulePrefix: "path",
+			},
+			expectErr: false,
+		},
+		{
+			param:     "transport=tcp,go-gapic-package=path;pkg",
+			expectErr: true,
+		},
+		{
+			param:     "go-gapic-package=pkg;",
+			expectErr: true,
+		},
+		{
+			param:     "go-gapic-package=;path",
+			expectErr: true,
+		},
+		{
+			param:     "go-gapic-package=bogus",
+			expectErr: true,
+		},
+		{
+			param:     "module=different_path,go-gapic-package=path;pkg",
+			expectErr: true,
+		},
 	} {
 		opts, err := ParseOptions(&tst.param)
 		if tst.expectErr {
 			if err == nil {
 				t.Errorf("ParseOptions(%s) expected error", tst.param)
 			}
-		} else if !OptsEqual(opts, &tst.expectedOpts) {
-			t.Errorf("ParseOptions(%s) = %v, want %v", tst.param, opts, tst.expectedOpts)
+		} else {
+			if err != nil {
+				t.Errorf("ParseOptions(%s) got unexpected error: %v", tst.param, err)
+			}
+			if !reflect.DeepEqual(opts, &tst.expectedOpts) {
+				t.Errorf("ParseOptions(%s) = %v, want %v", tst.param, opts, tst.expectedOpts)
+			}
 		}
 	}
 }

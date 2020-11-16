@@ -70,34 +70,24 @@ type options struct {
 	transports        []Transport
 }
 
-func TransportSliceEqual(a, b []Transport) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func OptsEqual(a, b *options) bool {
-	if a == nil {
-		return b == nil
-	}
-
-	return a.pkgPath == b.pkgPath &&
-		a.pkgName == b.pkgName &&
-		a.outDir == b.outDir &&
-		a.relLvl == b.relLvl &&
-		a.modulePrefix == b.modulePrefix &&
-		a.grpcConfPath == b.grpcConfPath &&
-		a.serviceConfigPath == b.serviceConfigPath &&
-		a.sampleOnly == b.sampleOnly &&
-		TransportSliceEqual(a.transports, b.transports)
-}
-
+// ParseOptions takes a string and parses it into a struct defining
+// customizations on the target gapic surface.
+// Options are comma-separated key/value pairs which are in turn delimited with '='.
+// Valid options include:
+// * go-gapic-package (package and module naming info)
+// * sample-only (only checked for presence)
+// * gapic-service-config (filepath)
+// * grpc-service-config (filepath)
+// * module (name)
+// * release-level (one of 'alpha', 'beta', or empty)
+// * transport ('+' separated list of transport backends to generate)
+// The only required option is 'go-gapic-package'.
+//
+// Valid parameter example:
+// go-gapic-package=path/to/out;pkg,module=path,transport=rest+grpc,gapic-service-config=gapic_cfg.json,release-level=alpha
+//
+// It returns a pointer to a populated options if no errors were encountered while parsing.
+// If errors were encountered, it returns a nil pointer and the first error.
 func ParseOptions(parameter *string) (*options, error) {
 	opts := options{sampleOnly: false}
 
@@ -166,7 +156,7 @@ func ParseOptions(parameter *string) (*options, error) {
 		opts.outDir = strings.TrimPrefix(opts.outDir, opts.modulePrefix+"/")
 	}
 
-	// Default is just grpc
+	// Default is just grpc for now.
 	if opts.transports == nil {
 		opts.transports = []Transport{grpc}
 	}
@@ -233,7 +223,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		g.reset()
-		if err := g.gen(s, g.opts.pkgName); err != nil {
+		if err := g.gen(s); err != nil {
 			return &g.resp, err
 		}
 		g.commit(outFile+"_client.go", g.opts.pkgName)
@@ -251,7 +241,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	if err != nil {
 		return &g.resp, err
 	}
-	g.genDocFile(g.opts.pkgPath, g.opts.pkgName, time.Now().Year(), scopes)
+	g.genDocFile(time.Now().Year(), scopes)
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(g.opts.outDir, "doc.go")),
 		Content: proto.String(g.pt.String()),
@@ -415,8 +405,8 @@ func (g *generator) reset() {
 }
 
 // gen generates client for the given service.
-func (g *generator) gen(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
-	servName := pbinfo.ReduceServName(*serv.Name, pkgName)
+func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
+	servName := pbinfo.ReduceServName(*serv.Name, g.opts.pkgName)
 
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
