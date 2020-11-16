@@ -166,6 +166,11 @@ func ParseOptions(parameter *string) (*options, error) {
 		opts.outDir = strings.TrimPrefix(opts.outDir, opts.modulePrefix+"/")
 	}
 
+	// Default is just grpc
+	if opts.transports == nil {
+		opts.transports = []Transport{grpc}
+	}
+
 	return &opts, nil
 }
 
