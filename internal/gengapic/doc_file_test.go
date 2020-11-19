@@ -29,6 +29,7 @@ func TestDocFile(t *testing.T) {
 			Summary: "The Awesome Foo API is really really awesome. It enables the use of Foo with Buz and Baz to acclerate bar.",
 		},
 	}
+	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome"}
 
 	for _, tst := range []struct {
 		relLvl, want string
@@ -46,7 +47,7 @@ func TestDocFile(t *testing.T) {
 		},
 	} {
 		g.relLvl = tst.relLvl
-		g.genDocFile("path/to/awesome", "awesome", 42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
+		g.genDocFile(42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
 		txtdiff.Diff(t, "doc_file", g.pt.String(), tst.want)
 		g.reset()
 	}
