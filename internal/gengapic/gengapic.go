@@ -92,7 +92,7 @@ func ParseOptions(parameter *string) (*options, error) {
 	opts := options{sampleOnly: false}
 
 	if parameter == nil {
-		return nil, errors.E(nil, paramError)
+		return nil, errors.E(nil, "empty options parameter")
 	}
 
 	// parse plugin params, ignoring unknown values

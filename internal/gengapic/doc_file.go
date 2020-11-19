@@ -36,7 +36,7 @@ func (g *generator) genDocFile(year int, scopes []string) {
 	p("")
 
 	if g.apiName != "" {
-		p("// Package %s is an auto-generated package for the", g.opts.pkgName)
+		p("// Package %s is an auto-generated package for the ", g.opts.pkgName)
 		p("// %s.", g.apiName)
 	}
 

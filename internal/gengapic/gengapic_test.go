@@ -501,15 +501,15 @@ func Test_isLRO(t *testing.T) {
 	}
 }
 
-func Test_transportParse(t *testing.T) {
+func Test_optionsParse(t *testing.T) {
 	for _, tst := range []struct {
 		param        string
-		expectedOpts options
+		expectedOpts *options
 		expectErr    bool
 	}{
 		{
 			param: "transport=grpc,go-gapic-package=path;pkg",
-			expectedOpts: options{
+			expectedOpts: &options{
 				transports: []Transport{grpc},
 				pkgPath:    "path",
 				pkgName:    "pkg",
@@ -519,7 +519,7 @@ func Test_transportParse(t *testing.T) {
 		},
 		{
 			param: "transport=rest+grpc,go-gapic-package=path;pkg",
-			expectedOpts: options{
+			expectedOpts: &options{
 				transports: []Transport{rest, grpc},
 				pkgPath:    "path",
 				pkgName:    "pkg",
@@ -529,7 +529,7 @@ func Test_transportParse(t *testing.T) {
 		},
 		{
 			param: "go-gapic-package=path;pkg",
-			expectedOpts: options{
+			expectedOpts: &options{
 				transports: []Transport{grpc},
 				pkgPath:    "path",
 				pkgName:    "pkg",
@@ -538,7 +538,7 @@ func Test_transportParse(t *testing.T) {
 		},
 		{
 			param: "module=path,go-gapic-package=path/to/out;pkg",
-			expectedOpts: options{
+			expectedOpts: &options{
 				transports:   []Transport{grpc},
 				pkgPath:      "path/to/out",
 				pkgName:      "pkg",
@@ -569,17 +569,19 @@ func Test_transportParse(t *testing.T) {
 		},
 	} {
 		opts, err := ParseOptions(&tst.param)
-		if tst.expectErr {
-			if err == nil {
-				t.Errorf("ParseOptions(%s) expected error", tst.param)
-			}
-		} else {
-			if err != nil {
-				t.Errorf("ParseOptions(%s) got unexpected error: %v", tst.param, err)
-			}
-			if !reflect.DeepEqual(opts, &tst.expectedOpts) {
-				t.Errorf("ParseOptions(%s) = %v, want %v", tst.param, opts, tst.expectedOpts)
-			}
+		if tst.expectErr && err == nil {
+			t.Errorf("ParseOptions(%s) expected error", tst.param)
+			continue
+		}
+
+		if !tst.expectErr && err != nil {
+			t.Errorf("ParseOptions(%s) got unexpected error: %v", tst.param, err)
+			continue
+		}
+
+		if !reflect.DeepEqual(opts, tst.expectedOpts) {
+			t.Errorf("ParseOptions(%s) = %v, expected %v", tst.param, opts, tst.expectedOpts)
+			continue
 		}
 	}
 }
