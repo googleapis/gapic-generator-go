@@ -67,8 +67,9 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("  return []option.ClientOption{")
 		p("    internaloption.WithDefaultEndpoint(%q),", host)
 		p("    internaloption.WithDefaultMTLSEndpoint(%q),", generateDefaultMTLSEndpoint(host))
+		p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
+		p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
-		p("    option.WithScopes(DefaultAuthScopes()...),")
 		p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
 		p("      grpc.MaxCallRecvMsgSize(math.MaxInt32))),")
 		p("  }")
@@ -309,4 +310,25 @@ func generateDefaultMTLSEndpoint(defaultEndpoint string) string {
 		}
 	}
 	return defaultEndpoint
+}
+
+// generateDefaultAudience transforms a host into a an audience that can be used
+// as the `aud` claim in a JWT.
+func generateDefaultAudience(host string) string {
+	aud := host
+	// Add a scheme if not present.
+	if !strings.Contains(aud, "://") {
+		aud = "https://" + aud
+	}
+	// Remove port, and everything after, if present.
+	if strings.Count(aud, ":") > 1 {
+		firstIndex := strings.Index(aud, ":")
+		secondIndex := strings.Index(aud[firstIndex+1:], ":") + firstIndex + 1
+		aud = aud[:secondIndex]
+	}
+	// Add trailing slash if not present.
+	if !strings.HasSuffix(aud, "/") {
+		aud = aud + "/"
+	}
+	return aud
 }
