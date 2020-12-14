@@ -139,13 +139,263 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	return nil
 }
 
-func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) abstractClientIntfInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
+	p("// internal%sClient is an interface that defines the methods availaible from %s.", servName, g.apiName)
+	p("type internal%sClient interface {", servName)
+	for _, m := range serv.Method {
+		inType := g.descInfo.Type[m.GetInputType()]
+		inSpec, err := g.descInfo.ImportSpec(inType)
+		if err != nil {
+			return err
+		}
+		outType := g.descInfo.Type[m.GetOutputType()]
+		outSpec, err := g.descInfo.ImportSpec(outType)
+		if err != nil {
+			return err
+		}
+
+		if m.GetOutputType() == emptyType {
+			p("%s(context.Context, *%s.%s, ...gax.CallOption) error",
+				m.GetName(),
+				inSpec.Name,
+				inType.GetName())
+			continue
+		}
+
+		if pf, err := g.pagingField(m); err != nil {
+			return err
+		} else if pf != nil {
+			iter, err := g.iterTypeOf(pf)
+			if err != nil {
+				return err
+			}
+			p("%s(context.Context, *%s.%s, ...gax.CallOption) *%s",
+				m.GetName(),
+				inSpec.Name,
+				inType.GetName(),
+				iter.iterTypeName)
+			continue
+		}
+
+		switch {
+		case g.isLRO(m):
+			// Unary call where the return type is a wrapper of
+			// longrunning.Operation and more precise types
+			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s, error)",
+				m.GetName(), inSpec.Name, inType.GetName(), lroTypeName(m.GetName()))
+		case m.GetClientStreaming():
+			// Handles both client-streaming and bidi-streaming
+			p("%s(context.Context, ...gax.CallOption) (%s.%s_%sClient, error)",
+				m.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+		case m.GetServerStreaming():
+			// Handles _just_ server streaming
+			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s.%s_%sClient, error)",
+				m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+		default:
+			// Regular, unary call
+			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s.%s, error)",
+				m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+		}
+	}
+	p("}")
+	p("")
+
+	p("// %s is a thin wrapper that holds an internal%sClient", servName, servName)
+	p("// It is agnostic as to the underlying transport, i.e. json+http, gRPC, or other.")
+	p("type %s struct {", servName)
+	p("    internal%sClient", servName)
+	p("}")
+	p("")
+
+	return nil
+}
+
+func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasLRO bool) {
+	p := g.printf
 	var hasRPCForLRO bool
 	for _, m := range serv.Method {
 		if g.isLRO(m) {
 			hasRPCForLRO = true
+			break
+		}
+	}
+
+	// client struct
+	p("// %sClient is a client for interacting with %s over gRPC transport.", servName, g.apiName)
+	p("// It satisfies the %sAbstractClient interface.", servName)
+	p("//")
+	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
+	p("type %sClient struct {", servName)
+
+	p("// Connection pool of gRPC connections to the service.")
+	p("connPool gtransport.ConnPool")
+	p("")
+
+	p("// flag to opt out of default deadlines via %s", disableDeadlinesVar)
+	p("disableDeadlines bool")
+	p("")
+
+	p("// The gRPC API client.")
+	p("%s %s.%sClient", grpcClientField(servName), imp.Name, serv.GetName())
+	p("")
+
+	if hasRPCForLRO {
+		p("// LROClient is used internally to handle long-running operations.")
+		p("// It is exposed so that its CallOptions can be modified if required.")
+		p("// Users should not Close this client.")
+		p("LROClient *lroauto.OperationsClient")
+		p("")
+		g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
+	}
+
+	if g.hasLROMixin() {
+		p("operationsClient longrunningpb.OperationsClient")
+		p("")
+
+		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+	}
+
+	if g.hasIAMPolicyMixin() {
+
+		p("iamPolicyClient iampb.IAMPolicyClient")
+		p("")
+
+		g.imports[pbinfo.ImportSpec{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}] = true
+	}
+
+	if g.hasLocationMixin() {
+
+		p("locationsClient locationpb.LocationsClient")
+		p("")
+
+		g.imports[pbinfo.ImportSpec{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}] = true
+	}
+	p("// The call options for this service.")
+	p("CallOptions *%sCallOptions", servName)
+	p("")
+
+	p("// The x-goog-* metadata to be sent with each request.")
+	p("xGoogMetadata metadata.MD")
+	p("}")
+	p("")
+
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+
+	g.grpcClientUtilities(serv, servName, imp, hasRPCForLRO)
+}
+
+func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+	p := g.printf
+
+	clientName := camelToSnake(serv.GetName())
+	clientName = strings.Replace(clientName, "_", " ", -1)
+
+	// Factory function
+	p("// New%sClient creates a new %s client.", servName, clientName)
+	p("//")
+	g.comment(g.comments[serv])
+	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
+	p("  clientOpts := default%sClientOptions()", servName)
+	p("")
+	p("  if new%sClientHook != nil {", servName)
+	p("    hookOpts, err := new%sClientHook(ctx, clientHookParams{})", servName)
+	p("    if err != nil {")
+	p("      return nil, err")
+	p("    }")
+	p("    clientOpts = append(clientOpts, hookOpts...)")
+	p("  }")
+	p("")
+	p("  disableDeadlines, err := checkDisableDeadlines()")
+	p("  if err != nil {")
+	p("    return nil, err")
+	p("  }")
+	p("")
+	p("  connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)")
+	p("  if err != nil {")
+	p("    return nil, err")
+	p("  }")
+	p("  c := &%sClient{", servName)
+	p("    connPool:    connPool,")
+	p("    disableDeadlines: disableDeadlines,")
+	p("    CallOptions: default%sCallOptions(),", servName)
+	p("")
+	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
+	p("  }")
+	p("  c.setGoogleClientInfo()")
+	p("")
+
+	if hasRPCForLRO {
+		p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))")
+		p("  if err != nil {")
+		p("    // This error \"should not happen\", since we are just reusing old connection pool")
+		p("    // and never actually need to dial.")
+		p("    // If this does happen, we could leak connp. However, we cannot close conn:")
+		p("    // If the user invoked the constructor with option.WithGRPCConn,")
+		p("    // we would close a connection that's still in use.")
+		p("    // TODO: investigate error conditions.")
+		p("    return nil, err")
+		p("  }")
+	}
+
+	if g.hasLROMixin() {
+		p("  c.operationsClient = longrunningpb.NewOperationsClient(connPool)")
+		p("")
+	}
+
+	if g.hasIAMPolicyMixin() {
+		p("  c.iamPolicyClient = iampb.NewIAMPolicyClient(connPool)")
+		p("")
+	}
+
+	if g.hasLocationMixin() {
+		p("  c.locationsClient = locationpb.NewLocationsClient(connPool)")
+		p("")
+	}
+
+	p("  return c, nil")
+	p("}")
+	p("")
+
+	g.imports[pbinfo.ImportSpec{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+
+	// Connection method
+	p("// Connection returns a connection to the API service.")
+	p("//")
+	p("// Deprecated.")
+	p("func (c *%sClient) Connection() *grpc.ClientConn {", servName)
+	p("  return c.connPool.Conn()")
+	p("}")
+	p("")
+
+	// Close method
+	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// the client is no longer required.")
+	p("func (c *%sClient) Close() error {", servName)
+	p("  return c.connPool.Close()")
+	p("}")
+	p("")
+
+	// setGoogleClientInfo method
+	p("// setGoogleClientInfo sets the name and version of the application in")
+	p("// the `x-goog-api-client` header passed on each request. Intended for")
+	p("// use by Google-written clients.")
+	p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", servName)
+	p(`  kv := append([]string{"gl-go", versionGo()}, keyval...)`)
+	p(`  kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)`)
+	p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
+	p("}")
+	p("")
+}
+
+func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
+	var hasLRO bool
+	for _, m := range serv.Method {
+		if g.isLRO(m) {
+			hasLRO = true
 			break
 		}
 	}
@@ -155,177 +405,22 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		return err
 	}
 
-	// client struct
-	{
-		p("// %sClient is a client for interacting with %s.", servName, g.apiName)
-		p("//")
-		p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-		p("type %sClient struct {", servName)
-
-		p("// Connection pool of gRPC connections to the service.")
-		p("connPool gtransport.ConnPool")
-		p("")
-
-		p("// flag to opt out of default deadlines via %s", disableDeadlinesVar)
-		p("disableDeadlines bool")
-		p("")
-
-		p("// The gRPC API client.")
-		p("%s %s.%sClient", grpcClientField(servName), imp.Name, serv.GetName())
-		p("")
-
-		if hasRPCForLRO {
-			p("// LROClient is used internally to handle longrunning operations.")
-			p("// It is exposed so that its CallOptions can be modified if required.")
-			p("// Users should not Close this client.")
-			p("LROClient *lroauto.OperationsClient")
-			p("")
-
-			g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
-		}
-
-		if g.hasLROMixin() {
-			p("operationsClient longrunningpb.OperationsClient")
-			p("")
-
-			g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
-		}
-
-		if g.hasIAMPolicyMixin() {
-
-			p("iamPolicyClient iampb.IAMPolicyClient")
-			p("")
-
-			g.imports[pbinfo.ImportSpec{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}] = true
-		}
-
-		if g.hasLocationMixin() {
-
-			p("locationsClient locationpb.LocationsClient")
-			p("")
-
-			g.imports[pbinfo.ImportSpec{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}] = true
-		}
-
-		p("// The call options for this service.")
-		p("CallOptions *%sCallOptions", servName)
-		p("")
-
-		p("// The x-goog-* metadata to be sent with each request.")
-		p("xGoogMetadata metadata.MD")
-		p("}")
-		p("")
-
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+	err = g.abstractClientIntfInit(serv, servName)
+	if err != nil {
+		return err
 	}
 
-	// Client constructor
-	{
-		clientName := camelToSnake(serv.GetName())
-		clientName = strings.Replace(clientName, "_", " ", -1)
-
-		p("// New%sClient creates a new %s client.", servName, clientName)
-		p("//")
-		g.comment(g.comments[serv])
-		p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-		p("  clientOpts := default%sClientOptions()", servName)
-		p("")
-		p("  if new%sClientHook != nil {", servName)
-		p("    hookOpts, err := new%sClientHook(ctx, clientHookParams{})", servName)
-		p("    if err != nil {")
-		p("      return nil, err")
-		p("    }")
-		p("    clientOpts = append(clientOpts, hookOpts...)")
-		p("  }")
-		p("")
-		p("  disableDeadlines, err := checkDisableDeadlines()")
-		p("  if err != nil {")
-		p("    return nil, err")
-		p("  }")
-		p("")
-		p("  connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)")
-		p("  if err != nil {")
-		p("    return nil, err")
-		p("  }")
-		p("  c := &%sClient{", servName)
-		p("    connPool:    connPool,")
-		p("    disableDeadlines: disableDeadlines,")
-		p("    CallOptions: default%sCallOptions(),", servName)
-		p("")
-		p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
-		p("  }")
-		p("  c.setGoogleClientInfo()")
-		p("")
-
-		if hasRPCForLRO {
-			p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))")
-			p("  if err != nil {")
-			p("    // This error \"should not happen\", since we are just reusing old connection pool")
-			p("    // and never actually need to dial.")
-			p("    // If this does happen, we could leak connp. However, we cannot close conn:")
-			p("    // If the user invoked the constructor with option.WithGRPCConn,")
-			p("    // we would close a connection that's still in use.")
-			p("    // TODO: investigate error conditions.")
-			p("    return nil, err")
-			p("  }")
+	for _, v := range g.opts.transports {
+		switch v {
+		case grpc:
+			g.grpcClientInit(serv, servName, imp, hasLRO)
+		case rest:
+			// TODO(dovs): add rest client struct initialization
+			continue
+		default:
+			return fmt.Errorf("unexpected transport variant (supported variants are '%s', '%s'): %d",
+				v, grpc, rest)
 		}
-
-		if g.hasLROMixin() {
-			p("  c.operationsClient = longrunningpb.NewOperationsClient(connPool)")
-			p("")
-		}
-
-		if g.hasIAMPolicyMixin() {
-			p("  c.iamPolicyClient = iampb.NewIAMPolicyClient(connPool)")
-			p("")
-		}
-
-		if g.hasLocationMixin() {
-			p("  c.locationsClient = locationpb.NewLocationsClient(connPool)")
-			p("")
-		}
-
-		p("  return c, nil")
-		p("}")
-		p("")
-
-		g.imports[pbinfo.ImportSpec{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	}
-
-	// Connection()
-	{
-		p("// Connection returns a connection to the API service.")
-		p("//")
-		p("// Deprecated.")
-		p("func (c *%sClient) Connection() *grpc.ClientConn {", servName)
-		p("  return c.connPool.Conn()")
-		p("}")
-		p("")
-	}
-
-	// Close()
-	{
-		p("// Close closes the connection to the API service. The user should invoke this when")
-		p("// the client is no longer required.")
-		p("func (c *%sClient) Close() error {", servName)
-		p("  return c.connPool.Close()")
-		p("}")
-		p("")
-	}
-
-	// setGoogleClientInfo
-	{
-		p("// setGoogleClientInfo sets the name and version of the application in")
-		p("// the `x-goog-api-client` header passed on each request. Intended for")
-		p("// use by Google-written clients.")
-		p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", servName)
-		p(`  kv := append([]string{"gl-go", versionGo()}, keyval...)`)
-		p(`  kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)`)
-		p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
-		p("}")
-		p("")
 	}
 
 	return nil

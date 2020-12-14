@@ -1,4 +1,16 @@
-// FooClient is a client for interacting with Awesome Foo API.
+// internalFooClient is an interface that defines the methods availaible from Awesome Foo API.
+type internalFooClient interface {
+	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
+}
+
+// Foo is a thin wrapper that holds an internalFooClient
+// It is agnostic as to the underlying transport, i.e. json+http, gRPC, or other.
+type Foo struct {
+	internalFooClient
+}
+
+// FooClient is a client for interacting with Awesome Foo API over gRPC transport.
+// It satisfies the FooAbstractClient interface.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type FooClient struct {
