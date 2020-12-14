@@ -522,7 +522,7 @@ func Test_optionsParse(t *testing.T) {
 		{
 			param: "transport=rest+grpc,go-gapic-package=path;pkg",
 			expectedOpts: &options{
-				transports: []Transport{rest, grpc},
+				transports: []Transport{grpc, rest},
 				pkgPath:    "path",
 				pkgName:    "pkg",
 				outDir:     "path",

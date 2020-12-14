@@ -168,23 +168,23 @@ func TestClientInit(t *testing.T) {
 	var g generator
 	g.apiName = "Awesome Foo API"
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.opts = &options{transports: []Transport{grpc}}
 
 	servPlain := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), OutputType: proto.String("Foo")},
+			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".mypackage.Foo")},
 		},
 	}
 	servLRO := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), OutputType: proto.String(".google.longrunning.Operation")},
+			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".google.longrunning.Operation")},
 		},
 	}
 
 	for _, tst := range []struct {
-		tstName string
-
+		tstName  string
 		servName string
 		serv     *descriptor.ServiceDescriptorProto
 	}{
@@ -192,19 +192,41 @@ func TestClientInit(t *testing.T) {
 		{tstName: "empty_client_init", servName: "", serv: servPlain},
 		{tstName: "lro_client_init", servName: "Foo", serv: servLRO},
 	} {
-		g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
-			tst.serv: &descriptor.FileDescriptorProto{
+		files := []*descriptor.FileDescriptorProto{
+			&descriptor.FileDescriptorProto{
+				Package: proto.String("mypackage"),
 				Options: &descriptor.FileOptions{
 					GoPackage: proto.String("mypackage"),
 				},
+				Service: []*descriptor.ServiceDescriptorProto{tst.serv},
+				MessageType: []*descriptor.DescriptorProto{
+					&descriptor.DescriptorProto{
+						Name: proto.String("Bar"),
+					},
+					&descriptor.DescriptorProto{
+						Name: proto.String("Foo"),
+					},
+				},
+			},
+			&descriptor.FileDescriptorProto{
+				Package: proto.String("google.longrunning"),
+				Options: &descriptor.FileOptions{
+					GoPackage: proto.String("google.longrunning"),
+				},
+				MessageType: []*descriptor.DescriptorProto{
+					&descriptor.DescriptorProto{
+						Name: proto.String("Operation"),
+					},
+				},
 			},
 		}
+		g.init(files)
 		g.comments = map[proto.Message]string{
 			tst.serv: "Foo service does stuff.",
 		}
-
 		g.reset()
 		g.clientInit(tst.serv, tst.servName)
+
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }

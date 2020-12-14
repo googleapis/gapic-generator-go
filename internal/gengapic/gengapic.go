@@ -160,6 +160,11 @@ func ParseOptions(parameter *string) (*options, error) {
 	if opts.transports == nil {
 		opts.transports = []Transport{grpc}
 	}
+	// Deterministic ordering potentially makes code deltas smaller.
+	sort.Slice(
+		opts.transports,
+		func(i, j int) bool { return opts.transports[i] < opts.transports[j] },
+	)
 
 	return &opts, nil
 }
