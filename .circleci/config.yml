@@ -67,26 +67,15 @@ jobs:
             export PATH=$PATH:$(pwd)/protobuf/bin
             GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
   bazel-test:
-    environment:
-      BAZEL_VERSION: 3.4.1
-      PYTHON_VERSION: 3.5.2
-    machine: true
+    docker:
+      - image: gcr.io/gapic-images/googleapis-bazel:20210105 
     steps:
       - checkout
       - run:
-          name: Set Python version
-          command: |
-            pyenv global ${PYTHON_VERSION}
-      - run:
-          name: Install Bazel
-          command: |
-            wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh -O bazel_installer.sh
-            chmod +x bazel_installer.sh
-            ./bazel_installer.sh --user
-      - run:
           name: Run tests for repo
+          no_output_timeout: 30m
           command: |
-              bazel test //...
+              bazel test --jobs 4 //...
   release:
     docker:
       - image: circleci/golang:1.13
