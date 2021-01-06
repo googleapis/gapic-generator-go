@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
-load("@io_bazel_rules_go//go/private:rules/rule.bzl", "go_rule")
 load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_library")
 
 def _go_gapic_postprocessed_srcjar_impl(ctx):
@@ -55,15 +54,19 @@ def _go_gapic_postprocessed_srcjar_impl(ctx):
         outputs = [output_main, output_test],
     )
 
-_go_gapic_postprocessed_srcjar = go_rule(
+_go_gapic_postprocessed_srcjar = rule(
   _go_gapic_postprocessed_srcjar_impl,
   attrs = {
       "gapic_srcjar": attr.label(mandatory = True, allow_single_file = True),
+      "_go_context_data": attr.label(
+          default = "@io_bazel_rules_go//:go_context_data",
+      ),
   },
   outputs = {
       "main": "%{name}.srcjar",
       "test": "%{name}-test.srcjar",
   },
+  toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _get_gofmt(go_ctx):
@@ -134,6 +137,7 @@ def go_gapic_library(
   actual_deps = deps + [
     "@com_github_googleapis_gax_go_v2//:go_default_library",
     "@org_golang_google_api//option:go_default_library",
+    "@org_golang_google_api//option/internaloption:go_default_library",
     "@org_golang_google_api//iterator:go_default_library",
     "@org_golang_google_api//transport/grpc:go_default_library",
     "@org_golang_google_grpc//:go_default_library",

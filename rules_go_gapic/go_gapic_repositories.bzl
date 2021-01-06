@@ -26,8 +26,8 @@ def go_gapic_repositories():
         go_repository,
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:+gL0XvACeMIvpwLZ5rQZzLn5cwOsgg8dIcfJ2SYfBVw=",
-        version = "v0.33.0",
+        sum = "h1:l2Nfbl2GPXdWorv+dT2XfinX2jOOw4zv1VhLstx+6rE=",
+        version = "v0.36.0",
     )
     _maybe(
         go_repository,
@@ -40,8 +40,8 @@ def go_gapic_repositories():
         go_repository,
         name = "com_github_google_go_cmp",
         importpath = "github.com/google/go-cmp/cmp",
-        sum = "h1:X2ev0eStA3AbceY54o37/0PQ/UWqKEiiO2dKL5OPaFM=",
-        version = "v0.5.2",
+        sum = "h1:L8R9j+yAqZuZjsqh/z+F1NCffTKKLShY6zXTItVIZ8M=",
+        version = "v0.5.4",
     )
     _maybe(
         go_repository,
