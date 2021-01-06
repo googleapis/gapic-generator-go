@@ -68,7 +68,7 @@ jobs:
             GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
   bazel-test:
     docker:
-      image: gcr.io/gapic-images/googleapis-bazel:20210105 
+      - image: gcr.io/gapic-images/googleapis-bazel:20210105 
     steps:
       - checkout
       - run:
