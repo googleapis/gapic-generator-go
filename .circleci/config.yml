@@ -75,7 +75,7 @@ jobs:
           name: Run tests for repo
           no_output_timeout: 30m
           command: |
-              bazel test //...
+              bazel test --jobs 4 //...
   release:
     docker:
       - image: circleci/golang:1.13
