@@ -67,6 +67,8 @@ func pagingField(info pbinfo.Info, m *descriptor.MethodDescriptorProto) (*descri
 	if !hasSize || !hasToken || !hasNextToken {
 		return nil, nil
 	}
+	// TODO(noahdietz) relax this requirement and treat the method as non-paging.
+	// See https://github.com/googleapis/gapic-generator-go/issues/493.
 	if len(elemFields) == 0 {
 		return nil, fmt.Errorf("%s looks like paging method, but can't find repeated field in %s", *m.Name, outType.GetName())
 	}
