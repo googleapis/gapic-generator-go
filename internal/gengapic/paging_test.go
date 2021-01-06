@@ -76,8 +76,8 @@ func TestPagingField(t *testing.T) {
 				resField,
 			},
 		},
-		"NoPageOut": &descriptor.DescriptorProto{
-			Name: proto.String("NoPageOut"),
+		"NoRepeatedOut": &descriptor.DescriptorProto{
+			Name: proto.String("NoRepeatedOut"),
 			Field: []*descriptor.FieldDescriptorProto{
 				{
 					Name:  proto.String("next_page_token"),
@@ -126,7 +126,7 @@ func TestPagingField(t *testing.T) {
 		},
 		{
 			in:  "PageIn",
-			out: "NoPageOut",
+			out: "NoRepeatedOut",
 		},
 		{
 			in:  "PageIn",
