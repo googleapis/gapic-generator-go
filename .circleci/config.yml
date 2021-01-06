@@ -73,6 +73,7 @@ jobs:
       - checkout
       - run:
           name: Run tests for repo
+          no_output_timeout: 30m
           command: |
               bazel test //...
   release:
