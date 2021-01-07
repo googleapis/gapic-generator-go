@@ -1,0 +1,17 @@
+---
+name: release
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    container: golang:1.13
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create release
+        run: go run ./util/cmd/release \
+              -version=${GITHUB_REF#refs/tags/} \
+              -commitish=${{ github.sha }} \
+              -token=${{ github.token }}

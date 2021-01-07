@@ -29,13 +29,6 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Make GitHub Release
-          command: |
-            go run ./util/cmd/release \
-              -version=${CIRCLE_TAG} \
-              -commitish=${CIRCLE_SHA1} \
-              -token=${GITHUB_TOKEN}
-      - run:
           name: Build Docker image.
           command: make image
       - run:
