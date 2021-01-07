@@ -11,10 +11,6 @@ workflows:
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
-      - bazel-test:
-          filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
       - release:
           requires:
             - build
@@ -38,10 +34,6 @@ jobs:
       - image: circleci/golang:1.13
     steps:
       - checkout
-      - run: go test ./...
-      - run:
-          name: Check license
-          command: go run ./util/cmd/license
       - run: go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
       - run: go install github.com/golang/protobuf/protoc-gen-go
       - run:
@@ -66,16 +58,6 @@ jobs:
             mv googleapis-master googleapis
             export PATH=$PATH:$(pwd)/protobuf/bin
             GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
-  bazel-test:
-    docker:
-      - image: gcr.io/gapic-images/googleapis-bazel:20210105 
-    steps:
-      - checkout
-      - run:
-          name: Run tests for repo
-          no_output_timeout: 30m
-          command: |
-              bazel test --jobs 4 //...
   release:
     docker:
       - image: circleci/golang:1.13
