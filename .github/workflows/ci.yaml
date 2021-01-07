@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     container: gcr.io/gapic-images/googleapis-bazel:20210105
 
-steps:
+    steps:
     - uses: actions/checkout@v2
 
     - name: Do something
