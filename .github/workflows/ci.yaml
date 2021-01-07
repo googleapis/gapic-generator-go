@@ -30,6 +30,24 @@ jobs:
       with:
         go-version: '^1.13.1'
     - run: go test ./...
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '^1.13.1'
+    - run: |
+        mkdir protobuf
+        curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.12.0/protoc-3.12.0-linux-x86_64.zip > protobuf/protoc.zip
+        unzip -d protobuf protobuf/protoc.zip
+        export PATH=$PATH:$(pwd)/protobuf/bin
+        curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
+        unzip googleapis.zip
+        mv googleapis-master googleapis
+        export PATH=$PATH:$(pwd)/protobuf/bin
+        make test
+        GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
   bazel-build:
     runs-on: ubuntu-latest
     container: gcr.io/gapic-images/googleapis-bazel:20210105
