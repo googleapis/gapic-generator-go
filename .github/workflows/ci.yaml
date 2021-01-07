@@ -34,38 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     container: gcr.io/gapic-images/googleapis-bazel:20210105
     # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
-    # If you update its version, please also update it below in
-    # 'Cache Bazel files' - unfortunately it cannot accept variables at this
-    # time.
-
     steps:
     - uses: actions/checkout@v2
-
-    - name: Cache Bazel files
-      id: cache-bazel
-      uses: actions/cache@v2
-      with:
-        path: ~/.cache/bazel
-        key: ${{ runner.os }}-bazel-20210105-${{ secrets.CACHE_VERSION }}
-
-    - name: Cache not found
-      if: steps.cache-bazel.outputs.cache-hit != 'true'
-      run: |
-        echo "No cache found."
-
-    - name: Cache found
-      if: steps.cache-bazel.outputs.cache-hit == 'true'
-      run: |
-        echo -n "Cache found. Cache size: "
-        du -sh ~/.cache/bazel
-        echo "If the cache seems broken, update the CACHE_VERSION secret in"
-        echo "https://github.com/googleapis/googleapis-discovery/settings/secrets/actions"
-        echo "(use any random string, any GUID will work)"
-        echo "and it will start over with a clean cache."
-        echo "The old one will disappear after 7 days."
-
     - name: Run bazel build
       run: bazel build '//...'
-
     - name: Run bazel test
       run: bazel test '//...'
