@@ -12,8 +12,9 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.13.1'
+      - name: Parse tag name
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Create GitHub release
-        run: go run ./util/cmd/release \
-              -version=${GITHUB_REF#refs/tags/} \
-              -commitish=${{ github.sha }} \
-              -token=${{ github.token }}
+        run: | 
+          echo "Creating release $RELEASE_VERSION at ${{ github.sha }}"
+          go run ./util/cmd/release -version=$RELEASE_VERSION -commitish=${{ github.sha }} -token=${{ github.token }}
