@@ -47,8 +47,7 @@ jobs:
         unzip googleapis.zip
         mv googleapis-master googleapis
         export PATH=$PATH:$(pwd)/protobuf/bin
-        make test
-        GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
+        GOOGLEAPIS=googleapis make test
   bazel-build:
     runs-on: ubuntu-latest
     container: gcr.io/gapic-images/googleapis-bazel:20210105
