@@ -1,0 +1,19 @@
+---
+name: release
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.13.1'
+      - name: Create GitHub release
+        run: go run ./util/cmd/release \
+              -version=${GITHUB_REF#refs/tags/} \
+              -commitish=${{ github.sha }} \
+              -token=${{ github.token }}
