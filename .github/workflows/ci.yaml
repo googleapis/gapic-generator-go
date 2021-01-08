@@ -37,17 +37,19 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: '^1.13.1'
-    - run: |
+    - name: Install tools and dependencies
+      run: |
         go install github.com/golang/protobuf/protoc-gen-go
         mkdir protobuf
         curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.12.0/protoc-3.12.0-linux-x86_64.zip > protobuf/protoc.zip
         unzip -d protobuf protobuf/protoc.zip
         export PATH=$PATH:$(pwd)/protobuf/bin
         curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
-        unzip googleapis.zip
+        unzip googleapis.zip -x "google/ads/*"
         mv googleapis-master googleapis
         export PATH=$PATH:$(pwd)/protobuf/bin
-        GOOGLEAPIS=googleapis make test
+    - name: Run integration tests
+      run: GOOGLEAPIS=googleapis make test
   bazel-build:
     runs-on: ubuntu-latest
     container: gcr.io/gapic-images/googleapis-bazel:20210105
