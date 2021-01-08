@@ -43,13 +43,14 @@ jobs:
         mkdir protobuf
         curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.12.0/protoc-3.12.0-linux-x86_64.zip > protobuf/protoc.zip
         unzip -d protobuf protobuf/protoc.zip
-        export PATH=$PATH:$(pwd)/protobuf/bin
         curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
         unzip googleapis.zip -x "google/ads/*"
         mv googleapis-master googleapis
-        export PATH=$PATH:$(pwd)/protobuf/bin
     - name: Run integration tests
-      run: GOOGLEAPIS=googleapis make test
+      run: |
+        export PATH=$PATH:$(pwd)/protobuf/bin
+        export GOOGLEAPIS=googleapis
+        make test
   bazel-build:
     runs-on: ubuntu-latest
     container: gcr.io/gapic-images/googleapis-bazel:20210105
