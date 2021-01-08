@@ -44,7 +44,7 @@ jobs:
         curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.12.0/protoc-3.12.0-linux-x86_64.zip > protobuf/protoc.zip
         unzip -d protobuf protobuf/protoc.zip
         curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
-        unzip googleapis.zip -x "google/ads/*"
+        unzip googleapis.zip -x "googleapis-master/google/ads/*"
         mv googleapis-master googleapis
     - name: Run integration tests
       run: |
