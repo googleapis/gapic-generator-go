@@ -5,7 +5,10 @@ branchProtectionRules:
 - pattern: master
   isAdminEnforced: true
   requiredStatusCheckContexts:
-    - 'ci/circleci: build'
+    - 'bazel-build'
+    - 'integration-tests'
+    - 'unit-tests'
+    - 'lint'
     - 'cla/google'
   requiredApprovingReviewCount: 1
   requiresCodeOwnerReviews: true
