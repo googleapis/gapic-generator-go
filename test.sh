@@ -24,8 +24,8 @@
 set -e
 
 if [ -z $GOOGLEAPIS ]; then
-	echo >&2 "need GOOGLEAPIS variable"
-	exit 1
+	echo "Set GOOGLEAPIS to the location of github.com/googleapis/googleapis. Skipping."
+	exit 0
 fi
 
 OUT=${OUT:-testdata/out}

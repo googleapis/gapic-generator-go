@@ -3,18 +3,11 @@ workflows:
   version: 2
   build_test_publish:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
       - format:
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$|^v\d+\.\d+\.\d+-[a-z]+$/
       - release:
-          requires:
-            - build
-            - format
           filters:
             branches:
               ignore: /.*/
@@ -29,35 +22,6 @@ jobs:
       - run:
           name: Check Format
           command: "! go fmt ./... 2>&1 | read"
-  build:
-    docker:
-      - image: circleci/golang:1.13
-    steps:
-      - checkout
-      - run: go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic
-      - run: go install github.com/golang/protobuf/protoc-gen-go
-      - run:
-          name: verify error conformance
-          command: |
-            go install github.com/googleapis/gapic-config-validator/cmd/gapic-error-conformance
-            gapic-error-conformance -plugin=protoc-gen-go_gapic -plugin_opts="go-gapic-package=foo.com/bar/v1;bar"
-      # Install protoc, showcase.bash needs it
-      - run:
-          name: Run Showcase
-          command: |
-            mkdir protobuf
-            curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.12.0/protoc-3.12.0-linux-x86_64.zip > protobuf/protoc.zip
-            unzip -d protobuf protobuf/protoc.zip
-            export PATH=$PATH:$(pwd)/protobuf/bin            
-            make test
-      - run:
-          name: Run Google APIs test gen
-          command: |
-            curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
-            unzip googleapis.zip
-            mv googleapis-master googleapis
-            export PATH=$PATH:$(pwd)/protobuf/bin
-            GOOGLEAPIS=googleapis OUT=$GOPATH/src ./test.sh
   release:
     docker:
       - image: circleci/golang:1.13
