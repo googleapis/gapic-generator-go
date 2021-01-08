@@ -48,7 +48,7 @@ jobs:
         mv googleapis-master googleapis
     - name: Run integration tests
       run: |
-        export PATH=$PATH:$(pwd)/protobuf/bin
+        export PATH=$PATH:protobuf/bin
         export GOOGLEAPIS=googleapis
         make test
   bazel-build:
