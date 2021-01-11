@@ -120,7 +120,7 @@ func main() {
 // execute runs the given strings as a command.
 func execute(cmd string, args ...string) {
 	if output, err := exec.Command(cmd, args...).CombinedOutput(); err != nil {
-		log.Fatalf("%s %s: %s", cmd, args, output)
+		log.Fatalf("%s: %s", cmd, output)
 	}
 }
 
@@ -128,7 +128,7 @@ func execute(cmd string, args ...string) {
 func executeWithOutput(cmd string, args ...string) string {
 	out, err := exec.Command(cmd, args...).Output()
 	if err != nil {
-		log.Fatalf("%s %s: %s", cmd, args, output)
+		log.Fatalf("%s: %s", cmd, output)
 	}
 	return string(out)
 }
