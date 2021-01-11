@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*'
+  pull_request:
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -17,5 +19,4 @@ jobs:
       - name: Create GitHub release
         run: | 
           echo "Creating release $RELEASE_VERSION at ${{ github.sha }}"
-          echo go run ./util/cmd/release -version=$RELEASE_VERSION -commitish=${{ github.sha }} -token=${{ github.token }}
           go run ./util/cmd/release -version=$RELEASE_VERSION -commitish=${{ github.sha }} -token=${{ github.token }}
