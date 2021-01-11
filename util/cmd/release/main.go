@@ -128,7 +128,7 @@ func execute(cmd string, args ...string) {
 func executeWithOutput(cmd string, args ...string) string {
 	out, err := exec.Command(cmd, args...).Output()
 	if err != nil {
-		log.Fatalf("%s %s: %s - %s", cmd, args, output, err)
+		log.Fatalf("%s %s: %s - %s", cmd, args, out, err)
 	}
 	return string(out)
 }
