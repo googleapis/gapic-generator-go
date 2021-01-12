@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*'
+  pull_request:
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -14,6 +16,8 @@ jobs:
           go-version: '^1.13.1'
       - name: Parse tag name
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Previous version
+        run: git describe --abbrev=0 --tags v0.3.0^
       - name: Create GitHub release
         run: | 
           echo "Creating release $RELEASE_VERSION at ${{ github.sha }}"
