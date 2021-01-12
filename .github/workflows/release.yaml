@@ -7,20 +7,80 @@ on:
   pull_request:
 
 jobs:
-  release:
+  inspect:
     runs-on: ubuntu-latest
+    container: golang:1.13
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.13'
       - name: Parse tag name
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Previous version
-        run: git describe --abbrev=0 --tags v0.3.0^
-      - name: Create GitHub release
-        run: | 
-          # echo "Creating release $RELEASE_VERSION at ${{ github.sha }}"
-          go run ./util/cmd/release -version=v0.3.0 -commitish=b1be68fb33eddb2451d35222583a57a58964f57e -token=${{ github.token }}
+      - name: Get release information
+        id: release_tool
+        run: go run ./.github/release-tool/ -version=$RELEASE_VERSION
+    outputs:
+      version: ${{ steps.release_tool.outputs.version }}
+      release_notes: ${{ steps.release_tool.outputs.release_notes }}
+  release:
+    runs-on: ubuntu-latest
+    needs: inspect
+    if: ${{ needs.inspect.outputs.version }}
+    steps:
+      - name: Create the GitHub release.
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: v${{ needs.inspect.outputs.version }}
+          release_name: ${{ needs.inspect.outputs.version }}
+          body: ${{ needs.inspect.outputs.release_notes }}
+          draft: false
+          prerelease: false
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+  build:
+    runs-on: ubuntu-latest
+    needs:
+      - inspect
+      - release
+    strategy:
+      matrix:
+        osarch:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm
+          - os: darwin
+            arch: amd64
+          - os: windows
+            arch: amd64
+    steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.13"
+      - uses: actions/checkout@v2
+      # The generator does not use these,  but we need them to build the
+      # binaries.
+      #
+      # Mousetrap is installed individually because it is needed for the
+      # Windows build. Since we are building on Linux, it is not installed
+      # automatically as a dependency.
+      - name: Install the cross-platform build tool.
+        run: |
+          go get github.com/mitchellh/gox
+          go get github.com/inconshreveable/mousetrap
+      - name: Build for the ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} platform.
+        run: |
+          gox -osarch ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} -output protoc-gen-go_gapic ./cmd/protoc-gen-go_gapic && \
+          tar cvfz protoc-gen-go_gapic.tar.gz protoc-gen-go_gapic*
+      - name: Upload the ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} release.
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ./protoc-gen-go_gapic.tar.gz
+          asset_name: protoc-gen-go_gapic-${{ needs.inspect.outputs.version }}-${{ matrix.osarch.os }}-${{ matrix.osarch.arch }}.tar.gz
+          asset_content_type: application/tar+gzip
