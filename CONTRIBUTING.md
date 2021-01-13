@@ -48,7 +48,7 @@ Make target: `make update-bazel-repos`.
 
 ## Releases
 
-Releases are made on GitHub. CircleCI is configured to build and push tagged images upon release.
+Releases are made on GitHub via Actions. It is configured to build and push tagged images upon release.
 Tags always begin with a `v` and follow semver.
 
     git tag v1.2.3 && git push upstream --tags

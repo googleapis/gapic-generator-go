@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tag_name: v${{ needs.inspect.outputs.version }}
+          tag_name: ${{ needs.inspect.outputs.version }}
           release_name: ${{ needs.inspect.outputs.version }}
           body: ${{ needs.inspect.outputs.release_notes }}
           draft: false
