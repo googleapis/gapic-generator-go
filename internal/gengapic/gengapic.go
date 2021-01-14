@@ -49,7 +49,7 @@ const (
 	disableDeadlinesVar = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
 )
 
-var headerParamRegexp = regexp.MustCompile(`{([_.a-z]+)`)
+var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)
 
 type Transport int
 

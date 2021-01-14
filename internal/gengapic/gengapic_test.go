@@ -23,6 +23,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
@@ -443,6 +444,7 @@ func Test_buildAccessor(t *testing.T) {
 	}{
 		{name: "simple", field: "foo_foo", want: ".GetFooFoo()"},
 		{name: "nested", field: "foo_foo.bar_bar", want: ".GetFooFoo().GetBarBar()"},
+		{name: "numbers", field: "foo_foo64", want: ".GetFooFoo64()"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -584,4 +586,62 @@ func Test_optionsParse(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func Test_parseRequestHeaders(t *testing.T) {
+	for _, tst := range []struct {
+		name, pattern string
+		want          [][]string
+	}{
+		{"not annotated", "", nil},
+		{"no params", "/no/params", nil},
+		{"not key-value", "/{foo}/{bar}", [][]string{
+			{"{foo", "foo"},
+			{"{bar", "bar"},
+		}},
+		{"key-value pair", "/{foo=blah}/{bar=blah}", [][]string{
+			{"{foo", "foo"},
+			{"{bar", "bar"},
+		}},
+		{"with underscore", "/{foo_foo}/{bar_bar}", [][]string{
+			{"{foo_foo", "foo_foo"},
+			{"{bar_bar", "bar_bar"},
+		}},
+		{"with dot", "/{foo.foo}/{bar.bar}", [][]string{
+			{"{foo.foo", "foo.foo"},
+			{"{bar.bar", "bar.bar"},
+		}},
+		{"numbers in field names", "/{foo123}/{bar456}", [][]string{
+			{"{foo123", "foo123"},
+			{"{bar456", "bar456"},
+		}},
+		{"everything", "/{foo.foo_foo123=blah}/{bar.bar_bar456=blah}", [][]string{
+			{"{foo.foo_foo123", "foo.foo_foo123"},
+			{"{bar.bar_bar456", "bar.bar_bar456"},
+		}},
+	} {
+		m := &descriptor.MethodDescriptorProto{}
+		if tst.pattern != "" {
+			m.Options = &descriptor.MethodOptions{}
+
+			err := setHTTPOption(m.Options, tst.pattern)
+			if err != nil {
+				t.Errorf("parseRequestHeaders(%s): failed to set http annotation: %v", tst.name, err)
+			}
+		}
+
+		if got, err := parseRequestHeaders(m); err != nil {
+			t.Error(err)
+		} else if diff := cmp.Diff(got, tst.want); diff != "" {
+			t.Errorf("parseRequestHeaders(%s) = %v, want %v, diff %s", tst.name, got, tst.want, diff)
+		}
+	}
+}
+
+func setHTTPOption(o *descriptor.MethodOptions, pattern string) error {
+	return proto.SetExtension(o, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: pattern,
+		},
+	})
 }
