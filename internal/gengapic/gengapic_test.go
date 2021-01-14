@@ -630,12 +630,14 @@ func Test_parseRequestHeaders(t *testing.T) {
 			}
 		}
 
-		if got, err := parseRequestHeaders(m); err != nil {
+		got, err := parseRequestHeaders(m)
+		if err != nil {
 			t.Error(err)
 			continue
 		}
+
 		if diff := cmp.Diff(got, tst.want); diff != "" {
-			t.Errorf("parseRequestHeaders(%s) = %v, want %v, diff %s", tst.name, got, tst.want, diff)
+			t.Errorf("parseRequestHeaders(%s) = got(-), want(+):\n%s", tst.name, diff)
 		}
 	}
 }
