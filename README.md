@@ -160,38 +160,6 @@ following attributes:
 
   * `sample_only`: if present, directs the generator to forgo client generation and generate only samples.
 
-Docker Wrapper
---------------
-The generator can also be executed via a Docker container. The image containes `protoc`, the microgenerator
-binary, and the standard API protos.
-
-```bash
-$ docker run \
-  --rm \
-  --user $UID \
-  --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
-  --mount type=bind,source=</abs/path/to/configs>,destination=/conf,readonly \
-  --mount type=bind,source=$GOPATH/src,destination=/out/ \
-  gcr.io/gapic-images/gapic-generator-go \
-  --go-gapic-package "github.com/package/import/path;name"
-```
-
-Replace `/abs/path/to/protos` with the absolute path to the input protos and `github.com/package/import/path;name`
-with the desired import path & name for the `gapic`, as described in [Invocation](#Invocation).
-
-For convenience, the [gapic.sh](./gapic.sh) script wraps the above `docker` invocation.
-An equivalent invocation using `gapic.sh` is:
-
-```bash
-$ gapic.sh \
-  --image gcr.io/gapic-images/gapic-generator-go \
-  --in /abs/path/to/protos \
-  --out $GOPATH/src \
-  --go-gapic-package "<github.com/package/import/path;name>"
-```
-
-Use `gapic.sh --help` to print the usage documentation.
-
 Code Generation
 ---------------
 

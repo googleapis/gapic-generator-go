@@ -88,18 +88,3 @@ $ protoc -I $API_COMMON_PROTOS \
   --go_gapic_opt 'gapic=path/to/gapic/config.yaml' \
   a.proto b.proto
 ```
-
-When executing the client library generator in a docker container, run
-```bash
-$ docker run \
-  --rm \
-  --user $UID \
-  --mount type=bind,source=</abs/path/to/protos>,destination=/in,readonly \
-  --mount type=bind,source=</abs/path/to/configs>,destination=/conf,readonly \
-  --mount type=bind,source=$GOPATH/src,destination=/out/ \
-  gcr.io/gapic-images/gapic-generator-go \
-  --go-gapic-package "github.com/package/import/path;name" \
-  --sample "path/to/sample/config.yaml" \
-  --sample "path/to/another/sample/config.yaml" \
-  --gapic "path/to/gapic/config.yaml"
-```

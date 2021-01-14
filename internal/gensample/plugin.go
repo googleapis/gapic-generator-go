@@ -28,7 +28,7 @@ const (
 )
 
 // PluginEntry is the entry point of SampleGen as a protoc plugin. If gapic-generator-go
-// is called as a protoc plugin or docker image with the intention to generate samples,
+// is called as a protoc plugin with the intention to generate samples,
 // it will eventually call this function to do so.
 func PluginEntry(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var (
