@@ -632,7 +632,9 @@ func Test_parseRequestHeaders(t *testing.T) {
 
 		if got, err := parseRequestHeaders(m); err != nil {
 			t.Error(err)
-		} else if diff := cmp.Diff(got, tst.want); diff != "" {
+			continue
+		}
+		if diff := cmp.Diff(got, tst.want); diff != "" {
 			t.Errorf("parseRequestHeaders(%s) = %v, want %v, diff %s", tst.name, got, tst.want, diff)
 		}
 	}
