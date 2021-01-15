@@ -631,7 +631,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			// and because it will likely never be necessary
 			fmt.Fprintf(&values, " %q, %s,", url.QueryEscape(field), accessor)
 
-			// The defualt format specifiers for bool, string, and int are
+			// The default format specifiers for bool, string, and int are
 			// sufficient.
 			//
 			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
