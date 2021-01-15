@@ -619,31 +619,27 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			}
 			seen[field] = true
 
+			accessor := fmt.Sprintf("req%s", buildAccessor(field))
 			typ := g.lookupFieldType(m.GetInputType(), field)
 
-			accessor := fmt.Sprintf("req%s", buildAccessor(field))
+			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
 			if typ == descriptor.FieldDescriptorProto_TYPE_STRING {
 				accessor = fmt.Sprintf("url.QueryEscape(%s)", accessor)
+			} else if typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE || typ == descriptor.FieldDescriptorProto_TYPE_FLOAT {
+				// Format the floating point value with mode 'g' to allow for
+				// exponent formatting when necessary, and decimal when adequate.
+				// QueryEscape the resulting string incase there is a '+' in the
+				// exponent.
+				// See golang.org/pkg/fmt for more information on formatting.
+				accessor = fmt.Sprintf("url.QueryEscape(fmt.Sprintf(%q, %s))", "%g", accessor)
 			}
 
 			// URL encode key & values separately per aip.dev/4222.
 			// Encode the key ahead of time to reduce clutter
 			// and because it will likely never be necessary
 			fmt.Fprintf(&values, " %q, %s,", url.QueryEscape(field), accessor)
-
-			// The default format specifiers for bool, string, and int are
-			// sufficient.
-			//
-			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
-			formatter := "%v"
-			if typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE || typ == descriptor.FieldDescriptorProto_TYPE_FLOAT {
-				// Use the format mode 'f' to use decimal format, which should
-				// be safe for headers/URLs.
-				// See golang.org/pkg/fmt for more information.
-				formatter = ("%f")
-			}
 			// Produces either "%s=%v&" or "%s=%f&" depending on the field type.
-			formats.WriteString("%s=" + formatter + "&")
+			formats.WriteString("%s=%v&")
 		}
 		f := formats.String()[:formats.Len()-1]
 		v := values.String()[:values.Len()-1]
