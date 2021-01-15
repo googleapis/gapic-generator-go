@@ -628,7 +628,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			} else if typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE || typ == descriptor.FieldDescriptorProto_TYPE_FLOAT {
 				// Format the floating point value with mode 'g' to allow for
 				// exponent formatting when necessary, and decimal when adequate.
-				// QueryEscape the resulting string incase there is a '+' in the
+				// QueryEscape the resulting string in case there is a '+' in the
 				// exponent.
 				// See golang.org/pkg/fmt for more information on formatting.
 				accessor = fmt.Sprintf("url.QueryEscape(fmt.Sprintf(%q, %s))", "%g", accessor)
