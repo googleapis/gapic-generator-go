@@ -145,9 +145,13 @@ def go_gapic_library(
     "@org_golang_google_grpc//metadata:go_default_library",
     "@org_golang_google_grpc//status:go_default_library",
     "@com_github_golang_protobuf//proto:go_default_library",
-    "@com_github_golang_protobuf//ptypes:go_default_library_gen",
-    "@io_bazel_rules_go//proto/wkt:empty_go_proto",
-    "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
+    "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
+    "@org_golang_google_protobuf//types/known/wrapperspb:go_default_library",
+    "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
+    "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
+    "@org_golang_google_protobuf//types/known/anypb:go_default_library",
+    "@org_golang_google_protobuf//types/known/structpb:go_default_library",
+    "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
   ]
 
   main_file = ":%s" % srcjar_name + output_suffix
