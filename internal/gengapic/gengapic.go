@@ -638,7 +638,6 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			// Encode the key ahead of time to reduce clutter
 			// and because it will likely never be necessary
 			fmt.Fprintf(&values, " %q, %s,", url.QueryEscape(field), accessor)
-			// Produces either "%s=%v&" or "%s=%f&" depending on the field type.
 			formats.WriteString("%s=%v&")
 		}
 		f := formats.String()[:formats.Len()-1]
