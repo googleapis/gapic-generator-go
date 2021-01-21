@@ -631,7 +631,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 				// QueryEscape the resulting string in case there is a '+' in the
 				// exponent.
 				// See golang.org/pkg/fmt for more information on formatting.
-				accessor = fmt.Sprintf("url.QueryEscape(fmt.Sprintf(%q, %s))", "%g", accessor)
+				accessor = fmt.Sprintf("url.QueryEscape(fmt.Sprintf(\"%%g\", %s))", accessor)
 			}
 
 			// URL encode key & values separately per aip.dev/4222.
