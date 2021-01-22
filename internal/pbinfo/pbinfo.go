@@ -130,6 +130,13 @@ type ImportSpec struct {
 // The reported name is the same with how protoc-gen-go refers to e.
 // E.g. if type B is nested under A, then the name of type B is "A_B".
 func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
+	appendpb := func(n string) string {
+		if !strings.HasSuffix(n, "pb") {
+			n += "pb"
+		}
+		return n
+	}
+
 	topLvl := e
 	var nameParts []string
 	for e2 := e; e2 != nil; e2 = in.ParentElement[e2] {
@@ -157,13 +164,13 @@ func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
 	}
 
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {
-		return name, ImportSpec{Path: pkg[:p], Name: pkg[p+1:] + "pb"}, nil
+		return name, ImportSpec{Path: pkg[:p], Name: appendpb(pkg[p+1:])}, nil
 	}
 
 	for {
 		p := strings.LastIndexByte(pkg, '/')
 		if p < 0 {
-			return name, ImportSpec{Path: pkg, Name: pkg + "pb"}, nil
+			return name, ImportSpec{Path: pkg, Name: appendpb(pkg)}, nil
 		}
 		elem := pkg[p+1:]
 		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
@@ -171,7 +178,7 @@ func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
 			pkg = pkg[:p]
 			continue
 		}
-		return name, ImportSpec{Path: pkg, Name: elem + "pb"}, nil
+		return name, ImportSpec{Path: pkg, Name: appendpb(elem)}, nil
 	}
 }
 
