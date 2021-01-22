@@ -622,6 +622,12 @@ func (g *gcli) getFieldBehavior(field *desc.FieldDescriptor) (output bool, requi
 
 func (g *gcli) getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
 	pkg := m.GetFile().GetFileOptions().GetGoPackage()
+	appendpb := func(n string) string {
+		if !strings.HasSuffix(n, "pb") {
+			n += "pb"
+		}
+		return n
+	}
 
 	// the below logic is copied from pbinfo.NameSpec()
 	if pkg == "" {
@@ -629,13 +635,13 @@ func (g *gcli) getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
 	}
 
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {
-		return &pbinfo.ImportSpec{Path: pkg[:p], Name: pkg[p+1:] + "pb"}, nil
+		return &pbinfo.ImportSpec{Path: pkg[:p], Name: appendpb(pkg[p+1:])}, nil
 	}
 
 	for {
 		p := strings.LastIndexByte(pkg, '/')
 		if p < 0 {
-			return &pbinfo.ImportSpec{Path: pkg, Name: pkg + "pb"}, nil
+			return &pbinfo.ImportSpec{Path: pkg, Name: appendpb(pkg)}, nil
 		}
 		elem := pkg[p+1:]
 		if len(elem) >= 2 && elem[0] == 'v' && elem[1] >= '0' && elem[1] <= '9' {
@@ -643,7 +649,7 @@ func (g *gcli) getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
 			pkg = pkg[:p]
 			continue
 		}
-		return &pbinfo.ImportSpec{Path: pkg, Name: elem + "pb"}, nil
+		return &pbinfo.ImportSpec{Path: pkg, Name: appendpb(elem)}, nil
 	}
 }
 
