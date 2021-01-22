@@ -631,7 +631,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 				// QueryEscape the resulting string in case there is a '+' in the
 				// exponent.
 				// See golang.org/pkg/fmt for more information on formatting.
-				accessor = fmt.Sprintf("url.QueryEscape(fmt.Sprintf(\"%%g\", %s))", accessor)
+				accessor = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
 			}
 
 			// URL encode key & values separately per aip.dev/4222.
@@ -666,7 +666,8 @@ func buildAccessor(field string) string {
 	return ax.String()
 }
 
-func (g *generator) lookupFieldType(msgName, field string) (typ descriptor.FieldDescriptorProto_Type) {
+func (g *generator) lookupFieldType(msgName, field string) descriptor.FieldDescriptorProto_Type {
+	var typ descriptor.FieldDescriptorProto_Type
 	msg := g.descInfo.Type[msgName]
 	msgProto := msg.(*descriptor.DescriptorProto)
 	msgFields := msgProto.GetField()
@@ -690,7 +691,7 @@ func (g *generator) lookupFieldType(msgName, field string) (typ descriptor.Field
 			}
 		}
 	}
-	return
+	return typ
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
