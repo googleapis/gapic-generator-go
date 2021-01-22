@@ -619,11 +619,25 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			}
 			seen[field] = true
 
+			accessor := fmt.Sprintf("req%s", buildAccessor(field))
+			typ := g.lookupFieldType(m.GetInputType(), field)
+
+			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
+			if typ == descriptor.FieldDescriptorProto_TYPE_STRING {
+				accessor = fmt.Sprintf("url.QueryEscape(%s)", accessor)
+			} else if typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE || typ == descriptor.FieldDescriptorProto_TYPE_FLOAT {
+				// Format the floating point value with mode 'g' to allow for
+				// exponent formatting when necessary, and decimal when adequate.
+				// QueryEscape the resulting string in case there is a '+' in the
+				// exponent.
+				// See golang.org/pkg/fmt for more information on formatting.
+				accessor = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
+			}
+
 			// URL encode key & values separately per aip.dev/4222.
 			// Encode the key ahead of time to reduce clutter
 			// and because it will likely never be necessary
-			fmt.Fprintf(&values, " %q, url.QueryEscape(req%s),",
-				url.QueryEscape(field), buildAccessor(field))
+			fmt.Fprintf(&values, " %q, %s,", url.QueryEscape(field), accessor)
 			formats.WriteString("%s=%v&")
 		}
 		f := formats.String()[:formats.Len()-1]
@@ -650,6 +664,34 @@ func buildAccessor(field string) string {
 		fmt.Fprintf(&ax, ".Get%s()", snakeToCamel(s))
 	}
 	return ax.String()
+}
+
+func (g *generator) lookupFieldType(msgName, field string) descriptor.FieldDescriptorProto_Type {
+	var typ descriptor.FieldDescriptorProto_Type
+	msg := g.descInfo.Type[msgName]
+	msgProto := msg.(*descriptor.DescriptorProto)
+	msgFields := msgProto.GetField()
+
+	// Split the key name for nested fields, and traverse the message chain.
+	for _, seg := range strings.Split(field, ".") {
+		// Look up the desired field by name, stopping if the leaf field is
+		// found, continuing if the field is a nested message.
+		for _, f := range msgFields {
+			if f.GetName() == seg {
+				typ = f.GetType()
+
+				// Search the nested message for the next segment of the
+				// nested field chain.
+				if typ == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+					msg = g.descInfo.Type[f.GetTypeName()]
+					msgProto = msg.(*descriptor.DescriptorProto)
+					msgFields = msgProto.GetField()
+				}
+				break
+			}
+		}
+	}
+	return typ
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {

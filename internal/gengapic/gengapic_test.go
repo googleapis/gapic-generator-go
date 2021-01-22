@@ -128,13 +128,6 @@ func TestGRPCClientField(t *testing.T) {
 }
 
 func TestGenMethod(t *testing.T) {
-	inputType := &descriptor.DescriptorProto{
-		Name: proto.String("InputType"),
-	}
-	outputType := &descriptor.DescriptorProto{
-		Name: proto.String("OutputType"),
-	}
-
 	typep := func(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
 		return &t
 	}
@@ -142,37 +135,72 @@ func TestGenMethod(t *testing.T) {
 		return &l
 	}
 
-	pageInputType := &descriptor.DescriptorProto{
-		Name: proto.String("PageInputType"),
+	extra := &descriptor.DescriptorProto{
+		Name: proto.String("ExtraMessage"),
 		Field: []*descriptor.FieldDescriptorProto{
 			{
-				Name:  proto.String("page_size"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-			},
-			{
-				Name:  proto.String("page_token"),
+				Name:  proto.String("nested"),
 				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 		},
 	}
-	pageInputTypeOptional := &descriptor.DescriptorProto{
-		Name: proto.String("PageInputTypeOptional"),
+
+	inputType := &descriptor.DescriptorProto{
+		Name: proto.String("InputType"),
 		Field: []*descriptor.FieldDescriptorProto{
 			{
-				Name:           proto.String("page_size"),
-				Type:           typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				Proto3Optional: proto.Bool(true),
+				Name:  proto.String("other"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
-				Name:           proto.String("page_token"),
-				Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				Proto3Optional: proto.Bool(true),
+				Name:  proto.String("another"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			},
+			{
+				Name:  proto.String("biz"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_DOUBLE),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			},
+			{
+				Name:     proto.String("field_name"),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				TypeName: proto.String(".my.pkg.ExtraMessage"),
 			},
 		},
+	}
+	outputType := &descriptor.DescriptorProto{
+		Name: proto.String("OutputType"),
+	}
+
+	pageInputType := &descriptor.DescriptorProto{
+		Name: proto.String("PageInputType"),
+		Field: append(inputType.GetField(), &descriptor.FieldDescriptorProto{
+			Name:  proto.String("page_size"),
+			Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+		}, &descriptor.FieldDescriptorProto{
+			Name:  proto.String("page_token"),
+			Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+		}),
+	}
+	pageInputTypeOptional := &descriptor.DescriptorProto{
+		Name: proto.String("PageInputTypeOptional"),
+		Field: append(inputType.GetField(), &descriptor.FieldDescriptorProto{
+			Name:           proto.String("page_size"),
+			Type:           typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			Proto3Optional: proto.Bool(true),
+		}, &descriptor.FieldDescriptorProto{
+			Name:           proto.String("page_token"),
+			Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			Proto3Optional: proto.Bool(true),
+		}),
 	}
 	paginatedField := &descriptor.FieldDescriptorProto{
 		Name:  proto.String("items"),
@@ -247,7 +275,7 @@ func TestGenMethod(t *testing.T) {
 
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
-		inputType, outputType, pageInputType, pageInputTypeOptional, pageOutputType,
+		inputType, outputType, pageInputType, pageInputTypeOptional, pageOutputType, extra,
 	} {
 		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
 		g.descInfo.ParentFile[typ] = file
@@ -638,6 +666,97 @@ func Test_parseRequestHeaders(t *testing.T) {
 
 		if diff := cmp.Diff(got, tst.want); diff != "" {
 			t.Errorf("parseRequestHeaders(%s) = got(-), want(+):\n%s", tst.name, diff)
+		}
+	}
+}
+
+func Test_lookupFieldType(t *testing.T) {
+	typep := func(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
+		return &t
+	}
+
+	extra := &descriptor.DescriptorProto{
+		Name: proto.String("ExtraMessage"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{
+				Name: proto.String("leaf"),
+				Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			},
+		},
+	}
+
+	inputType := &descriptor.DescriptorProto{
+		Name: proto.String("InputType"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{
+				Name: proto.String("str"),
+				Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			},
+			{
+				Name: proto.String("bool"),
+				Type: typep(descriptor.FieldDescriptorProto_TYPE_BOOL),
+			},
+			{
+				Name: proto.String("int"),
+				Type: typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			},
+			{
+				Name: proto.String("double"),
+				Type: typep(descriptor.FieldDescriptorProto_TYPE_DOUBLE),
+			},
+			{
+				Name:     proto.String("msg"),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String("ExtraMessage"),
+			},
+		},
+	}
+
+	var g generator
+	g.descInfo.Type = map[string]pbinfo.ProtoType{
+		inputType.GetName(): inputType,
+		extra.GetName():     extra,
+	}
+
+	for _, tst := range []struct {
+		name, msg, field string
+		want             descriptor.FieldDescriptorProto_Type
+	}{
+		{
+			name:  "string",
+			msg:   "InputType",
+			field: "str",
+			want:  descriptor.FieldDescriptorProto_TYPE_STRING,
+		},
+		{
+			name:  "boolean",
+			msg:   "InputType",
+			field: "bool",
+			want:  descriptor.FieldDescriptorProto_TYPE_BOOL,
+		},
+		{
+			name:  "integer",
+			msg:   "InputType",
+			field: "int",
+			want:  descriptor.FieldDescriptorProto_TYPE_INT32,
+		},
+		{
+			name:  "double",
+			msg:   "InputType",
+			field: "double",
+			want:  descriptor.FieldDescriptorProto_TYPE_DOUBLE,
+		},
+		{
+			name:  "nested field",
+			msg:   "InputType",
+			field: "msg.leaf",
+			want:  descriptor.FieldDescriptorProto_TYPE_STRING,
+		},
+	} {
+		got := g.lookupFieldType(tst.msg, tst.field)
+
+		if got != tst.want {
+			t.Errorf("Test_lookupFieldType(%s): got %v want %v", tst.name, got, tst.want)
 		}
 	}
 }
