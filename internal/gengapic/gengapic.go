@@ -70,6 +70,19 @@ type options struct {
 	transports        []Transport
 }
 
+// Utility function for stringifying the Transport enum
+func (t Transport) String() string {
+	switch t {
+	case grpc:
+		return "grpc"
+	case rest:
+		return "rest"
+	default:
+		// Add new transport variants as need be.
+		return fmt.Sprintf("%d", int(t))
+	}
+}
+
 // ParseOptions takes a string and parses it into a struct defining
 // customizations on the target gapic surface.
 // Options are comma-separated key/value pairs which are in turn delimited with '='.
@@ -139,7 +152,8 @@ func ParseOptions(parameter *string) (*options, error) {
 				case "rest":
 					opts.transports = append(opts.transports, rest)
 				default:
-					return nil, errors.E(nil, "invalid transport option: %s", t)
+					return nil, errors.E(nil, "invalid transport option (valid options are '%s', '%s'): %s",
+						t, grpc, rest)
 				}
 			}
 		}

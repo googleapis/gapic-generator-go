@@ -141,12 +141,12 @@ func (g *generator) abstractClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	p("// It is agnostic as to the underlying transport, i.e. json+http, gRPC, or other.")
 	p("type %sAbstractClient interface {", servName)
 	for _, m := range serv.Method {
-		inType := g.descInfo.Type[*m.InputType]
+		inType := g.descInfo.Type[m.GetInputType()]
 		inSpec, err := g.descInfo.ImportSpec(inType)
 		if err != nil {
 			return err
 		}
-		outType := g.descInfo.Type[*m.OutputType]
+		outType := g.descInfo.Type[m.GetOutputType()]
 		outSpec, err := g.descInfo.ImportSpec(outType)
 		if err != nil {
 			return err
@@ -205,7 +205,8 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p := g.printf
 
 	// client struct
-	p("// %sClient is a client for interacting with %s.", servName, g.apiName)
+	p("// %sClient is a client for interacting with %s over gRPC transport.", servName, g.apiName)
+	p("// It satisfies the %sAbstractClient interface", servName)
 	p("//")
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %sClient struct {", servName)
@@ -223,7 +224,7 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("")
 
 	if hasLRO {
-		p("// LROClient is used internally to handle longrunning operations.")
+		p("// LROClient is used internally to handle long-running operations.")
 		p("// It is exposed so that its CallOptions can be modified if required.")
 		p("// Users should not Close this client.")
 		p("LROClient *lroauto.OperationsClient")
@@ -363,7 +364,8 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 			// TODO(dovs): add rest client struct initialization
 			continue
 		default:
-			return fmt.Errorf("unexpected transport variant: %d", v)
+			return fmt.Errorf("unexpected transport variant (supported variants are '%s', '%s'): %d",
+				v, grpc, rest)
 		}
 	}
 
