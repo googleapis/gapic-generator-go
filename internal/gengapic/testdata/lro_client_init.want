@@ -4,7 +4,8 @@ type FooAbstractClient interface {
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*ZipOperation, error)
 }
 
-// FooClient is a client for interacting with Awesome Foo API.
+// FooClient is a client for interacting with Awesome Foo API over gRPC transport.
+// It satisfies the FooAbstractClient interface.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type FooClient struct {
@@ -17,7 +18,7 @@ type FooClient struct {
 	// The gRPC API client.
 	fooClient mypackagepb.FooClient
 
-	// LROClient is used internally to handle longrunning operations.
+	// LROClient is used internally to handle long-running operations.
 	// It is exposed so that its CallOptions can be modified if required.
 	// Users should not Close this client.
 	LROClient *lroauto.OperationsClient

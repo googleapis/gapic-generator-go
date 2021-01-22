@@ -206,7 +206,7 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	// client struct
 	p("// %sClient is a client for interacting with %s over gRPC transport.", servName, g.apiName)
-	p("// It satisfies the %sAbstractClient interface", servName)
+	p("// It satisfies the %sAbstractClient interface.", servName)
 	p("//")
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %sClient struct {", servName)
