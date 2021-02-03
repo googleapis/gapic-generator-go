@@ -94,7 +94,7 @@ def go_gapic_library(
     file_args[grpc_service_config] =  "grpc-service-config"
 
   if service_yaml:
-    file_args[service_yaml] = "gapic-service-config"
+    file_args[service_yaml] = "api-service-config"
   
   if gapic_yaml:
     file_args[gapic_yaml] = "gapic-config"

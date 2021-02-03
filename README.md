@@ -89,9 +89,8 @@ The configuration supported by the plugin option includes:
     * Defaults to empty, which is essentially the GA release level.
     * Acceptable values are `alpha` and `beta`.
 
-  * `gapic-service-config`: the path the service YAML file.
+  * `api-service-config`: the path the service YAML file.
     * This is used for service-level client documentation.
-    * _Note: This option is a workaround and will be deprecated._
 
   * `sample`: path to sample configuration files.
     * This is used for sample generation. Refer to [sample generation guide](./cmd/gen-go-sample/README.md) for more details.

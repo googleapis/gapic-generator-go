@@ -30,7 +30,8 @@ shopt -s extglob
 while true; do
   case "$1" in
     --go-gapic-package ) GO_GAPIC_PACKAGE="go-gapic-package=$2"; shift 2 ;;
-    --gapic-service-config ) GAPIC_SERVICE_CONFIG="gapic-service-config=/conf/$2"; shift 2;;
+    --api-service-config ) API_SERVICE_CONFIG="api-service-config=/conf/$2"; shift 2;;
+    --gapic-service-config ) API_SERVICE_CONFIG="api-service-config=/conf/$2"; shift 2;;
     --grpc-service-config ) GRPC_SERVICE_CONFIG="grpc-service-config=/conf/$2"; shift 2;;
     --gapic-config ) GAPIC_CONFIG="gapic-config=/conf/$2"; shift 2;;
     --sample ) SAMPLES="${SAMPLES}sample=/conf/$2,"; shift 2;;
@@ -56,7 +57,7 @@ protoc --proto_path=/protos/ --proto_path=/in/ \
                   --go_gapic_out=/out/ \
                   --go_gapic_opt="$GO_GAPIC_PACKAGE" \
                   --go_gapic_opt="$RELEASE_LEVEL" \
-                  --go_gapic_opt="$GAPIC_SERVICE_CONFIG" \
+                  --go_gapic_opt="$API_SERVICE_CONFIG" \
                   --go_gapic_opt="$GRPC_SERVICE_CONFIG" \
                   --go_gapic_opt="$GAPIC_CONFIG" \
                   --go_gapic_opt="$SAMPLES" \

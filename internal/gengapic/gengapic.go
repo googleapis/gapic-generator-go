@@ -76,7 +76,7 @@ type options struct {
 // Valid options include:
 // * go-gapic-package (package and module naming info)
 // * sample-only (only checked for presence)
-// * gapic-service-config (filepath)
+// * api-service-config (filepath)
 // * grpc-service-config (filepath)
 // * module (name)
 // * release-level (one of 'alpha', 'beta', or empty)
@@ -84,7 +84,7 @@ type options struct {
 // The only required option is 'go-gapic-package'.
 //
 // Valid parameter example:
-// go-gapic-package=path/to/out;pkg,module=path,transport=rest+grpc,gapic-service-config=gapic_cfg.json,release-level=alpha
+// go-gapic-package=path/to/out;pkg,module=path,transport=rest+grpc,api-service-config=api_v1.yaml,release-level=alpha
 //
 // It returns a pointer to a populated options if no errors were encountered while parsing.
 // If errors were encountered, it returns a nil pointer and the first error.
@@ -124,6 +124,10 @@ func ParseOptions(parameter *string) (*options, error) {
 			opts.pkgName = s[p+1:]
 			opts.outDir = filepath.FromSlash(opts.pkgPath)
 		case "gapic-service-config":
+			// Deprecated: this option is deprecated and will be removed in a
+			// later release.
+			fallthrough
+		case "api-service-config":
 			opts.serviceConfigPath = val
 		case "grpc-service-config":
 			opts.grpcConfPath = val
