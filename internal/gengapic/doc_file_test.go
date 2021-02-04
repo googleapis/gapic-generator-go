@@ -19,13 +19,14 @@ import (
 	"testing"
 
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
 )
 
 func TestDocFile(t *testing.T) {
 	var g generator
 	g.apiName = "Awesome Foo API"
-	g.serviceConfig = &serviceConfig{
-		Documentation: &configDocumentation{
+	g.serviceConfig = &serviceconfig.Service{
+		Documentation: &serviceconfig.Documentation{
 			Summary: "The Awesome Foo API is really really awesome. It enables the use of Foo with Buz and Baz to acclerate bar.",
 		},
 	}
