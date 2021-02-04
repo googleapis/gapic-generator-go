@@ -40,9 +40,8 @@ func (g *generator) genDocFile(year int, scopes []string) {
 		p("// %s.", g.apiName)
 	}
 
-	// TODO(ndietz) figure out how to include this without the service config
-	if g.serviceConfig != nil && g.serviceConfig.Documentation != nil {
-		wrapped := wrapString(g.serviceConfig.Documentation.Summary, 75)
+	if g.serviceConfig != nil && g.serviceConfig.GetDocumentation() != nil {
+		wrapped := wrapString(g.serviceConfig.GetDocumentation().GetSummary(), 75)
 
 		if len(wrapped) > 0 && g.apiName != "" {
 			p("//")
@@ -173,7 +172,7 @@ func (g *generator) genDocFile(year int, scopes []string) {
 	}
 }
 
-func collectScopes(servs []*descriptor.ServiceDescriptorProto, config *serviceConfig) ([]string, error) {
+func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
 		eOauthScopes, err := proto.GetExtension(s.Options, annotations.E_OauthScopes)

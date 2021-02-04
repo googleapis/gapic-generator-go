@@ -35,6 +35,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"gopkg.in/yaml.v2"
 )
 
@@ -180,7 +181,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		}
 		defer f.Close()
 
-		err = yaml.NewDecoder(f).Decode(&g.serviceConfig)
+		g.serviceConfig = &serviceconfig.Service{}
+		err = yaml.NewDecoder(f).Decode(g.serviceConfig)
 		if err != nil {
 			return &g.resp, errors.E(nil, "error decoding service config: %v", err)
 		}
@@ -208,9 +210,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	if g.serviceConfig != nil {
-		// TODO(ndietz) remove this if some metadata/packaging
-		// annotations are ever accepted
-		g.apiName = g.serviceConfig.Title
+		g.apiName = g.serviceConfig.GetTitle()
 	}
 
 	for _, s := range genServs {
@@ -237,7 +237,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	g.reset()
-	scopes, err := collectScopes(genServs, g.serviceConfig)
+	scopes, err := collectScopes(genServs)
 	if err != nil {
 		return &g.resp, err
 	}
@@ -275,7 +275,7 @@ type generator struct {
 	apiName string
 
 	// Parsed service config from plugin option
-	serviceConfig *serviceConfig
+	serviceConfig *serviceconfig.Service
 
 	// gRPC ServiceConfig
 	grpcConf conf.Config
