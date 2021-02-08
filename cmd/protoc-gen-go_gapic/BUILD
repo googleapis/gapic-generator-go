@@ -10,7 +10,7 @@ go_library(
         "//internal/gengapic",
         "//internal/gensample",
         "@com_github_golang_protobuf//proto",
-        "@com_github_golang_protobuf//protoc-gen-go/plugin",
+        "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
     ],
 )
 
