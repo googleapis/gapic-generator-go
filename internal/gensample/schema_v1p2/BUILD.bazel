@@ -1,14 +1,14 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "schema_v1p2",
     srcs = ["schema.go"],
     importpath = "github.com/googleapis/gapic-generator-go/internal/gensample/schema_v1p2",
     visibility = ["//:__subpackages__"],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "schema_v1p2_test",
     srcs = ["schema_test.go"],
-    embed = [":go_default_library"],
+    embed = [":schema_v1p2"],
 )

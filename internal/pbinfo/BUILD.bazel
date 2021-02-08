@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "pbinfo",
     srcs = [
         "pbinfo.go",
         "prim2go.go",
@@ -9,16 +9,16 @@ go_library(
     importpath = "github.com/googleapis/gapic-generator-go/internal/pbinfo",
     visibility = ["//:__subpackages__"],
     deps = [
-        "//internal/errors:go_default_library",
+        "//internal/errors",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "pbinfo_test",
     srcs = ["pbinfo_test.go"],
-    embed = [":go_default_library"],
+    embed = [":pbinfo"],
     deps = [
         "@com_github_golang_protobuf//proto:go_default_library",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",

@@ -2,20 +2,20 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 # gazelle:proto disable_global
 go_library(
-    name = "go_default_library",
+    name = "protoc-gen-go_gapic_lib",
     srcs = ["main.go"],
     importpath = "github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic",
     visibility = ["//visibility:private"],
     deps = [
-        "//internal/gengapic:go_default_library",
-        "//internal/gensample:go_default_library",
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
+        "//internal/gengapic",
+        "//internal/gensample",
+        "@com_github_golang_protobuf//proto",
+        "@com_github_golang_protobuf//protoc-gen-go/plugin",
     ],
 )
 
 go_binary(
     name = "protoc-gen-go_gapic",
-    embed = [":go_default_library"],
+    embed = [":protoc-gen-go_gapic_lib"],
     visibility = ["//visibility:public"],
 )

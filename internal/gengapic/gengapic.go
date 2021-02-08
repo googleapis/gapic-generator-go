@@ -23,17 +23,13 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
-	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"gopkg.in/yaml.v2"
@@ -44,7 +40,6 @@ const (
 	// protoc puts a dot in front of name, signaling that the name is fully qualified.
 	emptyType           = "." + emptyValue
 	lroType             = ".google.longrunning.Operation"
-	paramError          = "need parameter in format: go-gapic-package=client/import/path;packageName"
 	alpha               = "alpha"
 	beta                = "beta"
 	disableDeadlinesVar = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
@@ -52,128 +47,11 @@ const (
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)
 
-type Transport int
-
-const (
-	grpc Transport = iota
-	rest
-)
-
-type options struct {
-	pkgPath           string
-	pkgName           string
-	outDir            string
-	relLvl            string
-	modulePrefix      string
-	grpcConfPath      string
-	serviceConfigPath string
-	sampleOnly        bool
-	transports        []Transport
-}
-
-// ParseOptions takes a string and parses it into a struct defining
-// customizations on the target gapic surface.
-// Options are comma-separated key/value pairs which are in turn delimited with '='.
-// Valid options include:
-// * go-gapic-package (package and module naming info)
-// * sample-only (only checked for presence)
-// * api-service-config (filepath)
-// * grpc-service-config (filepath)
-// * module (name)
-// * release-level (one of 'alpha', 'beta', or empty)
-// * transport ('+' separated list of transport backends to generate)
-// The only required option is 'go-gapic-package'.
-//
-// Valid parameter example:
-// go-gapic-package=path/to/out;pkg,module=path,transport=rest+grpc,api-service-config=api_v1.yaml,release-level=alpha
-//
-// It returns a pointer to a populated options if no errors were encountered while parsing.
-// If errors were encountered, it returns a nil pointer and the first error.
-func ParseOptions(parameter *string) (*options, error) {
-	opts := options{sampleOnly: false}
-
-	if parameter == nil {
-		return nil, errors.E(nil, "empty options parameter")
-	}
-
-	// parse plugin params, ignoring unknown values
-	for _, s := range strings.Split(*parameter, ",") {
-		// check for the boolean flag, sample-only, that disables client generation
-		if s == "sample-only" {
-			return &options{sampleOnly: true}, nil
-		}
-
-		e := strings.IndexByte(s, '=')
-		if e < 0 {
-			return nil, errors.E(nil, "invalid plugin option format, must be key=value: %s", s)
-		}
-
-		key, val := s[:e], s[e+1:]
-		if val == "" {
-			return nil, errors.E(nil, "invalid plugin option value, missing value in key=value: %s", s)
-		}
-
-		switch key {
-		case "go-gapic-package":
-			p := strings.IndexByte(s, ';')
-
-			if p < 0 {
-				return nil, errors.E(nil, paramError)
-			}
-
-			opts.pkgPath = s[e+1 : p]
-			opts.pkgName = s[p+1:]
-			opts.outDir = filepath.FromSlash(opts.pkgPath)
-		case "gapic-service-config":
-			// Deprecated: this option is deprecated and will be removed in a
-			// later release.
-			fallthrough
-		case "api-service-config":
-			opts.serviceConfigPath = val
-		case "grpc-service-config":
-			opts.grpcConfPath = val
-		case "module":
-			opts.modulePrefix = val
-		case "release-level":
-			opts.relLvl = strings.ToLower(val)
-		case "transport":
-			for _, t := range strings.Split(val, "+") {
-				switch t {
-				case "grpc":
-					opts.transports = append(opts.transports, grpc)
-				case "rest":
-					opts.transports = append(opts.transports, rest)
-				default:
-					return nil, errors.E(nil, "invalid transport option: %s", t)
-				}
-			}
-		}
-	}
-
-	if opts.pkgPath == "" || opts.pkgName == "" || opts.outDir == "" {
-		return nil, errors.E(nil, paramError)
-	}
-
-	if opts.modulePrefix != "" {
-		if !strings.HasPrefix(opts.outDir, opts.modulePrefix) {
-			return nil, errors.E(nil, "go-gapic-package %q does not match prefix %q", opts.outDir, opts.modulePrefix)
-		}
-		opts.outDir = strings.TrimPrefix(opts.outDir, opts.modulePrefix+"/")
-	}
-
-	// Default is just grpc for now.
-	if opts.transports == nil {
-		opts.transports = []Transport{grpc}
-	}
-
-	return &opts, nil
-}
-
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var g generator
 	g.init(genReq.ProtoFile)
 
-	opts, err := ParseOptions(genReq.Parameter)
+	opts, err := parseOptions(genReq.Parameter)
 	if err != nil {
 		return &g.resp, err
 	}
@@ -252,160 +130,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	})
 
 	return &g.resp, nil
-}
-
-func strContains(a []string, s string) bool {
-	for _, as := range a {
-		if as == s {
-			return true
-		}
-	}
-	return false
-}
-
-type generator struct {
-	pt printer.P
-
-	descInfo pbinfo.Info
-
-	// Maps proto elements to their comments
-	comments map[proto.Message]string
-
-	resp plugin.CodeGeneratorResponse
-
-	imports map[pbinfo.ImportSpec]bool
-
-	// Human-readable name of the API used in docs
-	apiName string
-
-	// Parsed service config from plugin option
-	serviceConfig *serviceconfig.Service
-
-	// gRPC ServiceConfig
-	grpcConf conf.Config
-
-	// Auxiliary types to be generated in the package
-	aux *auxTypes
-
-	// Release level that defaults to GA/nothing
-	relLvl string
-
-	// The Go module prefix to strip from the go-gapic-package
-	// used as the generated file name.
-	modulePrefix string
-
-	// Options for the generator determining module names, transports,
-	// config file paths, etc.
-	opts *options
-}
-
-func (g *generator) init(files []*descriptor.FileDescriptorProto) {
-	g.descInfo = pbinfo.Of(files)
-
-	g.comments = map[proto.Message]string{}
-	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.aux = &auxTypes{
-		iters: map[string]*iterType{},
-	}
-
-	for _, f := range files {
-		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
-			if loc.LeadingComments == nil {
-				continue
-			}
-
-			// p is an array with format [f1, i1, f2, i2, ...]
-			// - f1 refers to the protobuf field tag
-			// - if field refer to by f1 is a slice, i1 refers to an element in that slice
-			// - f2 and i2 works recursively.
-			// So, [6, x] refers to the xth service defined in the file,
-			// since the field tag of Service is 6.
-			// [6, x, 2, y] refers to the yth method in that service,
-			// since the field tag of Method is 2.
-			p := loc.Path
-			switch {
-			case len(p) == 2 && p[0] == 6:
-				g.comments[f.Service[p[1]]] = *loc.LeadingComments
-			case len(p) == 4 && p[0] == 6 && p[2] == 2:
-				g.comments[f.Service[p[1]].Method[p[3]]] = *loc.LeadingComments
-			}
-		}
-	}
-}
-
-// printf formatted-prints to sb, using the print syntax from fmt package.
-//
-// It automatically keeps track of indentation caused by curly-braces.
-// To make nested blocks easier to write elsewhere in the code,
-// leading and trailing whitespaces in s are ignored.
-// These spaces are for humans reading the code, not machines.
-//
-// Currently it's not terribly difficult to confuse the auto-indenter.
-// To fix-up, manipulate g.in or write to g.sb directly.
-func (g *generator) printf(s string, a ...interface{}) {
-	g.pt.Printf(s, a...)
-}
-
-func (g *generator) commit(fileName, pkgName string) {
-	var header strings.Builder
-	fmt.Fprintf(&header, license.Apache, time.Now().Year())
-	fmt.Fprintf(&header, "package %s\n\n", pkgName)
-
-	var imps []pbinfo.ImportSpec
-	for imp := range g.imports {
-		imps = append(imps, imp)
-	}
-	impDiv := sortImports(imps)
-
-	writeImp := func(is pbinfo.ImportSpec) {
-		s := "\t%[2]q\n"
-		if is.Name != "" {
-			s = "\t%s %q\n"
-		}
-		fmt.Fprintf(&header, s, is.Name, is.Path)
-	}
-
-	header.WriteString("import (\n")
-	for _, imp := range imps[:impDiv] {
-		writeImp(imp)
-	}
-	if impDiv != 0 && impDiv != len(imps) {
-		header.WriteByte('\n')
-	}
-	for _, imp := range imps[impDiv:] {
-		writeImp(imp)
-	}
-	header.WriteString(")\n\n")
-
-	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
-		Name:    &fileName,
-		Content: proto.String(header.String()),
-	})
-
-	// Trim trailing newlines so we have only one.
-	// NOTE(pongad): This might be an overkill since we have gofmt,
-	// but the rest of the file already conforms to gofmt, so we might as well?
-	body := g.pt.String()
-	if !strings.HasSuffix(body, "\n") {
-		body += "\n"
-	}
-	for i := len(body) - 1; i >= 0; i-- {
-		if body[i] != '\n' {
-			body = body[:i+2]
-			break
-		}
-	}
-
-	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
-		Content: proto.String(body),
-	})
-}
-
-func (g *generator) reset() {
-	g.pt.Reset()
-	for k := range g.imports {
-		delete(g.imports, k)
-	}
 }
 
 // gen generates client for the given service.
@@ -732,76 +456,6 @@ func (g *generator) comment(s string) {
 	}
 }
 
-// isLRO determines if a given Method is a longrunning operation, ignoring
-// those defined by the longrunning proto package.
-func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
-	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
-}
-
-// grpcClientField reports the field name to store gRPC client.
-func grpcClientField(reducedServName string) string {
-	// Not the same as pbinfo.ReduceServName(*serv.Name, pkg)+"Client".
-	// If the service name is reduced to empty string, we should
-	// lower-case "client" so that the field is not exported.
-	return lowerFirst(reducedServName + "Client")
-}
-
-func grpcClientCall(reducedServName, methName string) string {
-	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(reducedServName), methName)
-}
-
-func lowerFirst(s string) string {
-	if s == "" {
-		return ""
-	}
-	r, w := utf8.DecodeRuneInString(s)
-	return string(unicode.ToLower(r)) + s[w:]
-}
-
-func upperFirst(s string) string {
-	if s == "" {
-		return ""
-	}
-	r, w := utf8.DecodeRuneInString(s)
-	return string(unicode.ToUpper(r)) + s[w:]
-}
-
-func camelToSnake(s string) string {
-	var sb strings.Builder
-	runes := []rune(s)
-
-	for i, r := range runes {
-		if unicode.IsUpper(r) && i != 0 {
-			// An uppercase rune followed by a lowercase
-			// rune indicates the start of a word,
-			// keeping uppercase acronyms together.
-			next := i + 1
-			if len(runes) > next && !unicode.IsUpper(runes[next]) {
-				sb.WriteByte('_')
-			}
-		}
-		sb.WriteRune(unicode.ToLower(r))
-	}
-	return sb.String()
-}
-
-// snakeToCamel converts snake_case and SNAKE_CASE to CamelCase.
-func snakeToCamel(s string) string {
-	var sb strings.Builder
-	up := true
-	for _, r := range s {
-		if r == '_' {
-			up = true
-		} else if up {
-			sb.WriteRune(unicode.ToUpper(r))
-			up = false
-		} else {
-			sb.WriteRune(unicode.ToLower(r))
-		}
-	}
-	return sb.String()
-}
-
 func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
 	var matches [][]string
 
@@ -836,16 +490,4 @@ func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error
 	}
 
 	return matches, nil
-}
-
-// isOptional returns true if the named Field in the given Message
-// is proto3_optional.
-func isOptional(m *descriptor.DescriptorProto, n string) bool {
-	for _, f := range m.GetField() {
-		if f.GetName() == n {
-			return f.GetProto3Optional()
-		}
-	}
-
-	return false
 }
