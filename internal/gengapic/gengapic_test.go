@@ -17,7 +17,6 @@ package gengapic
 import (
 	"bytes"
 	"path/filepath"
-	"reflect"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -483,21 +482,7 @@ func Test_buildAccessor(t *testing.T) {
 	}
 }
 
-func Test_camelToSnake(t *testing.T) {
-	for _, tst := range []struct {
-		in, want string
-	}{
-		{"IAMCredentials", "iam_credentials"},
-		{"DLP", "dlp"},
-		{"OsConfig", "os_config"},
-	} {
-		if got := camelToSnake(tst.in); got != tst.want {
-			t.Errorf("camelToSnake(%q) = %q, want %q", tst.in, got, tst.want)
-		}
-	}
-}
-
-func Test_isLRO(t *testing.T) {
+func TestIsLRO(t *testing.T) {
 	lroGetOp := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("GetOperation"),
 		OutputType: proto.String(".google.longrunning.Operation"),
@@ -510,10 +495,10 @@ func Test_isLRO(t *testing.T) {
 
 	var g generator
 	g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
-		lroGetOp: &descriptor.FileDescriptorProto{
+		lroGetOp: {
 			Package: proto.String("google.longrunning"),
 		},
-		actualLRO: &descriptor.FileDescriptorProto{
+		actualLRO: {
 			Package: proto.String("my.pkg"),
 		},
 	}
@@ -527,91 +512,6 @@ func Test_isLRO(t *testing.T) {
 	} {
 		if got := g.isLRO(tst.in); got != tst.want {
 			t.Errorf("isLRO(%v) = %v, want %v", tst.in, got, tst.want)
-		}
-	}
-}
-
-func Test_optionsParse(t *testing.T) {
-	for _, tst := range []struct {
-		param        string
-		expectedOpts *options
-		expectErr    bool
-	}{
-		{
-			param: "transport=grpc,go-gapic-package=path;pkg",
-			expectedOpts: &options{
-				transports: []Transport{grpc},
-				pkgPath:    "path",
-				pkgName:    "pkg",
-				outDir:     "path",
-			},
-			expectErr: false,
-		},
-		{
-			param: "transport=rest+grpc,go-gapic-package=path;pkg",
-			expectedOpts: &options{
-				transports: []Transport{rest, grpc},
-				pkgPath:    "path",
-				pkgName:    "pkg",
-				outDir:     "path",
-			},
-			expectErr: false,
-		},
-		{
-			param: "go-gapic-package=path;pkg",
-			expectedOpts: &options{
-				transports: []Transport{grpc},
-				pkgPath:    "path",
-				pkgName:    "pkg",
-				outDir:     "path",
-			},
-		},
-		{
-			param: "module=path,go-gapic-package=path/to/out;pkg",
-			expectedOpts: &options{
-				transports:   []Transport{grpc},
-				pkgPath:      "path/to/out",
-				pkgName:      "pkg",
-				outDir:       "to/out",
-				modulePrefix: "path",
-			},
-			expectErr: false,
-		},
-		{
-			param:     "transport=tcp,go-gapic-package=path;pkg",
-			expectErr: true,
-		},
-		{
-			param:     "go-gapic-package=pkg;",
-			expectErr: true,
-		},
-		{
-			param:     "go-gapic-package=;path",
-			expectErr: true,
-		},
-		{
-			param:     "go-gapic-package=bogus",
-			expectErr: true,
-		},
-		{
-			param:     "module=different_path,go-gapic-package=path;pkg",
-			expectErr: true,
-		},
-	} {
-		opts, err := ParseOptions(&tst.param)
-		if tst.expectErr && err == nil {
-			t.Errorf("ParseOptions(%s) expected error", tst.param)
-			continue
-		}
-
-		if !tst.expectErr && err != nil {
-			t.Errorf("ParseOptions(%s) got unexpected error: %v", tst.param, err)
-			continue
-		}
-
-		if !reflect.DeepEqual(opts, tst.expectedOpts) {
-			t.Errorf("ParseOptions(%s) = %v, expected %v", tst.param, opts, tst.expectedOpts)
-			continue
 		}
 	}
 }

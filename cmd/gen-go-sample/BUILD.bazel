@@ -1,13 +1,13 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "gen-go-sample_lib",
     srcs = ["main.go"],
     importpath = "github.com/googleapis/gapic-generator-go/cmd/gen-go-sample",
     visibility = ["//visibility:private"],
     deps = [
-        "//internal/errors:go_default_library",
-        "//internal/gensample:go_default_library",
+        "//internal/errors",
+        "//internal/gensample",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
     ],
@@ -15,6 +15,6 @@ go_library(
 
 go_binary(
     name = "gen-go-sample",
-    embed = [":go_default_library"],
+    embed = [":gen-go-sample_lib"],
     visibility = ["//visibility:public"],
 )
