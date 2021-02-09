@@ -96,12 +96,6 @@ func strContains(a []string, s string) bool {
 	return false
 }
 
-// isLRO determines if a given Method is a longrunning operation, ignoring
-// those defined by the longrunning proto package.
-func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
-	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
-}
-
 // grpcClientField reports the field name to store gRPC client.
 func grpcClientField(reducedServName string) string {
 	// Not the same as pbinfo.ReduceServName(*serv.Name, pkg)+"Client".

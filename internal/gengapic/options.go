@@ -26,6 +26,7 @@ type transport int
 const (
 	grpc transport = iota
 	rest
+
 	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 )
 

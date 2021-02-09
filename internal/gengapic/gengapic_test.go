@@ -482,6 +482,40 @@ func Test_buildAccessor(t *testing.T) {
 	}
 }
 
+func TestIsLRO(t *testing.T) {
+	lroGetOp := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("GetOperation"),
+		OutputType: proto.String(".google.longrunning.Operation"),
+	}
+
+	actualLRO := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("SuperLongRPC"),
+		OutputType: proto.String(".google.longrunning.Operation"),
+	}
+
+	var g generator
+	g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
+		lroGetOp: {
+			Package: proto.String("google.longrunning"),
+		},
+		actualLRO: {
+			Package: proto.String("my.pkg"),
+		},
+	}
+
+	for _, tst := range []struct {
+		in   *descriptor.MethodDescriptorProto
+		want bool
+	}{
+		{lroGetOp, false},
+		{actualLRO, true},
+	} {
+		if got := g.isLRO(tst.in); got != tst.want {
+			t.Errorf("isLRO(%v) = %v, want %v", tst.in, got, tst.want)
+		}
+	}
+}
+
 func Test_parseRequestHeaders(t *testing.T) {
 	for _, tst := range []struct {
 		name, pattern string

@@ -456,6 +456,12 @@ func (g *generator) comment(s string) {
 	}
 }
 
+// isLRO determines if a given Method is a longrunning operation, ignoring
+// those defined by the longrunning proto package.
+func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
+	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
+}
+
 func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
 	var matches [][]string
 
