@@ -86,6 +86,7 @@ def go_gapic_library(
   gapic_yaml = None,
   samples = [],
   sample_only = False,
+  metadata = False,
   **kwargs):
 
   file_args = {}
@@ -112,6 +113,9 @@ def go_gapic_library(
 
   if sample_only:
     plugin_args.append("sample-only")
+
+  if metadata:
+    plugin_args.append("metadata")
 
   srcjar_name = name+"_srcjar"
   raw_srcjar_name = srcjar_name+"_raw"
