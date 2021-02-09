@@ -27,6 +27,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
+	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 )
 
 type generator struct {
@@ -63,10 +64,20 @@ type generator struct {
 	// Options for the generator determining module names, transports,
 	// config file paths, etc.
 	opts *options
+
+	// GapicMetadata for recording proto-to-code mappings in a
+	// gapic_metadata.json file.
+	metadata *metadatapb.GapicMetadata
 }
 
 func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 	g.descInfo = pbinfo.Of(files)
+	g.metadata = &metadatapb.GapicMetadata{
+		Schema:   "1.0",
+		Language: "go",
+		Comment:  "This file maps proto services/RPCs to the corresponding library clients/methods.",
+		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
+	}
 
 	g.comments = map[proto.Message]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
