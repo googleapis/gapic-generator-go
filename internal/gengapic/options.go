@@ -74,7 +74,8 @@ func parseOptions(parameter *string) (*options, error) {
 		// check for the boolean flag, sample-only, that disables client generation
 		if s == "sample-only" {
 			return &options{sampleOnly: true}, nil
-		} else if s == "metadata" {
+		}
+		if s == "metadata" {
 			opts.metadata = true
 			continue
 		}

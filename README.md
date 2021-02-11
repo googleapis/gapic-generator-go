@@ -82,7 +82,7 @@ The configuration supported by the plugin option includes:
   * `module`: prefix to be stripped from the `go-gapic-package` used in the generated filenames.
      * _Note: This option is not supported from the Bazel interface._
 
-  * `metadata`: enable generation of [GapicMetadata](https://github.com/googleapis/googleapis/blob/master/gapic/metadata/gapic_metadata.proto) in JSON form.
+  * `metadata`: enable generation of [GapicMetadata](https://github.com/googleapis/googleapis/blob/master/gapic/metadata/gapic_metadata.proto) in JSON form. The default is `false`.
   
   * `grpc-service-config`: the path to a gRPC ServiceConfig JSON file.
     * This is used for client-side retry configuration in accordance with [AIP-4221](http://aip.dev/4221)
@@ -161,7 +161,7 @@ following attributes:
 
   * `sample_only`: if present, directs the generator to forgo client generation and generate only samples.
 
-  * `metadata`: if `True`, [GapicMetadata](https://github.com/googleapis/googleapis/blob/master/gapic/metadata/gapic_metadata.proto) will be generated in JSON form.
+  * `metadata`: if `True`, [GapicMetadata](https://github.com/googleapis/googleapis/blob/master/gapic/metadata/gapic_metadata.proto) will be generated in JSON form. The default is `False`.
 
 Docker Wrapper
 --------------
