@@ -21,6 +21,7 @@ def _go_gapic_postprocessed_srcjar_impl(ctx):
     gapic_srcjar = ctx.file.gapic_srcjar
     output_main = ctx.outputs.main
     output_test = ctx.outputs.test
+    output_metadata = ctx.outputs.metadata
 
     output_dir_name = ctx.label.name
     output_dir_path = "%s/%s" % (output_main.dirname, output_dir_name)
@@ -35,9 +36,12 @@ def _go_gapic_postprocessed_srcjar_impl(ctx):
     zip -q -r {output_dir_name}-test.srcjar . -i ./*_test.go
     find . -name "*_test.go" -delete
     zip -q -r {output_dir_name}.srcjar . -i ./*.go
+    find . -name "*.go" -delete
+    zip -q -r {output_dir_name}-metadata.srcjar . -i ./*.json
     popd
     mv {output_dir_path}/{output_dir_name}-test.srcjar {output_test}
     mv {output_dir_path}/{output_dir_name}.srcjar {output_main}
+    mv {output_dir_path}/{output_dir_name}-metadata.srcjar {output_metadata}
     """.format(
         gapic_srcjar = gapic_srcjar.path,
         output_dir_name = output_dir_name,
@@ -45,13 +49,14 @@ def _go_gapic_postprocessed_srcjar_impl(ctx):
         formatter = formatter.path,
         output_main = output_main.path,
         output_test = output_test.path,
+        output_metadata = output_metadata.path,
     )
 
     ctx.actions.run_shell(
         inputs = [gapic_srcjar],
         tools = [formatter],
         command = script,
-        outputs = [output_main, output_test],
+        outputs = [output_main, output_test, output_metadata],
     )
 
 _go_gapic_postprocessed_srcjar = rule(
@@ -65,6 +70,7 @@ _go_gapic_postprocessed_srcjar = rule(
   outputs = {
       "main": "%{name}.srcjar",
       "test": "%{name}-test.srcjar",
+      "metadata": "%{name}-metadata.srcjar",
   },
   toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
@@ -185,5 +191,15 @@ def go_gapic_library(
     name = test_dir,
     srcjar = test_file,
     extension = ".go",
+    **kwargs
+  )
+
+  metadata_file = ":%s-metadata.srcjar" % srcjar_name
+  metadata_dir = "%s_metadata" % srcjar_name
+
+  unzipped_srcjar(
+    name = metadata_dir,
+    srcjar = metadata_file,
+    extension = ".json",
     **kwargs
   )
