@@ -55,6 +55,16 @@ func TestParseOptions(t *testing.T) {
 			},
 		},
 		{
+			param: "metadata,go-gapic-package=path;pkg",
+			expectedOpts: &options{
+				transports: []transport{grpc},
+				pkgPath:    "path",
+				pkgName:    "pkg",
+				outDir:     "path",
+				metadata:   true,
+			},
+		},
+		{
 			param: "module=path,go-gapic-package=path/to/out;pkg",
 			expectedOpts: &options{
 				transports:   []transport{grpc},

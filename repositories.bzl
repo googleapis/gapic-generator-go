@@ -233,12 +233,15 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:/wp5JvzpHIxhs/dumFmF7BXTf3Z+dd4uXta4kVyO508=",
         version = "v1.4.0",
     )
-    go_repository(
-        name = "org_golang_google_genproto",
-        importpath = "google.golang.org/genproto",
-        sum = "h1:N98SvVh7Hdle2lgUVFuIkf0B3u29CUakMUQa7Hwz8Wc=",
-        version = "v0.0.0-20210207032614-bba0dbe2a9ea",
-    )
+    # TODO(noahdietz): replace with next rules_go release.
+    # https://github.com/googleapis/gapic-generator-go/issues/529
+    #
+    # go_repository(
+    #     name = "org_golang_google_genproto",
+    #     importpath = "google.golang.org/genproto",
+    #     sum = "h1:N98SvVh7Hdle2lgUVFuIkf0B3u29CUakMUQa7Hwz8Wc=",
+    #     version = "v0.0.0-20210207032614-bba0dbe2a9ea",
+    # )
     go_repository(
         name = "org_golang_google_grpc",
         importpath = "google.golang.org/grpc",

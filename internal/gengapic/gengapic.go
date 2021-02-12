@@ -95,6 +95,12 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.apiName = g.serviceConfig.GetTitle()
 	}
 
+	// Use the proto package from the parent file of the first Service seen.
+	if len(genServs) > 0 {
+		g.metadata.ProtoPackage = g.descInfo.ParentFile[genServs[0]].GetPackage()
+	}
+	g.metadata.LibraryPackage = g.opts.pkgPath
+
 	for _, s := range genServs {
 		// TODO(pongad): gapic-generator does not remove the package name here,
 		// so even though the client for LoggingServiceV2 is just "Client"
@@ -129,6 +135,15 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		Content: proto.String(g.pt.String()),
 	})
 
+	if g.opts.metadata {
+		g.reset()
+		g.genGapicMetadataFile()
+		g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+			Name:    proto.String(filepath.Join(g.opts.outDir, "gapic_metadata.json")),
+			Content: proto.String(g.pt.String()),
+		})
+	}
+
 	return &g.resp, nil
 }
 
@@ -136,6 +151,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	servName := pbinfo.ReduceServName(*serv.Name, g.opts.pkgName)
 
+	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
 		return err
@@ -152,6 +168,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 		if err := g.genMethod(servName, serv, m); err != nil {
 			return errors.E(err, "method: %s", m.GetName())
 		}
+		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
 	}
 
 	sort.Slice(g.aux.lros, func(i, j int) bool {

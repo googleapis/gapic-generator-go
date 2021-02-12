@@ -40,6 +40,7 @@ type options struct {
 	serviceConfigPath string
 	sampleOnly        bool
 	transports        []transport
+	metadata          bool
 }
 
 // parseOptions takes a string and parses it into a struct defining
@@ -53,6 +54,7 @@ type options struct {
 // * module (name)
 // * release-level (one of 'alpha', 'beta', or empty)
 // * transport ('+' separated list of transport backends to generate)
+// * metadata (enable GAPIC metadata generation)
 // The only required option is 'go-gapic-package'.
 //
 // Valid parameter example:
@@ -72,6 +74,10 @@ func parseOptions(parameter *string) (*options, error) {
 		// check for the boolean flag, sample-only, that disables client generation
 		if s == "sample-only" {
 			return &options{sampleOnly: true}, nil
+		}
+		if s == "metadata" {
+			opts.metadata = true
+			continue
 		}
 
 		e := strings.IndexByte(s, '=')

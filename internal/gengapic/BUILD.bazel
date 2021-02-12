@@ -12,6 +12,7 @@ go_library(
         "imports.go",
         "lro.go",
         "markdown.go",
+        "metadata.go",
         "options.go",
         "paging.go",
         "stream.go",
@@ -33,6 +34,8 @@ go_library(
         "@in_gopkg_yaml_v2//:yaml_v2",
         "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_genproto//googleapis/gapic/metadata",
+        "@org_golang_google_protobuf//encoding/protojson",
     ],
 )
 
@@ -45,6 +48,7 @@ go_test(
         "gengapic_test.go",
         "helpers_test.go",
         "markdown_test.go",
+        "metadata_test.go",
         "options_test.go",
         "paging_test.go",
     ],
@@ -63,6 +67,7 @@ go_test(
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
         "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+        "@org_golang_google_genproto//googleapis/gapic/metadata",
         "@org_golang_google_protobuf//encoding/protojson",
     ],
 )
