@@ -79,6 +79,38 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 				},
 			},
 		},
+		{
+			service: "LibraryService",
+			lib:     "",
+			init: &metadatapb.GapicMetadata{
+				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+					"LibraryService": {
+						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+							"rest": {
+								LibraryClient: "LibraryServiceRestClient",
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+							},
+						},
+					},
+				},
+			},
+			want: &metadatapb.GapicMetadata{
+				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+					"LibraryService": {
+						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+							"grpc": {
+								LibraryClient: "Client",
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+							},
+							"rest": {
+								LibraryClient: "LibraryServiceRestClient",
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+							},
+						},
+					},
+				},
+			},
+		},
 	} {
 		g := generator{
 			metadata: tst.init,
