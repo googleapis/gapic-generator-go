@@ -38,6 +38,15 @@ func (g *generator) addMetadataServiceForTransport(service, transport, lib strin
 		g.metadata.Services[service] = s
 	}
 
+	// When the Service name matches the package name, the client is named just
+	// "Client". We need to catch that.
+	//
+	// TODO(noahdietz): when REGAPIC is added we may need to special case based
+	// on transport.
+	if lib == "" {
+		lib = "Client"
+	}
+
 	s.Clients[transport] = &metadata.GapicMetadata_ServiceAsClient{
 		LibraryClient: lib,
 		Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
