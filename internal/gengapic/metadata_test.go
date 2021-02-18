@@ -30,7 +30,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 	}{
 		{
 			service: "LibraryService",
-			lib:     "LibraryServiceClient",
+			lib:     "LibraryService",
 			init: &metadatapb.GapicMetadata{
 				Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
 			},
@@ -49,7 +49,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 		},
 		{
 			service: "LibraryService",
-			lib:     "LibraryServiceClient",
+			lib:     "LibraryService",
 			init: &metadatapb.GapicMetadata{
 				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
