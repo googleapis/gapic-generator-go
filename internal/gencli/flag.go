@@ -36,6 +36,7 @@ type Flag struct {
 	MessageImport pbinfo.ImportSpec
 	OneOfs        map[string]*Flag
 	OneOfSelector string
+	OneOfDesc     *desc.OneOfDescriptor
 	VarName       string
 	FieldName     string
 	SliceAccessor string
