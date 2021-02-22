@@ -190,6 +190,9 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		{{ end }}
 		{{ if .IsMap }}
+		if len({{ .VarName }}) > 0 {
+			{{ .SliceAccessor }} = make(map[string]string)
+		}
 		for _, item := range {{ .VarName }} {
 			split := strings.Split(item, "=")
 			if len(split) < 2 {
