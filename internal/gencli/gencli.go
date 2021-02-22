@@ -248,7 +248,7 @@ func (g *gcli) genCommands() {
 					})
 				}
 
-				pkg, err := g.getImport(msg)
+				pkg, err := getImport(msg)
 				if err != nil {
 					continue
 				}
@@ -339,6 +339,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 		IsOneOfField:  true,
 		IsNested:      isNested,
 		OneOfSelector: prefix + oneOfField,
+		OneOfDesc:     field.GetOneOf(),
 		Usage:         toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
 		VarName:       cmd.InputMessageVar + dotToCamel(title(oneOfPrefix+field.GetName())),
 	}
@@ -364,7 +365,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 	flag.FieldName = fieldName
 
 	// construct oneof gRPC struct type info
-	parent, err := g.getImport(msg)
+	parent, err := getImport(msg)
 	if err != nil {
 		return
 	}
@@ -620,7 +621,7 @@ func (g *gcli) getFieldBehavior(field *desc.FieldDescriptor) (output bool, requi
 	return
 }
 
-func (g *gcli) getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
+func getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
 	pkg := m.GetFile().GetFileOptions().GetGoPackage()
 	appendpb := func(n string) string {
 		if !strings.HasSuffix(n, "pb") {
@@ -654,7 +655,7 @@ func (g *gcli) getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
 }
 
 func (g *gcli) addImport(cmd *Command, m desc.Descriptor) (*pbinfo.ImportSpec, error) {
-	pkg, err := g.getImport(m)
+	pkg, err := getImport(m)
 	if err != nil {
 		return nil, err
 	}

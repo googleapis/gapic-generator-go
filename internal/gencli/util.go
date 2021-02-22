@@ -102,7 +102,20 @@ func oneofTypeName(field, inputMsgType string, flag *Flag) string {
 	tname := fmt.Sprintf("%s_%s", inputMsgType, upperField)
 
 	if flag.IsNested {
-		tname = fmt.Sprintf("%s.%s_%s", flag.MessageImport.Name, flag.Message, upperField)
+		imp := flag.MessageImport.Name
+
+		// If the field is a message not defined in the same package as the
+		// parent, we must use the parent's import name for the oneof wrapper
+		// type.
+		if flag.IsMessage() && flag.MsgDesc.GetFile().GetPackage() != flag.OneOfDesc.GetOwner().GetFile().GetPackage() {
+			// There is no good way to handle an error from a template helper
+			// function so we will let the generation fail because the import
+			// will be empty - but this shouldn't ever happen because the Go pkg
+			// option is required.
+			p, _ := getImport(flag.OneOfDesc.GetOwner())
+			imp = p.Name
+		}
+		tname = fmt.Sprintf("%s.%s_%s", imp, flag.Message, upperField)
 	}
 
 	if flag.IsMessage() {
