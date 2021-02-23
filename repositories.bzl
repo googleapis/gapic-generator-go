@@ -98,8 +98,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This should be retained by gazelle.
         build_file_proto_mode = "disable",
         importpath = "github.com/jhump/protoreflect",
-        sum = "h1:z7Ciiz3Bz37zSd485fbiTW8ABafIasyOWZI0N9EUUdo=",
-        version = "v1.8.1",
+        sum = "h1:k2xE7wcUomeqwY0LDCYA16y4WWfyTcMx5mKhk0d4ua0=",
+        version = "v1.8.2",
     )
     go_repository(
         name = "com_github_kisielk_gotool",
@@ -233,6 +233,7 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:/wp5JvzpHIxhs/dumFmF7BXTf3Z+dd4uXta4kVyO508=",
         version = "v1.4.0",
     )
+
     # TODO(noahdietz): replace with next rules_go release.
     # https://github.com/googleapis/gapic-generator-go/issues/529
     #
