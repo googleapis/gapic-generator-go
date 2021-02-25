@@ -20,11 +20,13 @@ jobs:
       run: go get -u golang.org/x/lint/golint
       if: ${{ always() }}
     - name: Lint
+      # Exclude all gensample code and the grpc_service_config package (it is generated).
       run: golint -set_exit_status $(go list ./... | grep -v 'sample\|grpc_service_config') > golint.txt
       if: ${{ always() }}
     - name: Vet
       # The mod download is there to prevent go vet from logging mod downloads
       # which would mess up the empty vetting results check.
+      # Exclude all gensample code and the grpc_service_config package (it is generated).
       run: go mod download && go vet $(go list ./... | grep -v 'sample\|grpc_service_config') > govet.txt && ! [ -s govet.txt ]
       if: ${{ always() }}
     - name: Check license
