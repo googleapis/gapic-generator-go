@@ -32,6 +32,7 @@ func (e myErr) Error() string {
 	return s
 }
 
+// E creates a new error with the given cause and message.
 func E(cause error, s string, a ...interface{}) error {
 	return myErr{
 		str: fmt.Sprintf(s, a...),

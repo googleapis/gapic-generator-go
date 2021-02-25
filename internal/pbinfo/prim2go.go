@@ -16,6 +16,7 @@ package pbinfo
 
 import "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
+// GoTypeForPrim maps protobuf primitive types to Go primitive types.
 var GoTypeForPrim = map[descriptor.FieldDescriptorProto_Type]string{
 	descriptor.FieldDescriptorProto_TYPE_DOUBLE:   "float64",
 	descriptor.FieldDescriptorProto_TYPE_FLOAT:    "float32",

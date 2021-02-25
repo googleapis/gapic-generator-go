@@ -22,6 +22,7 @@ import (
 	"strings"
 )
 
+// P represents a buffer for print code that tracks indentation.
 type P struct {
 	buf    bytes.Buffer
 	indent int
@@ -80,6 +81,7 @@ func (p *P) String() string {
 	return p.buf.String()
 }
 
+// Len returns the length of the printer buffer.
 func (p *P) Len() int {
 	return p.buf.Len()
 }

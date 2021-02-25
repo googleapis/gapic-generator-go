@@ -121,6 +121,7 @@ func addMessage(typMap map[string]ProtoType, parentMap map[ProtoType]ProtoType, 
 	}
 }
 
+// ImportSpec represents a Go module import path and an optional alias.
 type ImportSpec struct {
 	Name, Path string
 }
