@@ -78,7 +78,7 @@ func TestMDPlain(t *testing.T) {
 			want: "link to a search engine (at https://www.google.com) with request type Search, bizbuz.",
 		},
 	} {
-		got := MDPlain(tst.in)
+		got := mdPlain(tst.in)
 		if got != tst.want {
 			t.Errorf("MDPlain(%q)=%q, want %q", tst.in, got, tst.want)
 		}

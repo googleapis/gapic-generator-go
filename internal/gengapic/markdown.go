@@ -29,7 +29,7 @@ import (
 var linkParser = regexp.MustCompile(`<a href=["'](.+)["']`)
 var referenceParser = regexp.MustCompile(`\[([a-zA-Z1-9._]+)\]\[[a-zA-Z1-9._]*\]`)
 
-func MDPlain(s string) string {
+func mdPlain(s string) string {
 	var mdr mdRenderer
 	for _, tok := range markdown.New(markdown.HTML(true)).Parse([]byte(s)) {
 		mdr.plain(tok)

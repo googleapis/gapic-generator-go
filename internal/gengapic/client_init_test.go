@@ -115,7 +115,7 @@ func TestClientOpt(t *testing.T) {
 
 	g.descInfo = pbinfo.Info{
 		ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
-			serv: &descriptor.FileDescriptorProto{
+			serv: {
 				Package: proto.String("bar"),
 			},
 		},
@@ -193,7 +193,7 @@ func TestClientInit(t *testing.T) {
 		{tstName: "lro_client_init", servName: "Foo", serv: servLRO},
 	} {
 		g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
-			tst.serv: &descriptor.FileDescriptorProto{
+			tst.serv: {
 				Options: &descriptor.FileOptions{
 					GoPackage: proto.String("mypackage"),
 				},
