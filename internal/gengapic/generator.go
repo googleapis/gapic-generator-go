@@ -16,18 +16,20 @@ package gengapic
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/googleapis/gapic-generator-go/internal/errors"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
+	"gopkg.in/yaml.v2"
 )
 
 type generator struct {
@@ -70,8 +72,7 @@ type generator struct {
 	metadata *metadatapb.GapicMetadata
 }
 
-func (g *generator) init(files []*descriptor.FileDescriptorProto) {
-	g.descInfo = pbinfo.Of(files)
+func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	g.metadata = &metadatapb.GapicMetadata{
 		Schema:   "1.0",
 		Language: "go",
@@ -85,7 +86,41 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 		iters: map[string]*iterType{},
 	}
 
-	for _, f := range files {
+	opts, err := parseOptions(req.Parameter)
+	if err != nil {
+		return err
+	}
+
+	if opts.serviceConfigPath != "" {
+		f, err := os.Open(opts.serviceConfigPath)
+		if err != nil {
+			return errors.E(nil, "error opening service config: %v", err)
+		}
+		defer f.Close()
+
+		g.serviceConfig = &serviceconfig.Service{}
+		err = yaml.NewDecoder(f).Decode(g.serviceConfig)
+		if err != nil {
+			return errors.E(nil, "error decoding service config: %v", err)
+		}
+	}
+	if opts.grpcConfPath != "" {
+		f, err := os.Open(opts.grpcConfPath)
+		if err != nil {
+			return errors.E(nil, "error opening gRPC service config: %v", err)
+		}
+		defer f.Close()
+
+		g.grpcConf, err = conf.New(f)
+		if err != nil {
+			return errors.E(nil, "error parsing gPRC service config: %v", err)
+		}
+	}
+	g.opts = opts
+
+	g.descInfo = pbinfo.Of(req.GetProtoFile())
+
+	for _, f := range req.GetProtoFile() {
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
 			if loc.LeadingComments == nil {
 				continue
@@ -108,6 +143,8 @@ func (g *generator) init(files []*descriptor.FileDescriptorProto) {
 			}
 		}
 	}
+
+	return nil
 }
 
 // printf formatted-prints to sb, using the print syntax from fmt package.

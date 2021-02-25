@@ -15,7 +15,6 @@
 package gengapic
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -102,8 +101,4 @@ func grpcClientField(reducedServName string) string {
 	// If the service name is reduced to empty string, we should
 	// lower-case "client" so that the field is not exported.
 	return lowerFirst(reducedServName + "Client")
-}
-
-func grpcClientCall(reducedServName, methName string) string {
-	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(reducedServName), methName)
 }
