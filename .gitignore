@@ -4,6 +4,9 @@ perf.data*
 showcase/gen
 showcase/gapic-showcase
 showcase/showcase_grpc_service_config.json
+gofmt.txt
+golint.txt
+govet.txt
 
 # Jetbrains
 .idea/
