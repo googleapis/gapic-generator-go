@@ -47,6 +47,7 @@ const (
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)
 
+// Gen is the entry point for GAPIC generation via the protoc plugin.
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var g generator
 	g.init(genReq.ProtoFile)
@@ -461,7 +462,7 @@ func (g *generator) comment(s string) {
 		return
 	}
 
-	s = MDPlain(s)
+	s = mdPlain(s)
 
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {

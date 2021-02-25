@@ -169,12 +169,12 @@ func commonTypes(g *generator) {
 		lroType:   lro,
 	}
 	g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
-		empty: &descriptor.FileDescriptorProto{
+		empty: {
 			Options: &descriptor.FileOptions{
 				GoPackage: proto.String("github.com/golang/protobuf/ptypes/empty"),
 			},
 		},
-		lro: &descriptor.FileDescriptorProto{
+		lro: {
 			Options: &descriptor.FileOptions{
 				GoPackage: proto.String("google.golang.org/genproto/googleapis/longrunning;longrunning"),
 			},

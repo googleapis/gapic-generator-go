@@ -46,7 +46,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		p("}")
 		p("")
 
-		g.imports[pbinfo.ImportSpec{"gax", "github.com/googleapis/gax-go/v2"}] = true
+		g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
 	}
 
 	// defaultClientOptions

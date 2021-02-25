@@ -167,7 +167,7 @@ func TestIterTypeOf(t *testing.T) {
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{},
 			ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
-				msgType: &descriptor.FileDescriptorProto{
+				msgType: {
 					Options: &descriptor.FileOptions{
 						GoPackage: proto.String("path/to/foo;foo"),
 					},
