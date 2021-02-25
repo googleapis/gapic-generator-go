@@ -90,6 +90,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	if err != nil {
 		return err
 	}
+	files := req.GetProtoFile()
 
 	if opts.serviceConfigPath != "" {
 		f, err := os.Open(opts.serviceConfigPath)
@@ -118,9 +119,9 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	}
 	g.opts = opts
 
-	g.descInfo = pbinfo.Of(req.GetProtoFile())
+	g.descInfo = pbinfo.Of(files)
 
-	for _, f := range req.GetProtoFile() {
+	for _, f := range files {
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
 			if loc.LeadingComments == nil {
 				continue
