@@ -21,12 +21,14 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	return
 fi
 
-SHOWCASE_SEMVER=0.12.0
+SHOWCASE_SEMVER=0.13.0
 
 rm -rf gen
 mkdir gen
 
 curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/showcase_grpc_service_config.json
+
+curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/showcase_v1beta1.yaml
 
 protoc \
 	--experimental_allow_proto3_optional \
@@ -34,6 +36,7 @@ protoc \
 	--go_gapic_out ./gen \
 	--go_gapic_opt 'go-gapic-package=github.com/googleapis/gapic-showcase/client;client' \
 	--go_gapic_opt 'grpc-service-config=showcase_grpc_service_config.json' \
+	--go_gapic_opt 'api-service-config=showcase_v1beta1.yaml' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
 	google/showcase/v1beta1/echo.proto google/showcase/v1beta1/identity.proto google/showcase/v1beta1/sequence.proto
 

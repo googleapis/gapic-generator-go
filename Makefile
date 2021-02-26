@@ -36,4 +36,5 @@ clean:
 	rm -rf showcase/gen
 	rm -f showcase/gapic-showcase
 	rm -f showcase/showcase_grpc_service_config.json
+	rm -f showcase/showcase_v1beta1.yaml
 	cd showcase; go mod edit -dropreplace github.com/googleapis/gapic-showcase

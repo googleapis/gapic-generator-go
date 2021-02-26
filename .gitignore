@@ -7,6 +7,7 @@ showcase/showcase_grpc_service_config.json
 gofmt.txt
 golint.txt
 govet.txt
+showcase/showcase_v1beta1.yaml
 
 # Jetbrains
 .idea/
