@@ -130,7 +130,15 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	// clear LRO types between services
 	g.aux.lros = []*descriptor.MethodDescriptorProto{}
 
-	for _, m := range serv.Method {
+	methods := serv.GetMethod()
+	if g.hasLocationMixin() {
+		methods = append(methods, getLocationsMethods()...)
+	}
+	if g.hasIAMPolicyMixin() && !hasIAMPolicyOverrides(serv) {
+		methods = append(methods, getIAMPolicyMethods()...)
+	}
+
+	for _, m := range methods {
 		g.methodDoc(m)
 		if err := g.genMethod(servName, serv, m); err != nil {
 			return errors.E(err, "method: %s", m.GetName())
@@ -184,6 +192,7 @@ type auxTypes struct {
 // genMethod generates a single method from a client. m must be a method declared in serv.
 // If the generated method requires an auxillary type, it is added to aux.
 func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+	// Check if the RPC returns google.longrunning.Operation.
 	if g.isLRO(m) {
 		g.aux.lros = append(g.aux.lros, m)
 		return g.lroCall(servName, m)
@@ -450,6 +459,12 @@ func (g *generator) comment(s string) {
 // those defined by the longrunning proto package.
 func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
 	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
+}
+
+func (g *generator) getServiceName(m *descriptor.MethodDescriptorProto) string {
+	f := g.descInfo.ParentFile[m].GetPackage()
+	s := g.descInfo.ParentElement[m].GetName()
+	return fmt.Sprintf("%s.%s", f, s)
 }
 
 func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {

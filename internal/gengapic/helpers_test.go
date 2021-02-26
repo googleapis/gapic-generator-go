@@ -140,3 +140,24 @@ func TestStrContains(t *testing.T) {
 		}
 	}
 }
+
+func TestHasMethod(t *testing.T) {
+	serv := &descriptor.ServiceDescriptorProto{
+		Method: []*descriptor.MethodDescriptorProto{
+			{Name: proto.String("ListFoos")},
+			{Name: proto.String("GetFoo")},
+			{Name: proto.String("CreateFoo")},
+		},
+	}
+	for _, tst := range []struct {
+		in   string
+		want bool
+	}{
+		{in: "GetFoo", want: true},
+		{in: "DeleteBar"},
+	} {
+		if got := hasMethod(serv, tst.in); !cmp.Equal(got, tst.want) {
+			t.Errorf("TestHasMethod got %v want %v", got, tst.want)
+		}
+	}
+}

@@ -70,6 +70,8 @@ type generator struct {
 	// GapicMetadata for recording proto-to-code mappings in a
 	// gapic_metadata.json file.
 	metadata *metadatapb.GapicMetadata
+
+	mixins map[string]bool
 }
 
 func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
@@ -80,6 +82,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
 	}
 
+	g.mixins = map[string]bool{}
 	g.comments = map[proto.Message]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.aux = &auxTypes{
@@ -104,6 +107,8 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		if err != nil {
 			return errors.E(nil, "error decoding service config: %v", err)
 		}
+		g.collectMixins()
+		files = append(files, g.getMixinFiles()...)
 	}
 	if opts.grpcConfPath != "" {
 		f, err := os.Open(opts.grpcConfPath)

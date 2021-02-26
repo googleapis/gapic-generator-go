@@ -3,6 +3,11 @@ type FooCallOptions struct {
 	Zip []gax.CallOption
 	Zap []gax.CallOption
 	Smack []gax.CallOption
+	ListLocations []gax.CallOption
+	GetLocation []gax.CallOption
+	SetIamPolicy []gax.CallOption
+	GetIamPolicy []gax.CallOption
+	TestIamPermissions []gax.CallOption
 }
 
 func defaultFooClientOptions() []option.ClientOption {
@@ -57,6 +62,16 @@ func defaultFooCallOptions() *FooCallOptions {
 					Multiplier: 1.10,
 				})
 			}),
+		},
+		ListLocations: []gax.CallOption{
+		},
+		GetLocation: []gax.CallOption{
+		},
+		SetIamPolicy: []gax.CallOption{
+		},
+		GetIamPolicy: []gax.CallOption{
+		},
+		TestIamPermissions: []gax.CallOption{
 		},
 	}
 }

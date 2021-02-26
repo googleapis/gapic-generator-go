@@ -11,6 +11,10 @@ type FooClient struct {
 	// The gRPC API client.
 	fooClient mypackagepb.FooClient
 
+	iamPolicyClient iampb.IAMPolicyClient
+
+	locationsClient locationpb.LocationsClient
+
 	// The call options for this service.
 	CallOptions *FooCallOptions
 
@@ -49,6 +53,10 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		fooClient: mypackagepb.NewFooClient(connPool),
 	}
 	c.setGoogleClientInfo()
+
+	c.iamPolicyClient = iampb.NewIAMPolicyClient(connPool)
+
+	c.locationsClient = locationpb.NewLocationsClient(connPool)
 
 	return c, nil
 }

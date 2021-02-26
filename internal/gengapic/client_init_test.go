@@ -47,6 +47,11 @@ func TestClientHook(t *testing.T) {
 func TestClientOpt(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.mixins = map[string]bool{
+		"google.longrunning.Operations":   true,
+		"google.cloud.location.Locations": true,
+		"google.iam.v1.IAMPolicy":         true,
+	}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
 			{
@@ -73,6 +78,12 @@ func TestClientOpt(t *testing.T) {
 				Name: []*conf.MethodConfig_Name{
 					{
 						Service: "bar.FooService",
+					},
+					{
+						Service: "bar.ServHostPort",
+					},
+					{
+						Service: "bar.ServIamOverride",
 					},
 				},
 				MaxRequestMessageBytes:  &wrappers.UInt32Value{Value: 654321},
@@ -113,14 +124,6 @@ func TestClientOpt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	g.descInfo = pbinfo.Info{
-		ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
-			serv: {
-				Package: proto.String("bar"),
-			},
-		},
-	}
-
 	// Test some annotations
 	if err := proto.SetExtension(serv.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
@@ -138,6 +141,7 @@ func TestClientOpt(t *testing.T) {
 	}
 
 	servHostPort := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("ServHostPort"),
 		Method: []*descriptor.MethodDescriptorProto{
 			{Name: proto.String("Smack")},
 		},
@@ -147,6 +151,26 @@ func TestClientOpt(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	servIamOverride := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("ServIamOverride"),
+		Method: []*descriptor.MethodDescriptorProto{
+			{Name: proto.String("GetIamPolicy")},
+			{Name: proto.String("SetIamPolicy")},
+			{Name: proto.String("TestIamPermissions")},
+		},
+		Options: &descriptor.ServiceOptions{},
+	}
+	if err := proto.SetExtension(servIamOverride.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234")); err != nil {
+		t.Fatal(err)
+	}
+
+	f := &descriptor.FileDescriptorProto{
+		Package: proto.String("bar"),
+		Service: []*descriptor.ServiceDescriptorProto{serv, servHostPort, servIamOverride},
+	}
+	files := append(g.getMixinFiles(), f)
+	g.descInfo = pbinfo.Of(files)
+
 	for _, tst := range []struct {
 		tstName, servName string
 		serv              *descriptor.ServiceDescriptorProto
@@ -154,6 +178,7 @@ func TestClientOpt(t *testing.T) {
 		{tstName: "foo_opt", servName: "Foo", serv: serv},
 		{tstName: "empty_opt", servName: "", serv: serv},
 		{tstName: "host_port_opt", servName: "Bar", serv: servHostPort},
+		{tstName: "iam_override_opt", servName: "Baz", serv: servIamOverride},
 	} {
 		g.reset()
 		if err := g.clientOptions(tst.serv, tst.servName); err != nil {
@@ -185,12 +210,32 @@ func TestClientInit(t *testing.T) {
 	for _, tst := range []struct {
 		tstName string
 
+		mixins   map[string]bool
 		servName string
 		serv     *descriptor.ServiceDescriptorProto
 	}{
-		{tstName: "foo_client_init", servName: "Foo", serv: servPlain},
-		{tstName: "empty_client_init", servName: "", serv: servPlain},
-		{tstName: "lro_client_init", servName: "Foo", serv: servLRO},
+		{
+			tstName: "foo_client_init",
+			mixins: map[string]bool{
+				"google.cloud.location.Locations": true,
+				"google.iam.v1.IAMPolicy":         true,
+			},
+			servName: "Foo",
+			serv:     servPlain,
+		},
+		{
+			tstName:  "empty_client_init",
+			servName: "",
+			serv:     servPlain,
+		},
+		{
+			tstName: "lro_client_init",
+			mixins: map[string]bool{
+				"google.longrunning.Operations": true,
+			},
+			servName: "Foo",
+			serv:     servLRO,
+		},
 	} {
 		g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
 			tst.serv: {
@@ -202,6 +247,7 @@ func TestClientInit(t *testing.T) {
 		g.comments = map[proto.Message]string{
 			tst.serv: "Foo service does stuff.",
 		}
+		g.mixins = tst.mixins
 
 		g.reset()
 		g.clientInit(tst.serv, tst.servName)

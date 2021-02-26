@@ -38,10 +38,18 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// CallOptions struct
 	{
+		methods := serv.GetMethod()
+		if g.hasLocationMixin() {
+			methods = append(methods, getLocationsMethods()...)
+		}
+		if g.hasIAMPolicyMixin() && !hasIAMPolicyOverrides(serv) {
+			methods = append(methods, getIAMPolicyMethods()...)
+		}
+
 		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", servName)
 		p("type %sCallOptions struct {", servName)
-		for _, m := range serv.Method {
-			p("%s []gax.CallOption", *m.Name)
+		for _, m := range methods {
+			p("%s []gax.CallOption", m.GetName())
 		}
 		p("}")
 		p("")
@@ -83,13 +91,21 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// defaultCallOptions
 	{
-		sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName())
 		c := g.grpcConf
+
+		methods := serv.GetMethod()
+		if g.hasLocationMixin() {
+			methods = append(methods, getLocationsMethods()...)
+		}
+		if g.hasIAMPolicyMixin() && !hasIAMPolicyOverrides(serv) {
+			methods = append(methods, getIAMPolicyMethods()...)
+		}
 
 		// read retry params from gRPC ServiceConfig
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 		p("  return &%sCallOptions{", servName)
-		for _, m := range serv.GetMethod() {
+		for _, m := range methods {
+			sFQN := g.getServiceName(m)
 			mn := m.GetName()
 			p("%s: []gax.CallOption{", mn)
 			if maxReq, ok := c.RequestLimit(sFQN, mn); ok {
@@ -138,10 +154,10 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
-	var hasLRO bool
+	var hasLRORpc bool
 	for _, m := range serv.Method {
 		if g.isLRO(m) {
-			hasLRO = true
+			hasLRORpc = true
 			break
 		}
 	}
@@ -170,7 +186,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("%s %s.%sClient", grpcClientField(servName), imp.Name, serv.GetName())
 		p("")
 
-		if hasLRO {
+		if g.hasLROMixin() || hasLRORpc {
 			p("// LROClient is used internally to handle longrunning operations.")
 			p("// It is exposed so that its CallOptions can be modified if required.")
 			p("// Users should not Close this client.")
@@ -178,6 +194,22 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 			p("")
 
 			g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
+		}
+
+		if g.hasIAMPolicyMixin() && !hasIAMPolicyOverrides(serv) {
+
+			p("iamPolicyClient iampb.IAMPolicyClient")
+			p("")
+
+			g.imports[pbinfo.ImportSpec{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}] = true
+		}
+
+		if g.hasLocationMixin() {
+
+			p("locationsClient locationpb.LocationsClient")
+			p("")
+
+			g.imports[pbinfo.ImportSpec{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}] = true
 		}
 
 		p("// The call options for this service.")
@@ -231,7 +263,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("  c.setGoogleClientInfo()")
 		p("")
 
-		if hasLRO {
+		if g.hasLROMixin() || hasLRORpc {
 			p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))")
 			p("  if err != nil {")
 			p("    // This error \"should not happen\", since we are just reusing old connection pool")
@@ -242,6 +274,16 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 			p("    // TODO: investigate error conditions.")
 			p("    return nil, err")
 			p("  }")
+		}
+
+		if g.hasIAMPolicyMixin() {
+			p("  c.iamPolicyClient = iampb.NewIAMPolicyClient(connPool)")
+			p("")
+		}
+
+		if g.hasLocationMixin() {
+			p("  c.locationsClient = locationpb.NewLocationsClient(connPool)")
+			p("")
 		}
 
 		p("  return c, nil")
