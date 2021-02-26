@@ -29,6 +29,7 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 func TestComment(t *testing.T) {
@@ -249,6 +250,9 @@ func TestGenMethod(t *testing.T) {
 	}
 
 	var g generator
+	g.opts = &options{
+		pkgName: "pkg",
+	}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
@@ -381,6 +385,9 @@ func TestGenLRO(t *testing.T) {
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.opts = &options{
+		pkgName: "pkg",
+	}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
 			{
@@ -657,6 +664,65 @@ func Test_lookupFieldType(t *testing.T) {
 
 		if got != tst.want {
 			t.Errorf("Test_lookupFieldType(%s): got %v want %v", tst.name, got, tst.want)
+		}
+	}
+}
+
+func TestGRPCStubCall(t *testing.T) {
+	getFoo := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("GetFoo"),
+		InputType:  proto.String("google.protobuf.Empty"),
+		OutputType: proto.String("google.protobuf.Empty"),
+	}
+	getBar := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("GetBar"),
+		InputType:  proto.String("google.protobuf.Empty"),
+		OutputType: proto.String("google.protobuf.Empty"),
+	}
+	foo := &descriptor.FileDescriptorProto{
+		Package: proto.String("google.foo.v1"),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("google.golang.org/genproto/googleapis/foo/v1"),
+		},
+		Dependency: []string{"google.protobuf.Empty"},
+		Service: []*descriptor.ServiceDescriptorProto{
+			{
+				Name:   proto.String("FooService"),
+				Method: []*descriptor.MethodDescriptorProto{getFoo},
+			},
+			{
+				Name:   proto.String("BarService"),
+				Method: []*descriptor.MethodDescriptorProto{getBar},
+			},
+		},
+	}
+	var g generator
+	err := g.init(&pluginpb.CodeGeneratorRequest{
+		ProtoFile: []*descriptor.FileDescriptorProto{foo},
+		Parameter: proto.String("go-gapic-package=cloud.google.com/go/foo/apiv1;foo"),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	for _, tst := range []struct {
+		name, want string
+		in         *descriptor.MethodDescriptorProto
+	}{
+		{
+			name: "foo.FooService.GetFoo",
+			want: "c.client.GetFoo(ctx, req, settings.GRPC...)",
+			in:   getFoo,
+		},
+		{
+			name: "foo.BarService.GetBar",
+			want: "c.barClient.GetBar(ctx, req, settings.GRPC...)",
+			in:   getBar,
+		},
+	} {
+		got := g.grpcStubCall(tst.in)
+		if diff := cmp.Diff(got, tst.want); diff != "" {
+			t.Errorf("TestGRPCStubCall(%s) got(-),want(+):\n%s", tst.name, diff)
 		}
 	}
 }

@@ -210,7 +210,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("  }")
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
-	p("    resp, err = %s", grpcClientCall(servName, m.GetName()))
+	p("    resp, err = %s", g.grpcStubCall(m))
 	p("    return err")
 	p("  }, opts...)")
 	p("  if err != nil {")

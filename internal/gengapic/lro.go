@@ -57,7 +57,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
-	p("    resp, err = %s", grpcClientCall(servName, m.GetName()))
+	p("    resp, err = %s", g.grpcStubCall(m))
 	p("    return err")
 	p("  }, opts...)")
 	p("  if err != nil {")

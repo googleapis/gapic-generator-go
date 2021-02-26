@@ -17,7 +17,6 @@ package gengapic
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -28,11 +27,8 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
-	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/genproto/googleapis/api/serviceconfig"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -50,39 +46,9 @@ var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)
 // Gen is the entry point for GAPIC generation via the protoc plugin.
 func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	var g generator
-	g.init(genReq.ProtoFile)
-
-	opts, err := parseOptions(genReq.Parameter)
-	if err != nil {
+	if err := g.init(genReq); err != nil {
 		return &g.resp, err
 	}
-
-	if opts.serviceConfigPath != "" {
-		f, err := os.Open(opts.serviceConfigPath)
-		if err != nil {
-			return &g.resp, errors.E(nil, "error opening service config: %v", err)
-		}
-		defer f.Close()
-
-		g.serviceConfig = &serviceconfig.Service{}
-		err = yaml.NewDecoder(f).Decode(g.serviceConfig)
-		if err != nil {
-			return &g.resp, errors.E(nil, "error decoding service config: %v", err)
-		}
-	}
-	if opts.grpcConfPath != "" {
-		f, err := os.Open(opts.grpcConfPath)
-		if err != nil {
-			return &g.resp, errors.E(nil, "error opening gRPC service config: %v", err)
-		}
-		defer f.Close()
-
-		g.grpcConf, err = conf.New(f)
-		if err != nil {
-			return &g.resp, errors.E(nil, "error parsing gPRC service config: %v", err)
-		}
-	}
-	g.opts = opts
 
 	var genServs []*descriptor.ServiceDescriptorProto
 	for _, f := range genReq.ProtoFile {
@@ -279,7 +245,7 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	p("var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
-	p("  resp, err = %s", grpcClientCall(servName, *m.Name))
+	p("  resp, err = %s", g.grpcStubCall(m))
 	p("  return err")
 	p("}, opts...)")
 	p("if err != nil {")
@@ -321,7 +287,7 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
-	p("  _, err = %s", grpcClientCall(servName, m.GetName()))
+	p("  _, err = %s", g.grpcStubCall(m))
 	p("  return err")
 	p("}, opts...)")
 	p("return err")
@@ -331,6 +297,12 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 
 	g.imports[inSpec] = true
 	return nil
+}
+
+func (g *generator) grpcStubCall(method *descriptor.MethodDescriptorProto) string {
+	service := g.descInfo.ParentElement[method]
+	stub := pbinfo.ReduceServName(service.GetName(), g.opts.pkgName)
+	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(stub), method.GetName())
 }
 
 func (g *generator) deadline(s, m string) {

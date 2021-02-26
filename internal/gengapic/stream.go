@@ -75,7 +75,7 @@ func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescr
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
-	p("  resp, err = %s", grpcClientCall(servName, m.GetName()))
+	p("  resp, err = %s", g.grpcStubCall(m))
 	p("  return err")
 	p("}, opts...)")
 	p("if err != nil {")
