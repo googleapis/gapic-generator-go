@@ -60,5 +60,5 @@ cleanup() {
 }
 trap cleanup EXIT
 
-go test -count=1 ./...
+go test -mod=mod -count=1 ./...
 exit_code=$?

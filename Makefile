@@ -16,7 +16,7 @@ golden:
 	go test github.com/googleapis/gapic-generator-go/internal/gengapic -update_golden
 
 test:
-	go test ./...
+	go test -mod=mod ./...
 	go install ./cmd/protoc-gen-go_gapic
 	cd showcase; ./showcase.bash; cd ..
 	./test.sh
