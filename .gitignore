@@ -28,3 +28,6 @@ Session.vim
 
 # Bazel directories
 bazel-*
+
+# VS Code workspace
+*.code-workspace
