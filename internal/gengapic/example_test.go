@@ -28,6 +28,11 @@ import (
 func TestExample(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.mixins = map[string]bool{
+		"google.longrunning.Operations":   true,
+		"google.cloud.location.Locations": true,
+		"google.iam.v1.IAMPolicy":         true,
+	}
 
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
@@ -160,24 +165,15 @@ func commonTypes(g *generator) {
 	empty := &descriptor.DescriptorProto{
 		Name: proto.String("Empty"),
 	}
-	lro := &descriptor.DescriptorProto{
-		Name: proto.String("Operation"),
+	emptyFile := &descriptor.FileDescriptorProto{
+		Package: proto.String("google.protobuf"),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("google.golang.org/protobuf/types/known/emptypb"),
+		},
+		MessageType: []*descriptor.DescriptorProto{empty},
 	}
 
-	g.descInfo.Type = map[string]pbinfo.ProtoType{
-		emptyType: empty,
-		lroType:   lro,
-	}
-	g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
-		empty: {
-			Options: &descriptor.FileOptions{
-				GoPackage: proto.String("github.com/golang/protobuf/ptypes/empty"),
-			},
-		},
-		lro: {
-			Options: &descriptor.FileOptions{
-				GoPackage: proto.String("google.golang.org/genproto/googleapis/longrunning;longrunning"),
-			},
-		},
-	}
+	files := append(g.getMixinFiles(), emptyFile)
+
+	g.descInfo = pbinfo.Of(files)
 }

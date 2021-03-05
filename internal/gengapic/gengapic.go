@@ -130,13 +130,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	// clear LRO types between services
 	g.aux.lros = []*descriptor.MethodDescriptorProto{}
 
-	methods := serv.GetMethod()
-	if g.hasLocationMixin() {
-		methods = append(methods, getLocationsMethods()...)
-	}
-	if g.hasIAMPolicyMixin() && !hasIAMPolicyOverrides(serv) {
-		methods = append(methods, getIAMPolicyMethods()...)
-	}
+	methods := append(serv.GetMethod(), g.getMixinMethods(serv)...)
 
 	for _, m := range methods {
 		g.methodDoc(m)

@@ -16,6 +16,8 @@ type FooClient struct {
 	// Users should not Close this client.
 	LROClient *lroauto.OperationsClient
 
+	operationsClient longrunningpb.OperationsClient
+
 	// The call options for this service.
 	CallOptions *FooCallOptions
 
@@ -65,6 +67,8 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		// TODO: investigate error conditions.
 		return nil, err
 	}
+	c.operationsClient = longrunningpb.NewOperationsClient(connPool)
+
 	return c, nil
 }
 

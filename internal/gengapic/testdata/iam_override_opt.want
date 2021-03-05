@@ -5,6 +5,11 @@ type BazCallOptions struct {
 	TestIamPermissions []gax.CallOption
 	ListLocations []gax.CallOption
 	GetLocation []gax.CallOption
+	ListOperations []gax.CallOption
+	GetOperation []gax.CallOption
+	DeleteOperation []gax.CallOption
+	CancelOperation []gax.CallOption
+	WaitOperation []gax.CallOption
 }
 
 func defaultBazClientOptions() []option.ClientOption {
@@ -63,6 +68,16 @@ func defaultBazCallOptions() *BazCallOptions {
 		ListLocations: []gax.CallOption{
 		},
 		GetLocation: []gax.CallOption{
+		},
+		ListOperations: []gax.CallOption{
+		},
+		GetOperation: []gax.CallOption{
+		},
+		DeleteOperation: []gax.CallOption{
+		},
+		CancelOperation: []gax.CallOption{
+		},
+		WaitOperation: []gax.CallOption{
 		},
 	}
 }

@@ -36,7 +36,9 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 
-	for _, m := range serv.Method {
+	methods := append(serv.GetMethod(), g.getMixinMethods(serv)...)
+
+	for _, m := range methods {
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {
 			return err
 		}

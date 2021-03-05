@@ -6,6 +6,11 @@ type BarCallOptions struct {
 	SetIamPolicy []gax.CallOption
 	GetIamPolicy []gax.CallOption
 	TestIamPermissions []gax.CallOption
+	ListOperations []gax.CallOption
+	GetOperation []gax.CallOption
+	DeleteOperation []gax.CallOption
+	CancelOperation []gax.CallOption
+	WaitOperation []gax.CallOption
 }
 
 func defaultBarClientOptions() []option.ClientOption {
@@ -44,6 +49,16 @@ func defaultBarCallOptions() *BarCallOptions {
 		GetIamPolicy: []gax.CallOption{
 		},
 		TestIamPermissions: []gax.CallOption{
+		},
+		ListOperations: []gax.CallOption{
+		},
+		GetOperation: []gax.CallOption{
+		},
+		DeleteOperation: []gax.CallOption{
+		},
+		CancelOperation: []gax.CallOption{
+		},
+		WaitOperation: []gax.CallOption{
 		},
 	}
 }

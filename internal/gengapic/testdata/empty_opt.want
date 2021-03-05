@@ -8,6 +8,11 @@ type CallOptions struct {
 	SetIamPolicy []gax.CallOption
 	GetIamPolicy []gax.CallOption
 	TestIamPermissions []gax.CallOption
+	ListOperations []gax.CallOption
+	GetOperation []gax.CallOption
+	DeleteOperation []gax.CallOption
+	CancelOperation []gax.CallOption
+	WaitOperation []gax.CallOption
 }
 
 func defaultClientOptions() []option.ClientOption {
@@ -72,6 +77,16 @@ func defaultCallOptions() *CallOptions {
 		GetIamPolicy: []gax.CallOption{
 		},
 		TestIamPermissions: []gax.CallOption{
+		},
+		ListOperations: []gax.CallOption{
+		},
+		GetOperation: []gax.CallOption{
+		},
+		DeleteOperation: []gax.CallOption{
+		},
+		CancelOperation: []gax.CallOption{
+		},
+		WaitOperation: []gax.CallOption{
 		},
 	}
 }
