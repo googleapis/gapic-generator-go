@@ -95,6 +95,18 @@ func TestParseOptions(t *testing.T) {
 			param:     "module=different_path,go-gapic-package=path;pkg",
 			expectErr: true,
 		},
+		{
+			// Test empty parameter in the CSV.
+			param: "go-gapic-package=path/to/imp;pkg,,module=path",
+			expectedOpts: &options{
+				transports:   []transport{grpc},
+				pkgPath:      "path/to/imp",
+				pkgName:      "pkg",
+				outDir:       "to/imp",
+				modulePrefix: "path",
+			},
+			expectErr: false,
+		},
 	} {
 		opts, err := parseOptions(&tst.param)
 		if tst.expectErr && err == nil {
