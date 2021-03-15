@@ -27,7 +27,7 @@ func TestDocFile(t *testing.T) {
 	g.apiName = "Awesome Foo API"
 	g.serviceConfig = &serviceconfig.Service{
 		Documentation: &serviceconfig.Documentation{
-			Summary: "The Awesome Foo API is really really awesome. It enables the use of Foo with Buz and Baz to acclerate bar.",
+			Summary: "The Awesome Foo API is really really awesome. It enables the use of [Foo](https://api.foo.com) with [Buz](https://api.buz.com) and [Baz](https://api.baz.com) to acclerate `bar`.",
 		},
 	}
 	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome"}

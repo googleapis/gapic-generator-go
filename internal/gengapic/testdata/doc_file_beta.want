@@ -18,7 +18,8 @@
 // Awesome Foo API.
 //
 // The Awesome Foo API is really really awesome. It enables the use of Foo
-// with Buz and Baz to acclerate bar.
+// (at https://api.foo.com) with Buz (at https://api.buz.com) and Baz (at
+// https://api.baz.com) to acclerate bar.
 //
 //   NOTE: This package is in beta. It is not stable, and may be subject to changes.
 //

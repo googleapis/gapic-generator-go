@@ -41,7 +41,9 @@ func (g *generator) genDocFile(year int, scopes []string) {
 	}
 
 	if g.serviceConfig != nil && g.serviceConfig.GetDocumentation() != nil {
-		wrapped := wrapString(g.serviceConfig.GetDocumentation().GetSummary(), 75)
+		summary := g.serviceConfig.GetDocumentation().GetSummary()
+		summary = mdPlain(summary)
+		wrapped := wrapString(summary, 75)
 
 		if len(wrapped) > 0 && g.apiName != "" {
 			p("//")
