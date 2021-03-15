@@ -71,6 +71,10 @@ func parseOptions(parameter *string) (*options, error) {
 
 	// parse plugin params, ignoring unknown values
 	for _, s := range strings.Split(*parameter, ",") {
+		// skip empty --go_gapic_opt flags
+		if s == "" {
+			continue
+		}
 		// check for the boolean flag, sample-only, that disables client generation
 		if s == "sample-only" {
 			return &options{sampleOnly: true}, nil

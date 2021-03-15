@@ -15,10 +15,15 @@ jobs:
           fetch-depth: 0
       - name: Parse tag name
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Set raw version
+        id: raw_tag
+        # Strips the 'v' from the actual semver version.
+        run: echo ::set-output name=raw_version::"${GITHUB_REF#refs/*/v}"
       - name: Get release information
         id: release_tool
         run: go run ./.github/release-tool/ -version=$RELEASE_VERSION
     outputs:
+      raw_version: ${{ steps.raw_tag.outputs.raw_version }}
       version: ${{ steps.release_tool.outputs.version }}
       release_notes: ${{ steps.release_tool.outputs.release_notes }}
   release:
@@ -83,3 +88,25 @@ jobs:
           asset_path: ./protoc-gen-go_gapic.tar.gz
           asset_name: protoc-gen-go_gapic-${{ needs.inspect.outputs.version }}-${{ matrix.osarch.os }}-${{ matrix.osarch.arch }}.tar.gz
           asset_content_type: application/tar+gzip
+  push_to_registry:
+    needs:
+      - inspect
+      - release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Compile plugin binary
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ./cmd/protoc-gen-go_gapic
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_JSON_KEY }}
+      - name: Push to GCR
+        uses: docker/build-push-action@v2
+        with:
+          tags: gcr.io/gapic-images/gapic-generator-go:${{ needs.inspect.outputs.raw_version }},gcr.io/gapic-images/gapic-generator-go:latest
+          push: true
+          context: .
