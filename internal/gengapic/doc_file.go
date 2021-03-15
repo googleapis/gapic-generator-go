@@ -41,7 +41,9 @@ func (g *generator) genDocFile(year int, scopes []string) {
 	}
 
 	if g.serviceConfig != nil && g.serviceConfig.GetDocumentation() != nil {
-		wrapped := wrapString(g.serviceConfig.GetDocumentation().GetSummary(), 75)
+		summary := g.serviceConfig.GetDocumentation().GetSummary()
+		summary = mdPlain(summary)
+		wrapped := wrapString(summary, 75)
 
 		if len(wrapped) > 0 && g.apiName != "" {
 			p("//")
@@ -71,7 +73,7 @@ func (g *generator) genDocFile(year int, scopes []string) {
 	p("// To close the open connection, use the Close() method.")
 	p("//")
 	p("// For information about setting deadlines, reusing contexts, and more")
-	p("// please visit pkg.go.dev/cloud.google.com/go.")
+	p("// please visit https://pkg.go.dev/cloud.google.com/go.")
 	p("package %s // import %q", g.opts.pkgName, g.opts.pkgPath)
 	p("")
 

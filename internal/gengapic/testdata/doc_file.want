@@ -18,7 +18,8 @@
 // Awesome Foo API.
 //
 // The Awesome Foo API is really really awesome. It enables the use of Foo
-// with Buz and Baz to acclerate bar.
+// (at https://api.foo.com) with Buz (at https://api.buz.com) and Baz (at
+// https://api.baz.com) to acclerate bar.
 //
 // Use of Context
 //
@@ -29,7 +30,7 @@
 // To close the open connection, use the Close() method.
 //
 // For information about setting deadlines, reusing contexts, and more
-// please visit pkg.go.dev/cloud.google.com/go.
+// please visit https://pkg.go.dev/cloud.google.com/go.
 package awesome // import "path/to/awesome"
 
 import (
