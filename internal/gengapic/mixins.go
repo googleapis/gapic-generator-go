@@ -101,12 +101,12 @@ func getLocationsMethods() []*descriptor.MethodDescriptorProto {
 	return getLocationsDescriptor().GetService()[0].GetMethod()
 }
 
-func getIAMPolicyDescriptors() []*descriptor.FileDescriptorProto {
-	return mixinFiles["google.iam.v1.IAMPolicy"]
+func getIAMPolicyDescriptor() *descriptor.FileDescriptorProto {
+	return mixinFiles["google.iam.v1.IAMPolicy"][0]
 }
 
 func getIAMPolicyMethods() []*descriptor.MethodDescriptorProto {
-	return getIAMPolicyDescriptors()[0].GetService()[0].GetMethod()
+	return getIAMPolicyDescriptor().GetService()[0].GetMethod()
 }
 
 func getOperationsDescriptor() *descriptor.FileDescriptorProto {
