@@ -151,7 +151,7 @@ func TestClientOpt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servIamOverride := &descriptor.ServiceDescriptorProto{
+	servIAMOverride := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("ServIamOverride"),
 		Method: []*descriptor.MethodDescriptorProto{
 			{Name: proto.String("GetIamPolicy")},
@@ -160,13 +160,13 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	if err := proto.SetExtension(servIamOverride.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234")); err != nil {
+	if err := proto.SetExtension(servIAMOverride.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234")); err != nil {
 		t.Fatal(err)
 	}
 
 	f := &descriptor.FileDescriptorProto{
 		Package: proto.String("bar"),
-		Service: []*descriptor.ServiceDescriptorProto{serv, servHostPort, servIamOverride},
+		Service: []*descriptor.ServiceDescriptorProto{serv, servHostPort, servIAMOverride},
 	}
 	files := append(g.getMixinFiles(), f)
 	g.descInfo = pbinfo.Of(files)
@@ -178,7 +178,7 @@ func TestClientOpt(t *testing.T) {
 		{tstName: "foo_opt", servName: "Foo", serv: serv},
 		{tstName: "empty_opt", servName: "", serv: serv},
 		{tstName: "host_port_opt", servName: "Bar", serv: servHostPort},
-		{tstName: "iam_override_opt", servName: "Baz", serv: servIamOverride},
+		{tstName: "iam_override_opt", servName: "Baz", serv: servIAMOverride},
 	} {
 		g.reset()
 		if err := g.clientOptions(tst.serv, tst.servName); err != nil {

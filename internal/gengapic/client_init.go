@@ -142,10 +142,10 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
-	var hasLRORpc bool
+	var hasRPCForLRO bool
 	for _, m := range serv.Method {
 		if g.isLRO(m) {
-			hasLRORpc = true
+			hasRPCForLRO = true
 			break
 		}
 	}
@@ -174,7 +174,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("%s %s.%sClient", grpcClientField(servName), imp.Name, serv.GetName())
 		p("")
 
-		if hasLRORpc {
+		if hasRPCForLRO {
 			p("// LROClient is used internally to handle longrunning operations.")
 			p("// It is exposed so that its CallOptions can be modified if required.")
 			p("// Users should not Close this client.")
@@ -258,7 +258,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		p("  c.setGoogleClientInfo()")
 		p("")
 
-		if hasLRORpc {
+		if hasRPCForLRO {
 			p("  c.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))")
 			p("  if err != nil {")
 			p("    // This error \"should not happen\", since we are just reusing old connection pool")
