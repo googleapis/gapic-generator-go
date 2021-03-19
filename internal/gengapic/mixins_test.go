@@ -82,6 +82,12 @@ func TestHasIAMPolicyMixin(t *testing.T) {
 	if got := g.hasIAMPolicyMixin(); !cmp.Equal(got, want) {
 		t.Errorf("TestHasIAMPolicyMixin wanted %v but got %v", want, got)
 	}
+
+	want = false
+	g.hasIAMPolicyOverrides = true
+	if got := g.hasIAMPolicyMixin(); !cmp.Equal(got, want) {
+		t.Errorf("TestHasIAMPolicyMixin wanted %v but got %v", want, got)
+	}
 }
 
 func TestHasIAMPolicyOverrides(t *testing.T) {
@@ -91,14 +97,21 @@ func TestHasIAMPolicyOverrides(t *testing.T) {
 			{Name: proto.String("GetFoo")},
 		},
 	}
+	other := &descriptor.ServiceDescriptorProto{
+		Method: []*descriptor.MethodDescriptorProto{
+			{Name: proto.String("ListBars")},
+			{Name: proto.String("GetBar")},
+		},
+	}
+	servs := []*descriptor.ServiceDescriptorProto{serv, other}
 	var want bool
-	if got := hasIAMPolicyOverrides(serv); !cmp.Equal(got, want) {
+	if got := hasIAMPolicyOverrides(servs); !cmp.Equal(got, want) {
 		t.Errorf("TestHasIAMPolicyOverrides wanted %v but got %v", want, got)
 	}
 
 	want = true
 	serv.Method = append(serv.Method, &descriptor.MethodDescriptorProto{Name: proto.String("GetIamPolicy")})
-	if got := hasIAMPolicyOverrides(serv); !cmp.Equal(got, want) {
+	if got := hasIAMPolicyOverrides(servs); !cmp.Equal(got, want) {
 		t.Errorf("TestHasIAMPolicyOverrides wanted %v but got %v", want, got)
 	}
 }

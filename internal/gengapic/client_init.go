@@ -191,7 +191,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 			g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
 		}
 
-		if g.hasIAMPolicyMixin() && !hasIAMPolicyOverrides(serv) {
+		if g.hasIAMPolicyMixin() {
 
 			p("iamPolicyClient iampb.IAMPolicyClient")
 			p("")

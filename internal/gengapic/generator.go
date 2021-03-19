@@ -72,6 +72,8 @@ type generator struct {
 	metadata *metadatapb.GapicMetadata
 
 	mixins map[string]bool
+
+	hasIAMPolicyOverrides bool
 }
 
 func (g *generator) init(req *plugin.CodeGeneratorRequest) error {

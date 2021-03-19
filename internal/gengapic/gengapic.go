@@ -51,11 +51,15 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	var genServs []*descriptor.ServiceDescriptorProto
-	for _, f := range genReq.ProtoFile {
-		if !strContains(genReq.FileToGenerate, f.GetName()) {
+	for _, f := range genReq.GetProtoFile() {
+		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
 			continue
 		}
-		genServs = append(genServs, f.Service...)
+		genServs = append(genServs, f.GetService()...)
+	}
+
+	if g.hasIAMPolicyMixin() {
+		g.hasIAMPolicyOverrides = hasIAMPolicyOverrides(genServs)
 	}
 
 	if g.serviceConfig != nil {

@@ -61,7 +61,7 @@ func (g *generator) getMixinMethods(serv *descriptor.ServiceDescriptorProto) []*
 	if g.hasLocationMixin() {
 		methods = append(methods, getLocationsMethods()...)
 	}
-	if g.hasIAMPolicyMixin() && !hasIAMPolicyOverrides(serv) {
+	if g.hasIAMPolicyMixin() {
 		methods = append(methods, getIAMPolicyMethods()...)
 	}
 	if g.hasLROMixin() {
@@ -76,17 +76,19 @@ func (g *generator) hasLROMixin() bool {
 }
 
 func (g *generator) hasIAMPolicyMixin() bool {
-	return g.mixins["google.iam.v1.IAMPolicy"]
+	return g.mixins["google.iam.v1.IAMPolicy"] && !g.hasIAMPolicyOverrides
 }
 
 func (g *generator) hasLocationMixin() bool {
 	return g.mixins["google.cloud.location.Locations"]
 }
 
-func hasIAMPolicyOverrides(serv *descriptor.ServiceDescriptorProto) bool {
-	for _, iamMethod := range getIAMPolicyMethods() {
-		if hasMethod(serv, iamMethod.GetName()) {
-			return true
+func hasIAMPolicyOverrides(servs []*descriptor.ServiceDescriptorProto) bool {
+	for _, s := range servs {
+		for _, iamMethod := range getIAMPolicyMethods() {
+			if hasMethod(s, iamMethod.GetName()) {
+				return true
+			}
 		}
 	}
 

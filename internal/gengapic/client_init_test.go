@@ -174,13 +174,15 @@ func TestClientOpt(t *testing.T) {
 	for _, tst := range []struct {
 		tstName, servName string
 		serv              *descriptor.ServiceDescriptorProto
+		hasOverride       bool
 	}{
 		{tstName: "foo_opt", servName: "Foo", serv: serv},
 		{tstName: "empty_opt", servName: "", serv: serv},
 		{tstName: "host_port_opt", servName: "Bar", serv: servHostPort},
-		{tstName: "iam_override_opt", servName: "Baz", serv: servIAMOverride},
+		{tstName: "iam_override_opt", servName: "Baz", serv: servIAMOverride, hasOverride: true},
 	} {
 		g.reset()
+		g.hasIAMPolicyOverrides = tst.hasOverride
 		if err := g.clientOptions(tst.serv, tst.servName); err != nil {
 			t.Error(err)
 			continue
