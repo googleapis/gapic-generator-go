@@ -22,7 +22,9 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/genproto/googleapis/longrunning"
+	"google.golang.org/protobuf/types/known/apipb"
 )
 
 func TestExample(t *testing.T) {
@@ -32,6 +34,14 @@ func TestExample(t *testing.T) {
 		"google.longrunning.Operations":   true,
 		"google.cloud.location.Locations": true,
 		"google.iam.v1.IAMPolicy":         true,
+	}
+	g.serviceConfig = &serviceconfig.Service{
+		Apis: []*apipb.Api{
+			{Name: "foo.bar.Baz"},
+			{Name: "google.iam.v1.IAMPolicy"},
+			{Name: "google.cloud.location.Locations"},
+			{Name: "google.longrunning.Operations"},
+		},
 	}
 
 	inputType := &descriptor.DescriptorProto{

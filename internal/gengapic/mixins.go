@@ -56,7 +56,7 @@ func (g *generator) getMixinFiles() []*descriptor.FileDescriptorProto {
 	return files
 }
 
-func (g *generator) getMixinMethods(serv *descriptor.ServiceDescriptorProto) []*descriptor.MethodDescriptorProto {
+func (g *generator) getMixinMethods() []*descriptor.MethodDescriptorProto {
 	methods := []*descriptor.MethodDescriptorProto{}
 	if g.hasLocationMixin() {
 		methods = append(methods, getLocationsMethods()...)
@@ -72,7 +72,7 @@ func (g *generator) getMixinMethods(serv *descriptor.ServiceDescriptorProto) []*
 }
 
 func (g *generator) hasLROMixin() bool {
-	return g.mixins["google.longrunning.Operations"]
+	return g.mixins["google.longrunning.Operations"] && len(g.serviceConfig.GetApis()) > 1
 }
 
 func (g *generator) hasIAMPolicyMixin() bool {

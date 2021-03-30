@@ -134,7 +134,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	// clear LRO types between services
 	g.aux.lros = []*descriptor.MethodDescriptorProto{}
 
-	methods := append(serv.GetMethod(), g.getMixinMethods(serv)...)
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 
 	for _, m := range methods {
 		g.methodDoc(m)

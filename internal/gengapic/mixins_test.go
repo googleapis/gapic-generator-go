@@ -135,3 +135,36 @@ func TestHasLocationMixin(t *testing.T) {
 		t.Errorf("TestHasLocationMixin wanted %v but got %v", want, got)
 	}
 }
+
+func TestHasLROMixin(t *testing.T) {
+	g := generator{
+		mixins: map[string]bool{
+			"google.cloud.location.Locations": true,
+			"google.iam.v1.IAMPolicy":         true,
+		},
+		serviceConfig: &serviceconfig.Service{
+			Apis: []*apipb.Api{
+				{Name: "foo.bar.Baz"},
+				{Name: "google.iam.v1.IAMPolicy"},
+				{Name: "google.cloud.location.Locations"},
+			},
+		},
+	}
+
+	var want bool
+	if got := g.hasLROMixin(); !cmp.Equal(got, want) {
+		t.Errorf("TestHasLROMixin wanted %v but got %v", want, got)
+	}
+
+	want = true
+	g.mixins["google.longrunning.Operations"] = true
+	if got := g.hasLROMixin(); !cmp.Equal(got, want) {
+		t.Errorf("TestHasLROMixin wanted %v but got %v", want, got)
+	}
+
+	want = false
+	g.serviceConfig.Apis = []*apipb.Api{{Name: "google.longrunning.Operations"}}
+	if got := g.hasLROMixin(); !cmp.Equal(got, want) {
+		t.Errorf("TestHasLROMixin wanted %v but got %v", want, got)
+	}
+}

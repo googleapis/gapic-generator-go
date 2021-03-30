@@ -38,7 +38,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 
 	// CallOptions struct
 	{
-		methods := append(serv.GetMethod(), g.getMixinMethods(serv)...)
+		methods := append(serv.GetMethod(), g.getMixinMethods()...)
 
 		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", servName)
 		p("type %sCallOptions struct {", servName)
@@ -87,7 +87,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	{
 		c := g.grpcConf
 
-		methods := append(serv.GetMethod(), g.getMixinMethods(serv)...)
+		methods := append(serv.GetMethod(), g.getMixinMethods()...)
 
 		// read retry params from gRPC ServiceConfig
 		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)

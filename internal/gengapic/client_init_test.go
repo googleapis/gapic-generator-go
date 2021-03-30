@@ -28,8 +28,10 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	code "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/apipb"
 )
 
 func TestClientHook(t *testing.T) {
@@ -51,6 +53,14 @@ func TestClientOpt(t *testing.T) {
 		"google.longrunning.Operations":   true,
 		"google.cloud.location.Locations": true,
 		"google.iam.v1.IAMPolicy":         true,
+	}
+	g.serviceConfig = &serviceconfig.Service{
+		Apis: []*apipb.Api{
+			{Name: "foo.bar.Baz"},
+			{Name: "google.iam.v1.IAMPolicy"},
+			{Name: "google.cloud.location.Locations"},
+			{Name: "google.longrunning.Operations"},
+		},
 	}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
@@ -250,6 +260,14 @@ func TestClientInit(t *testing.T) {
 			tst.serv: "Foo service does stuff.",
 		}
 		g.mixins = tst.mixins
+		g.serviceConfig = &serviceconfig.Service{
+			Apis: []*apipb.Api{
+				{Name: "foo.bar.Baz"},
+				{Name: "google.iam.v1.IAMPolicy"},
+				{Name: "google.cloud.location.Locations"},
+				{Name: "google.longrunning.Operations"},
+			},
+		}
 
 		g.reset()
 		g.clientInit(tst.serv, tst.servName)
