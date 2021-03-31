@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-func TestparseOptions(t *testing.T) {
+func TestParseOptions(t *testing.T) {
 	for _, tst := range []struct {
 		param        string
 		expectedOpts *options
