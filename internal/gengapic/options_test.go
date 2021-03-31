@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-func TestParseOptions(t *testing.T) {
+func TestparseOptions(t *testing.T) {
 	for _, tst := range []struct {
 		param        string
 		expectedOpts *options
@@ -110,17 +110,17 @@ func TestParseOptions(t *testing.T) {
 	} {
 		opts, err := parseOptions(&tst.param)
 		if tst.expectErr && err == nil {
-			t.Errorf("ParseOptions(%s) expected error", tst.param)
+			t.Errorf("parseOptions(%s) expected error", tst.param)
 			continue
 		}
 
 		if !tst.expectErr && err != nil {
-			t.Errorf("ParseOptions(%s) got unexpected error: %v", tst.param, err)
+			t.Errorf("parseOptions(%s) got unexpected error: %v", tst.param, err)
 			continue
 		}
 
 		if !reflect.DeepEqual(opts, tst.expectedOpts) {
-			t.Errorf("ParseOptions(%s) = %v, expected %v", tst.param, opts, tst.expectedOpts)
+			t.Errorf("parseOptions(%s) = %v, expected %v", tst.param, opts, tst.expectedOpts)
 			continue
 		}
 	}
