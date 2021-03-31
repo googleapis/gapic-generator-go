@@ -3,9 +3,9 @@ type internalFooClient interface {
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
 }
 
-// Foo is a thin wrapper that holds an internalFooClient
+// FooClientHandle is a thin wrapper that holds an internalFooClient
 // It is agnostic as to the underlying transport, i.e. json+http, gRPC, or other.
-type Foo struct {
+type FooClientHandle struct {
 	internalFooClient
 }
 

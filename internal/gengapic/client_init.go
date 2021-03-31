@@ -202,9 +202,9 @@ func (g *generator) abstractClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	p("}")
 	p("")
 
-	p("// %s is a thin wrapper that holds an internal%sClient", servName, servName)
+	p("// %sClientHandle is a thin wrapper that holds an internal%sClient", servName, servName)
 	p("// It is agnostic as to the underlying transport, i.e. json+http, gRPC, or other.")
-	p("type %s struct {", servName)
+	p("type %sClientHandle struct {", servName)
 	p("    internal%sClient", servName)
 	p("}")
 	p("")

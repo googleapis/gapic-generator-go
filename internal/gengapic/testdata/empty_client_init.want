@@ -3,9 +3,9 @@ type internalClient interface {
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
 }
 
-//  is a thin wrapper that holds an internalClient
+// ClientHandle is a thin wrapper that holds an internalClient
 // It is agnostic as to the underlying transport, i.e. json+http, gRPC, or other.
-type  struct {
+type ClientHandle struct {
 	internalClient
 }
 
