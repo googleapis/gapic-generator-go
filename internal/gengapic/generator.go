@@ -115,7 +115,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		if g.serviceConfig.GetName() == "" {
 			return errors.E(nil, "invalid API service config file %q", opts.serviceConfigPath)
 		}
-    
+
 		g.collectMixins()
 		files = append(files, g.getMixinFiles()...)
 	}
