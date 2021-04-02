@@ -61,6 +61,8 @@ func newChangelog(gitlog string) *changelog {
 			bazel = append(bazel, cmt)
 		case "gencli":
 			gencli = append(gencli, cmt)
+		case "fix(deps)":
+			fallthrough
 		case "chore(deps)":
 			hasDeps = true
 		case "chore":
