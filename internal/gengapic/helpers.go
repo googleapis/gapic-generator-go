@@ -102,3 +102,15 @@ func grpcClientField(reducedServName string) string {
 	// lower-case "client" so that the field is not exported.
 	return lowerFirst(reducedServName + "Client")
 }
+
+// hasMethod reports if the given service defines an RPC with the same name as
+// the given simple method name.
+func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
+	for _, m := range service.GetMethod() {
+		if m.GetName() == method {
+			return true
+		}
+	}
+
+	return false
+}

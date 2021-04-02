@@ -70,6 +70,10 @@ type generator struct {
 	// GapicMetadata for recording proto-to-code mappings in a
 	// gapic_metadata.json file.
 	metadata *metadatapb.GapicMetadata
+
+	mixins map[string]bool
+
+	hasIAMPolicyOverrides bool
 }
 
 func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
@@ -80,6 +84,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
 	}
 
+	g.mixins = map[string]bool{}
 	g.comments = map[proto.Message]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.aux = &auxTypes{
@@ -90,6 +95,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	if err != nil {
 		return err
 	}
+	files := req.GetProtoFile()
 
 	if opts.serviceConfigPath != "" {
 		f, err := os.Open(opts.serviceConfigPath)
@@ -103,11 +109,15 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		if err != nil {
 			return errors.E(nil, "error decoding service config: %v", err)
 		}
+
 		// An API Service Config will always have a `name` so if it is not populated,
 		// it's an invalid config.
 		if g.serviceConfig.GetName() == "" {
 			return errors.E(nil, "invalid API service config file %q", opts.serviceConfigPath)
 		}
+
+		g.collectMixins()
+		files = append(files, g.getMixinFiles()...)
 	}
 	if opts.grpcConfPath != "" {
 		f, err := os.Open(opts.grpcConfPath)
@@ -123,9 +133,9 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	}
 	g.opts = opts
 
-	g.descInfo = pbinfo.Of(req.GetProtoFile())
+	g.descInfo = pbinfo.Of(files)
 
-	for _, f := range req.GetProtoFile() {
+	for _, f := range files {
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
 			if loc.LeadingComments == nil {
 				continue

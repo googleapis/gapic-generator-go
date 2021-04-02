@@ -3,6 +3,16 @@ type CallOptions struct {
 	Zip []gax.CallOption
 	Zap []gax.CallOption
 	Smack []gax.CallOption
+	ListLocations []gax.CallOption
+	GetLocation []gax.CallOption
+	SetIamPolicy []gax.CallOption
+	GetIamPolicy []gax.CallOption
+	TestIamPermissions []gax.CallOption
+	ListOperations []gax.CallOption
+	GetOperation []gax.CallOption
+	DeleteOperation []gax.CallOption
+	CancelOperation []gax.CallOption
+	WaitOperation []gax.CallOption
 }
 
 func defaultClientOptions() []option.ClientOption {
@@ -57,6 +67,26 @@ func defaultCallOptions() *CallOptions {
 					Multiplier: 1.10,
 				})
 			}),
+		},
+		ListLocations: []gax.CallOption{
+		},
+		GetLocation: []gax.CallOption{
+		},
+		SetIamPolicy: []gax.CallOption{
+		},
+		GetIamPolicy: []gax.CallOption{
+		},
+		TestIamPermissions: []gax.CallOption{
+		},
+		ListOperations: []gax.CallOption{
+		},
+		GetOperation: []gax.CallOption{
+		},
+		DeleteOperation: []gax.CallOption{
+		},
+		CancelOperation: []gax.CallOption{
+		},
+		WaitOperation: []gax.CallOption{
 		},
 	}
 }

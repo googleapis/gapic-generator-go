@@ -22,11 +22,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	durationpb "github.com/golang/protobuf/ptypes/duration"
+	"github.com/google/go-cmp/cmp"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	locationpb "google.golang.org/genproto/googleapis/cloud/location"
+	iampb "google.golang.org/genproto/googleapis/iam/v1"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -324,5 +328,189 @@ func TestBlock_disable_default_timeout(t *testing.T) {
 	}
 	if resp.GetContent() != content {
 		t.Errorf("Block() = %q, want %q", resp.GetContent(), content)
+	}
+}
+
+func TestGetLocation(t *testing.T) {
+	defer check(t)
+	want := &locationpb.Location{
+		Name:        "projects/showcase/location/us-central1",
+		DisplayName: "us-central1",
+	}
+	req := &locationpb.GetLocationRequest{
+		Name: want.GetName(),
+	}
+
+	got, err := echo.GetLocation(context.Background(), req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if diff := cmp.Diff(got, want, cmp.Comparer(proto.Equal)); diff != "" {
+		t.Errorf("GetLocation() got(-),want(+):\n%s", diff)
+	}
+}
+
+func TestListLocations(t *testing.T) {
+	defer check(t)
+	req := &locationpb.ListLocationsRequest{
+		Name: "projects/showcase",
+	}
+	want := []*locationpb.Location{
+		{
+			Name:        req.GetName() + "/locations/us-north",
+			DisplayName: "us-north",
+		},
+		{
+			Name:        req.GetName() + "/locations/us-south",
+			DisplayName: "us-south",
+		},
+		{
+			Name:        req.GetName() + "/locations/us-east",
+			DisplayName: "us-east",
+		},
+		{
+			Name:        req.GetName() + "/locations/us-west",
+			DisplayName: "us-west",
+		},
+	}
+
+	iter := echo.ListLocations(context.Background(), req)
+
+	got := []*locationpb.Location{}
+	for loc, err := iter.Next(); err == nil; loc, err = iter.Next() {
+		got = append(got, loc)
+	}
+
+	if diff := cmp.Diff(got, want, cmp.Comparer(proto.Equal)); diff != "" {
+		t.Errorf("ListLocations got(-),want(+):\n%s", diff)
+	}
+}
+
+func TestIamPolicy(t *testing.T) {
+	defer check(t)
+	want := &iampb.Policy{
+		Bindings: []*iampb.Binding{
+			{
+				Role:    "foo.editor",
+				Members: []string{"allUsers"},
+			},
+		},
+	}
+	set := &iampb.SetIamPolicyRequest{
+		Resource: "projects/showcase/location/us-central1",
+		Policy:   want,
+	}
+
+	got, err := echo.SetIamPolicy(context.Background(), set)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if diff := cmp.Diff(got, want, cmp.Comparer(proto.Equal)); diff != "" {
+		t.Errorf("TestIamPolicy() got(-),want(+):\n%s", diff)
+	}
+
+	get := &iampb.GetIamPolicyRequest{
+		Resource: set.GetResource(),
+	}
+
+	got, err = echo.GetIamPolicy(context.Background(), get)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if diff := cmp.Diff(got, want, cmp.Comparer(proto.Equal)); diff != "" {
+		t.Errorf("TestIamPolicy() got(-),want(+):\n%s", diff)
+	}
+
+	test := &iampb.TestIamPermissionsRequest{
+		Resource:    set.GetResource(),
+		Permissions: []string{"foo.create"},
+	}
+	_, err = echo.TestIamPermissions(context.Background(), test)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGetIamPolicy_doesNotExist(t *testing.T) {
+	defer check(t)
+	want := codes.NotFound
+	req := &iampb.GetIamPolicyRequest{
+		Resource: "projects/foo/location/bar",
+	}
+
+	resp, err := echo.GetIamPolicy(context.Background(), req)
+	if err == nil {
+		t.Errorf("GetIamPolicy() got %+v, want %+v", resp, want)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want {
+		t.Errorf("GetIamPolicy() got %+v, want %+v", err, want)
+	}
+}
+
+func TestGetIamPolicy_missingResource(t *testing.T) {
+	defer check(t)
+	want := codes.InvalidArgument
+
+	resp, err := echo.GetIamPolicy(context.Background(), &iampb.GetIamPolicyRequest{})
+	if err == nil {
+		t.Errorf("GetIamPolicy() got %+v, want %+v", resp, want)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want {
+		t.Errorf("GetIamPolicy() got %+v, want %+v", err, want)
+	}
+}
+
+func TestSetIamPolicy_missingResource(t *testing.T) {
+	defer check(t)
+	want := codes.InvalidArgument
+
+	resp, err := echo.SetIamPolicy(context.Background(), &iampb.SetIamPolicyRequest{})
+	if err == nil {
+		t.Errorf("SetIamPolicy() got %+v, want %+v", resp, want)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want {
+		t.Errorf("SetIamPolicy() got %+v, want %+v", err, want)
+	}
+}
+
+func TestSetIamPolicy_missingPolicy(t *testing.T) {
+	defer check(t)
+	want := codes.InvalidArgument
+	req := &iampb.SetIamPolicyRequest{
+		Resource: "projects/showcase/location/us-central1",
+	}
+
+	resp, err := echo.SetIamPolicy(context.Background(), req)
+	if err == nil {
+		t.Errorf("SetIamPolicy() got %+v, want %+v", resp, want)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want {
+		t.Errorf("SetIamPolicy() got %+v, want %+v", err, want)
+	}
+}
+
+func TestTestIamPermissions_doesNotExist(t *testing.T) {
+	defer check(t)
+	want := codes.NotFound
+	req := &iampb.TestIamPermissionsRequest{
+		Resource: "projects/foo/location/bar",
+	}
+
+	resp, err := echo.TestIamPermissions(context.Background(), req)
+	if err == nil {
+		t.Errorf("TestIamPermissions() got %+v, want %+v", resp, want)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want {
+		t.Errorf("TestIamPermissions() got %+v, want %+v", err, want)
+	}
+}
+
+func TestTestIamPermissions_missingResource(t *testing.T) {
+	defer check(t)
+	want := codes.InvalidArgument
+
+	resp, err := echo.TestIamPermissions(context.Background(), &iampb.TestIamPermissionsRequest{})
+	if err == nil {
+		t.Errorf("TestIamPermissions() got %+v, want %+v", resp, want)
+	} else if got, ok := status.FromError(err); !ok || got.Code() != want {
+		t.Errorf("TestIamPermissions() got %+v, want %+v", err, want)
 	}
 }
