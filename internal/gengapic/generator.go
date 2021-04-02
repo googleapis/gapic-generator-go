@@ -109,6 +109,13 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		if err != nil {
 			return errors.E(nil, "error decoding service config: %v", err)
 		}
+
+		// An API Service Config will always have a `name` so if it is not populated,
+		// it's an invalid config.
+		if g.serviceConfig.GetName() == "" {
+			return errors.E(nil, "invalid API service config file %q", opts.serviceConfigPath)
+		}
+    
 		g.collectMixins()
 		files = append(files, g.getMixinFiles()...)
 	}
