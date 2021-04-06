@@ -28,7 +28,7 @@ jobs:
       with:
         name: repositories
         path: repos.tgz
-  push-repositories:
+  repositories-pr:
     needs: update-bazel-deps
     runs-on: ubuntu-latest
     if: needs.update-bazel-deps.outputs.changed
