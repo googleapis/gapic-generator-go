@@ -1,0 +1,60 @@
+---
+name: Generator dependency management
+on:
+  push:
+    branches:
+      - master
+jobs:
+  update-bazel-deps:
+    if: github.actor == 'renovate-bot'
+    outputs:
+      changed: ${{ steps.update.outputs.changed }}
+    runs-on: ubuntu-latest
+    container: gcr.io/gapic-images/googleapis-bazel:20210105
+    # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run gazelle update-repos
+      id: update
+      run: |
+        make update-bazel-deps
+        git diff --exit-code repositories.bzl
+        echo ::set-output name=changed::$?
+    - name: Prepare repositories.bzl payload
+      if: steps.update.outputs.changed
+      run: tar czf repos.tgz repositories.bzl
+    - uses: actions/upload-artifact@v2
+      if: steps.update.outputs.changed
+      with:
+        name: repositories
+        path: repos.tgz
+  repositories-pr:
+    needs: update-bazel-deps
+    runs-on: ubuntu-latest
+    if: needs.update-bazel-deps.outputs.changed
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: master
+    - uses: actions/download-artifact@v2
+      with:
+        name: repositories
+    - name: Expand repositories archive
+      run: |
+        tar xvzf repos.tgz
+        rm repose.tgz
+    - uses: googleapis/code-suggester@v1
+      env:
+        ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}  
+      with:
+        command: pr
+        upstream_owner: googleapis
+        upstream_repo: gapic-generator-go
+        description: 'Updated Go dependencies for Bazel repositories.'
+        title: 'chore: update Bazel Go deps'
+        message: 'chore: update Bazel Go deps'
+        labels: |
+          automerge
+        branch: update-bazel-deps
+        git_dir: '.'
+        force: true
