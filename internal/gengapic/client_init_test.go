@@ -40,7 +40,7 @@ func TestClientHook(t *testing.T) {
 
 	g.clientHook("Foo")
 	got := g.pt.String()
-	want := "var newFooClientHook clientHook\n\n"
+	want := "var newFooGrpcClientHook clientHook\n\n"
 
 	if diff := cmp.Diff(got, want); diff != "" {
 		t.Errorf("clientHook() (-got,+want): %s", diff)
@@ -295,7 +295,7 @@ func TestClientInit(t *testing.T) {
 		}
 
 		g.reset()
-		g.clientInit(tst.serv, tst.servName)
+		g.makeClients(tst.serv, tst.servName)
 
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}

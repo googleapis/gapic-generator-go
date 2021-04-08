@@ -1,11 +1,10 @@
-func (c *FooClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*EmptyLROOperation, error) {
+func (c *fooGrpcClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*EmptyLROOperation, error) {
 	if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {
 		cctx, cancel := context.WithTimeout(ctx, 10000 * time.Millisecond)
 		defer cancel()
 		ctx = cctx
 	}
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
-	opts = append(c.CallOptions.EmptyLRO[0:len(c.CallOptions.EmptyLRO):len(c.CallOptions.EmptyLRO)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
@@ -27,7 +26,7 @@ type EmptyLROOperation struct {
 
 // EmptyLROOperation returns a new EmptyLROOperation from a given name.
 // The name must be that of a previously created EmptyLROOperation, possibly from a different process.
-func (c *MyServiceClient) EmptyLROOperation(name string) *EmptyLROOperation {
+func (c *myServiceGrpcClient) EmptyLROOperation(name string) *EmptyLROOperation {
 	return &EmptyLROOperation{
 		lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),
 	}

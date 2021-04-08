@@ -1,4 +1,4 @@
-func ExampleNewClient() {
+func ExampleNewGrpcClient() {
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
@@ -8,7 +8,7 @@ func ExampleNewClient() {
 	_ = c
 }
 
-func ExampleClient_GetEmptyThing() {
+func ExampleGrpcClient_GetEmptyThing() {
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
@@ -24,7 +24,7 @@ func ExampleClient_GetEmptyThing() {
 	}
 }
 
-func ExampleClient_GetOneThing() {
+func ExampleGrpcClient_GetOneThing() {
 	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
@@ -44,7 +44,7 @@ func ExampleClient_GetOneThing() {
 	_ = resp
 }
 
-func ExampleClient_GetBigThing() {
+func ExampleGrpcClient_GetBigThing() {
 	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
@@ -69,7 +69,7 @@ func ExampleClient_GetBigThing() {
 	_ = resp
 }
 
-func ExampleClient_GetManyThings() {
+func ExampleGrpcClient_GetManyThings() {
 	// import mypackagepb "mypackage"
 	// import "google.golang.org/api/iterator"
 
@@ -96,7 +96,7 @@ func ExampleClient_GetManyThings() {
 	}
 }
 
-func ExampleClient_BidiThings() {
+func ExampleGrpcClient_BidiThings() {
 	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
@@ -132,7 +132,7 @@ func ExampleClient_BidiThings() {
 	}
 }
 
-func ExampleClient_EmptyLRO() {
+func ExampleGrpcClient_EmptyLRO() {
 	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
@@ -155,7 +155,7 @@ func ExampleClient_EmptyLRO() {
 	}
 }
 
-func ExampleClient_RespLRO() {
+func ExampleGrpcClient_RespLRO() {
 	// import mypackagepb "mypackage"
 
 	ctx := context.Background()
@@ -180,7 +180,7 @@ func ExampleClient_RespLRO() {
 	_ = resp
 }
 
-func ExampleClient_ListLocations() {
+func ExampleGrpcClient_ListLocations() {
 	// import locationpb "google.golang.org/genproto/googleapis/cloud/location"
 	// import "google.golang.org/api/iterator"
 
@@ -207,7 +207,7 @@ func ExampleClient_ListLocations() {
 	}
 }
 
-func ExampleClient_GetLocation() {
+func ExampleGrpcClient_GetLocation() {
 	// import locationpb "google.golang.org/genproto/googleapis/cloud/location"
 
 	ctx := context.Background()
@@ -227,7 +227,7 @@ func ExampleClient_GetLocation() {
 	_ = resp
 }
 
-func ExampleClient_SetIamPolicy() {
+func ExampleGrpcClient_SetIamPolicy() {
 	// import iampb "google.golang.org/genproto/googleapis/iam/v1"
 
 	ctx := context.Background()
@@ -247,7 +247,7 @@ func ExampleClient_SetIamPolicy() {
 	_ = resp
 }
 
-func ExampleClient_GetIamPolicy() {
+func ExampleGrpcClient_GetIamPolicy() {
 	// import iampb "google.golang.org/genproto/googleapis/iam/v1"
 
 	ctx := context.Background()
@@ -267,7 +267,7 @@ func ExampleClient_GetIamPolicy() {
 	_ = resp
 }
 
-func ExampleClient_TestIamPermissions() {
+func ExampleGrpcClient_TestIamPermissions() {
 	// import iampb "google.golang.org/genproto/googleapis/iam/v1"
 
 	ctx := context.Background()
@@ -287,7 +287,7 @@ func ExampleClient_TestIamPermissions() {
 	_ = resp
 }
 
-func ExampleClient_ListOperations() {
+func ExampleGrpcClient_ListOperations() {
 	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
 	// import "google.golang.org/api/iterator"
 
@@ -314,7 +314,7 @@ func ExampleClient_ListOperations() {
 	}
 }
 
-func ExampleClient_GetOperation() {
+func ExampleGrpcClient_GetOperation() {
 	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
 
 	ctx := context.Background()
@@ -334,7 +334,7 @@ func ExampleClient_GetOperation() {
 	_ = resp
 }
 
-func ExampleClient_DeleteOperation() {
+func ExampleGrpcClient_DeleteOperation() {
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
@@ -350,7 +350,7 @@ func ExampleClient_DeleteOperation() {
 	}
 }
 
-func ExampleClient_CancelOperation() {
+func ExampleGrpcClient_CancelOperation() {
 	ctx := context.Background()
 	c, err := Foo.NewClient(ctx)
 	if err != nil {
@@ -366,7 +366,7 @@ func ExampleClient_CancelOperation() {
 	}
 }
 
-func ExampleClient_WaitOperation() {
+func ExampleGrpcClient_WaitOperation() {
 	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
 
 	ctx := context.Background()

@@ -28,7 +28,7 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 	servName := pbinfo.ReduceServName(*serv.Name, pkgName)
 	p := g.printf
 
-	p("func ExampleNew%sClient() {", servName)
+	p("func ExampleNew%sGrpcClient() {", servName)
 	g.exampleInitClient(pkgName, servName)
 	p("  // TODO: Use client.")
 	p("  _ = c")
@@ -76,7 +76,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	g.imports[inSpec] = true
 
-	p("func Example%sClient_%s() {", servName, m.GetName())
+	p("func Example%sGrpcClient_%s() {", servName, m.GetName())
 
 	pf, err := g.pagingField(m)
 	if err != nil {

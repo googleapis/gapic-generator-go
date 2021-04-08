@@ -26,10 +26,12 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 	}
 	g.imports[servSpec] = true
 
-	p("func (c *%sClient) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		servName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
+	// We DON'T want to export the transport layers.
+	lowcaseServName := lowerFirst(servName)
+
+	p("func (c *%sGrpcClient) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
 	g.insertMetadata(nil)
-	g.appendCallOpts(m)
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -62,16 +64,16 @@ func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescr
 	g.imports[servSpec] = true
 
 	p := g.printf
+	lowcaseServName := lowerFirst(servName)
 
-	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		servName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
+	p("func (c *%sGrpcClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 
 	err = g.insertMetadata(m)
 	if err != nil {
 		return err
 	}
 
-	g.appendCallOpts(m)
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")

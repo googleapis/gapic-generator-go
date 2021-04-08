@@ -127,7 +127,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	if err := g.clientOptions(serv, servName); err != nil {
 		return err
 	}
-	if err := g.clientInit(serv, servName); err != nil {
+	if err := g.makeClients(serv, servName); err != nil {
 		return err
 	}
 
@@ -238,8 +238,10 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 
 	p := g.printf
 
-	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		servName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+	lowcaseServName := lowerFirst(servName)
+
+	p("func (c *%sGrpcClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
 	g.deadline(sFQN, m.GetName())
 
@@ -248,7 +250,6 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 		return err
 	}
 
-	g.appendCallOpts(m)
 	p("var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
@@ -281,8 +282,10 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 
 	p := g.printf
 
-	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		servName, m.GetName(), inSpec.Name, inType.GetName())
+	lowcaseServName := lowerFirst(servName)
+
+	p("func (c *%sGrpcClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
 	g.deadline(sFQN, m.GetName())
 
@@ -291,7 +294,6 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 		return err
 	}
 
-	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  _, err = %s", g.grpcStubCall(m))

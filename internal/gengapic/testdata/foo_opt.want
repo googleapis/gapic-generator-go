@@ -15,7 +15,7 @@ type FooCallOptions struct {
 	WaitOperation []gax.CallOption
 }
 
-func defaultFooClientOptions() []option.ClientOption {
+func defaultFooGrpcClientOptions() []option.ClientOption {
 	return []option.ClientOption{
 		internaloption.WithDefaultEndpoint("foo.googleapis.com:443"),
 		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:443"),

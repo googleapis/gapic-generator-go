@@ -13,7 +13,7 @@ type BarCallOptions struct {
 	WaitOperation []gax.CallOption
 }
 
-func defaultBarClientOptions() []option.ClientOption {
+func defaultBarGrpcClientOptions() []option.ClientOption {
 	return []option.ClientOption{
 		internaloption.WithDefaultEndpoint("foo.googleapis.com:1234"),
 		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:1234"),
