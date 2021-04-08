@@ -6,8 +6,8 @@ on:
       - go.mod
       - go.sum
 jobs:
-  if: github.ref == 'refs/heads/master'
   update-bazel-deps:
+    if: github.ref == 'refs/heads/master'
     outputs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
