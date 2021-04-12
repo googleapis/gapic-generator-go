@@ -18,7 +18,7 @@ jobs:
     - name: Run gazelle update-repos
       id: update
       run: |
-        make update-bazel-deps
+        make update-bazel-repos
         git diff --exit-code repositories.bzl
         echo ::set-output name=changed::$?
     - name: Prepare repositories.bzl payload
