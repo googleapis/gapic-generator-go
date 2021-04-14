@@ -412,7 +412,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("//")
 	g.comment(g.comments[serv])
 	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-	p("  clientOpts := default%[1]sGrpcCallOptions()", servName)
+	p("  clientOpts := default%[1]sGrpcClientOptions()", servName)
 
 	p("  if new%sGrpcClientHook != nil {", servName)
 	p("    hookOpts, err := new%sGrpcClientHook(ctx, clientHookParams{})", servName)
@@ -466,7 +466,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 		p("  c.locationsClient = locationpb.NewLocationsClient(connPool)")
 		p("")
 	}
-	p("  return &%sClient{internal%[1]sClient: c, CallOptions: clientOpts}, nil", servName)
+	p("  return &%sClient{internal%[1]sClient: c, CallOptions: default%[1]sCallOptions()}, nil", servName)
 	p("}")
 	p("")
 
