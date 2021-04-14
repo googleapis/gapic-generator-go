@@ -247,8 +247,9 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 	p("}")
 	p("")
 
-	// Need a thin wrapper around
-	for _, m := range serv.Method {
+	// Need a thin wrapper around the internal client's method
+	// so we can manipulate call options.
+	for _, m := range serv.GetMethod() {
 		inType := g.descInfo.Type[m.GetInputType()]
 		inSpec, err := g.descInfo.ImportSpec(inType)
 		if err != nil {
@@ -266,7 +267,6 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 				m.GetName(),
 				inSpec.Name,
 				inType.GetName())
-			p("    var opts gax.CallOption")
 			g.appendCallOpts(m)
 			p("    c.internalClient.%s(ctx, req, opts)", m.GetName())
 			p("}")
@@ -287,7 +287,6 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 				inSpec.Name,
 				inType.GetName(),
 				iter.iterTypeName)
-			p("    var opts gax.CallOption")
 			g.appendCallOpts(m)
 			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
 			p("}")
@@ -301,7 +300,6 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 			// longrunning.Operation and more precise types
 			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 				servName, m.GetName(), inSpec.Name, inType.GetName(), lroTypeName(m.GetName()))
-			p("    var opts gax.CallOption")
 			g.appendCallOpts(m)
 			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
 			p("}")
@@ -310,7 +308,6 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 			// Handles both client-streaming and bidi-streaming
 			p("func (c *%sClient) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sGrpcClient, error) {",
 				servName, m.GetName(), inSpec.Name, serv.GetName(), m.GetName())
-			p("    var opts gax.CallOption")
 			g.appendCallOpts(m)
 			p("    return c.internalClient.%s(ctx, opts)", m.GetName())
 			p("}")
@@ -319,7 +316,6 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 			// Handles _just_ server streaming
 			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sGrpcClient, error) {",
 				servName, m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
-			p("    var opts gax.CallOption")
 			g.appendCallOpts(m)
 			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
 			p("}")
@@ -327,7 +323,6 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 			// Regular, unary call
 			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error){",
 				servName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
-			p("    var opts gax.CallOption")
 			g.appendCallOpts(m)
 			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
 			p("}")
@@ -509,7 +504,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	var hasLRO bool
-	for _, m := range serv.Method {
+	for _, m := range serv.GetMethod() {
 		if g.isLRO(m) {
 			hasLRO = true
 			break
@@ -535,7 +530,7 @@ func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servNam
 			// TODO(dovs): add rest client struct initialization
 			continue
 		default:
-			return fmt.Errorf("unexpected transport variant (supported variants are '%s', '%s'): %d",
+			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
 				v, grpc, rest)
 		}
 	}
