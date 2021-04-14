@@ -340,7 +340,7 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	lowcaseServName := lowerFirst(servName)
 
 	p("// %sGrpcClient is a client for interacting with %s over gRPC transport.", lowcaseServName, g.apiName)
-	p("// It satisfies the %sinternalClient interface.", lowcaseServName)
+	p("// It satisfies the internal%sClient interface.", servName)
 	p("//")
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %sGrpcClient struct {", lowcaseServName)

@@ -24,7 +24,7 @@ func (c *FooClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.C
 }
 
 // fooGrpcClient is a client for interacting with Awesome Foo API over gRPC transport.
-// It satisfies the fooAbstractClient interface.
+// It satisfies the internalFooClient interface.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type fooGrpcClient struct {
