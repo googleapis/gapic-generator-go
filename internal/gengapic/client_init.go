@@ -139,7 +139,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	return nil
 }
 
-func (g *generator) abstractClientIntfInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
 	p("// internal%sClient is an interface that defines the methods availaible from %s.", servName, g.apiName)
@@ -340,7 +340,7 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	lowcaseServName := lowerFirst(servName)
 
 	p("// %sGrpcClient is a client for interacting with %s over gRPC transport.", lowcaseServName, g.apiName)
-	p("// It satisfies the %sAbstractClient interface.", lowcaseServName)
+	p("// It satisfies the %sinternalClient interface.", lowcaseServName)
 	p("//")
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %sGrpcClient struct {", lowcaseServName)
@@ -516,7 +516,7 @@ func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servNam
 		return err
 	}
 
-	err = g.abstractClientIntfInit(serv, servName)
+	err = g.internalClientIntfInit(serv, servName)
 	if err != nil {
 		return err
 	}
