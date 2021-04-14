@@ -535,7 +535,7 @@ func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servNam
 			// TODO(dovs): add rest client struct initialization
 			continue
 		default:
-			return fmt.Errorf("unexpected transport variant (supported variants are '%s', '%s'): %d",
+			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
 				v, grpc, rest)
 		}
 	}
