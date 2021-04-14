@@ -19,7 +19,6 @@ func (c *Client) Close () error {
 }
 
 func (c *Client) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error){
-	var opts gax.CallOption
 	opts = append(c.CallOptions.Zip[0:len(c.CallOptions.Zip):len(c.CallOptions.Zip)], opts...)
 	return c.internalClient.Zip(ctx, req, opts)
 }
@@ -46,7 +45,7 @@ type GrpcClient struct {
 //
 // Foo service does stuff.
 func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
-	clientOpts := defaultGrpcCallOptions()
+	clientOpts := defaultGrpcClientOptions()
 	if newGrpcClientHook != nil {
 		hookOpts, err := newGrpcClientHook(ctx, clientHookParams{})
 		if err != nil {
@@ -71,7 +70,7 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 	}
 	c.setGoogleClientInfo()
 
-	return &Client{internalClient: c, CallOptions: clientOpts}, nil
+	return &Client{internalClient: c, CallOptions: defaultCallOptions()}, nil
 }
 
 // Connection returns a connection to the API service.
