@@ -261,6 +261,7 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 			return err
 		}
 
+		// Void returning unary call.
 		if m.GetOutputType() == emptyType {
 			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 				servName,
@@ -268,7 +269,7 @@ func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, ser
 				inSpec.Name,
 				inType.GetName())
 			g.appendCallOpts(m)
-			p("    c.internalClient.%s(ctx, req, opts)", m.GetName())
+			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
 			p("}")
 			p("")
 			continue
