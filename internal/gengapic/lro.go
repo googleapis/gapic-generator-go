@@ -54,6 +54,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	if err != nil {
 		return err
 	}
+	g.appendCallOpts(m)
 
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")

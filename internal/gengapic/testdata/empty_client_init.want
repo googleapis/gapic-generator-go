@@ -1,5 +1,6 @@
 // internalClient is an interface that defines the methods availaible from Awesome Foo API.
 type internalClient interface {
+	Close () error
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
 }
 
@@ -7,20 +8,11 @@ type internalClient interface {
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type Client struct {
 	// The internal transport-dependent client.
-	internalClient internalClient
+	internalClient
 
 	// The call options for this service.
 	CallOptions *CallOptions
 
-}
-
-func (c *Client) Close () error {
-	return c.internalClient.Close()
-}
-
-func (c *Client) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error){
-	opts = append(c.CallOptions.Zip[0:len(c.CallOptions.Zip):len(c.CallOptions.Zip)], opts...)
-	return c.internalClient.Zip(ctx, req, opts)
 }
 
 // GrpcClient is a client for interacting with Awesome Foo API over gRPC transport.
@@ -33,6 +25,9 @@ type GrpcClient struct {
 
 	// flag to opt out of default deadlines via GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE
 	disableDeadlines bool
+
+	// Points back to the CallOptions field of the containing Client
+	CallOptions **CallOptions
 
 	// The gRPC API client.
 	client mypackagepb.FooClient
@@ -63,14 +58,16 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 	if err != nil {
 		return nil, err
 	}
+	callOpts := defaultCallOptions()
 	c := &GrpcClient{
 		connPool:    connPool,
 		disableDeadlines: disableDeadlines,
 		client: mypackagepb.NewFooClient(connPool),
+		CallOptions: &callOpts,
 	}
 	c.setGoogleClientInfo()
 
-	return &Client{internalClient: c, CallOptions: defaultCallOptions()}, nil
+	return &Client{internalClient: c, CallOptions: callOpts}, nil
 }
 
 // Connection returns a connection to the API service.

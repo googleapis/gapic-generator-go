@@ -198,6 +198,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	if err != nil {
 		return err
 	}
+	g.appendCallOpts(m)
 
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())

@@ -5,6 +5,7 @@ func (c *fooGrpcClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType
 		ctx = cctx
 	}
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append(c.CallOptions.EmptyLRO[0:len(c.CallOptions.EmptyLRO):len(c.CallOptions.EmptyLRO)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error

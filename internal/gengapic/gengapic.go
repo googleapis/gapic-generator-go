@@ -249,6 +249,7 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 	if err != nil {
 		return err
 	}
+	g.appendCallOpts(m)
 
 	p("var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -293,7 +294,7 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 	if err != nil {
 		return err
 	}
-
+	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  _, err = %s", g.grpcStubCall(m))

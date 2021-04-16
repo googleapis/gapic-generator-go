@@ -144,7 +144,10 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 
 	p("// internal%sClient is an interface that defines the methods availaible from %s.", servName, g.apiName)
 	p("type internal%sClient interface {", servName)
+	p("Close () error")
+
 	for _, m := range serv.Method {
+
 		inType := g.descInfo.Type[m.GetInputType()]
 		inSpec, err := g.descInfo.ImportSpec(inType)
 		if err != nil {
@@ -215,7 +218,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	// Fields
 	p("// The internal transport-dependent client.")
-	p("internalClient internal%sClient", servName)
+	p("internal%sClient", servName)
 	p("")
 	p("// The call options for this service.")
 	p("CallOptions *%sCallOptions", servName)
@@ -233,105 +236,6 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	p("}")
 	p("")
-
-	g.clientUtilities(serv, servName)
-}
-
-func (g *generator) clientUtilities(serv *descriptor.ServiceDescriptorProto, servName string) error {
-
-	p := g.printf
-
-	// Close
-	p("func (c *%sClient) Close () error {", servName)
-	p("    return c.internalClient.Close()")
-	p("}")
-	p("")
-
-	// Need a thin wrapper around the internal client's method
-	// so we can manipulate call options.
-	for _, m := range serv.GetMethod() {
-		inType := g.descInfo.Type[m.GetInputType()]
-		inSpec, err := g.descInfo.ImportSpec(inType)
-		if err != nil {
-			return err
-		}
-		outType := g.descInfo.Type[m.GetOutputType()]
-		outSpec, err := g.descInfo.ImportSpec(outType)
-		if err != nil {
-			return err
-		}
-
-		// Void returning unary call.
-		if m.GetOutputType() == emptyType {
-			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-				servName,
-				m.GetName(),
-				inSpec.Name,
-				inType.GetName())
-			g.appendCallOpts(m)
-			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
-			p("}")
-			p("")
-			continue
-		}
-
-		if pf, err := g.pagingField(m); err != nil {
-			return err
-		} else if pf != nil {
-			iter, err := g.iterTypeOf(pf)
-			if err != nil {
-				return err
-			}
-			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-				servName,
-				m.GetName(),
-				inSpec.Name,
-				inType.GetName(),
-				iter.iterTypeName)
-			g.appendCallOpts(m)
-			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
-			p("}")
-			p("")
-			continue
-		}
-
-		switch {
-		case g.isLRO(m):
-			// Unary call where the return type is a wrapper of
-			// longrunning.Operation and more precise types
-			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-				servName, m.GetName(), inSpec.Name, inType.GetName(), lroTypeName(m.GetName()))
-			g.appendCallOpts(m)
-			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
-			p("}")
-			p("")
-		case m.GetClientStreaming():
-			// Handles both client-streaming and bidi-streaming
-			p("func (c *%sClient) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sGrpcClient, error) {",
-				servName, m.GetName(), inSpec.Name, serv.GetName(), m.GetName())
-			g.appendCallOpts(m)
-			p("    return c.internalClient.%s(ctx, opts)", m.GetName())
-			p("}")
-			p("")
-		case m.GetServerStreaming():
-			// Handles _just_ server streaming
-			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sGrpcClient, error) {",
-				servName, m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
-			g.appendCallOpts(m)
-			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
-			p("}")
-		default:
-			// Regular, unary call
-			p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error){",
-				servName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
-			g.appendCallOpts(m)
-			p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
-			p("}")
-		}
-	}
-	p("")
-
-	return nil
 }
 
 func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
@@ -351,6 +255,10 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	p("// flag to opt out of default deadlines via %s", disableDeadlinesVar)
 	p("disableDeadlines bool")
+	p("")
+
+	p("// Points back to the CallOptions field of the containing %sClient", servName)
+	p("CallOptions **%sCallOptions", servName)
 	p("")
 
 	p("// The gRPC API client.")
@@ -432,10 +340,13 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("  if err != nil {")
 	p("    return nil, err")
 	p("  }")
+	p("  callOpts := default%[1]sCallOptions()", servName)
+
 	p("  c := &%sGrpcClient{", lowcaseServName)
 	p("    connPool:    connPool,")
 	p("    disableDeadlines: disableDeadlines,")
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
+	p("    CallOptions: &callOpts,")
 	p("  }")
 	p("  c.setGoogleClientInfo()")
 	p("")
@@ -467,7 +378,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 		p("  c.locationsClient = locationpb.NewLocationsClient(connPool)")
 		p("")
 	}
-	p("  return &%sClient{internal%[1]sClient: c, CallOptions: default%[1]sCallOptions()}, nil", servName)
+	p("  return &%sClient{internal%[1]sClient: c, CallOptions: callOpts}, nil", servName)
 	p("}")
 	p("")
 

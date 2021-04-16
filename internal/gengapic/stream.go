@@ -34,6 +34,8 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 	g.insertMetadata(nil)
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 
+	g.appendCallOpts(m)
+
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
 	p("    resp, err = c.%s.%s(ctx, settings.GRPC...)", grpcClientField(servName), m.GetName())
