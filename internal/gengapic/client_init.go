@@ -65,7 +65,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			host += ":443"
 		}
 
-		p("func default%sGrpcClientOptions() []option.ClientOption {", servName)
+		p("func default%sGRPCClientOptions() []option.ClientOption {", servName)
 		p("  return []option.ClientOption{")
 		p("    internaloption.WithDefaultEndpoint(%q),", host)
 		p("    internaloption.WithDefaultMTLSEndpoint(%q),", generateDefaultMTLSEndpoint(host))
@@ -321,7 +321,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("//")
 	g.comment(g.comments[serv])
 	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-	p("  clientOpts := default%[1]sGrpcClientOptions()", servName)
+	p("  clientOpts := default%[1]sGRPCClientOptions()", servName)
 
 	p("  if new%sGrpcClientHook != nil {", servName)
 	p("    hookOpts, err := new%sGrpcClientHook(ctx, clientHookParams{})", servName)

@@ -52,7 +52,7 @@ type fooGrpcClient struct {
 //
 // Foo service does stuff.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
-	clientOpts := defaultFooGrpcClientOptions()
+	clientOpts := defaultFooGRPCClientOptions()
 	if newFooGrpcClientHook != nil {
 		hookOpts, err := newFooGrpcClientHook(ctx, clientHookParams{})
 		if err != nil {
