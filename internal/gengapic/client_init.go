@@ -340,15 +340,17 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("  if err != nil {")
 	p("    return nil, err")
 	p("  }")
-	p("  callOpts := default%[1]sCallOptions()", servName)
-
+	p("  client := %[1]sClient{CallOptions: default%[1]sCallOptions()}", servName)
+	p("")
 	p("  c := &%sGrpcClient{", lowcaseServName)
 	p("    connPool:    connPool,")
 	p("    disableDeadlines: disableDeadlines,")
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
-	p("    CallOptions: &callOpts,")
+	p("    CallOptions: &client.CallOptions,")
 	p("  }")
 	p("  c.setGoogleClientInfo()")
+	p("")
+	p("  client.internal%sClient = c", servName)
 	p("")
 
 	if hasRPCForLRO {
@@ -378,7 +380,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 		p("  c.locationsClient = locationpb.NewLocationsClient(connPool)")
 		p("")
 	}
-	p("  return &%sClient{internal%[1]sClient: c, CallOptions: callOpts}, nil", servName)
+	p("  return client, nil")
 	p("}")
 	p("")
 

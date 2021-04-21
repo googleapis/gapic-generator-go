@@ -70,14 +70,17 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 	if err != nil {
 		return nil, err
 	}
-	callOpts := defaultFooCallOptions()
+	client := FooClient{CallOptions: defaultFooCallOptions()}
+
 	c := &fooGrpcClient{
 		connPool:    connPool,
 		disableDeadlines: disableDeadlines,
 		fooClient: mypackagepb.NewFooClient(connPool),
-		CallOptions: &callOpts,
+		CallOptions: &client.CallOptions,
 	}
 	c.setGoogleClientInfo()
+
+	client.internalFooClient = c
 
 	c.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))
 	if err != nil {
@@ -91,7 +94,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 	}
 	c.operationsClient = longrunningpb.NewOperationsClient(connPool)
 
-	return &FooClient{internalFooClient: c, CallOptions: callOpts}, nil
+	return client, nil
 }
 
 // Connection returns a connection to the API service.

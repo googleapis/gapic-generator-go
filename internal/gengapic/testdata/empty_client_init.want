@@ -58,16 +58,19 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 	if err != nil {
 		return nil, err
 	}
-	callOpts := defaultCallOptions()
+	client := Client{CallOptions: defaultCallOptions()}
+
 	c := &GrpcClient{
 		connPool:    connPool,
 		disableDeadlines: disableDeadlines,
 		client: mypackagepb.NewFooClient(connPool),
-		CallOptions: &callOpts,
+		CallOptions: &client.CallOptions,
 	}
 	c.setGoogleClientInfo()
 
-	return &Client{internalClient: c, CallOptions: callOpts}, nil
+	client.internalClient = c
+
+	return client, nil
 }
 
 // Connection returns a connection to the API service.
