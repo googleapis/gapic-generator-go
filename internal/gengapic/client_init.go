@@ -145,6 +145,7 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	p("// internal%sClient is an interface that defines the methods availaible from %s.", servName, g.apiName)
 	p("type internal%sClient interface {", servName)
 	p("Close () error")
+	p("setGoogleClientInfo(...string)")
 
 	for _, m := range serv.Method {
 
