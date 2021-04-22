@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC
+// Copyright 2018 Google L/LC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -240,7 +240,7 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 
 	lowcaseServName := lowerFirst(servName)
 
-	p("func (c *%sGrpcClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
+	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
 	g.deadline(sFQN, m.GetName())
@@ -285,7 +285,7 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 
 	lowcaseServName := lowerFirst(servName)
 
-	p("func (c *%sGrpcClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
+	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
 	g.deadline(sFQN, m.GetName())
@@ -423,7 +423,7 @@ func (g *generator) lookupFieldType(msgName, field string) descriptor.FieldDescr
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
-	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "c.CallOptions."+*m.Name)
+	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "(*c.CallOptions)."+*m.Name)
 }
 
 func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {

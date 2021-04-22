@@ -66,7 +66,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("    return nil, err")
 	p("  }")
 	p("  return &%s{", lroType)
-	p("    lro: longrunning.InternalNewOperation(c.LROClient, resp),")
+	p("    lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
 	p("  }, nil")
 
 	p("}")
@@ -158,7 +158,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
 		p("func (c *%sGrpcClient) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
 		p("  return &%s{", lroType)
-		p("    lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),")
+		p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
 		p("  }")
 		p("}")
 		p("")
