@@ -20,11 +20,10 @@ type FooClient struct {
 
 }
 
-// fooGrpcClient is a client for interacting with Awesome Foo API over gRPC transport.
-// It satisfies the internalFooClient interface.
+// fooGRPCClient is a client for interacting with Awesome Foo API over gRPC transport.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
-type fooGrpcClient struct {
+type fooGRPCClient struct {
 	// Connection pool of gRPC connections to the service.
 	connPool gtransport.ConnPool
 
@@ -40,7 +39,7 @@ type fooGrpcClient struct {
 	// LROClient is used internally to handle long-running operations.
 	// It is exposed so that its CallOptions can be modified if required.
 	// Users should not Close this client.
-	LROClient *lroauto.OperationsClient
+	LROClient **lroauto.OperationsClient
 
 	operationsClient longrunningpb.OperationsClient
 
@@ -53,8 +52,8 @@ type fooGrpcClient struct {
 // Foo service does stuff.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := defaultFooGRPCClientOptions()
-	if newFooGrpcClientHook != nil {
-		hookOpts, err := newFooGrpcClientHook(ctx, clientHookParams{})
+	if newFooGRPCClientHook != nil {
+		hookOpts, err := newFooGRPCClientHook(ctx, clientHookParams{})
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +71,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 	}
 	client := FooClient{CallOptions: defaultFooCallOptions()}
 
-	c := &fooGrpcClient{
+	c := &fooGRPCClient{
 		connPool:    connPool,
 		disableDeadlines: disableDeadlines,
 		fooClient: mypackagepb.NewFooClient(connPool),
@@ -82,7 +81,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 
 	client.internalFooClient = c
 
-	c.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))
+	client.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))
 	if err != nil {
 		// This error "should not happen", since we are just reusing old connection pool
 		// and never actually need to dial.
@@ -92,22 +91,23 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		// TODO: investigate error conditions.
 		return nil, err
 	}
+	c.LROClient = &client.LROClient
 	c.operationsClient = longrunningpb.NewOperationsClient(connPool)
 
-	return client, nil
+	return &client, nil
 }
 
 // Connection returns a connection to the API service.
 //
 // Deprecated.
-func (c *fooGrpcClient) Connection() *grpc.ClientConn {
+func (c *fooGRPCClient) Connection() *grpc.ClientConn {
 	return c.connPool.Conn()
 }
 
 // setGoogleClientInfo sets the name and version of the application in
 // the `x-goog-api-client` header passed on each request. Intended for
 // use by Google-written clients.
-func (c *fooGrpcClient) setGoogleClientInfo(keyval ...string) {
+func (c *fooGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", versionGo()}, keyval...)
 	kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)
 	c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))
@@ -115,7 +115,7 @@ func (c *fooGrpcClient) setGoogleClientInfo(keyval ...string) {
 
 // Close closes the connection to the API service. The user should invoke this when
 // the client is no longer required.
-func (c *fooGrpcClient) Close() error {
+func (c *fooGRPCClient) Close() error {
 	return c.connPool.Close()
 }
 

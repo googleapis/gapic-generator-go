@@ -5,7 +5,7 @@ func (c *fooGrpcClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType
 		ctx = cctx
 	}
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
-	opts = append(c.CallOptions.EmptyLRO[0:len(c.CallOptions.EmptyLRO):len(c.CallOptions.EmptyLRO)], opts...)
+	opts = append((*c.CallOptions).EmptyLRO[0:len((*c.CallOptions).EmptyLRO):len((*c.CallOptions).EmptyLRO)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
@@ -16,7 +16,7 @@ func (c *fooGrpcClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType
 		return nil, err
 	}
 	return &EmptyLROOperation{
-		lro: longrunning.InternalNewOperation(c.LROClient, resp),
+		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
 	}, nil
 }
 
@@ -29,7 +29,7 @@ type EmptyLROOperation struct {
 // The name must be that of a previously created EmptyLROOperation, possibly from a different process.
 func (c *myServiceGrpcClient) EmptyLROOperation(name string) *EmptyLROOperation {
 	return &EmptyLROOperation{
-		lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
 	}
 }
 

@@ -5,7 +5,7 @@ func (c *fooGrpcClient) RespLRO(ctx context.Context, req *mypackagepb.InputType,
 		ctx = cctx
 	}
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
-	opts = append(c.CallOptions.RespLRO[0:len(c.CallOptions.RespLRO):len(c.CallOptions.RespLRO)], opts...)
+	opts = append((*c.CallOptions).RespLRO[0:len((*c.CallOptions).RespLRO):len((*c.CallOptions).RespLRO)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
@@ -16,7 +16,7 @@ func (c *fooGrpcClient) RespLRO(ctx context.Context, req *mypackagepb.InputType,
 		return nil, err
 	}
 	return &RespLROOperation{
-		lro: longrunning.InternalNewOperation(c.LROClient, resp),
+		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
 	}, nil
 }
 
@@ -29,7 +29,7 @@ type RespLROOperation struct {
 // The name must be that of a previously created RespLROOperation, possibly from a different process.
 func (c *myServiceGrpcClient) RespLROOperation(name string) *RespLROOperation {
 	return &RespLROOperation{
-		lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
 	}
 }
 
