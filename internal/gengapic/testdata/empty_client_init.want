@@ -40,8 +40,8 @@ type GRPCClient struct {
 // Foo service does stuff.
 func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := defaultGRPCClientOptions()
-	if newGRPCClientHook != nil {
-		hookOpts, err := newGRPCClientHook(ctx, clientHookParams{})
+	if newClientHook != nil {
+		hookOpts, err := newClientHook(ctx, clientHookParams{})
 		if err != nil {
 			return nil, err
 		}

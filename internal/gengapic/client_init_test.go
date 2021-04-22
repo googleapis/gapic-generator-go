@@ -40,7 +40,7 @@ func TestClientHook(t *testing.T) {
 
 	g.clientHook("Foo")
 	got := g.pt.String()
-	want := "var newFooGRPCClientHook clientHook\n\n"
+	want := "var newFooClientHook clientHook\n\n"
 
 	if diff := cmp.Diff(got, want); diff != "" {
 		t.Errorf("clientHook() (-got,+want): %s", diff)

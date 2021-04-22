@@ -29,7 +29,7 @@ import (
 func (g *generator) clientHook(servName string) {
 	p := g.printf
 
-	p("var new%sGRPCClientHook clientHook", servName)
+	p("var new%sClientHook clientHook", servName)
 	p("")
 }
 
@@ -322,8 +322,8 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("  clientOpts := default%[1]sGRPCClientOptions()", servName)
 
-	p("  if new%sGRPCClientHook != nil {", servName)
-	p("    hookOpts, err := new%sGRPCClientHook(ctx, clientHookParams{})", servName)
+	p("  if new%sClientHook != nil {", servName)
+	p("    hookOpts, err := new%sClientHook(ctx, clientHookParams{})", servName)
 	p("    if err != nil {")
 	p("      return nil, err")
 	p("    }")
