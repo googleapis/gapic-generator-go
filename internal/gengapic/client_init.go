@@ -190,11 +190,11 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 				m.GetName(), inSpec.Name, inType.GetName(), lroTypeName(m.GetName()))
 		case m.GetClientStreaming():
 			// Handles both client-streaming and bidi-streaming
-			p("%s(context.Context, ...gax.CallOption) (%s.%s_%sGRPCClient, error)",
+			p("%s(context.Context, ...gax.CallOption) (%s.%s_%sClient, error)",
 				m.GetName(), inSpec.Name, serv.GetName(), m.GetName())
 		case m.GetServerStreaming():
 			// Handles _just_ server streaming
-			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s.%s_%sGRPCClient, error)",
+			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s.%s_%sClient, error)",
 				m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
 		default:
 			// Regular, unary call
