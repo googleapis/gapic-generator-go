@@ -1,4 +1,4 @@
-func (c *fooGrpcClient) ServerThings(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (mypackagepb.Foo_ServerThingsClient, error) {
+func (c *fooGRPCClient) ServerThings(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (mypackagepb.Foo_ServerThingsClient, error) {
 	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v&%s=%v&%s=%v&%s=%v", "field_name.nested", url.QueryEscape(req.GetFieldName().GetNested()), "other", url.QueryEscape(req.GetOther()), "another", url.QueryEscape(req.GetAnother()), "biz", url.QueryEscape(fmt.Sprintf("%g", req.GetBiz()))))
 	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
 	var resp mypackagepb.Foo_ServerThingsClient

@@ -191,7 +191,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	}
 
 	p := g.printf
-	p("func (c *%sGrpcClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
+	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
 
 	err = g.insertMetadata(m)

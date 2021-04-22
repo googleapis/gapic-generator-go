@@ -1,4 +1,4 @@
-func (c *fooGrpcClient) BidiThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb.Foo_BidiThingsClient, error) {
+func (c *fooGRPCClient) BidiThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb.Foo_BidiThingsClient, error) {
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	var resp mypackagepb.Foo_BidiThingsClient
 	opts = append((*c.CallOptions).BidiThings[0:len((*c.CallOptions).BidiThings):len((*c.CallOptions).BidiThings)], opts...)

@@ -1,4 +1,4 @@
-func (c *fooGrpcClient) RespLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*RespLROOperation, error) {
+func (c *fooGRPCClient) RespLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*RespLROOperation, error) {
 	if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {
 		cctx, cancel := context.WithTimeout(ctx, 10000 * time.Millisecond)
 		defer cancel()
@@ -27,7 +27,7 @@ type RespLROOperation struct {
 
 // RespLROOperation returns a new RespLROOperation from a given name.
 // The name must be that of a previously created RespLROOperation, possibly from a different process.
-func (c *myServiceGrpcClient) RespLROOperation(name string) *RespLROOperation {
+func (c *myServiceGRPCClient) RespLROOperation(name string) *RespLROOperation {
 	return &RespLROOperation{
 		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
 	}
