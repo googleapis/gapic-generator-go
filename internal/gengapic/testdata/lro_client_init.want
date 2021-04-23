@@ -4,6 +4,7 @@ type internalFooClient interface {
 	setGoogleClientInfo(...string)
 	Connection() *grpc.ClientConn
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*ZipOperation, error)
+	ZipOperation(name string) *ZipOperation
 }
 
 // FooClient is a client for interacting with Awesome Foo API.

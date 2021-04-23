@@ -188,8 +188,11 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 		case g.isLRO(m):
 			// Unary call where the return type is a wrapper of
 			// longrunning.Operation and more precise types
+			lroType := lroTypeName(m.GetName())
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s, error)",
 				m.GetName(), inSpec.Name, inType.GetName(), lroTypeName(m.GetName()))
+			p("%[1]s(name string) *%[1]s", lroType)
+
 		case m.GetClientStreaming():
 			// Handles both client-streaming and bidi-streaming
 			p("%s(context.Context, ...gax.CallOption) (%s.%s_%sClient, error)",
