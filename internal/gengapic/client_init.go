@@ -148,25 +148,29 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	p("setGoogleClientInfo(...string)")
 	p("Connection() *grpc.ClientConn")
 
-	for _, m := range serv.Method {
+	// The mixin methods are for manipulating LROs, IAM, and Location.
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	// methods := serv.GetMethod()
+
+	for _, m := range methods {
 
 		inType := g.descInfo.Type[m.GetInputType()]
 		inSpec, err := g.descInfo.ImportSpec(inType)
 		if err != nil {
 			return err
 		}
-		outType := g.descInfo.Type[m.GetOutputType()]
-		outSpec, err := g.descInfo.ImportSpec(outType)
-		if err != nil {
-			return err
-		}
-
 		if m.GetOutputType() == emptyType {
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) error",
 				m.GetName(),
 				inSpec.Name,
 				inType.GetName())
 			continue
+		}
+
+		outType := g.descInfo.Type[m.GetOutputType()]
+		outSpec, err := g.descInfo.ImportSpec(outType)
+		if err != nil {
+			return err
 		}
 
 		if pf, err := g.pagingField(m); err != nil {

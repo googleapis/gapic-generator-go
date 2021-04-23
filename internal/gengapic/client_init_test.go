@@ -277,6 +277,74 @@ func TestClientInit(t *testing.T) {
 						&descriptor.DescriptorProto{
 							Name: proto.String("Operation"),
 						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetOperationRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("DeleteOperationRequest"),
+						},
+
+						&descriptor.DescriptorProto{
+							Name: proto.String("WaitOperationRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListOperationsRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListOperationsResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("CancelOperationRequest"),
+						},
+					},
+				},
+				&descriptor.FileDescriptorProto{
+					Package: proto.String("google.cloud.location"),
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("google.cloud.location"),
+					},
+					MessageType: []*descriptor.DescriptorProto{
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListLocationsRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListLocationsResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("Location"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetLocationRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetLocationResponse"),
+						},
+					},
+				},
+				&descriptor.FileDescriptorProto{
+					Package: proto.String("google.iam.v1"),
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("google.iam.v1"),
+					},
+					MessageType: []*descriptor.DescriptorProto{
+						&descriptor.DescriptorProto{
+							Name: proto.String("Policy"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("TestIamPermissionsRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("TestIamPermissionsResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("SetIamPolicyRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("SetIamPolicyResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetIamPolicyRequest"),
+						},
 					},
 				},
 			}}
