@@ -4,6 +4,11 @@ type internalFooClient interface {
 	setGoogleClientInfo(...string)
 	Connection() *grpc.ClientConn
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
+	ListLocations(context.Context, *google.cloud.locationpb.ListLocationsRequest, ...gax.CallOption) (*google.cloud.locationpb.ListLocationsResponse, error)
+	GetLocation(context.Context, *google.cloud.locationpb.GetLocationRequest, ...gax.CallOption) (*google.cloud.locationpb.Location, error)
+	SetIamPolicy(context.Context, *google.iam.v1pb.SetIamPolicyRequest, ...gax.CallOption) (*google.iam.v1pb.Policy, error)
+	GetIamPolicy(context.Context, *google.iam.v1pb.GetIamPolicyRequest, ...gax.CallOption) (*google.iam.v1pb.Policy, error)
+	TestIamPermissions(context.Context, *google.iam.v1pb.TestIamPermissionsRequest, ...gax.CallOption) (*google.iam.v1pb.TestIamPermissionsResponse, error)
 }
 
 // FooClient is a client for interacting with Awesome Foo API.
