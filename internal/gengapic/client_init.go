@@ -355,6 +355,16 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("    disableDeadlines: disableDeadlines,")
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
 	p("    CallOptions: &client.CallOptions,")
+	if g.hasLROMixin() {
+		p("    operationsClient: longrunningpb.NewOperationsClient(connPool)")
+	}
+	if g.hasIAMPolicyMixin() {
+		p("    iamPolicyClient: iampb.NewIAMPolicyClient(connPool)")
+	}
+	if g.hasLocationMixin() {
+		p("    locationsClient: locationpb.NewLocationsClient(connPool)")
+	}
+	p("")
 	p("  }")
 	p("  c.setGoogleClientInfo()")
 	p("")
@@ -375,20 +385,6 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 		p("  c.LROClient = &client.LROClient")
 	}
 
-	if g.hasLROMixin() {
-		p("  c.operationsClient = longrunningpb.NewOperationsClient(connPool)")
-		p("")
-	}
-
-	if g.hasIAMPolicyMixin() {
-		p("  c.iamPolicyClient = iampb.NewIAMPolicyClient(connPool)")
-		p("")
-	}
-
-	if g.hasLocationMixin() {
-		p("  c.locationsClient = locationpb.NewLocationsClient(connPool)")
-		p("")
-	}
 	p("  return &client, nil")
 	p("}")
 	p("")
