@@ -1,7 +1,7 @@
-func (c *FooClient) ClientThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb.Foo_ClientThingsClient, error) {
+func (c *fooGRPCClient) ClientThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb.Foo_ClientThingsClient, error) {
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
-	opts = append(c.CallOptions.ClientThings[0:len(c.CallOptions.ClientThings):len(c.CallOptions.ClientThings)], opts...)
 	var resp mypackagepb.Foo_ClientThingsClient
+	opts = append((*c.CallOptions).ClientThings[0:len((*c.CallOptions).ClientThings):len((*c.CallOptions).ClientThings)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
 		resp, err = c.fooClient.ClientThings(ctx, settings.GRPC...)

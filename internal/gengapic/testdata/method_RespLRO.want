@@ -1,11 +1,11 @@
-func (c *FooClient) RespLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*RespLROOperation, error) {
+func (c *fooGRPCClient) RespLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*RespLROOperation, error) {
 	if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {
 		cctx, cancel := context.WithTimeout(ctx, 10000 * time.Millisecond)
 		defer cancel()
 		ctx = cctx
 	}
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
-	opts = append(c.CallOptions.RespLRO[0:len(c.CallOptions.RespLRO):len(c.CallOptions.RespLRO)], opts...)
+	opts = append((*c.CallOptions).RespLRO[0:len((*c.CallOptions).RespLRO):len((*c.CallOptions).RespLRO)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
@@ -16,7 +16,7 @@ func (c *FooClient) RespLRO(ctx context.Context, req *mypackagepb.InputType, opt
 		return nil, err
 	}
 	return &RespLROOperation{
-		lro: longrunning.InternalNewOperation(c.LROClient, resp),
+		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
 	}, nil
 }
 
@@ -27,9 +27,9 @@ type RespLROOperation struct {
 
 // RespLROOperation returns a new RespLROOperation from a given name.
 // The name must be that of a previously created RespLROOperation, possibly from a different process.
-func (c *MyServiceClient) RespLROOperation(name string) *RespLROOperation {
+func (c *myServiceGRPCClient) RespLROOperation(name string) *RespLROOperation {
 	return &RespLROOperation{
-		lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
 	}
 }
 

@@ -21,6 +21,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/golang/protobuf/ptypes/duration"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/go-cmp/cmp"
@@ -205,25 +206,25 @@ func TestClientInit(t *testing.T) {
 	var g generator
 	g.apiName = "Awesome Foo API"
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.opts = &options{transports: []transport{grpc}}
 
 	servPlain := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), OutputType: proto.String("Foo")},
+			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".mypackage.Foo")},
 		},
 	}
 	servLRO := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), OutputType: proto.String(".google.longrunning.Operation")},
+			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".google.longrunning.Operation")},
 		},
 	}
 
 	for _, tst := range []struct {
-		tstName string
-
-		mixins   map[string]bool
+		tstName  string
 		servName string
+		mixins   map[string]bool
 		serv     *descriptor.ServiceDescriptorProto
 	}{
 		{
@@ -249,13 +250,105 @@ func TestClientInit(t *testing.T) {
 			serv:     servLRO,
 		},
 	} {
-		g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
-			tst.serv: {
-				Options: &descriptor.FileOptions{
-					GoPackage: proto.String("mypackage"),
+		request := plugin.CodeGeneratorRequest{
+			Parameter: proto.String("go-gapic-package=path;mypackage"),
+			ProtoFile: []*descriptor.FileDescriptorProto{
+				&descriptor.FileDescriptorProto{
+					Package: proto.String("mypackage"),
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("mypackage"),
+					},
+					Service: []*descriptor.ServiceDescriptorProto{tst.serv},
+					MessageType: []*descriptor.DescriptorProto{
+						&descriptor.DescriptorProto{
+							Name: proto.String("Bar"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("Foo"),
+						},
+					},
 				},
-			},
-		}
+				&descriptor.FileDescriptorProto{
+					Package: proto.String("google.longrunning"),
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("google.longrunning"),
+					},
+					MessageType: []*descriptor.DescriptorProto{
+						&descriptor.DescriptorProto{
+							Name: proto.String("Operation"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetOperationRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("DeleteOperationRequest"),
+						},
+
+						&descriptor.DescriptorProto{
+							Name: proto.String("WaitOperationRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListOperationsRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListOperationsResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("CancelOperationRequest"),
+						},
+					},
+				},
+				&descriptor.FileDescriptorProto{
+					Package: proto.String("google.cloud.location"),
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("google.cloud.location"),
+					},
+					MessageType: []*descriptor.DescriptorProto{
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListLocationsRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("ListLocationsResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("Location"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetLocationRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetLocationResponse"),
+						},
+					},
+				},
+				&descriptor.FileDescriptorProto{
+					Package: proto.String("google.iam.v1"),
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("google.iam.v1"),
+					},
+					MessageType: []*descriptor.DescriptorProto{
+						&descriptor.DescriptorProto{
+							Name: proto.String("Policy"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("TestIamPermissionsRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("TestIamPermissionsResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("SetIamPolicyRequest"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("SetIamPolicyResponse"),
+						},
+						&descriptor.DescriptorProto{
+							Name: proto.String("GetIamPolicyRequest"),
+						},
+					},
+				},
+			}}
+		g.init(&request)
 		g.comments = map[proto.Message]string{
 			tst.serv: "Foo service does stuff.",
 		}
@@ -270,7 +363,8 @@ func TestClientInit(t *testing.T) {
 		}
 
 		g.reset()
-		g.clientInit(tst.serv, tst.servName)
+		g.makeClients(tst.serv, tst.servName)
+
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }

@@ -12,7 +12,7 @@ type BazCallOptions struct {
 	WaitOperation []gax.CallOption
 }
 
-func defaultBazClientOptions() []option.ClientOption {
+func defaultBazGRPCClientOptions() []option.ClientOption {
 	return []option.ClientOption{
 		internaloption.WithDefaultEndpoint("foo.googleapis.com:1234"),
 		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:1234"),

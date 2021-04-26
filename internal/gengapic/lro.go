@@ -43,8 +43,10 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	lroType := lroTypeName(m.GetName())
 	p := g.printf
 
-	p("func (c *%sClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		servName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+	lowcaseServName := lowerFirst(servName)
+
+	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
 
 	g.deadline(sFQN, m.GetName())
 
@@ -52,8 +54,8 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	if err != nil {
 		return err
 	}
-
 	g.appendCallOpts(m)
+
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
@@ -64,7 +66,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	p("    return nil, err")
 	p("  }")
 	p("  return &%s{", lroType)
-	p("    lro: longrunning.InternalNewOperation(c.LROClient, resp),")
+	p("    lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
 	p("  }, nil")
 
 	p("}")
@@ -90,6 +92,8 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	if fullName == "" {
 		return fmt.Errorf("rpc %q has google.longrunning.operation_info but is missing option google.longrunning.operation_info.response_type", mFQN)
 	}
+
+	lowcaseServName := lowerFirst(servName)
 
 	var respType string
 	{
@@ -152,9 +156,9 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	{
 		p("// %[1]s returns a new %[1]s from a given name.", lroType)
 		p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
-		p("func (c *%sClient) %[2]s(name string) *%[2]s {", servName, lroType)
+		p("func (c *%sGRPCClient) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
 		p("  return &%s{", lroType)
-		p("    lro: longrunning.InternalNewOperation(c.LROClient, &longrunningpb.Operation{Name: name}),")
+		p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
 		p("  }")
 		p("}")
 		p("")

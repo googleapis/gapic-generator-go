@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -26,9 +27,9 @@ type transport int
 const (
 	grpc transport = iota
 	rest
-
-	paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 )
+
+const paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
 
 type options struct {
 	pkgPath           string
@@ -148,4 +149,17 @@ func parseOptions(parameter *string) (*options, error) {
 	}
 
 	return &opts, nil
+}
+
+// Utility function for stringifying the Transport enum
+func (t transport) String() string {
+	switch t {
+	case grpc:
+		return "grpc"
+	case rest:
+		return "rest"
+	default:
+		// Add new transport variants as need be.
+		return fmt.Sprintf("%d", int(t))
+	}
 }
