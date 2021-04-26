@@ -75,8 +75,8 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		disableDeadlines: disableDeadlines,
 		fooClient: mypackagepb.NewFooClient(connPool),
 		CallOptions: &client.CallOptions,
-		iamPolicyClient: iampb.NewIAMPolicyClient(connPool)
-		locationsClient: locationpb.NewLocationsClient(connPool)
+		iamPolicyClient: iampb.NewIAMPolicyClient(connPool),
+		locationsClient: locationpb.NewLocationsClient(connPool),
 
 	}
 	c.setGoogleClientInfo()

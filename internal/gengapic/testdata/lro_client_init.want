@@ -86,7 +86,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		disableDeadlines: disableDeadlines,
 		fooClient: mypackagepb.NewFooClient(connPool),
 		CallOptions: &client.CallOptions,
-		operationsClient: longrunningpb.NewOperationsClient(connPool)
+		operationsClient: longrunningpb.NewOperationsClient(connPool),
 
 	}
 	c.setGoogleClientInfo()

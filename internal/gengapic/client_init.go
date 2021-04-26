@@ -356,13 +356,13 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
 	p("    CallOptions: &client.CallOptions,")
 	if g.hasLROMixin() {
-		p("    operationsClient: longrunningpb.NewOperationsClient(connPool)")
+		p("    operationsClient: longrunningpb.NewOperationsClient(connPool),")
 	}
 	if g.hasIAMPolicyMixin() {
-		p("    iamPolicyClient: iampb.NewIAMPolicyClient(connPool)")
+		p("    iamPolicyClient: iampb.NewIAMPolicyClient(connPool),")
 	}
 	if g.hasLocationMixin() {
-		p("    locationsClient: locationpb.NewLocationsClient(connPool)")
+		p("    locationsClient: locationpb.NewLocationsClient(connPool),")
 	}
 	p("")
 	p("  }")
