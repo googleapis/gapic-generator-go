@@ -222,10 +222,11 @@ func TestClientInit(t *testing.T) {
 	}
 
 	for _, tst := range []struct {
-		tstName  string
-		servName string
-		mixins   map[string]bool
-		serv     *descriptor.ServiceDescriptorProto
+		tstName   string
+		servName  string
+		mixins    map[string]bool
+		serv      *descriptor.ServiceDescriptorProto
+		parameter *string
 	}{
 		{
 			tstName: "foo_client_init",
@@ -233,25 +234,38 @@ func TestClientInit(t *testing.T) {
 				"google.cloud.location.Locations": true,
 				"google.iam.v1.IAMPolicy":         true,
 			},
-			servName: "Foo",
-			serv:     servPlain,
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
 		},
 		{
-			tstName:  "empty_client_init",
-			servName: "",
-			serv:     servPlain,
+			tstName: "foo_rest_client_init",
+			mixins: map[string]bool{
+				"google.cloud.location.Locations": true,
+				"google.iam.v1.IAMPolicy":         true,
+			},
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
+		},
+		{
+			tstName:   "empty_client_init",
+			servName:  "",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
 		},
 		{
 			tstName: "lro_client_init",
 			mixins: map[string]bool{
 				"google.longrunning.Operations": true,
 			},
-			servName: "Foo",
-			serv:     servLRO,
+			servName:  "Foo",
+			serv:      servLRO,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
 		},
 	} {
 		request := plugin.CodeGeneratorRequest{
-			Parameter: proto.String("go-gapic-package=path;mypackage"),
+			Parameter: tst.parameter,
 			ProtoFile: []*descriptor.FileDescriptorProto{
 				&descriptor.FileDescriptorProto{
 					Package: proto.String("mypackage"),

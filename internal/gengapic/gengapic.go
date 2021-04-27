@@ -118,24 +118,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	return &g.resp, nil
 }
 
-// gen generates client for the given service.
-func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
-	servName := pbinfo.ReduceServName(*serv.Name, g.opts.pkgName)
-
+func (g *generator) genGrpcMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
-	g.clientHook(servName)
-	if err := g.clientOptions(serv, servName); err != nil {
-		return err
-	}
-	if err := g.makeClients(serv, servName); err != nil {
-		return err
-	}
-
-	// clear LRO types between services
-	g.aux.lros = []*descriptor.MethodDescriptorProto{}
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
-
 	for _, m := range methods {
 		g.methodDoc(m)
 		if err := g.genMethod(servName, serv, m); err != nil {
@@ -143,7 +129,6 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 		}
 		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
 	}
-
 	sort.Slice(g.aux.lros, func(i, j int) bool {
 		return g.aux.lros[i].GetName() < g.aux.lros[j].GetName()
 	})
@@ -152,6 +137,37 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+// gen generates client for the given service.
+func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
+	servName := pbinfo.ReduceServName(*serv.Name, g.opts.pkgName)
+
+	g.clientHook(servName)
+	if err := g.clientOptions(serv, servName); err != nil {
+		return err
+	}
+	if err := g.makeClients(serv, servName); err != nil {
+		return err
+	}
+
+	for _, v := range g.opts.transports {
+		switch v {
+		case grpc:
+			if err := g.genGrpcMethods(serv, servName); err != nil {
+				return err
+			}
+		case rest:
+			if err := g.genRestMethods(serv, servName); err != nil {
+				return err
+			}
+		}
+	}
+
+	// clear LRO types between services
+	g.aux.lros = []*descriptor.MethodDescriptorProto{}
 
 	var iters []*iterType
 	for _, iter := range g.aux.iters {

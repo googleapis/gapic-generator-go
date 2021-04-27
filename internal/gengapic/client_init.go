@@ -446,8 +446,7 @@ func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servNam
 		case grpc:
 			g.grpcClientInit(serv, servName, imp, hasLRO)
 		case rest:
-			// TODO(dovs): add rest client struct initialization
-			continue
+			g.restClientInit(serv, servName, imp, hasLRO)
 		default:
 			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
 				v, grpc, rest)
