@@ -55,7 +55,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 					"LibraryService": {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"rest": {
-								LibraryClient: "LibraryServiceRestClient",
+								LibraryClient: "LibraryServiceRESTClient",
 								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
@@ -71,7 +71,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 							"rest": {
-								LibraryClient: "LibraryServiceRestClient",
+								LibraryClient: "LibraryServiceRESTClient",
 								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
@@ -87,7 +87,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 					"LibraryService": {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"rest": {
-								LibraryClient: "LibraryServiceRestClient",
+								LibraryClient: "LibraryServiceRESTClient",
 								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
@@ -103,7 +103,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 							"rest": {
-								LibraryClient: "LibraryServiceRestClient",
+								LibraryClient: "LibraryServiceRESTClient",
 								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},

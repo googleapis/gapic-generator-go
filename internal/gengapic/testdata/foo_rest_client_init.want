@@ -22,47 +22,62 @@ type FooClient struct {
 
 }
 
-// fooRestClient is a client for interacting with Awesome Foo API over REST transport.
-// It satisfies the internalFooClient interface.
-//
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
-type fooRestClient struct {
+type fooRESTClient struct {
 	host string
 }
 
-func (c *fooRestClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
+func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
+
+		return nil, nil
+
 	}
 }
-func (c *fooRestClient) ListLocations(ctx context.Context, req *google.cloud.locationpb.ListLocationsRequest, opts ...gax.CallOption) (*google.cloud.locationpb.ListLocationsResponse, error) {
+func (c *fooRESTClient) ListLocations(ctx context.Context, req *google.cloud.locationpb.ListLocationsRequest, opts ...gax.CallOption) (*google.cloud.locationpb.ListLocationsResponse, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
+
+		return nil, nil
+
 	}
 }
-func (c *fooRestClient) GetLocation(ctx context.Context, req *google.cloud.locationpb.GetLocationRequest, opts ...gax.CallOption) (*google.cloud.locationpb.Location, error) {
+func (c *fooRESTClient) GetLocation(ctx context.Context, req *google.cloud.locationpb.GetLocationRequest, opts ...gax.CallOption) (*google.cloud.locationpb.Location, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
+
+		return nil, nil
+
 	}
 }
-func (c *fooRestClient) SetIamPolicy(ctx context.Context, req *google.iam.v1pb.SetIamPolicyRequest, opts ...gax.CallOption) (*google.iam.v1pb.Policy, error) {
+func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *google.iam.v1pb.SetIamPolicyRequest, opts ...gax.CallOption) (*google.iam.v1pb.Policy, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
+
+		return nil, nil
+
 	}
 }
-func (c *fooRestClient) GetIamPolicy(ctx context.Context, req *google.iam.v1pb.GetIamPolicyRequest, opts ...gax.CallOption) (*google.iam.v1pb.Policy, error) {
+func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *google.iam.v1pb.GetIamPolicyRequest, opts ...gax.CallOption) (*google.iam.v1pb.Policy, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
+
+		return nil, nil
+
 	}
 }
-func (c *fooRestClient) TestIamPermissions(ctx context.Context, req *google.iam.v1pb.TestIamPermissionsRequest, opts ...gax.CallOption) (*google.iam.v1pb.TestIamPermissionsResponse, error) {
+func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *google.iam.v1pb.TestIamPermissionsRequest, opts ...gax.CallOption) (*google.iam.v1pb.TestIamPermissionsResponse, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
+
+		return nil, nil
+
 	}
 }

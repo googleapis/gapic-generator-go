@@ -118,7 +118,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	return &g.resp, nil
 }
 
-func (g *generator) genGrpcMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
@@ -143,7 +143,7 @@ func (g *generator) genGrpcMethods(serv *descriptor.ServiceDescriptorProto, serv
 
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
-	servName := pbinfo.ReduceServName(*serv.Name, g.opts.pkgName)
+	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
 
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
@@ -156,7 +156,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	for _, v := range g.opts.transports {
 		switch v {
 		case grpc:
-			if err := g.genGrpcMethods(serv, servName); err != nil {
+			if err := g.genGRPCMethods(serv, servName); err != nil {
 				return err
 			}
 		case rest:

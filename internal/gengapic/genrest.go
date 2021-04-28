@@ -17,11 +17,9 @@ package gengapic
 import (
 	"sort"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
@@ -29,11 +27,8 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	lowcaseServName := lowerFirst(servName)
 
-	p("// %sRestClient is a client for interacting with %s over REST transport.", lowcaseServName, g.apiName)
-	p("// It satisfies the internal%sClient interface.", servName)
-	p("//")
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-	p("type %sRestClient struct {", lowcaseServName)
+	p("type %sRESTClient struct {", lowcaseServName)
 	p("  host string")
 	p("}")
 	p("")
@@ -42,8 +37,6 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
-	// Clear LROs between services
-	// TODO: handle LRO types shared between rest and grpc clients with a map[bool]
 	g.addMetadataServiceForTransport(serv.GetName(), "rest", servName)
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
@@ -78,11 +71,11 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	// If we leave it commented out, we can change it, and we don't have to
 	// guarantee correctness or stability.
 	//
-	// p("// New%sRestClient creates a new %s rest client.", servName, clientName)
+	// p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
 	// p("//")
 	// g.comment(g.comments[serv])
-	// p("func New%[1]sRestClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sRestClient, error) {", servName)
-	// p("    c := &%sRestClient{", servName)
+	// p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sRESTClient, error) {", servName)
+	// p("    c := &%sRESTClient{", servName)
 	// p("    }")
 	// p("")
 	// p("    return &%sClient{internal%[1]sClient: c, CallOptions: default%[1]sCallOptions()}, nil", servName)
@@ -119,31 +112,13 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 		return nil
 	default:
 		// TODO(dovs)
-		return g.unaryRestCall(servName, m)
+		return g.unaryRESTCall(servName, m)
 	}
 }
 
-func doAThing(m *descriptor.MethodDescriptorProto) (error, error) {
-	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-	if m == nil || m.GetOptions() == nil || err == proto.ErrMissingExtension {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	http := eHTTP.(*annotations.HttpRule)
-	rules := []*annotations.HttpRule{http}
-	rules = append(rules, http.GetAdditionalBindings()...)
-	_ = rules
-
-	return nil, nil
-}
-
-func (g *generator) unaryRestCall(servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	inType := g.descInfo.Type[*m.InputType]
 	outType := g.descInfo.Type[*m.OutputType]
-
-	doAThing(m)
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
@@ -156,7 +131,7 @@ func (g *generator) unaryRestCall(servName string, m *descriptor.MethodDescripto
 
 	p := g.printf
 	lowcaseServName := lowerFirst(servName)
-	p("func (c *%sRestClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
+	p("func (c *%sRESTClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
 	// TODO(dovs): handle cancellation, metadata, osv.
@@ -164,6 +139,10 @@ func (g *generator) unaryRestCall(servName string, m *descriptor.MethodDescripto
 	p("m := jsonpb.Marshaler{}") // TODO(dovs): add appropriate options
 	p("if jsonReq, err := m.MarshalToString(req); err != nil {")
 	p("    return nil, err")
+	p("")
+	// TODO(dovs): add real method logic.
+	p("return nil, nil")
+	p("")
 	p("}")
 
 	// _ := http_opt(m)
