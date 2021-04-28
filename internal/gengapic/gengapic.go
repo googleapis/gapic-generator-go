@@ -160,7 +160,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 				return err
 			}
 		case rest:
-			if err := g.genRestMethods(serv, servName); err != nil {
+			if err := g.genRESTMethods(serv, servName); err != nil {
 				return err
 			}
 		}
