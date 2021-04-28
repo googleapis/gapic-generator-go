@@ -38,10 +38,10 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("}")
 	p("")
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
-	g.genRestMethods(serv, servName)
+	g.genRESTMethods(serv, servName)
 }
 
-func (g *generator) genRestMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	// Clear LROs between services
 	// TODO: handle LRO types shared between rest and grpc clients with a map[bool]
 	g.addMetadataServiceForTransport(serv.GetName(), "rest", servName)
@@ -50,7 +50,7 @@ func (g *generator) genRestMethods(serv *descriptor.ServiceDescriptorProto, serv
 
 	for _, m := range methods {
 		g.methodDoc(m)
-		if err := g.genRestMethod(servName, serv, m); err != nil {
+		if err := g.genRESTMethod(servName, serv, m); err != nil {
 			return errors.E(err, "method: %s", m.GetName())
 		}
 		g.addMetadataMethod(serv.GetName(), "rest", m.GetName())
@@ -90,9 +90,9 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 }
 
-// genRestMethod generates a single method from a client. m must be a method declared in serv.
+// genRESTMethod generates a single method from a client. m must be a method declared in serv.
 // If the generated method requires an auxiliary type, it is added to aux.
-func (g *generator) genRestMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	if g.isLRO(m) {
 		// TODO(dovs)
 		return nil
