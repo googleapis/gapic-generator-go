@@ -271,7 +271,7 @@ func TestClientInit(t *testing.T) {
 				&descriptor.FileDescriptorProto{
 					Package: proto.String("google.longrunning"),
 					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.longrunning"),
+						GoPackage: proto.String("google.golang.org/genproto/googleapis/longrunning;longrunning"),
 					},
 					MessageType: []*descriptor.DescriptorProto{
 						&descriptor.DescriptorProto{
@@ -283,7 +283,6 @@ func TestClientInit(t *testing.T) {
 						&descriptor.DescriptorProto{
 							Name: proto.String("DeleteOperationRequest"),
 						},
-
 						&descriptor.DescriptorProto{
 							Name: proto.String("WaitOperationRequest"),
 						},
@@ -301,7 +300,7 @@ func TestClientInit(t *testing.T) {
 				&descriptor.FileDescriptorProto{
 					Package: proto.String("google.cloud.location"),
 					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.cloud.location"),
+						GoPackage: proto.String("google.golang.org/genproto/googleapis/cloud/location;location"),
 					},
 					MessageType: []*descriptor.DescriptorProto{
 						&descriptor.DescriptorProto{
@@ -324,7 +323,7 @@ func TestClientInit(t *testing.T) {
 				&descriptor.FileDescriptorProto{
 					Package: proto.String("google.iam.v1"),
 					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.iam.v1"),
+						GoPackage: proto.String("google.golang.org/genproto/googleapis/iam/v1;iam"),
 					},
 					MessageType: []*descriptor.DescriptorProto{
 						&descriptor.DescriptorProto{
