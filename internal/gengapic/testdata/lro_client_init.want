@@ -5,12 +5,12 @@ type internalFooClient interface {
 	Connection() *grpc.ClientConn
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*ZipOperation, error)
 	ZipOperation(name string) *ZipOperation
-	ListOperations(context.Context, *google.longrunningpb.ListOperationsRequest, ...gax.CallOption) (*google.longrunningpb.ListOperationsResponse, error)
-	GetOperation(context.Context, *google.longrunningpb.GetOperationRequest, ...gax.CallOption) (*GetOperationOperation, error)
+	ListOperations(context.Context, *longrunningpb.ListOperationsRequest, ...gax.CallOption) (*longrunningpb.ListOperationsResponse, error)
+	GetOperation(context.Context, *longrunningpb.GetOperationRequest, ...gax.CallOption) (*GetOperationOperation, error)
 	GetOperationOperation(name string) *GetOperationOperation
-	DeleteOperation(context.Context, *google.longrunningpb.DeleteOperationRequest, ...gax.CallOption) error
-	CancelOperation(context.Context, *google.longrunningpb.CancelOperationRequest, ...gax.CallOption) error
-	WaitOperation(context.Context, *google.longrunningpb.WaitOperationRequest, ...gax.CallOption) (*WaitOperationOperation, error)
+	DeleteOperation(context.Context, *longrunningpb.DeleteOperationRequest, ...gax.CallOption) error
+	CancelOperation(context.Context, *longrunningpb.CancelOperationRequest, ...gax.CallOption) error
+	WaitOperation(context.Context, *longrunningpb.WaitOperationRequest, ...gax.CallOption) (*WaitOperationOperation, error)
 	WaitOperationOperation(name string) *WaitOperationOperation
 }
 
