@@ -214,6 +214,7 @@ func (g *generator) checkIAMPolicyOverrides(servs []*descriptor.ServiceDescripto
 		for _, iamMethod := range iam {
 			if hasMethod(s, iamMethod.GetName()) {
 				g.hasIAMPolicyOverrides = true
+				return
 			}
 		}
 	}
