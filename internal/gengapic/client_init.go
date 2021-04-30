@@ -251,12 +251,12 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p := g.printf
 
 	// We DON'T want to export the transport layers.
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("// %sGRPCClient is a client for interacting with %s over gRPC transport.", lowcaseServName, g.apiName)
+	p("// %s is a client for interacting with %s over gRPC transport.", lowcaseServName, g.apiName)
 	p("//")
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-	p("type %sGRPCClient struct {", lowcaseServName)
+	p("type %s struct {", lowcaseServName)
 	p("// Connection pool of gRPC connections to the service.")
 	p("connPool gtransport.ConnPool")
 	p("")
@@ -322,7 +322,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 	clientName := camelToSnake(serv.GetName())
 	clientName = strings.Replace(clientName, "_", " ", -1)
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
 	// Factory function
 	p("// New%sClient creates a new %s client based on gRPC.", servName, clientName)
@@ -350,7 +350,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("  }")
 	p("  client := %[1]sClient{CallOptions: default%[1]sCallOptions()}", servName)
 	p("")
-	p("  c := &%sGRPCClient{", lowcaseServName)
+	p("  c := &%s{", lowcaseServName)
 	p("    connPool:    connPool,")
 	p("    disableDeadlines: disableDeadlines,")
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
@@ -396,7 +396,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("// Connection returns a connection to the API service.")
 	p("//")
 	p("// Deprecated.")
-	p("func (c *%sGRPCClient) Connection() *grpc.ClientConn {", lowcaseServName)
+	p("func (c *%s) Connection() *grpc.ClientConn {", lowcaseServName)
 	p("  return c.connPool.Conn()")
 	p("}")
 	p("")
@@ -405,7 +405,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("// setGoogleClientInfo sets the name and version of the application in")
 	p("// the `x-goog-api-client` header passed on each request. Intended for")
 	p("// use by Google-written clients.")
-	p("func (c *%sGRPCClient) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
+	p("func (c *%s) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
 	p(`  kv := append([]string{"gl-go", versionGo()}, keyval...)`)
 	p(`  kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)`)
 	p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
@@ -415,7 +415,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	// Close method
 	p("// Close closes the connection to the API service. The user should invoke this when")
 	p("// the client is no longer required.")
-	p("func (c *%sGRPCClient) Close() error {", lowcaseServName)
+	p("func (c *%s) Close() error {", lowcaseServName)
 	p("  return c.connPool.Close()")
 	p("}")
 	p("")

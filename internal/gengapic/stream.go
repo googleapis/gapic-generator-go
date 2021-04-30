@@ -27,9 +27,9 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 	g.imports[servSpec] = true
 
 	// We DON'T want to export the transport layers.
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("func (c *%sGRPCClient) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
 	g.insertMetadata(nil)
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
@@ -66,9 +66,9 @@ func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescr
 	g.imports[servSpec] = true
 
 	p := g.printf
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 
 	err = g.insertMetadata(m)

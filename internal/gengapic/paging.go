@@ -166,7 +166,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
 
 	// We DON'T want to export the transport layers.
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
@@ -191,7 +191,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	}
 
 	p := g.printf
-	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
 
 	err = g.insertMetadata(m)
