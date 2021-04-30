@@ -16,7 +16,6 @@ package gengapic
 
 import (
 	"fmt"
-	"net/url"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -118,29 +117,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	return &g.resp, nil
 }
 
-func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
-	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
-
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
-	for _, m := range methods {
-		g.methodDoc(m)
-		if err := g.genMethod(servName, serv, m); err != nil {
-			return errors.E(err, "method: %s", m.GetName())
-		}
-		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
-	}
-	sort.Slice(g.aux.lros, func(i, j int) bool {
-		return g.aux.lros[i].GetName() < g.aux.lros[j].GetName()
-	})
-	for _, m := range g.aux.lros {
-		if err := g.lroType(servName, serv, m); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
@@ -203,134 +179,6 @@ type auxTypes struct {
 	iters map[string]*iterType
 }
 
-// genMethod generates a single method from a client. m must be a method declared in serv.
-// If the generated method requires an auxillary type, it is added to aux.
-func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
-	// Check if the RPC returns google.longrunning.Operation.
-	if g.isLRO(m) {
-		g.aux.lros = append(g.aux.lros, m)
-		return g.lroCall(servName, m)
-	}
-
-	if m.GetOutputType() == emptyType {
-		return g.emptyUnaryCall(servName, m)
-	}
-
-	if pf, err := g.pagingField(m); err != nil {
-		return err
-	} else if pf != nil {
-		iter, err := g.iterTypeOf(pf)
-		if err != nil {
-			return err
-		}
-
-		return g.pagingCall(servName, m, pf, iter)
-	}
-
-	switch {
-	case m.GetClientStreaming():
-		return g.noRequestStreamCall(servName, serv, m)
-	case m.GetServerStreaming():
-		return g.serverStreamCall(servName, serv, m)
-	default:
-		return g.unaryCall(servName, m)
-	}
-}
-
-func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	s := g.descInfo.ParentElement[m]
-	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
-	inType := g.descInfo.Type[*m.InputType]
-	outType := g.descInfo.Type[*m.OutputType]
-
-	inSpec, err := g.descInfo.ImportSpec(inType)
-	if err != nil {
-		return err
-	}
-	outSpec, err := g.descInfo.ImportSpec(outType)
-	if err != nil {
-		return err
-	}
-
-	p := g.printf
-
-	lowcaseServName := lowerFirst(servName)
-
-	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
-
-	g.deadline(sFQN, m.GetName())
-
-	err = g.insertMetadata(m)
-	if err != nil {
-		return err
-	}
-	g.appendCallOpts(m)
-
-	p("var resp *%s.%s", outSpec.Name, outType.GetName())
-	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
-	p("  var err error")
-	p("  resp, err = %s", g.grpcStubCall(m))
-	p("  return err")
-	p("}, opts...)")
-	p("if err != nil {")
-	p("  return nil, err")
-	p("}")
-	p("return resp, nil")
-
-	p("}")
-	p("")
-
-	g.imports[inSpec] = true
-	g.imports[outSpec] = true
-
-	return nil
-}
-
-func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	s := g.descInfo.ParentElement[m]
-	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
-	inType := g.descInfo.Type[*m.InputType]
-
-	inSpec, err := g.descInfo.ImportSpec(inType)
-	if err != nil {
-		return err
-	}
-
-	p := g.printf
-
-	lowcaseServName := lowerFirst(servName)
-
-	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
-
-	g.deadline(sFQN, m.GetName())
-
-	err = g.insertMetadata(m)
-	if err != nil {
-		return err
-	}
-	g.appendCallOpts(m)
-	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
-	p("  var err error")
-	p("  _, err = %s", g.grpcStubCall(m))
-	p("  return err")
-	p("}, opts...)")
-	p("return err")
-
-	p("}")
-	p("")
-
-	g.imports[inSpec] = true
-	return nil
-}
-
-func (g *generator) grpcStubCall(method *descriptor.MethodDescriptorProto) string {
-	service := g.descInfo.ParentElement[method]
-	stub := pbinfo.ReduceServName(service.GetName(), g.opts.pkgName)
-	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(stub), method.GetName())
-}
-
 func (g *generator) deadline(s, m string) {
 	t, ok := g.grpcConf.Timeout(s, m)
 	if !ok {
@@ -344,61 +192,6 @@ func (g *generator) deadline(s, m string) {
 	g.printf("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
-}
-
-func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
-	headers, err := parseRequestHeaders(m)
-	if err != nil {
-		return err
-	}
-
-	if len(headers) > 0 {
-		seen := map[string]bool{}
-		var formats, values strings.Builder
-		for _, h := range headers {
-			field := h[1]
-			// skip fields that have multiple patterns, they use the same accessor
-			if _, dupe := seen[field]; dupe {
-				continue
-			}
-			seen[field] = true
-
-			accessor := fmt.Sprintf("req%s", buildAccessor(field))
-			typ := g.lookupFieldType(m.GetInputType(), field)
-
-			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
-			if typ == descriptor.FieldDescriptorProto_TYPE_STRING {
-				accessor = fmt.Sprintf("url.QueryEscape(%s)", accessor)
-			} else if typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE || typ == descriptor.FieldDescriptorProto_TYPE_FLOAT {
-				// Format the floating point value with mode 'g' to allow for
-				// exponent formatting when necessary, and decimal when adequate.
-				// QueryEscape the resulting string in case there is a '+' in the
-				// exponent.
-				// See golang.org/pkg/fmt for more information on formatting.
-				accessor = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
-			}
-
-			// URL encode key & values separately per aip.dev/4222.
-			// Encode the key ahead of time to reduce clutter
-			// and because it will likely never be necessary
-			fmt.Fprintf(&values, " %q, %s,", url.QueryEscape(field), accessor)
-			formats.WriteString("%s=%v&")
-		}
-		f := formats.String()[:formats.Len()-1]
-		v := values.String()[:values.Len()-1]
-
-		g.printf("md := metadata.Pairs(\"x-goog-request-params\", fmt.Sprintf(%q,%s))", f, v)
-		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
-
-		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
-
-		return nil
-	}
-
-	g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata)")
-
-	return nil
 }
 
 func buildAccessor(field string) string {
