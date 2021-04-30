@@ -43,9 +43,9 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	lroType := lroTypeName(m.GetName())
 	p := g.printf
 
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
 
 	g.deadline(sFQN, m.GetName())
@@ -93,7 +93,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		return fmt.Errorf("rpc %q has google.longrunning.operation_info but is missing option google.longrunning.operation_info.response_type", mFQN)
 	}
 
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
 	var respType string
 	{
@@ -156,7 +156,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	{
 		p("// %[1]s returns a new %[1]s from a given name.", lroType)
 		p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
-		p("func (c *%sGRPCClient) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
+		p("func (c *%s) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
 		p("  return &%s{", lroType)
 		p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
 		p("  }")

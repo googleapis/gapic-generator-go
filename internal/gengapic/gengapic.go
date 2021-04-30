@@ -238,9 +238,9 @@ func (g *generator) unaryCall(servName string, m *descriptor.MethodDescriptorPro
 
 	p := g.printf
 
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
 	g.deadline(sFQN, m.GetName())
@@ -283,9 +283,9 @@ func (g *generator) emptyUnaryCall(servName string, m *descriptor.MethodDescript
 
 	p := g.printf
 
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("func (c *%sGRPCClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
 	g.deadline(sFQN, m.GetName())
