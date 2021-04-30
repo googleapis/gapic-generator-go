@@ -50,10 +50,10 @@ func TestClientHook(t *testing.T) {
 func TestClientOpt(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.mixins = map[string]bool{
-		"google.longrunning.Operations":   true,
-		"google.cloud.location.Locations": true,
-		"google.iam.v1.IAMPolicy":         true,
+	g.mixins = mixins{
+		"google.longrunning.Operations":   operationsMethods(),
+		"google.cloud.location.Locations": locationMethods(),
+		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.serviceConfig = &serviceconfig.Service{
 		Apis: []*apipb.Api{
@@ -220,18 +220,17 @@ func TestClientInit(t *testing.T) {
 			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".google.longrunning.Operation")},
 		},
 	}
-
 	for _, tst := range []struct {
 		tstName  string
 		servName string
-		mixins   map[string]bool
+		mixins   mixins
 		serv     *descriptor.ServiceDescriptorProto
 	}{
 		{
 			tstName: "foo_client_init",
-			mixins: map[string]bool{
-				"google.cloud.location.Locations": true,
-				"google.iam.v1.IAMPolicy":         true,
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 			},
 			servName: "Foo",
 			serv:     servPlain,
@@ -243,8 +242,8 @@ func TestClientInit(t *testing.T) {
 		},
 		{
 			tstName: "lro_client_init",
-			mixins: map[string]bool{
-				"google.longrunning.Operations": true,
+			mixins: mixins{
+				"google.longrunning.Operations": operationsMethods(),
 			},
 			servName: "Foo",
 			serv:     servLRO,
