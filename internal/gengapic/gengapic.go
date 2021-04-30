@@ -129,15 +129,6 @@ func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, serv
 		}
 		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
 	}
-	sort.Slice(g.aux.lros, func(i, j int) bool {
-		return g.aux.lros[i].GetName() < g.aux.lros[j].GetName()
-	})
-	for _, m := range g.aux.lros {
-		if err := g.lroType(servName, serv, m); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -166,8 +157,25 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 		}
 	}
 
+	// g.aux.lros is a map (set)
+	// so that we generate types at most once,
+	// but we want a deterministic order to prevent
+	// spurious regenerations.
+	var lros []*descriptor.MethodDescriptorProto
+	for m, _ := range g.aux.lros {
+		lros = append(lros, m)
+	}
+	sort.Slice(lros, func(i, j int) bool {
+		return lros[i].GetName() < lros[j].GetName()
+	})
+	for _, m := range lros {
+		if err := g.lroType(servName, serv, m); err != nil {
+			return err
+		}
+	}
+
 	// clear LRO types between services
-	g.aux.lros = []*descriptor.MethodDescriptorProto{}
+	g.aux.lros = map[*descriptor.MethodDescriptorProto]bool{}
 
 	var iters []*iterType
 	for _, iter := range g.aux.iters {
@@ -195,7 +203,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 // auxTypes gathers details of types we need to generate along with the client
 type auxTypes struct {
 	// List of LRO methods. For each method "Foo", we use this to create the "FooOperation" type.
-	lros []*descriptor.MethodDescriptorProto
+	lros map[*descriptor.MethodDescriptorProto]bool
 
 	// "List" of iterator types. We use these to generate FooIterator returned by paging methods.
 	// Since multiple methods can page over the same type, we dedupe by the name of the iterator,
@@ -208,7 +216,7 @@ type auxTypes struct {
 func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	// Check if the RPC returns google.longrunning.Operation.
 	if g.isLRO(m) {
-		g.aux.lros = append(g.aux.lros, m)
+		g.aux.lros[m] = true
 		return g.lroCall(servName, m)
 	}
 

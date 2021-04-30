@@ -15,8 +15,6 @@
 package gengapic
 
 import (
-	"sort"
-
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -25,10 +23,10 @@ import (
 func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
-	lowcaseServName := lowerFirst(servName)
+	lowcaseServName := lowerFirst(servName + "RESTClient")
 
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-	p("type %sRESTClient struct {", lowcaseServName)
+	p("type %s struct {", lowcaseServName)
 	p("  host string")
 	p("}")
 	p("")
@@ -49,15 +47,6 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 		g.addMetadataMethod(serv.GetName(), "rest", m.GetName())
 	}
 
-	sort.Slice(g.aux.lros, func(i, j int) bool {
-		return g.aux.lros[i].GetName() < g.aux.lros[j].GetName()
-	})
-	for _, m := range g.aux.lros {
-		if err := g.lroType(servName, serv, m); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -74,8 +63,8 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	// p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
 	// p("//")
 	// g.comment(g.comments[serv])
-	// p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sRESTClient, error) {", servName)
-	// p("    c := &%sRESTClient{", servName)
+	// p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
+	// p("    c := &%s{", servName)
 	// p("    }")
 	// p("")
 	// p("    return &%sClient{internal%[1]sClient: c, CallOptions: default%[1]sCallOptions()}, nil", servName)
@@ -87,7 +76,8 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 // If the generated method requires an auxiliary type, it is added to aux.
 func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	if g.isLRO(m) {
-		// TODO(dovs)
+		// TODO(dovs
+		g.aux.lros[m] = true
 		return nil
 	}
 
@@ -130,8 +120,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	}
 
 	p := g.printf
-	lowcaseServName := lowerFirst(servName)
-	p("func (c *%sRESTClient) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
+	lowcaseServName := lowerFirst(servName + "RESTClient")
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
 	// TODO(dovs): handle cancellation, metadata, osv.

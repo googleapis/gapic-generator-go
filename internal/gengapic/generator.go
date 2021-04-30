@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
@@ -89,6 +90,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.aux = &auxTypes{
 		iters: map[string]*iterType{},
+		lros:  map[*descriptor.MethodDescriptorProto]bool{},
 	}
 
 	opts, err := parseOptions(req.Parameter)

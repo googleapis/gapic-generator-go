@@ -4,11 +4,11 @@ type internalFooClient interface {
 	setGoogleClientInfo(...string)
 	Connection() *grpc.ClientConn
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
-	ListLocations(context.Context, *google.cloud.locationpb.ListLocationsRequest, ...gax.CallOption) (*google.cloud.locationpb.ListLocationsResponse, error)
-	GetLocation(context.Context, *google.cloud.locationpb.GetLocationRequest, ...gax.CallOption) (*google.cloud.locationpb.Location, error)
-	SetIamPolicy(context.Context, *google.iam.v1pb.SetIamPolicyRequest, ...gax.CallOption) (*google.iam.v1pb.Policy, error)
-	GetIamPolicy(context.Context, *google.iam.v1pb.GetIamPolicyRequest, ...gax.CallOption) (*google.iam.v1pb.Policy, error)
-	TestIamPermissions(context.Context, *google.iam.v1pb.TestIamPermissionsRequest, ...gax.CallOption) (*google.iam.v1pb.TestIamPermissionsResponse, error)
+	ListLocations(context.Context, *locationpb.ListLocationsRequest, ...gax.CallOption) (*locationpb.ListLocationsResponse, error)
+	GetLocation(context.Context, *locationpb.GetLocationRequest, ...gax.CallOption) (*locationpb.Location, error)
+	SetIamPolicy(context.Context, *iampb.SetIamPolicyRequest, ...gax.CallOption) (*iampb.Policy, error)
+	GetIamPolicy(context.Context, *iampb.GetIamPolicyRequest, ...gax.CallOption) (*iampb.Policy, error)
+	TestIamPermissions(context.Context, *iampb.TestIamPermissionsRequest, ...gax.CallOption) (*iampb.TestIamPermissionsResponse, error)
 }
 
 // FooClient is a client for interacting with Awesome Foo API.
@@ -36,7 +36,7 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 
 	}
 }
-func (c *fooRESTClient) ListLocations(ctx context.Context, req *google.cloud.locationpb.ListLocationsRequest, opts ...gax.CallOption) (*google.cloud.locationpb.ListLocationsResponse, error) {
+func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) (*locationpb.ListLocationsResponse, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (c *fooRESTClient) ListLocations(ctx context.Context, req *google.cloud.loc
 
 	}
 }
-func (c *fooRESTClient) GetLocation(ctx context.Context, req *google.cloud.locationpb.GetLocationRequest, opts ...gax.CallOption) (*google.cloud.locationpb.Location, error) {
+func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLocationRequest, opts ...gax.CallOption) (*locationpb.Location, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (c *fooRESTClient) GetLocation(ctx context.Context, req *google.cloud.locat
 
 	}
 }
-func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *google.iam.v1pb.SetIamPolicyRequest, opts ...gax.CallOption) (*google.iam.v1pb.Policy, error) {
+func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *google.iam.v1pb.S
 
 	}
 }
-func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *google.iam.v1pb.GetIamPolicyRequest, opts ...gax.CallOption) (*google.iam.v1pb.Policy, error) {
+func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *google.iam.v1pb.G
 
 	}
 }
-func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *google.iam.v1pb.TestIamPermissionsRequest, opts ...gax.CallOption) (*google.iam.v1pb.TestIamPermissionsResponse, error) {
+func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPermissionsRequest, opts ...gax.CallOption) (*iampb.TestIamPermissionsResponse, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
