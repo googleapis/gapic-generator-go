@@ -162,7 +162,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	// but we want a deterministic order to prevent
 	// spurious regenerations.
 	var lros []*descriptor.MethodDescriptorProto
-	for m, _ := range g.aux.lros {
+	for m := range g.aux.lros {
 		lros = append(lros, m)
 	}
 	sort.Slice(lros, func(i, j int) bool {

@@ -357,7 +357,7 @@ methods:
 		}
 
 		var lros []*descriptor.MethodDescriptorProto
-		for m, _ := range g.aux.lros {
+		for m := range g.aux.lros {
 			lros = append(lros, m)
 		}
 		sort.Slice(lros, func(i, j int) bool {
@@ -479,14 +479,14 @@ lros:
 			continue
 		}
 
-		var gen_lros []*descriptor.MethodDescriptorProto
-		for m, _ := range g.aux.lros {
-			gen_lros = append(gen_lros, m)
+		var genLros []*descriptor.MethodDescriptorProto
+		for m := range g.aux.lros {
+			genLros = append(genLros, m)
 		}
-		sort.Slice(gen_lros, func(i, j int) bool {
-			return gen_lros[i].GetName() < gen_lros[j].GetName()
+		sort.Slice(genLros, func(i, j int) bool {
+			return genLros[i].GetName() < genLros[j].GetName()
 		})
-		for _, m := range gen_lros {
+		for _, m := range genLros {
 			if err := g.lroType("MyService", serv, m); err != nil {
 				t.Error(err)
 				continue lros
