@@ -282,28 +282,7 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 		g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
 	}
 
-	if g.hasLROMixin() {
-		p("operationsClient longrunningpb.OperationsClient")
-		p("")
-
-		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
-	}
-
-	if g.hasIAMPolicyMixin() {
-
-		p("iamPolicyClient iampb.IAMPolicyClient")
-		p("")
-
-		g.imports[pbinfo.ImportSpec{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}] = true
-	}
-
-	if g.hasLocationMixin() {
-
-		p("locationsClient locationpb.LocationsClient")
-		p("")
-
-		g.imports[pbinfo.ImportSpec{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}] = true
-	}
+	g.mixinStubs()
 
 	p("// The x-goog-* metadata to be sent with each request.")
 	p("xGoogMetadata metadata.MD")
@@ -355,15 +334,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("    disableDeadlines: disableDeadlines,")
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
 	p("    CallOptions: &client.CallOptions,")
-	if g.hasLROMixin() {
-		p("    operationsClient: longrunningpb.NewOperationsClient(connPool),")
-	}
-	if g.hasIAMPolicyMixin() {
-		p("    iamPolicyClient: iampb.NewIAMPolicyClient(connPool),")
-	}
-	if g.hasLocationMixin() {
-		p("    locationsClient: locationpb.NewLocationsClient(connPool),")
-	}
+	g.mixinStubsInit()
 	p("")
 	p("  }")
 	p("  c.setGoogleClientInfo()")

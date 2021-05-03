@@ -253,10 +253,10 @@ func TestGenMethod(t *testing.T) {
 	g.opts = &options{
 		pkgName: "pkg",
 	}
-	g.mixins = map[string]bool{
-		"google.longrunning.Operations":   true,
-		"google.cloud.location.Locations": true,
-		"google.iam.v1.IAMPolicy":         true,
+	g.mixins = mixins{
+		"google.longrunning.Operations":   operationsMethods(),
+		"google.cloud.location.Locations": locationMethods(),
+		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	cpb := &conf.ServiceConfig{
@@ -390,10 +390,10 @@ func TestGenLRO(t *testing.T) {
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.mixins = map[string]bool{
-		"google.longrunning.Operations":   true,
-		"google.cloud.location.Locations": true,
-		"google.iam.v1.IAMPolicy":         true,
+	g.mixins = mixins{
+		"google.longrunning.Operations":   operationsMethods(),
+		"google.cloud.location.Locations": locationMethods(),
+		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.opts = &options{
 		pkgName: "pkg",
