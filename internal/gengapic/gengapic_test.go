@@ -351,7 +351,7 @@ methods:
 		g.aux = &auxTypes{
 			iters: map[string]*iterType{},
 		}
-		if err := g.genMethod("Foo", serv, m); err != nil {
+		if err := g.genGRPCMethod("Foo", serv, m); err != nil {
 			t.Error(err)
 			continue
 		}
@@ -474,7 +474,7 @@ lros:
 			lros: map[*descriptor.MethodDescriptorProto]bool{},
 		}
 
-		if err := g.genMethod("Foo", serv, m); err != nil {
+		if err := g.genGRPCMethod("Foo", serv, m); err != nil {
 			t.Error(err)
 			continue
 		}

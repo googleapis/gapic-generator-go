@@ -63,6 +63,7 @@ func TestClientOpt(t *testing.T) {
 			{Name: "google.longrunning.Operations"},
 		},
 	}
+	g.opts = &options{transports: []transport{grpc}}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
 			{

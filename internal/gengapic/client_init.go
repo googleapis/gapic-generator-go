@@ -18,12 +18,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
 func (g *generator) clientHook(servName string) {
@@ -51,89 +47,20 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 		g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
 	}
 
-	// defaultClientOptions
-	{
-		var host string
-		if eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost); err == nil {
-			host = *eHost.(*string)
-		} else {
-			fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
-			return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
-		}
-
-		if !strings.Contains(host, ":") {
-			host += ":443"
-		}
-
-		p("func default%sGRPCClientOptions() []option.ClientOption {", servName)
-		p("  return []option.ClientOption{")
-		p("    internaloption.WithDefaultEndpoint(%q),", host)
-		p("    internaloption.WithDefaultMTLSEndpoint(%q),", generateDefaultMTLSEndpoint(host))
-		p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
-		p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
-		p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
-		p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
-		p("      grpc.MaxCallRecvMsgSize(math.MaxInt32))),")
-		p("  }")
-		p("}")
-		p("")
-
-		g.imports[pbinfo.ImportSpec{Path: "math"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
-	}
-
-	// defaultCallOptions
-	{
-		c := g.grpcConf
-
-		methods := append(serv.GetMethod(), g.getMixinMethods()...)
-
-		// read retry params from gRPC ServiceConfig
-		p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
-		p("  return &%sCallOptions{", servName)
-		for _, m := range methods {
-			sFQN := g.getServiceName(m)
-			mn := m.GetName()
-			p("%s: []gax.CallOption{", mn)
-			if maxReq, ok := c.RequestLimit(sFQN, mn); ok {
-				p("gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(%d)),", maxReq)
+	for _, v := range g.opts.transports {
+		switch v {
+		case grpc:
+			if err := g.grpcClientOptions(serv, servName); err != nil {
+				return err
 			}
-
-			if maxRes, ok := c.ResponseLimit(sFQN, mn); ok {
-				p("gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(%d)),", maxRes)
-			}
-
-			if rp, ok := c.RetryPolicy(sFQN, mn); ok && rp != nil {
-				p("gax.WithRetry(func() gax.Retryer {")
-				p("  return gax.OnCodes([]codes.Code{")
-				for _, c := range rp.GetRetryableStatusCodes() {
-					cstr := c.String()
-
-					// Go uses the American-English spelling with a single "L"
-					if c == code.Code_CANCELLED {
-						cstr = "Canceled"
-					}
-
-					p("    codes.%s,", snakeToCamel(cstr))
-				}
-				p("	 }, gax.Backoff{")
-				// this ignores max_attempts
-				p("		Initial:    %d * time.Millisecond,", conf.ToMillis(rp.GetInitialBackoff()))
-				p("		Max:        %d * time.Millisecond,", conf.ToMillis(rp.GetMaxBackoff()))
-				p("		Multiplier: %.2f,", rp.GetBackoffMultiplier())
-				p("	 })")
-				p("}),")
-
-				// include imports necessary for retry configuration
-				g.imports[pbinfo.ImportSpec{Path: "time"}] = true
-				g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/codes"}] = true
-			}
-			p("},")
+			g.grpcCallOptions(serv, servName)
+		case rest:
+			// TODO(dovs)
+			continue
+		default:
+			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
+				v, grpc, rest)
 		}
-		p("  }")
-		p("}")
-		p("")
 	}
 
 	return nil
@@ -243,151 +170,6 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 		g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
 	}
 
-	p("}")
-	p("")
-}
-
-func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
-	p := g.printf
-
-	// We DON'T want to export the transport layers.
-	lowcaseServName := lowerFirst(servName + "GRPCClient")
-
-	p("// %s is a client for interacting with %s over gRPC transport.", lowcaseServName, g.apiName)
-	p("//")
-	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-	p("type %s struct {", lowcaseServName)
-	p("// Connection pool of gRPC connections to the service.")
-	p("connPool gtransport.ConnPool")
-	p("")
-
-	p("// flag to opt out of default deadlines via %s", disableDeadlinesVar)
-	p("disableDeadlines bool")
-	p("")
-
-	p("// Points back to the CallOptions field of the containing %sClient", servName)
-	p("CallOptions **%sCallOptions", servName)
-	p("")
-
-	p("// The gRPC API client.")
-	p("%s %s.%sClient", grpcClientField(servName), imp.Name, serv.GetName())
-	p("")
-
-	if hasRPCForLRO {
-		p("// LROClient is used internally to handle long-running operations.")
-		p("// It is exposed so that its CallOptions can be modified if required.")
-		p("// Users should not Close this client.")
-		p("LROClient **lroauto.OperationsClient")
-		p("")
-		g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
-	}
-
-	g.mixinStubs()
-
-	p("// The x-goog-* metadata to be sent with each request.")
-	p("xGoogMetadata metadata.MD")
-
-	p("}")
-	p("")
-
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
-
-	g.grpcClientUtilities(serv, servName, imp, hasRPCForLRO)
-}
-
-func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
-	p := g.printf
-
-	clientName := camelToSnake(serv.GetName())
-	clientName = strings.Replace(clientName, "_", " ", -1)
-	lowcaseServName := lowerFirst(servName + "GRPCClient")
-
-	// Factory function
-	p("// New%sClient creates a new %s client based on gRPC.", servName, clientName)
-	p("//")
-	g.comment(g.comments[serv])
-	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-	p("  clientOpts := default%[1]sGRPCClientOptions()", servName)
-
-	p("  if new%sClientHook != nil {", servName)
-	p("    hookOpts, err := new%sClientHook(ctx, clientHookParams{})", servName)
-	p("    if err != nil {")
-	p("      return nil, err")
-	p("    }")
-	p("    clientOpts = append(clientOpts, hookOpts...)")
-	p("  }")
-	p("")
-	p("  disableDeadlines, err := checkDisableDeadlines()")
-	p("  if err != nil {")
-	p("    return nil, err")
-	p("  }")
-	p("")
-	p("  connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)")
-	p("  if err != nil {")
-	p("    return nil, err")
-	p("  }")
-	p("  client := %[1]sClient{CallOptions: default%[1]sCallOptions()}", servName)
-	p("")
-	p("  c := &%s{", lowcaseServName)
-	p("    connPool:    connPool,")
-	p("    disableDeadlines: disableDeadlines,")
-	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
-	p("    CallOptions: &client.CallOptions,")
-	g.mixinStubsInit()
-	p("")
-	p("  }")
-	p("  c.setGoogleClientInfo()")
-	p("")
-	p("  client.internal%sClient = c", servName)
-	p("")
-
-	if hasRPCForLRO {
-		p("  client.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))")
-		p("  if err != nil {")
-		p("    // This error \"should not happen\", since we are just reusing old connection pool")
-		p("    // and never actually need to dial.")
-		p("    // If this does happen, we could leak connp. However, we cannot close conn:")
-		p("    // If the user invoked the constructor with option.WithGRPCConn,")
-		p("    // we would close a connection that's still in use.")
-		p("    // TODO: investigate error conditions.")
-		p("    return nil, err")
-		p("  }")
-		p("  c.LROClient = &client.LROClient")
-	}
-
-	p("  return &client, nil")
-	p("}")
-	p("")
-
-	g.imports[pbinfo.ImportSpec{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-
-	// Connection method
-	p("// Connection returns a connection to the API service.")
-	p("//")
-	p("// Deprecated.")
-	p("func (c *%s) Connection() *grpc.ClientConn {", lowcaseServName)
-	p("  return c.connPool.Conn()")
-	p("}")
-	p("")
-
-	// setGoogleClientInfo method
-	p("// setGoogleClientInfo sets the name and version of the application in")
-	p("// the `x-goog-api-client` header passed on each request. Intended for")
-	p("// use by Google-written clients.")
-	p("func (c *%s) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
-	p(`  kv := append([]string{"gl-go", versionGo()}, keyval...)`)
-	p(`  kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)`)
-	p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
-	p("}")
-	p("")
-
-	// Close method
-	p("// Close closes the connection to the API service. The user should invoke this when")
-	p("// the client is no longer required.")
-	p("func (c *%s) Close() error {", lowcaseServName)
-	p("  return c.connPool.Close()")
 	p("}")
 	p("")
 }
