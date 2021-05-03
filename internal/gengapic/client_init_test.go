@@ -221,10 +221,10 @@ func TestClientInit(t *testing.T) {
 		},
 	}
 	for _, tst := range []struct {
-		tstName  string
-		servName string
-		mixins   mixins
-		serv     *descriptor.ServiceDescriptorProto
+		tstName   string
+		servName  string
+		mixins    mixins
+		serv      *descriptor.ServiceDescriptorProto
 		parameter *string
 	}{
 		{
@@ -239,9 +239,9 @@ func TestClientInit(t *testing.T) {
 		},
 		{
 			tstName: "foo_rest_client_init",
-			mixins: map[string]bool{
-				"google.cloud.location.Locations": true,
-				"google.iam.v1.IAMPolicy":         true,
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 			},
 			servName:  "Foo",
 			serv:      servPlain,
