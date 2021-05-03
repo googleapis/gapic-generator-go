@@ -252,7 +252,7 @@ func TestClientInit(t *testing.T) {
 			tstName:   "empty_client_init",
 			servName:  "",
 			serv:      servPlain,
-			parameter: proto.String("go-gapic-package=path;mypackage"),
+			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
 		},
 		{
 			tstName: "lro_client_init",

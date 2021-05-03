@@ -20,10 +20,16 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
+func lowcaseRestClientName(servName string) string {
+	if servName == "" {
+		return "restClient"
+	}
+	return lowerFirst(servName + "RESTClient")
+}
+
 func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
-
-	lowcaseServName := lowerFirst(servName + "RESTClient")
+	lowcaseServName := lowcaseRestClientName(servName)
 
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %s struct {", lowcaseServName)
@@ -120,7 +126,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	}
 
 	p := g.printf
-	lowcaseServName := lowerFirst(servName + "RESTClient")
+	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
@@ -130,11 +136,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("if jsonReq, err := m.MarshalToString(req); err != nil {")
 	p("    return nil, err")
 	p("")
-	// TODO(dovs): add real method logic.
-	p("return nil, nil")
-	p("")
 	p("}")
-
+	// TODO(dovs): add real method logic.
 	// _ := http_opt(m)
 
 	// * JSONify the request
@@ -142,6 +145,9 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// ** Handle query parameters
 	// * send the request, receive the response, maybe return an error
 	// * deserialize the result and return
+
+	p("return nil, nil")
+	p("")
 	p("}")
 
 	return nil

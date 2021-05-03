@@ -32,52 +32,52 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
 
-		return nil, nil
-
 	}
+	return nil, nil
+
 }
 func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) (*locationpb.ListLocationsResponse, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
 
-		return nil, nil
-
 	}
+	return nil, nil
+
 }
 func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLocationRequest, opts ...gax.CallOption) (*locationpb.Location, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
 
-		return nil, nil
-
 	}
+	return nil, nil
+
 }
 func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
 
-		return nil, nil
-
 	}
+	return nil, nil
+
 }
 func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
 
-		return nil, nil
-
 	}
+	return nil, nil
+
 }
 func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPermissionsRequest, opts ...gax.CallOption) (*iampb.TestIamPermissionsResponse, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err
 
-		return nil, nil
-
 	}
+	return nil, nil
+
 }
