@@ -29,7 +29,9 @@ func (g *generator) genGapicMetadataFile() error {
 	return nil
 }
 
-func (g *generator) addMetadataServiceForTransport(service, transport, lib string) {
+// Adds a metadata structure for the (service, transport) combination.
+// This method is idempotent.
+func (g *generator) addMetadataServiceForTransport(service, transport, lib string) *metadata.GapicMetadata_ServiceAsClient {
 	s, ok := g.metadata.GetServices()[service]
 	if !ok {
 		s = &metadata.GapicMetadata_ServiceForTransport{
@@ -38,17 +40,21 @@ func (g *generator) addMetadataServiceForTransport(service, transport, lib strin
 		g.metadata.Services[service] = s
 	}
 
-	// The "Client" part of the generated type's name is hard coded in the
-	// generator so we need to append it to the lib name.
-	//
-	// TODO(noahdietz): when REGAPIC is added we may need to special case based
-	// on transport.
-	lib += "Client"
-
-	s.Clients[transport] = &metadata.GapicMetadata_ServiceAsClient{
-		LibraryClient: lib,
-		Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+	c, ok := s.Clients[transport]
+	if !ok {
+		c = &metadata.GapicMetadata_ServiceAsClient{
+			// The "Client" part of the generated type's name is hard-coded in the
+			// generator so we need to append it to the lib name.
+			//
+			// TODO(noahdietz): when REGAPIC is added we may need to special-case based
+			// on transport.
+			LibraryClient: lib + "Client",
+			Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+		}
+		s.Clients[transport] = c
 	}
+
+	return c
 }
 
 func (g *generator) addMetadataMethod(service, transport, rpc string) {

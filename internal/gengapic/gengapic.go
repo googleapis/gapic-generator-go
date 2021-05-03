@@ -116,11 +116,24 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	return &g.resp, nil
 }
 
+func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
+	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
+
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	for _, m := range methods {
+		g.methodDoc(m)
+		if err := g.genMethod(servName, serv, m); err != nil {
+			return errors.E(err, "method: %s", m.GetName())
+		}
+		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
+	}
+	return nil
+}
+
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
-	servName := pbinfo.ReduceServName(*serv.Name, g.opts.pkgName)
+	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
 
-	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
 		return err
@@ -129,27 +142,38 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 		return err
 	}
 
-	// clear LRO types between services
-	g.aux.lros = []*descriptor.MethodDescriptorProto{}
-
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
-
-	for _, m := range methods {
-		g.methodDoc(m)
-		if err := g.genMethod(servName, serv, m); err != nil {
-			return errors.E(err, "method: %s", m.GetName())
+	for _, v := range g.opts.transports {
+		switch v {
+		case grpc:
+			if err := g.genGRPCMethods(serv, servName); err != nil {
+				return err
+			}
+		case rest:
+			if err := g.genRESTMethods(serv, servName); err != nil {
+				return err
+			}
 		}
-		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
 	}
 
-	sort.Slice(g.aux.lros, func(i, j int) bool {
-		return g.aux.lros[i].GetName() < g.aux.lros[j].GetName()
+	// g.aux.lros is a map (set)
+	// so that we generate types at most once,
+	// but we want a deterministic order to prevent
+	// spurious regenerations.
+	var lros []*descriptor.MethodDescriptorProto
+	for m := range g.aux.lros {
+		lros = append(lros, m)
+	}
+	sort.Slice(lros, func(i, j int) bool {
+		return lros[i].GetName() < lros[j].GetName()
 	})
-	for _, m := range g.aux.lros {
+	for _, m := range lros {
 		if err := g.lroType(servName, serv, m); err != nil {
 			return err
 		}
 	}
+
+	// clear LRO types between services
+	g.aux.lros = map[*descriptor.MethodDescriptorProto]bool{}
 
 	var iters []*iterType
 	for _, iter := range g.aux.iters {
@@ -177,7 +201,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 // auxTypes gathers details of types we need to generate along with the client
 type auxTypes struct {
 	// List of LRO methods. For each method "Foo", we use this to create the "FooOperation" type.
-	lros []*descriptor.MethodDescriptorProto
+	lros map[*descriptor.MethodDescriptorProto]bool
 
 	// "List" of iterator types. We use these to generate FooIterator returned by paging methods.
 	// Since multiple methods can page over the same type, we dedupe by the name of the iterator,
@@ -190,7 +214,7 @@ type auxTypes struct {
 func (g *generator) genMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	// Check if the RPC returns google.longrunning.Operation.
 	if g.isLRO(m) {
-		g.aux.lros = append(g.aux.lros, m)
+		g.aux.lros[m] = true
 		return g.lroCall(servName, m)
 	}
 

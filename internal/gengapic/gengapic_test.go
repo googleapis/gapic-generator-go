@@ -17,6 +17,7 @@ package gengapic
 import (
 	"bytes"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -355,7 +356,14 @@ methods:
 			continue
 		}
 
-		for _, m := range g.aux.lros {
+		var lros []*descriptor.MethodDescriptorProto
+		for m := range g.aux.lros {
+			lros = append(lros, m)
+		}
+		sort.Slice(lros, func(i, j int) bool {
+			return lros[i].GetName() < lros[j].GetName()
+		})
+		for _, m := range lros {
 			if err := g.lroType("MyService", serv, m); err != nil {
 				t.Error(err)
 				continue methods
@@ -462,14 +470,23 @@ lros:
 		g.pt.Reset()
 		g.descInfo.ParentElement[m] = serv
 
-		g.aux = &auxTypes{}
+		g.aux = &auxTypes{
+			lros: map[*descriptor.MethodDescriptorProto]bool{},
+		}
 
 		if err := g.genMethod("Foo", serv, m); err != nil {
 			t.Error(err)
 			continue
 		}
 
-		for _, m := range g.aux.lros {
+		var genLros []*descriptor.MethodDescriptorProto
+		for m := range g.aux.lros {
+			genLros = append(genLros, m)
+		}
+		sort.Slice(genLros, func(i, j int) bool {
+			return genLros[i].GetName() < genLros[j].GetName()
+		})
+		for _, m := range genLros {
 			if err := g.lroType("MyService", serv, m); err != nil {
 				t.Error(err)
 				continue lros
