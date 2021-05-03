@@ -30,10 +30,10 @@ import (
 func TestExample(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.mixins = map[string]bool{
-		"google.longrunning.Operations":   true,
-		"google.cloud.location.Locations": true,
-		"google.iam.v1.IAMPolicy":         true,
+	g.mixins = mixins{
+		"google.longrunning.Operations":   operationsMethods(),
+		"google.cloud.location.Locations": locationMethods(),
+		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.serviceConfig = &serviceconfig.Service{
 		Apis: []*apipb.Api{

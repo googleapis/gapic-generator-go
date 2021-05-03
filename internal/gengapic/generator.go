@@ -72,7 +72,7 @@ type generator struct {
 	// gapic_metadata.json file.
 	metadata *metadatapb.GapicMetadata
 
-	mixins map[string]bool
+	mixins mixins
 
 	hasIAMPolicyOverrides bool
 }
@@ -85,7 +85,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
 	}
 
-	g.mixins = map[string]bool{}
+	g.mixins = make(mixins)
 	g.comments = map[proto.Message]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.aux = &auxTypes{
