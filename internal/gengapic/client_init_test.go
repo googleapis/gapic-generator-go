@@ -212,9 +212,19 @@ func TestClientInit(t *testing.T) {
 	servPlain := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".mypackage.Foo")},
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptor.MethodOptions{},
+			},
 		},
 	}
+	proto.SetExtension(servPlain.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/zip",
+		},
+	})
 	servLRO := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
@@ -227,6 +237,7 @@ func TestClientInit(t *testing.T) {
 		mixins    mixins
 		serv      *descriptor.ServiceDescriptorProto
 		parameter *string
+		httpRule  *annotations.HttpRule
 	}{
 		{
 			tstName: "foo_client_init",

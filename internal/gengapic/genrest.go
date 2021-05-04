@@ -15,9 +15,13 @@
 package gengapic
 
 import (
+	"strings"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 func lowcaseRestClientName(servName string) string {
@@ -34,10 +38,15 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %s struct {", lowcaseServName)
 	p("  host string")
+	// TODO(dovs): add the http import
+	p("  httpClient http.Client")
 	p("}")
 	p("")
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
 	g.genRESTMethods(serv, servName)
+
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "http"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -78,6 +87,44 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 }
 
+type httpInfo struct {
+	verb, url, body string
+}
+
+func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
+	if m == nil || m.GetOptions() == nil {
+		return nil, nil
+	}
+
+	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
+	if err == proto.ErrMissingExtension {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	info := httpInfo{verb: "", url: "", body: ""}
+	httpRule := eHTTP.(*annotations.HttpRule)
+	switch httpRule.GetPattern().(type) {
+	case *annotations.HttpRule_Get:
+		info.verb = "get"
+		info.url = httpRule.GetGet()
+	case *annotations.HttpRule_Post:
+		info.verb = "post"
+		info.url = httpRule.GetPost()
+	case *annotations.HttpRule_Patch:
+		info.verb = "patch"
+		info.url = httpRule.GetPatch()
+	case *annotations.HttpRule_Put:
+		info.verb = "put"
+		info.url = httpRule.GetPatch()
+	case *annotations.HttpRule_Delete:
+		info.verb = "delete"
+		info.url = httpRule.GetDelete()
+	}
+
+	return &info, nil
+}
+
 // genRESTMethod generates a single method from a client. m must be a method declared in serv.
 // If the generated method requires an auxiliary type, it is added to aux.
 func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
@@ -89,7 +136,7 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 
 	if m.GetOutputType() == emptyType {
 		// TODO(dovs)
-		return nil
+		return g.emptyUnaryRESTCall(servName, m)
 	}
 
 	if pf, err := g.pagingField(m); err != nil {
@@ -112,7 +159,59 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 	}
 }
 
+func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	info, err := getHTTPInfo(m)
+	if err != nil || info == nil {
+		return err
+	}
+
+	inType := g.descInfo.Type[*m.InputType]
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	p := g.printf
+	lowcaseServName := lowcaseRestClientName(servName)
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+
+	// TODO(dovs): handle cancellation, metadata, osv.
+	// TODO(dovs): handle http headers
+	// TODO(dovs): handle deadlines?
+	// TODO(dovs): handle call options
+	p("// The default (false) for the other options are fine.")
+	p("m := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}")
+	p("if jsonReq, err := m.Marshal(req); err != nil {")
+	p("  return err")
+	p("}")
+	p("")
+	// TODO(dovs): handle path parameters
+	p("url := fmt.Sprintf(\"https://%%s%s\", c.host)", info.url)
+	p("httpReq, err := http.NewRequestWithContext(ctx, \"%s\", url, bytes.NewReader(jsonReq))", strings.ToUpper(info.verb))
+	p("if err != nil {")
+	p("    return err")
+	p("}")
+	p("")
+	p("httpRsp, err := client.Do(httpReq)")
+	p("if err != nil{")
+	p(" return err")
+	p("} else if httpRsp.StatusCode >= 400 {")
+	p("  return errors.E(nil, httpRsp.Status)")
+	p("}")
+	p("")
+	p("return nil")
+	p("}")
+
+	return nil
+}
+
 func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	info, err := getHTTPInfo(m)
+	if err != nil || info == nil {
+		return err
+	}
+
 	inType := g.descInfo.Type[*m.InputType]
 	outType := g.descInfo.Type[*m.OutputType]
 
@@ -131,24 +230,39 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
 
 	// TODO(dovs): handle cancellation, metadata, osv.
-	// TODO(dovs): handle request from http body opt
-	p("m := jsonpb.Marshaler{}") // TODO(dovs): add appropriate options
-	p("if jsonReq, err := m.MarshalToString(req); err != nil {")
+	// TODO(dovs): handle http headers
+	// TODO(dovs): handle deadlines?
+	// TODO(dovs): handle call options
+	// TODO(dovs): handle path parameters
+	p("// The default (false) for the other options are fine.")
+	p("marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}")
+	p("if jsonReq, err := marshaler.Marshal(req); err != nil {")
+	p("  return nil, err")
+	p("}")
+	p("")
+	p("url := fmt.Sprintf(\"https://%%s%s\", c.host)", info.url)
+	p("httpReq, err := http.NewRequestWithContext(ctx, \"%s\", url, bytes.NewReader(jsonReq))", strings.ToUpper(info.verb))
+	p("if err != nil {")
 	p("    return nil, err")
-	p("")
 	p("}")
-	// TODO(dovs): add real method logic.
-	// _ := http_opt(m)
-
-	// * JSONify the request
-	// * determine the url
-	// ** Handle query parameters
-	// * send the request, receive the response, maybe return an error
-	// * deserialize the result and return
-
-	p("return nil, nil")
 	p("")
+	p("httpRsp, err := client.Do(httpReq)")
+	p("if err != nil{")
+	p(" return nil, err")
+	p("} else if httpRsp.StatusCode >= 400 {")
+	p("  return nil, errors.E(nil, httpRsp.Status)")
 	p("}")
-
+	p("")
+	p("buf := new(bytes.Buffer)")
+	p("err = buf.ReadFrom(httpRsp.Body)")
+	p("if err != nil {")
+	p("  return nil, err")
+	p("}")
+	p("")
+	p("unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
+	p("rsp := &%s.%s{}", outSpec.Name, outType.GetName())
+	p("")
+	p("return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)")
+	p("}")
 	return nil
 }

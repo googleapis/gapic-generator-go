@@ -100,14 +100,37 @@ func (c *gRPCClient) Close() error {
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type restClient struct {
 	host string
+	httpClient http.Client
 }
 
 func (c *restClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
+	// The default (false) for the other options are fine.
+	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
-
 	}
-	return nil, nil
 
+	url := fmt.Sprintf("https://%s/zip", c.host)
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, bytes.NewReader(jsonReq))
+	if err != nil {
+		return nil, err
+	}
+
+	httpRsp, err := client.Do(httpReq)
+	if err != nil{
+		return nil, err
+	} else if httpRsp.StatusCode >= 400 {
+		return nil, errors.E(nil, httpRsp.Status)
+	}
+
+	buf := new(bytes.Buffer)
+	err = buf.ReadFrom(httpRsp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
+	rsp := &mypackagepb.Foo{}
+
+	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
 }
