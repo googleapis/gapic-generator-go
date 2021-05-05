@@ -308,8 +308,8 @@ func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
 
 func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 	com := g.comments[m]
-	
-	// If the method is marked as deprecated and there is not a comment explaining it, then add default deprecation comment. 
+
+	// If the method is marked as deprecated and there is not a comment explaining it, then add default deprecation comment.
 	// If it includes a deprecation notice, then use that.
 	if m.GetOptions().GetDeprecated() {
 		if com == "" || !strings.Contains(com, "Deprecated") {
@@ -317,14 +317,14 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 		}
 	}
 	com = strings.TrimSpace(com)
-	
+
 	// If there's no comment, adding method name is just confusing.
 	if com == "" {
 		return
 	}
 
 	// Only prepend the method name when it does not start with a deprecation notice.
-	if !strings.HasPrefix(com, "Deprecated"){
+	if !strings.HasPrefix(com, "Deprecated") {
 		com = m.GetName() + " " + lowerFirst(com)
 	}
 
