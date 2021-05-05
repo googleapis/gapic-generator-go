@@ -144,12 +144,36 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	return nil
 }
 
+// This is a helper function similar to methodDoc that includes a deprecation notice for deprecated services.
+func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
+	com := g.comments[serv]
+
+	// If the service is marked as deprecated and there is not a comment explaining it, then add default deprecation comment.
+	// If the service includes a deprecation notice, then use that.
+
+	if serv.GetOptions().GetDeprecated() {
+		if com == "" || !strings.Contains(com, "Deprecated") {
+			com += "\n\nDeprecated: This may be removed in a future version."
+		}
+	}
+	com = strings.TrimSpace(com)
+
+	// If there's no comment, return.
+	if com == "" {
+		return
+	}
+	// Prepend new line break before existing service comments.
+	g.printf("//")
+	g.comment(com)
+}
+
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
 	// client struct
 	p("// %sClient is a client for interacting with %s.", servName, g.apiName)
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
+	g.serviceDoc(serv)
 	p("type %sClient struct {", servName)
 
 	// Fields

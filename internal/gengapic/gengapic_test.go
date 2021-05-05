@@ -56,35 +56,6 @@ func TestComment(t *testing.T) {
 	}
 }
 
-func TestMethodDoc(t *testing.T) {
-	m := &descriptor.MethodDescriptorProto{
-		Name: proto.String("MyMethod"),
-	}
-
-	var g generator
-	g.comments = make(map[proto.Message]string)
-
-	for _, tst := range []struct {
-		in, want string
-	}{
-		{
-			in:   "",
-			want: "",
-		},
-		{
-			in:   "Does stuff.\n It also does other stuffs.",
-			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
-		},
-	} {
-		g.comments[m] = tst.in
-		g.pt.Reset()
-		g.methodDoc(m)
-		if got := g.pt.String(); got != tst.want {
-			t.Errorf("comment(%q) = %q, want %q", tst.in, got, tst.want)
-		}
-	}
-}
-
 func TestReduceServName(t *testing.T) {
 	for _, tst := range []struct {
 		in, pkg, want string
@@ -375,6 +346,59 @@ methods:
 		}
 
 		txtdiff.Diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+	}
+}
+
+func TestMethodDoc(t *testing.T) {
+	m := &descriptor.MethodDescriptorProto{
+		Name: proto.String("MyMethod"),
+	}
+
+	var g generator
+	g.comments = make(map[proto.Message]string)
+
+	for _, tst := range []struct {
+		in, want   string
+		deprecated bool
+	}{
+		{
+			in:   "",
+			want: "",
+		},
+		{
+			in:   "Does stuff.\n It also does other stuffs.",
+			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
+		},
+		{
+			in:         "Does not have a proper comment.",
+			want:       "// MyMethod does not have a proper comment.\n//\n// Deprecated: This may be removed in a future version.\n",
+			deprecated: true,
+		},
+		{
+			in:         "Deprecated: this is a proper deprecation notice.",
+			want:       "// Deprecated: this is a proper deprecation notice.\n",
+			deprecated: true,
+		},
+		{
+			in:         "This is a comment that includes Deprecated but not at the beginning.",
+			want:       "// MyMethod this is a comment that includes Deprecated but not at the beginning.\n",
+			deprecated: true,
+		},
+		{
+			in:         "",
+			want:       "// Deprecated: This may be removed in a future version.\n",
+			deprecated: true,
+		},
+	} {
+		g.comments[m] = tst.in
+		m.Options = &descriptor.MethodOptions{
+			Deprecated: proto.Bool(tst.deprecated),
+		}
+		g.pt.Reset()
+		g.methodDoc(m)
+		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
+			t.Errorf("comment() got(-),want(+):\n%s", diff)
+		}
 	}
 }
 
