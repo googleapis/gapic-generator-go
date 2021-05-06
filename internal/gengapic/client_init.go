@@ -144,7 +144,7 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	return nil
 }
 
-// This is a helper function similar to methodDoc that includes a deprecation notice for deprecated services.
+// serviceDoc is a helper function similar to methodDoc that includes a deprecation notice for deprecated services.
 func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
 	com := g.comments[serv]
 
