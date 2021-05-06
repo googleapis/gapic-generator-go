@@ -388,8 +388,9 @@ func TestMethodDoc(t *testing.T) {
 		Name: proto.String("MyMethod"),
 	}
 
-	var g generator
-	g.comments = make(map[proto.Message]string)
+	g := generator{
+		comments: make(map[proto.Message]string),
+	}
 
 	for _, tst := range []struct {
 		in, want   string
