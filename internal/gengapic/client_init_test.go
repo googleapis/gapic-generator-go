@@ -224,18 +224,13 @@ func TestServiceDoc(t *testing.T) {
 			want: "//\n// Does stuff.\n// It also does other stuffs.\n",
 		},
 		{
-			in:         "Does not have a proper comment.",
-			want:       "//\n// Does not have a proper comment.\n//\n// Deprecated: This may be removed in a future version.\n",
+			in:         "Does not have a proper comment.\n This is a comment that includes Deprecated but not at the beginning.",
+			want:       "//\n// Does not have a proper comment.\n// This is a comment that includes Deprecated but not at the beginning.\n//\n// Deprecated: This may be removed in a future version.\n",
 			deprecated: true,
 		},
 		{
 			in:         "Deprecated: this is a proper deprecation notice.",
 			want:       "//\n// Deprecated: this is a proper deprecation notice.\n",
-			deprecated: true,
-		},
-		{
-			in:         "This is a comment that includes Deprecated but not at the beginning.",
-			want:       "//\n// This is a comment that includes Deprecated but not at the beginning.\n",
 			deprecated: true,
 		},
 		{

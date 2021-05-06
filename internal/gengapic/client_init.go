@@ -152,7 +152,7 @@ func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
 	// If the service includes a deprecation notice, then use that.
 
 	if serv.GetOptions().GetDeprecated() {
-		if com == "" || !strings.Contains(com, "Deprecated") {
+		if !containsDeprecated(com) {
 			com += "\n\nDeprecated: This may be removed in a future version."
 		}
 	}

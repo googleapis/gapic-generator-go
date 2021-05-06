@@ -349,6 +349,40 @@ methods:
 	}
 }
 
+func TestContainsDeprecated(t *testing.T) {
+	tests := []struct {
+		in   string
+		want bool
+	}{
+		{
+			in:   "",
+			want: false,
+		},
+		{
+			in:   "This comment does not contain the prefix Deprecated.\nNot even on this line.",
+			want: false,
+		},
+		{
+			in:   "Deprecated: this is a proper deprecation notice.",
+			want: true,
+		},
+		{
+			in:   "This is a comment that includes a deprecation notice.\nDeprecated: This is a proper deprecation notice.",
+			want: true,
+		},
+		{
+			in:   "This is not a properly formatted Deprecated: notice.\nNeither is this one - Deprecated:",
+			want: false,
+		},
+	}
+
+	for _, tst := range tests {
+		if diff := cmp.Diff(containsDeprecated(tst.in), tst.want); diff != "" {
+			t.Errorf("comment() got(-),want(+):\n%s", diff)
+		}
+	}
+}
+
 func TestMethodDoc(t *testing.T) {
 	m := &descriptor.MethodDescriptorProto{
 		Name: proto.String("MyMethod"),
@@ -370,18 +404,13 @@ func TestMethodDoc(t *testing.T) {
 			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
 		},
 		{
-			in:         "Does not have a proper comment.",
-			want:       "// MyMethod does not have a proper comment.\n//\n// Deprecated: This may be removed in a future version.\n",
+			in:         "This is deprecated.\n It does not have a proper comment.",
+			want:       "// This is deprecated.\n// It does not have a proper comment.\n//\n// Deprecated: This may be removed in a future version.\n",
 			deprecated: true,
 		},
 		{
 			in:         "Deprecated: this is a proper deprecation notice.",
 			want:       "// Deprecated: this is a proper deprecation notice.\n",
-			deprecated: true,
-		},
-		{
-			in:         "This is a comment that includes Deprecated but not at the beginning.",
-			want:       "// MyMethod this is a comment that includes Deprecated but not at the beginning.\n",
 			deprecated: true,
 		},
 		{

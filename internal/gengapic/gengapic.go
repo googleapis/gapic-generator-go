@@ -306,25 +306,38 @@ func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
 	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "(*c.CallOptions)."+*m.Name)
 }
 
+// This is a helper function that checks whether a description contains a Deprecated header.
+func containsDeprecated(com string) bool {
+	// split the string based on line breaks
+	s := strings.Split(com, "\n")
+	// check each string for the 'Deprecated: ' prefix
+	for i := 0; i < len(s); i++ {
+		if strings.HasPrefix(s[i], "Deprecated:") {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 	com := g.comments[m]
 
-	// If the method is marked as deprecated and there is not a comment explaining it, then add default deprecation comment.
+	// If there's no comment, adding method name is just confusing.
+	if !m.GetOptions().GetDeprecated() && com == "" {
+		return
+	}
+
+	// If the method is marked as deprecated and there is no comment explaining it, then add default deprecation comment.
 	// If it includes a deprecation notice, then use that.
 	if m.GetOptions().GetDeprecated() {
-		if com == "" || !strings.Contains(com, "Deprecated") {
+		if !containsDeprecated(com) {
 			com += "\n\nDeprecated: This may be removed in a future version."
 		}
 	}
 	com = strings.TrimSpace(com)
 
-	// If there's no comment, adding method name is just confusing.
-	if com == "" {
-		return
-	}
-
-	// Only prepend the method name when it does not start with a deprecation notice.
-	if !strings.HasPrefix(com, "Deprecated") {
+	// Only prepend the method name when it does not contain a deprecation notice.
+	if !containsDeprecated(com) {
 		com = m.GetName() + " " + lowerFirst(com)
 	}
 
