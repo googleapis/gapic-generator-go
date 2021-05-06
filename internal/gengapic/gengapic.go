@@ -328,15 +328,17 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 	}
 
 	// If the method is marked as deprecated and there is no comment explaining it, then add default deprecation comment.
-	// If it includes a deprecation notice, then use that.
+	// If it includes a deprecation notice, then prepend a comment with the method name stating it is deprecated and use the included deprecation notice.
 	if m.GetOptions().GetDeprecated() {
 		if !containsDeprecated(com) {
-			com += "\n\nDeprecated: This may be removed in a future version."
+			com += "\n" + m.GetName() + " is deprecated.\n\nDeprecated: This may be removed in a future version."
+		} else {
+			com = "\n" + m.GetName() + " is deprecated.\n\n" + com
 		}
 	}
 	com = strings.TrimSpace(com)
 
-	// Only prepend the method name when it does not contain a deprecation notice.
+	// Prepend the method name when it does not contain a deprecation notice.
 	if !containsDeprecated(com) {
 		com = m.GetName() + " " + lowerFirst(com)
 	}

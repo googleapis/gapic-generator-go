@@ -148,12 +148,14 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
 	com := g.comments[serv]
 
-	// If the service is marked as deprecated and there is not a comment explaining it, then add default deprecation comment.
-	// If the service includes a deprecation notice, then use that.
+	// If the service is marked as deprecated and there is no comment explaining it, then add default deprecation comment.
+	// If the service includes a deprecation notice, then prepend a comment with the service name stating it is deprecated and use the included deprecation notice.
 
 	if serv.GetOptions().GetDeprecated() {
 		if !containsDeprecated(com) {
-			com += "\n\nDeprecated: This may be removed in a future version."
+			com += "\n" + serv.GetName() + " is deprecated.\n\nDeprecated: This may be removed in a future version."
+		} else {
+			com = "\n" + serv.GetName() + " is deprecated.\n\n" + com
 		}
 	}
 	com = strings.TrimSpace(com)
