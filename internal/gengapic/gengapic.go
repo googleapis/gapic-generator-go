@@ -311,8 +311,8 @@ func containsDeprecated(com string) bool {
 	// split the string based on line breaks
 	s := strings.Split(com, "\n")
 	// check each string for the 'Deprecated: ' prefix
-	for i := 0; i < len(s); i++ {
-		if strings.HasPrefix(s[i], "Deprecated:") {
+	for _, l := range s {
+		if strings.HasPrefix(l, "Deprecated:") {
 			return true
 		}
 	}
