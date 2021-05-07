@@ -102,8 +102,10 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	info := httpInfo{}
+
 	httpRule := eHTTP.(*annotations.HttpRule)
+	info := httpInfo{body: httpRule.Body}
+
 	switch httpRule.GetPattern().(type) {
 	case *annotations.HttpRule_Get:
 		info.verb = "get"
@@ -184,7 +186,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle call options
 	p("// The default (false) for the other options are fine.")
-	p("m := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}")
+	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 	p("if jsonReq, err := m.Marshal(req); err != nil {")
 	p("  return err")
 	p("}")
