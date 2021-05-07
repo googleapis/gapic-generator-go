@@ -406,7 +406,7 @@ func TestMethodDoc(t *testing.T) {
 		},
 		{
 			in:         "This is deprecated.\n It does not have a proper comment.",
-			want:       "// This is deprecated.\n// It does not have a proper comment.\n// MyMethod is deprecated.\n//\n// Deprecated: This may be removed in a future version.\n",
+			want:       "// MyMethod this is deprecated.\n// It does not have a proper comment.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
 			deprecated: true,
 		},
 		{
@@ -415,8 +415,13 @@ func TestMethodDoc(t *testing.T) {
 			deprecated: true,
 		},
 		{
+			in:         "Does my thing.\nDeprecated: this is a proper deprecation notice.",
+			want:       "// MyMethod does my thing.\n// Deprecated: this is a proper deprecation notice.\n",
+			deprecated: true,
+		},
+		{
 			in:         "",
-			want:       "// MyMethod is deprecated.\n//\n// Deprecated: This may be removed in a future version.\n",
+			want:       "// MyMethod is deprecated.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
 			deprecated: true,
 		},
 	} {

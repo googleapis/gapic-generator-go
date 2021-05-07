@@ -308,11 +308,8 @@ func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
 
 // This is a helper function that checks whether a description contains a Deprecated header.
 func containsDeprecated(com string) bool {
-	// split the string based on line breaks
-	s := strings.Split(com, "\n")
-	// check each string for the 'Deprecated: ' prefix
-	for _, l := range s {
-		if strings.HasPrefix(l, "Deprecated:") {
+	for _, s := range strings.Split(com, "\n") {
+		if strings.HasPrefix(s, "Deprecated:") {
 			return true
 		}
 	}
@@ -322,26 +319,27 @@ func containsDeprecated(com string) bool {
 func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 	com := g.comments[m]
 
-	// If there's no comment, adding method name is just confusing.
+	// If there's no comment and the method is not deprecated, adding method name is just confusing.
 	if !m.GetOptions().GetDeprecated() && com == "" {
 		return
 	}
 
-	// If the method is marked as deprecated and there is no comment explaining it, then add default deprecation comment.
-	// If it includes a deprecation notice, then prepend a comment with the method name stating it is deprecated and use the included deprecation notice.
+	// If the method is marked as deprecated and there is no comment, then add default deprecation comment.
+	// If the method has a comment but it does not include a deprecation notice, then append a default deprecation notice.
+	// If the method includes a deprecation notice at the beginning of the comment, prepend a comment stating the method is deprecated and use the included deprecation notice.
 	if m.GetOptions().GetDeprecated() {
-		if !containsDeprecated(com) {
-			com += "\n" + m.GetName() + " is deprecated.\n\nDeprecated: This may be removed in a future version."
-		} else {
-			com = "\n" + m.GetName() + " is deprecated.\n\n" + com
+		if com == "" {
+			com = fmt.Sprintf("\n is deprecated.\n\nDeprecated: %s may be removed in a future version.", m.GetName())
+		} else if strings.HasPrefix(com, "Deprecated:") {
+			com = fmt.Sprintf("\n is deprecated.\n\n%s", com)
+		} else if !containsDeprecated(com) {
+			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, m.GetName())
 		}
 	}
 	com = strings.TrimSpace(com)
 
-	// Prepend the method name when it does not contain a deprecation notice.
-	if !containsDeprecated(com) {
-		com = m.GetName() + " " + lowerFirst(com)
-	}
+	// Prepend the method name to all non-empty comments.
+	com = m.GetName() + " " + lowerFirst(com)
 
 	g.comment(com)
 }

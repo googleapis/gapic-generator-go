@@ -148,22 +148,25 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
 	com := g.comments[serv]
 
-	// If the service is marked as deprecated and there is no comment explaining it, then add default deprecation comment.
-	// If the service includes a deprecation notice, then prepend a comment with the service name stating it is deprecated and use the included deprecation notice.
+	// If there's no comment and the service is not deprecated, return.
+	if com == "" && !serv.GetOptions().GetDeprecated() {
+		return
+	}
 
+	// If the service is marked as deprecated and there is no comment, then add default deprecation comment.
+	// If the service has a comment but it does not include a deprecation notice, then append a default deprecation notice.
+	// If the service includes a deprecation notice at the beginning of the comment, prepend a comment stating the service is deprecated and use the included deprecation notice.
 	if serv.GetOptions().GetDeprecated() {
-		if !containsDeprecated(com) {
-			com += "\n" + serv.GetName() + " is deprecated.\n\nDeprecated: This may be removed in a future version."
-		} else {
-			com = "\n" + serv.GetName() + " is deprecated.\n\n" + com
+		if com == "" {
+			com = fmt.Sprintf("\n%s is deprecated.\n\nDeprecated: %s may be removed in a future version.", serv.GetName(), serv.GetName())
+		} else if strings.HasPrefix(com, "Deprecated:") {
+			com = fmt.Sprintf("\n%s is deprecated.\n\n%s", serv.GetName(), com)
+		} else if !containsDeprecated(com) {
+			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, serv.GetName())
 		}
 	}
 	com = strings.TrimSpace(com)
 
-	// If there's no comment, return.
-	if com == "" {
-		return
-	}
 	// Prepend new line break before existing service comments.
 	g.printf("//")
 	g.comment(com)
