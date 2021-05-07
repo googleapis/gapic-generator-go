@@ -42,6 +42,7 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 	}
 
 	httpRsp, err := client.Do(httpReq)
+	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
 	} else if httpRsp.StatusCode >= 400 {
@@ -73,6 +74,7 @@ func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListL
 	}
 
 	httpRsp, err := client.Do(httpReq)
+	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
 	} else if httpRsp.StatusCode >= 400 {
@@ -104,6 +106,7 @@ func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLoca
 	}
 
 	httpRsp, err := client.Do(httpReq)
+	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
 	} else if httpRsp.StatusCode >= 400 {
@@ -135,6 +138,7 @@ func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolic
 	}
 
 	httpRsp, err := client.Do(httpReq)
+	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
 	} else if httpRsp.StatusCode >= 400 {
@@ -166,6 +170,7 @@ func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolic
 	}
 
 	httpRsp, err := client.Do(httpReq)
+	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
 	} else if httpRsp.StatusCode >= 400 {
@@ -197,6 +202,7 @@ func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestI
 	}
 
 	httpRsp, err := client.Do(httpReq)
+	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
 	} else if httpRsp.StatusCode >= 400 {

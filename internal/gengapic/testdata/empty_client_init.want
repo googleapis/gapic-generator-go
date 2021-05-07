@@ -117,6 +117,7 @@ func (c *restClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.
 	}
 
 	httpRsp, err := client.Do(httpReq)
+	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
 	} else if httpRsp.StatusCode >= 400 {

@@ -38,7 +38,6 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %s struct {", lowcaseServName)
 	p("  host string")
-	// TODO(dovs): add the http import
 	p("  httpClient http.Client")
 	p("}")
 	p("")
@@ -47,6 +46,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "http"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -102,7 +102,7 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	info := httpInfo{verb: "", url: "", body: ""}
+	info := httpInfo{}
 	httpRule := eHTTP.(*annotations.HttpRule)
 	switch httpRule.GetPattern().(type) {
 	case *annotations.HttpRule_Get:
@@ -161,11 +161,14 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 
 func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	info, err := getHTTPInfo(m)
-	if err != nil || info == nil {
+	if err != nil {
 		return err
 	}
+	if info == nil {
+		return errors.E(nil, "method has no http info: %s", m.GetName())
+	}
 
-	inType := g.descInfo.Type[*m.InputType]
+	inType := g.descInfo.Type[m.GetInputType()]
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
@@ -194,10 +197,11 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("}")
 	p("")
 	p("httpRsp, err := client.Do(httpReq)")
+	p("defer httpRsp.Body.Close()")
 	p("if err != nil{")
 	p(" return err")
 	p("} else if httpRsp.StatusCode >= 400 {")
-	p("  return errors.E(nil, httpRsp.Status)")
+	p("  return errors.New(httpRsp.Status)")
 	p("}")
 	p("")
 	p("return nil")
@@ -208,8 +212,11 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 
 func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	info, err := getHTTPInfo(m)
-	if err != nil || info == nil {
+	if err != nil {
 		return err
+	}
+	if info == nil {
+		return errors.E(nil, "method has no http info: %s", m.GetName())
 	}
 
 	inType := g.descInfo.Type[*m.InputType]
@@ -247,6 +254,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("}")
 	p("")
 	p("httpRsp, err := client.Do(httpReq)")
+	p("defer httpRsp.Body.Close()")
 	p("if err != nil{")
 	p(" return nil, err")
 	p("} else if httpRsp.StatusCode >= 400 {")
