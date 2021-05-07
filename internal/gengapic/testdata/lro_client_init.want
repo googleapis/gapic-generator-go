@@ -58,6 +58,7 @@ type fooGRPCClient struct {
 }
 
 // NewFooClient creates a new foo client based on gRPC.
+// The returned client must be closed when it is done being used to free the underlying connections that have been made.
 //
 // Foo service does stuff.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {

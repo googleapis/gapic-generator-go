@@ -318,6 +318,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 	// Factory function
 	p("// New%sClient creates a new %s client based on gRPC.", servName, clientName)
+	p("// The returned client must be closed when it is done being used to free the underlying connections that have been made.")
 	p("//")
 	g.comment(g.comments[serv])
 	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
