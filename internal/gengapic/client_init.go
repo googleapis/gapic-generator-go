@@ -158,7 +158,7 @@ func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
 	// If the service includes a deprecation notice at the beginning of the comment, prepend a comment stating the service is deprecated and use the included deprecation notice.
 	if serv.GetOptions().GetDeprecated() {
 		if com == "" {
-			com = fmt.Sprintf("\n%s is deprecated.\n\nDeprecated: %s may be removed in a future version.", serv.GetName(), serv.GetName())
+			com = fmt.Sprintf("\n%s is deprecated.\n\nDeprecated: %[1]s may be removed in a future version.", serv.GetName())
 		} else if strings.HasPrefix(com, "Deprecated:") {
 			com = fmt.Sprintf("\n%s is deprecated.\n\n%s", serv.GetName(), com)
 		} else if !containsDeprecated(com) {
