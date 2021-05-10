@@ -30,6 +30,7 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 
 	p("func ExampleNew%sClient() {", servName)
 	g.exampleInitClient(pkgName, servName)
+	p("")
 	p("  // TODO: Use client.")
 	p("  _ = c")
 	p("}")
@@ -55,7 +56,6 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	p("  // TODO: Handle error.")
 	p("}")
 	p("defer c.Close()")
-	p("")
 }
 
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
