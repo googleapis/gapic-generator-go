@@ -67,8 +67,7 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	// guarantee correctness or stability.
 	//
 	// p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
-	// p("//")
-	// g.comment(g.comments[serv])
+	// g.serviceDoc(serv)
 	// p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	// p("    c := &%s{", servName)
 	// p("    }")

@@ -13,6 +13,8 @@ type internalFooClient interface {
 
 // FooClient is a client for interacting with Awesome Foo API.
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+//
+// Foo service does stuff.
 type FooClient struct {
 	// The internal transport-dependent client.
 	internalFooClient
