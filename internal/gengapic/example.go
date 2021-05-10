@@ -54,6 +54,7 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
+	p("defer c.Close()")
 }
 
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
