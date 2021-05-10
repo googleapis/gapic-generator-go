@@ -5,6 +5,7 @@ func ExampleNewFooClient() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 	// TODO: Use client.
 	_ = c
 }
@@ -16,6 +17,7 @@ func ExampleFooClient_GetEmptyThing() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -35,6 +37,7 @@ func ExampleFooClient_GetOneThing() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -56,6 +59,7 @@ func ExampleFooClient_GetBigThing() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -84,6 +88,7 @@ func ExampleFooClient_GetManyThings() {
 	}
 	defer c.Close()
 
+
 	req := &mypackagepb.PageInputType{
 		// TODO: Fill request struct fields.
 	}
@@ -110,6 +115,7 @@ func ExampleFooClient_BidiThings() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 	stream, err := c.BidiThings(ctx)
 	if err != nil {
 		// TODO: Handle error.
@@ -148,6 +154,7 @@ func ExampleFooClient_EmptyLRO() {
 	}
 	defer c.Close()
 
+
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
 	}
@@ -171,6 +178,7 @@ func ExampleFooClient_RespLRO() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -199,6 +207,7 @@ func ExampleFooClient_ListLocations() {
 	}
 	defer c.Close()
 
+
 	req := &locationpb.ListLocationsRequest{
 		// TODO: Fill request struct fields.
 	}
@@ -226,6 +235,7 @@ func ExampleFooClient_GetLocation() {
 	}
 	defer c.Close()
 
+
 	req := &locationpb.GetLocationRequest{
 		// TODO: Fill request struct fields.
 	}
@@ -246,6 +256,7 @@ func ExampleFooClient_SetIamPolicy() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &iampb.SetIamPolicyRequest{
 		// TODO: Fill request struct fields.
@@ -268,6 +279,7 @@ func ExampleFooClient_GetIamPolicy() {
 	}
 	defer c.Close()
 
+
 	req := &iampb.GetIamPolicyRequest{
 		// TODO: Fill request struct fields.
 	}
@@ -288,6 +300,7 @@ func ExampleFooClient_TestIamPermissions() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &iampb.TestIamPermissionsRequest{
 		// TODO: Fill request struct fields.
@@ -310,6 +323,7 @@ func ExampleFooClient_ListOperations() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &longrunningpb.ListOperationsRequest{
 		// TODO: Fill request struct fields.
@@ -338,6 +352,7 @@ func ExampleFooClient_GetOperation() {
 	}
 	defer c.Close()
 
+
 	req := &longrunningpb.GetOperationRequest{
 		// TODO: Fill request struct fields.
 	}
@@ -357,6 +372,7 @@ func ExampleFooClient_DeleteOperation() {
 	}
 	defer c.Close()
 
+
 	req := &longrunningpb.DeleteOperationRequest{
 		// TODO: Fill request struct fields.
 	}
@@ -373,6 +389,7 @@ func ExampleFooClient_CancelOperation() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &longrunningpb.CancelOperationRequest{
 		// TODO: Fill request struct fields.
@@ -392,6 +409,7 @@ func ExampleFooClient_WaitOperation() {
 		// TODO: Handle error.
 	}
 	defer c.Close()
+
 
 	req := &longrunningpb.WaitOperationRequest{
 		// TODO: Fill request struct fields.
