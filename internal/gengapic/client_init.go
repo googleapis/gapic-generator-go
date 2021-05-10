@@ -144,12 +144,41 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	return nil
 }
 
+// serviceDoc is a helper function similar to methodDoc that includes a deprecation notice for deprecated services.
+func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
+	com := g.comments[serv]
+
+	// If there's no comment and the service is not deprecated, return.
+	if com == "" && !serv.GetOptions().GetDeprecated() {
+		return
+	}
+
+	// If the service is marked as deprecated and there is no comment, then add default deprecation comment.
+	// If the service has a comment but it does not include a deprecation notice, then append a default deprecation notice.
+	// If the service includes a deprecation notice at the beginning of the comment, prepend a comment stating the service is deprecated and use the included deprecation notice.
+	if serv.GetOptions().GetDeprecated() {
+		if com == "" {
+			com = fmt.Sprintf("\n%s is deprecated.\n\nDeprecated: %[1]s may be removed in a future version.", serv.GetName())
+		} else if strings.HasPrefix(com, "Deprecated:") {
+			com = fmt.Sprintf("\n%s is deprecated.\n\n%s", serv.GetName(), com)
+		} else if !containsDeprecated(com) {
+			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, serv.GetName())
+		}
+	}
+	com = strings.TrimSpace(com)
+
+	// Prepend new line break before existing service comments.
+	g.printf("//")
+	g.comment(com)
+}
+
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
 	// client struct
 	p("// %sClient is a client for interacting with %s.", servName, g.apiName)
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
+	g.serviceDoc(serv)
 	p("type %sClient struct {", servName)
 
 	// Fields
