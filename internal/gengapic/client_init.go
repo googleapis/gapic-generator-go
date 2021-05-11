@@ -261,6 +261,10 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
+		p("func (c *%s) %s(name string) *%[2]s {", clientTypeName, lroType)
+		p("  return c.internalClient.%s(name)", lroType)
+		p("}")
+		p("")
 		return nil
 	}
 
