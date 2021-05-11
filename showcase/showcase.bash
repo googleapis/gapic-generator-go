@@ -40,16 +40,20 @@ protoc \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
 	google/showcase/v1beta1/echo.proto google/showcase/v1beta1/identity.proto google/showcase/v1beta1/sequence.proto
 
+hostos=$(go env GOHOSTOS)
+hostarch=$(go env GOHOSTARCH)
+
 pushd gen/github.com/googleapis/gapic-showcase
 go mod init github.com/googleapis/gapic-showcase
 # Fixes a name collision with the operation helper WaitOperation by renaming the mixin method.
-sed  -i '' '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;}' client/echo_client*
+if [[ "$hostos" == "darwin" ]]; then
+	sed  -i '' '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;}' client/echo_client*
+else
+	sed '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;}' client/echo_client*
+fi
 popd
 
 go mod edit -replace=github.com/googleapis/gapic-showcase=./gen/github.com/googleapis/gapic-showcase
-
-hostos=$(go env GOHOSTOS)
-hostarch=$(go env GOHOSTARCH)
 
 curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER-$hostos-$hostarch.tar.gz | tar xz
 ./gapic-showcase run &
