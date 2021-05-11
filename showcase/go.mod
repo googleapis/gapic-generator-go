@@ -11,3 +11,5 @@ require (
 	google.golang.org/genproto v0.0.0-20210506142907-4a47615972c2
 	google.golang.org/grpc v1.37.0
 )
+
+replace github.com/googleapis/gapic-showcase => ./gen/github.com/googleapis/gapic-showcase

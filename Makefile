@@ -18,8 +18,7 @@ golden:
 test:
 	go test -mod=mod ./...
 	go install ./cmd/protoc-gen-go_gapic
-	cd showcase; ./showcase.bash; cd ..
-	./test.sh
+	cd showcase && ./showcase.bash && cd .. && ./test.sh
 
 install:
 	go install ./cmd/protoc-gen-go_gapic
