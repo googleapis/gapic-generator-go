@@ -261,6 +261,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
+		p("// %s returns a new %[1]s from a given name.", lroType)
+		p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
 		p("func (c *%s) %s(name string) *%[2]s {", clientTypeName, lroType)
 		p("  return c.internalClient.%s(name)", lroType)
 		p("}")

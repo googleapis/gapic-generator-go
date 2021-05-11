@@ -56,6 +56,8 @@ func (c *FooClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.C
 	return c.internalClient.Zip(ctx, req, opts...)
 }
 
+// ZipOperation returns a new ZipOperation from a given name.
+// The name must be that of a previously created ZipOperation, possibly from a different process.
 func (c *FooClient) ZipOperation(name string) *ZipOperation {
 	return c.internalClient.ZipOperation(name)
 }
