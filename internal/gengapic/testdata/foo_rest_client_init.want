@@ -4,7 +4,7 @@ type internalFooClient interface {
 	setGoogleClientInfo(...string)
 	Connection() *grpc.ClientConn
 	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
-	ListLocations(context.Context, *locationpb.ListLocationsRequest, ...gax.CallOption) (*locationpb.ListLocationsResponse, error)
+	ListLocations(context.Context, *locationpb.ListLocationsRequest, ...gax.CallOption) *LocationIterator
 	GetLocation(context.Context, *locationpb.GetLocationRequest, ...gax.CallOption) (*locationpb.Location, error)
 	SetIamPolicy(context.Context, *iampb.SetIamPolicyRequest, ...gax.CallOption) (*iampb.Policy, error)
 	GetIamPolicy(context.Context, *iampb.GetIamPolicyRequest, ...gax.CallOption) (*iampb.Policy, error)
@@ -50,7 +50,7 @@ func (c *FooClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.C
 	return c.internalClient.Zip(ctx, req, opts...)
 }
 
-func (c *FooClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) (*locationpb.ListLocationsResponse, error) {
+func (c *FooClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) *LocationIterator {
 	return c.internalClient.ListLocations(ctx, req, opts...)
 }
 
@@ -76,15 +76,6 @@ type fooRESTClient struct {
 }
 
 func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
-		return nil, err
-
-	}
-	return nil, nil
-
-}
-func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) (*locationpb.ListLocationsResponse, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
 		return nil, err

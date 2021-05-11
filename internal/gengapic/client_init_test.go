@@ -332,103 +332,25 @@ func TestClientInit(t *testing.T) {
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
 		},
 	} {
+		fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
+			Package: proto.String("mypackage"),
+			Options: &descriptor.FileOptions{
+				GoPackage: proto.String("mypackage"),
+			},
+			Service: []*descriptor.ServiceDescriptorProto{tst.serv},
+			MessageType: []*descriptor.DescriptorProto{
+				{
+					Name: proto.String("Bar"),
+				},
+				{
+					Name: proto.String("Foo"),
+				},
+			},
+		})
 		request := plugin.CodeGeneratorRequest{
 			Parameter: tst.parameter,
-			ProtoFile: []*descriptor.FileDescriptorProto{
-				{
-					Package: proto.String("mypackage"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("mypackage"),
-					},
-					Service: []*descriptor.ServiceDescriptorProto{tst.serv},
-					MessageType: []*descriptor.DescriptorProto{
-						{
-							Name: proto.String("Bar"),
-						},
-						{
-							Name: proto.String("Foo"),
-						},
-					},
-				},
-				{
-					Package: proto.String("google.longrunning"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.golang.org/genproto/googleapis/longrunning;longrunning"),
-					},
-					MessageType: []*descriptor.DescriptorProto{
-						{
-							Name: proto.String("Operation"),
-						},
-						{
-							Name: proto.String("GetOperationRequest"),
-						},
-						{
-							Name: proto.String("DeleteOperationRequest"),
-						},
-						{
-							Name: proto.String("WaitOperationRequest"),
-						},
-						{
-							Name: proto.String("ListOperationsRequest"),
-						},
-						{
-							Name: proto.String("ListOperationsResponse"),
-						},
-						{
-							Name: proto.String("CancelOperationRequest"),
-						},
-					},
-				},
-				{
-					Package: proto.String("google.cloud.location"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.golang.org/genproto/googleapis/cloud/location;location"),
-					},
-					MessageType: []*descriptor.DescriptorProto{
-						{
-							Name: proto.String("ListLocationsRequest"),
-						},
-						{
-							Name: proto.String("ListLocationsResponse"),
-						},
-						{
-							Name: proto.String("Location"),
-						},
-						{
-							Name: proto.String("GetLocationRequest"),
-						},
-						{
-							Name: proto.String("GetLocationResponse"),
-						},
-					},
-				},
-				{
-					Package: proto.String("google.iam.v1"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.golang.org/genproto/googleapis/iam/v1;iam"),
-					},
-					MessageType: []*descriptor.DescriptorProto{
-						{
-							Name: proto.String("Policy"),
-						},
-						{
-							Name: proto.String("TestIamPermissionsRequest"),
-						},
-						{
-							Name: proto.String("TestIamPermissionsResponse"),
-						},
-						{
-							Name: proto.String("SetIamPolicyRequest"),
-						},
-						{
-							Name: proto.String("SetIamPolicyResponse"),
-						},
-						{
-							Name: proto.String("GetIamPolicyRequest"),
-						},
-					},
-				},
-			}}
+			ProtoFile: fds,
+		}
 		g.init(&request)
 		g.comments = map[proto.Message]string{
 			tst.serv: "Foo service does stuff.",
@@ -472,4 +394,13 @@ func TestGenerateDefaultAudience(t *testing.T) {
 			}
 		})
 	}
+}
+
+// mixinDescriptors is used for testing purposes only.
+func mixinDescriptors() []*descriptor.FileDescriptorProto {
+	files := []*descriptor.FileDescriptorProto{}
+	for _, fds := range mixinFiles {
+		files = append(files, fds...)
+	}
+	return files
 }
