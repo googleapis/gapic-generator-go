@@ -20,6 +20,7 @@ type Client struct {
 }
 
 // Wrapper methods routed to the internal client
+
 func (c *Client) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
 	return c.internalClient.Zip(ctx, req, opts)
 }
