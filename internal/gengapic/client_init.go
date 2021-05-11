@@ -269,7 +269,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 
 		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 			clientTypeName, m.GetName(), servSpec.Name, serv.GetName(), m.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+		p("    return c.internalClient.%s(ctx, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil

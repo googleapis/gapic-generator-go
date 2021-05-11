@@ -27,27 +27,27 @@ type FooClient struct {
 // Wrapper methods routed to the internal client
 
 func (c *FooClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
-	return c.internalClient.Zip(ctx, req, opts)
+	return c.internalClient.Zip(ctx, req, opts...)
 }
 
 func (c *FooClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) (*locationpb.ListLocationsResponse, error) {
-	return c.internalClient.ListLocations(ctx, req, opts)
+	return c.internalClient.ListLocations(ctx, req, opts...)
 }
 
 func (c *FooClient) GetLocation(ctx context.Context, req *locationpb.GetLocationRequest, opts ...gax.CallOption) (*locationpb.Location, error) {
-	return c.internalClient.GetLocation(ctx, req, opts)
+	return c.internalClient.GetLocation(ctx, req, opts...)
 }
 
 func (c *FooClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
-	return c.internalClient.SetIamPolicy(ctx, req, opts)
+	return c.internalClient.SetIamPolicy(ctx, req, opts...)
 }
 
 func (c *FooClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
-	return c.internalClient.GetIamPolicy(ctx, req, opts)
+	return c.internalClient.GetIamPolicy(ctx, req, opts...)
 }
 
 func (c *FooClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPermissionsRequest, opts ...gax.CallOption) (*iampb.TestIamPermissionsResponse, error) {
-	return c.internalClient.TestIamPermissions(ctx, req, opts)
+	return c.internalClient.TestIamPermissions(ctx, req, opts...)
 }
 
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
