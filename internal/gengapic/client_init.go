@@ -223,7 +223,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 	if m.GetOutputType() == emptyType {
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -239,7 +239,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		lroType := lroTypeName(m.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -254,7 +254,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		}
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), iter.iterTypeName)
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -269,7 +269,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 
 		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 			clientTypeName, m.GetName(), servSpec.Name, serv.GetName(), m.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -280,14 +280,14 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		}
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, serv.GetName(), m.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
 	default:
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
