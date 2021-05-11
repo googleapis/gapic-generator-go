@@ -56,35 +56,6 @@ func TestComment(t *testing.T) {
 	}
 }
 
-func TestMethodDoc(t *testing.T) {
-	m := &descriptor.MethodDescriptorProto{
-		Name: proto.String("MyMethod"),
-	}
-
-	var g generator
-	g.comments = make(map[proto.Message]string)
-
-	for _, tst := range []struct {
-		in, want string
-	}{
-		{
-			in:   "",
-			want: "",
-		},
-		{
-			in:   "Does stuff.\n It also does other stuffs.",
-			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
-		},
-	} {
-		g.comments[m] = tst.in
-		g.pt.Reset()
-		g.methodDoc(m)
-		if got := g.pt.String(); got != tst.want {
-			t.Errorf("comment(%q) = %q, want %q", tst.in, got, tst.want)
-		}
-	}
-}
-
 func TestReduceServName(t *testing.T) {
 	for _, tst := range []struct {
 		in, pkg, want string
@@ -375,6 +346,94 @@ methods:
 		}
 
 		txtdiff.Diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+	}
+}
+
+func TestContainsDeprecated(t *testing.T) {
+	tests := []struct {
+		in   string
+		want bool
+	}{
+		{
+			in:   "",
+			want: false,
+		},
+		{
+			in:   "This comment does not contain the prefix Deprecated.\nNot even on this line.",
+			want: false,
+		},
+		{
+			in:   "Deprecated: this is a proper deprecation notice.",
+			want: true,
+		},
+		{
+			in:   "This is a comment that includes a deprecation notice.\nDeprecated: This is a proper deprecation notice.",
+			want: true,
+		},
+		{
+			in:   "This is not a properly formatted Deprecated: notice.\nNeither is this one - Deprecated:",
+			want: false,
+		},
+	}
+
+	for _, tst := range tests {
+		if diff := cmp.Diff(containsDeprecated(tst.in), tst.want); diff != "" {
+			t.Errorf("comment() got(-),want(+):\n%s", diff)
+		}
+	}
+}
+
+func TestMethodDoc(t *testing.T) {
+	m := &descriptor.MethodDescriptorProto{
+		Name: proto.String("MyMethod"),
+	}
+
+	g := generator{
+		comments: make(map[proto.Message]string),
+	}
+
+	for _, tst := range []struct {
+		in, want   string
+		deprecated bool
+	}{
+		{
+			in:   "",
+			want: "",
+		},
+		{
+			in:   "Does stuff.\n It also does other stuffs.",
+			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
+		},
+		{
+			in:         "This is deprecated.\n It does not have a proper comment.",
+			want:       "// MyMethod this is deprecated.\n// It does not have a proper comment.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
+			deprecated: true,
+		},
+		{
+			in:         "Deprecated: this is a proper deprecation notice.",
+			want:       "// MyMethod is deprecated.\n//\n// Deprecated: this is a proper deprecation notice.\n",
+			deprecated: true,
+		},
+		{
+			in:         "Does my thing.\nDeprecated: this is a proper deprecation notice.",
+			want:       "// MyMethod does my thing.\n// Deprecated: this is a proper deprecation notice.\n",
+			deprecated: true,
+		},
+		{
+			in:         "",
+			want:       "// MyMethod is deprecated.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
+			deprecated: true,
+		},
+	} {
+		g.comments[m] = tst.in
+		m.Options = &descriptor.MethodOptions{
+			Deprecated: proto.Bool(tst.deprecated),
+		}
+		g.pt.Reset()
+		g.methodDoc(m)
+		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
+			t.Errorf("comment() got(-),want(+):\n%s", diff)
+		}
 	}
 }
 

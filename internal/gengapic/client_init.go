@@ -144,17 +144,46 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	return nil
 }
 
+// serviceDoc is a helper function similar to methodDoc that includes a deprecation notice for deprecated services.
+func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
+	com := g.comments[serv]
+
+	// If there's no comment and the service is not deprecated, return.
+	if com == "" && !serv.GetOptions().GetDeprecated() {
+		return
+	}
+
+	// If the service is marked as deprecated and there is no comment, then add default deprecation comment.
+	// If the service has a comment but it does not include a deprecation notice, then append a default deprecation notice.
+	// If the service includes a deprecation notice at the beginning of the comment, prepend a comment stating the service is deprecated and use the included deprecation notice.
+	if serv.GetOptions().GetDeprecated() {
+		if com == "" {
+			com = fmt.Sprintf("\n%s is deprecated.\n\nDeprecated: %[1]s may be removed in a future version.", serv.GetName())
+		} else if strings.HasPrefix(com, "Deprecated:") {
+			com = fmt.Sprintf("\n%s is deprecated.\n\n%s", serv.GetName(), com)
+		} else if !containsDeprecated(com) {
+			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, serv.GetName())
+		}
+	}
+	com = strings.TrimSpace(com)
+
+	// Prepend new line break before existing service comments.
+	g.printf("//")
+	g.comment(com)
+}
+
 func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
 	// client struct
 	p("// %sClient is a client for interacting with %s.", servName, g.apiName)
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
+	g.serviceDoc(serv)
 	p("type %sClient struct {", servName)
 
 	// Fields
 	p("// The internal transport-dependent client.")
-	p("internal%sClient", servName)
+	p("internalClient internal%sClient", servName)
 	p("")
 	p("// The call options for this service.")
 	p("CallOptions *%sCallOptions", servName)
@@ -172,6 +201,117 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	p("}")
 	p("")
+	p("// Wrapper methods routed to the internal client.")
+	p("")
+	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// the client is no longer required.")
+	p("func (c *%sClient) Close() error {", servName)
+	p("  return c.internalClient.Close()")
+	p("}")
+	p("")
+	p("// setGoogleClientInfo sets the name and version of the application in")
+	p("// the `x-goog-api-client` header passed on each request. Intended for")
+	p("// use by Google-written clients.")
+	p("func (c *%sClient) setGoogleClientInfo(...string) {", servName)
+	p("  c.internalClient.setGoogleClientInfo()")
+	p("}")
+	p("")
+	p("// Connection returns a connection to the API service.")
+	p("//")
+	p("// Deprecated.")
+	p("func (c *%sClient) Connection() *grpc.ClientConn {", servName)
+	p("  return c.internalClient.Connection()")
+	p("}")
+	p("")
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	for _, m := range methods {
+		g.genClientWrapperMethod(m, serv, servName)
+	}
+}
+
+func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, serv *descriptor.ServiceDescriptorProto, servName string) error {
+	p := g.printf
+
+	clientTypeName := fmt.Sprintf("%sClient", servName)
+	inType := g.descInfo.Type[m.GetInputType()]
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	if m.GetOutputType() == emptyType {
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
+	outType := g.descInfo.Type[m.GetOutputType()]
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+
+	if g.isLRO(m) {
+		lroType := lroTypeName(m.GetName())
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
+	if pf, err := g.pagingField(m); err != nil {
+		return err
+	} else if pf != nil {
+		iter, err := g.iterTypeOf(pf)
+		if err != nil {
+			return err
+		}
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), iter.iterTypeName)
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
+	switch {
+	case m.GetClientStreaming():
+		servSpec, err := g.descInfo.ImportSpec(serv)
+		if err != nil {
+			return err
+		}
+
+		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+			clientTypeName, m.GetName(), servSpec.Name, serv.GetName(), m.GetName())
+		p("    return c.internalClient.%s(ctx, opts...)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	case m.GetServerStreaming():
+		servSpec, err := g.descInfo.ImportSpec(serv)
+		if err != nil {
+			return err
+		}
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, serv.GetName(), m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	default:
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
 }
 
 func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servName string) error {

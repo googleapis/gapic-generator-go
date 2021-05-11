@@ -18,8 +18,7 @@ golden:
 test:
 	go test -mod=mod ./...
 	go install ./cmd/protoc-gen-go_gapic
-	cd showcase; ./showcase.bash; cd ..
-	./test.sh
+	cd showcase && ./showcase.bash && cd .. && ./test.sh
 
 install:
 	go install ./cmd/protoc-gen-go_gapic
@@ -27,7 +26,7 @@ install:
 
 update-bazel-repos:
 	bazel run //:gazelle -- update-repos -from_file=go.mod -prune -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
-	sed -i ''  's/    "go_repository",//g' repositories.bzl
+	sed -i ''  "s/    \"go_repository\",//g" repositories.bzl
 
 clean:
 	rm -rf testdata

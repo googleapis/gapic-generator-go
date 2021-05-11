@@ -11,16 +11,19 @@ jobs:
     outputs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
-    container: gcr.io/gapic-images/googleapis-bazel:20210105
+    container: gcr.io/gapic-images/googleapis:latest
     # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
     steps:
     - uses: actions/checkout@v2
     - name: Run gazelle update-repos
       id: update
       run: |
-        make update-bazel-repos
+        bazel run //:gazelle -- update-repos -from_file=go.mod -prune -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
+        sed -i "s/    \"go_repository\",//g" repositories.bzl
+        set +e
         git diff --exit-code repositories.bzl
         echo ::set-output name=changed::$?
+        set -e
     - name: Prepare repositories.bzl payload
       if: steps.update.outputs.changed
       run: tar czf repos.tgz repositories.bzl

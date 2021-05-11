@@ -16,9 +16,11 @@ type internalFooClient interface {
 
 // FooClient is a client for interacting with Awesome Foo API.
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+//
+// Foo service does stuff.
 type FooClient struct {
 	// The internal transport-dependent client.
-	internalFooClient
+	internalClient internalFooClient
 
 	// The call options for this service.
 	CallOptions *FooCallOptions
@@ -28,6 +30,52 @@ type FooClient struct {
 	// Users should not Close this client.
 	LROClient *lroauto.OperationsClient
 
+}
+
+// Wrapper methods routed to the internal client.
+
+// Close closes the connection to the API service. The user should invoke this when
+// the client is no longer required.
+func (c *FooClient) Close() error {
+	return c.internalClient.Close()
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *FooClient) setGoogleClientInfo(...string) {
+	c.internalClient.setGoogleClientInfo()
+}
+
+// Connection returns a connection to the API service.
+//
+// Deprecated.
+func (c *FooClient) Connection() *grpc.ClientConn {
+	return c.internalClient.Connection()
+}
+
+func (c *FooClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*ZipOperation, error) {
+	return c.internalClient.Zip(ctx, req, opts...)
+}
+
+func (c *FooClient) ListOperations(ctx context.Context, req *longrunningpb.ListOperationsRequest, opts ...gax.CallOption) (*longrunningpb.ListOperationsResponse, error) {
+	return c.internalClient.ListOperations(ctx, req, opts...)
+}
+
+func (c *FooClient) GetOperation(ctx context.Context, req *longrunningpb.GetOperationRequest, opts ...gax.CallOption) (*GetOperationOperation, error) {
+	return c.internalClient.GetOperation(ctx, req, opts...)
+}
+
+func (c *FooClient) DeleteOperation(ctx context.Context, req *longrunningpb.DeleteOperationRequest, opts ...gax.CallOption) error {
+	return c.internalClient.DeleteOperation(ctx, req, opts...)
+}
+
+func (c *FooClient) CancelOperation(ctx context.Context, req *longrunningpb.CancelOperationRequest, opts ...gax.CallOption) error {
+	return c.internalClient.CancelOperation(ctx, req, opts...)
+}
+
+func (c *FooClient) WaitOperation(ctx context.Context, req *longrunningpb.WaitOperationRequest, opts ...gax.CallOption) (*WaitOperationOperation, error) {
+	return c.internalClient.WaitOperation(ctx, req, opts...)
 }
 
 // fooGRPCClient is a client for interacting with Awesome Foo API over gRPC transport.
@@ -91,7 +139,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 	}
 	c.setGoogleClientInfo()
 
-	client.internalFooClient = c
+	client.internalClient = c
 
 	client.LROClient, err = lroauto.NewOperationsClient(ctx, gtransport.WithConnPool(connPool))
 	if err != nil {
