@@ -351,7 +351,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("  }")
 	p("  c.setGoogleClientInfo()")
 	p("")
-	p("  client.internal%sClient = c", servName)
+	p("  client.internalClient = c")
 	p("")
 
 	if hasRPCForLRO {

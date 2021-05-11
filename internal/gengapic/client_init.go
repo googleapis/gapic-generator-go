@@ -183,7 +183,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	// Fields
 	p("// The internal transport-dependent client.")
-	p("internal%sClient", servName)
+	p("internalClient internal%sClient", servName)
 	p("")
 	p("// The call options for this service.")
 	p("CallOptions *%sCallOptions", servName)
@@ -201,6 +201,98 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	p("}")
 	p("")
+
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	p("// Wrapper methods routed to the internal client")
+	p("")
+	for _, m := range methods {
+		g.genClientWrapperMethod(m, serv, servName)
+	}
+}
+
+func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, serv *descriptor.ServiceDescriptorProto, servName string) error {
+	p := g.printf
+
+	clientTypeName := fmt.Sprintf("%sClient", servName)
+	inType := g.descInfo.Type[m.GetInputType()]
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	if m.GetOutputType() == emptyType {
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
+	outType := g.descInfo.Type[m.GetOutputType()]
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+
+	if g.isLRO(m) {
+		lroType := lroTypeName(m.GetName())
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
+	if pf, err := g.pagingField(m); err != nil {
+		return err
+	} else if pf != nil {
+		iter, err := g.iterTypeOf(pf)
+		if err != nil {
+			return err
+		}
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), iter.iterTypeName)
+		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
+	switch {
+	case m.GetClientStreaming():
+		servSpec, err := g.descInfo.ImportSpec(serv)
+		if err != nil {
+			return err
+		}
+
+		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+			clientTypeName, m.GetName(), servSpec.Name, serv.GetName(), m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	case m.GetServerStreaming():
+		servSpec, err := g.descInfo.ImportSpec(serv)
+		if err != nil {
+			return err
+		}
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, serv.GetName(), m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	default:
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("}")
+		p("")
+		return nil
+	}
+
 }
 
 func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servName string) error {
