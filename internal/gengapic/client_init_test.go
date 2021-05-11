@@ -273,26 +273,39 @@ func TestClientInit(t *testing.T) {
 			},
 		},
 	}
-	proto.SetExtension(servPlain.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
-		Pattern: &annotations.HttpRule_Get{
-			Get: "/zip",
-		},
-	})
 	servLRO := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".google.longrunning.Operation")},
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".google.longrunning.Operation"),
+				Options:    &descriptor.MethodOptions{},
+			},
 		},
 	}
 	servDeprecated := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".mypackage.Foo")},
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptor.MethodOptions{},
+			},
 		},
 		Options: &descriptor.ServiceOptions{
 			Deprecated: proto.Bool(true),
 		},
 	}
+	for _, s := range []*descriptor.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
+		proto.SetExtension(s.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
+			Pattern: &annotations.HttpRule_Get{
+				Get: "/zip",
+			},
+		})
+	}
+
 	for _, tst := range []struct {
 		tstName   string
 		servName  string
