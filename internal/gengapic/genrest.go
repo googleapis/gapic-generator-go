@@ -28,6 +28,7 @@ func lowcaseRestClientName(servName string) string {
 	if servName == "" {
 		return "restClient"
 	}
+
 	return lowerFirst(servName + "RESTClient")
 }
 
@@ -202,6 +203,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("if err != nil{")
 	p(" return err")
 	p("} else if httpRsp.StatusCode >= 400 {")
+	// TODO(dovs): handle this error more
 	p("  return errors.New(httpRsp.Status)")
 	p("}")
 	p("")
@@ -260,6 +262,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("}")
 	p("defer httpRsp.Body.Close()")
 	p("if httpRsp.StatusCode >= 400 {")
+	// TODO(dovs): handle this error more
 	p("  return nil, fmt.Errorf(httpRsp.Status)")
 	p("}")
 	p("")
@@ -271,7 +274,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("rsp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("")
-	p("return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)")
+	p("return rsp, unmarshaler.Unmarshal(buf, rsp)")
 	p("}")
 	return nil
 }

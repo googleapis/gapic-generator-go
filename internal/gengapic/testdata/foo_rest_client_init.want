@@ -106,7 +106,7 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	rsp := &mypackagepb.Foo{}
 
-	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
+	return rsp, unmarshaler.Unmarshal(buf, rsp)
 }
 func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLocationRequest, opts ...gax.CallOption) (*locationpb.Location, error) {
 	// The default (false) for the other options are fine.
@@ -138,7 +138,7 @@ func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLoca
 	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	rsp := &locationpb.Location{}
 
-	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
+	return rsp, unmarshaler.Unmarshal(buf, rsp)
 }
 func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	// The default (false) for the other options are fine.
@@ -170,7 +170,7 @@ func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolic
 	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	rsp := &iampb.Policy{}
 
-	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
+	return rsp, unmarshaler.Unmarshal(buf, rsp)
 }
 func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	// The default (false) for the other options are fine.
@@ -202,7 +202,7 @@ func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolic
 	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	rsp := &iampb.Policy{}
 
-	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
+	return rsp, unmarshaler.Unmarshal(buf, rsp)
 }
 func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPermissionsRequest, opts ...gax.CallOption) (*iampb.TestIamPermissionsResponse, error) {
 	// The default (false) for the other options are fine.
@@ -234,5 +234,5 @@ func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestI
 	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	rsp := &iampb.TestIamPermissionsResponse{}
 
-	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
+	return rsp, unmarshaler.Unmarshal(buf, rsp)
 }
