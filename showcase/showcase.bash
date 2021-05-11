@@ -47,10 +47,12 @@ pushd gen/github.com/googleapis/gapic-showcase
 go mod init github.com/googleapis/gapic-showcase
 # Fixes a name collision with the operation helper WaitOperation by renaming the mixin method.
 if [[ "$hostos" == "darwin" ]]; then
-	sed  -i '' '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;}' client/echo_client*
+    SEDARGS="-i ''"
 else
-	sed '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;}' client/echo_client*
+    SEDARGS="-i"
 fi
+sed $SEDARGS '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;}' client/echo_client*
+
 popd
 
 go mod edit -replace=github.com/googleapis/gapic-showcase=./gen/github.com/googleapis/gapic-showcase
