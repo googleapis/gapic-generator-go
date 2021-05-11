@@ -203,7 +203,27 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 	p("")
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
-	p("// Wrapper methods routed to the internal client")
+	p("// Wrapper methods routed to the internal client.")
+	p("")
+	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// the client is no longer required.")
+	p("func (c *%sClient) Close() error {", servName)
+	p("  return c.internalClient.Close()")
+	p("}")
+	p("")
+	p("// setGoogleClientInfo sets the name and version of the application in")
+	p("// the `x-goog-api-client` header passed on each request. Intended for")
+	p("// use by Google-written clients.")
+	p("func (c *%sClient) setGoogleClientInfo(...string) {", servName)
+	p("  c.internalClient.setGoogleClientInfo()")
+	p("}")
+	p("")
+	p("// Connection returns a connection to the API service.")
+	p("//")
+	p("// Deprecated.")
+	p("func (c *%sClient) Connection() *grpc.ClientConn {", servName)
+	p("  return c.internalClient.Connection()")
+	p("}")
 	p("")
 	for _, m := range methods {
 		g.genClientWrapperMethod(m, serv, servName)
@@ -223,7 +243,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 	if m.GetOutputType() == emptyType {
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -239,7 +259,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		lroType := lroTypeName(m.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -254,7 +274,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		}
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), iter.iterTypeName)
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -269,7 +289,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 
 		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 			clientTypeName, m.GetName(), servSpec.Name, serv.GetName(), m.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
@@ -280,14 +300,14 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		}
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, serv.GetName(), m.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
 	default:
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
-		p("    return c.internalClient.%s(ctx, req, opts)", m.GetName())
+		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
 		return nil
