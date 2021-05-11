@@ -108,40 +108,6 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 
 	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
 }
-
-func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) (*locationpb.ListLocationsResponse, error) {
-	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
-	if jsonReq, err := marshaler.Marshal(req); err != nil {
-		return nil, err
-	}
-
-	url := fmt.Sprintf("%s/v1/{name=locations}", c.endpoint)
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, bytes.NewReader(jsonReq))
-	if err != nil {
-		return nil, err
-	}
-
-	httpRsp, err := client.Do(httpReq)
-	if err != nil{
-		return nil, err
-	}
-	defer httpRsp.Body.Close()
-	if httpRsp.StatusCode >= 400 {
-		return nil, fmt.Errorf(httpRsp.Status)
-	}
-
-	buf, err := ioutil.ReadAll(httpRsp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
-	rsp := &locationpb.ListLocationsResponse{}
-
-	return rsp, unmarshaler.Unmarshal(buf.Bytes(), rsp)
-}
-
 func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLocationRequest, opts ...gax.CallOption) (*locationpb.Location, error) {
 	// The default (false) for the other options are fine.
 	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
