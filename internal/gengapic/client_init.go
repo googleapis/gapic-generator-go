@@ -201,8 +201,6 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	p("}")
 	p("")
-
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	p("// Wrapper methods routed to the internal client.")
 	p("")
 	p("// Close closes the connection to the API service. The user should invoke this when")
@@ -225,6 +223,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 	p("  return c.internalClient.Connection()")
 	p("}")
 	p("")
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
 		g.genClientWrapperMethod(m, serv, servName)
 	}
