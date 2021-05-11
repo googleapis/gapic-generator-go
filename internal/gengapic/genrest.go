@@ -46,8 +46,8 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.genRESTMethods(serv, servName)
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "http"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "ioutil"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
