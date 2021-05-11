@@ -248,7 +248,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("  return nil, err")
 	p("}")
 	p("")
-	p(`url := fmt.Sprintf("https://%%s%s", c.host)`, info.url)
+	p(`url := fmt.Sprintf("%%s%s", c.endpoint)`, info.url)
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return nil, err")

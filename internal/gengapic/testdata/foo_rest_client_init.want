@@ -83,7 +83,7 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/zip", c.host)
+	url := fmt.Sprintf("%s/zip", c.endpoint)
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, bytes.NewReader(jsonReq))
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListL
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/v1/{name=locations}", c.host)
+	url := fmt.Sprintf("%s/v1/{name=locations}", c.endpoint)
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, bytes.NewReader(jsonReq))
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLoca
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/v1/{name=locations/*}", c.host)
+	url := fmt.Sprintf("%s/v1/{name=locations/*}", c.endpoint)
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, bytes.NewReader(jsonReq))
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolic
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/v1/{resource=**}:setIamPolicy", c.host)
+	url := fmt.Sprintf("%s/v1/{resource=**}:setIamPolicy", c.endpoint)
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonReq))
 	if err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolic
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/v1/{resource=**}:getIamPolicy", c.host)
+	url := fmt.Sprintf("%s/v1/{resource=**}:getIamPolicy", c.endpoint)
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonReq))
 	if err != nil {
 		return nil, err
@@ -243,7 +243,7 @@ func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestI
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/v1/{resource=**}:testIamPermissions", c.host)
+	url := fmt.Sprintf("%s/v1/{resource=**}:testIamPermissions", c.endpoint)
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonReq))
 	if err != nil {
 		return nil, err

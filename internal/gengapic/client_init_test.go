@@ -312,7 +312,6 @@ func TestClientInit(t *testing.T) {
 		mixins    mixins
 		serv      *descriptor.ServiceDescriptorProto
 		parameter *string
-		httpRule  *annotations.HttpRule
 	}{
 		{
 			tstName: "foo_client_init",
