@@ -54,7 +54,7 @@ func (g *generator) genDocFile(year int, scopes []string) {
 		}
 	}
 
-	switch g.relLvl {
+	switch g.opts.relLvl {
 	case alpha:
 		p("//")
 		p("//   NOTE: This package is in alpha. It is not stable, and is likely to change.")
