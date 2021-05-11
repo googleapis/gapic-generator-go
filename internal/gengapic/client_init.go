@@ -204,6 +204,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	p("// Wrapper methods routed to the internal client")
+	p("")
 	for _, m := range methods {
 		g.genClientWrapperMethod(m, serv, servName)
 	}
