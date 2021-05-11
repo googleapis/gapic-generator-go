@@ -99,13 +99,13 @@ func (c *gRPCClient) Close() error {
 
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type restClient struct {
-	host string
+	endpoint string
 	httpClient http.Client
 }
 
 func (c *restClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
 	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
 	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
 	}
@@ -117,15 +117,15 @@ func (c *restClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.
 	}
 
 	httpRsp, err := client.Do(httpReq)
-	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
-	} else if httpRsp.StatusCode >= 400 {
-		return nil, errors.E(nil, httpRsp.Status)
+	}
+	defer httpRsp.Body.Close()
+	if httpRsp.StatusCode >= 400 {
+		return nil, fmt.Errorf(httpRsp.Status)
 	}
 
-	buf := new(bytes.Buffer)
-	err = buf.ReadFrom(httpRsp.Body)
+	buf, err := ioutil.ReadAll(httpRsp.Body)
 	if err != nil {
 		return nil, err
 	}

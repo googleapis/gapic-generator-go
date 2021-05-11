@@ -24,13 +24,13 @@ type FooClient struct {
 
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type fooRESTClient struct {
-	host string
+	endpoint string
 	httpClient http.Client
 }
 
 func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
 	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
 	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
 	}
@@ -42,15 +42,15 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 	}
 
 	httpRsp, err := client.Do(httpReq)
-	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
-	} else if httpRsp.StatusCode >= 400 {
-		return nil, errors.E(nil, httpRsp.Status)
+	}
+	defer httpRsp.Body.Close()
+	if httpRsp.StatusCode >= 400 {
+		return nil, fmt.Errorf(httpRsp.Status)
 	}
 
-	buf := new(bytes.Buffer)
-	err = buf.ReadFrom(httpRsp.Body)
+	buf, err := ioutil.ReadAll(httpRsp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...g
 }
 func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListLocationsRequest, opts ...gax.CallOption) (*locationpb.ListLocationsResponse, error) {
 	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
 	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
 	}
@@ -74,15 +74,15 @@ func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListL
 	}
 
 	httpRsp, err := client.Do(httpReq)
-	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
-	} else if httpRsp.StatusCode >= 400 {
-		return nil, errors.E(nil, httpRsp.Status)
+	}
+	defer httpRsp.Body.Close()
+	if httpRsp.StatusCode >= 400 {
+		return nil, fmt.Errorf(httpRsp.Status)
 	}
 
-	buf := new(bytes.Buffer)
-	err = buf.ReadFrom(httpRsp.Body)
+	buf, err := ioutil.ReadAll(httpRsp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (c *fooRESTClient) ListLocations(ctx context.Context, req *locationpb.ListL
 }
 func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLocationRequest, opts ...gax.CallOption) (*locationpb.Location, error) {
 	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
 	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
 	}
@@ -106,15 +106,15 @@ func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLoca
 	}
 
 	httpRsp, err := client.Do(httpReq)
-	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
-	} else if httpRsp.StatusCode >= 400 {
-		return nil, errors.E(nil, httpRsp.Status)
+	}
+	defer httpRsp.Body.Close()
+	if httpRsp.StatusCode >= 400 {
+		return nil, fmt.Errorf(httpRsp.Status)
 	}
 
-	buf := new(bytes.Buffer)
-	err = buf.ReadFrom(httpRsp.Body)
+	buf, err := ioutil.ReadAll(httpRsp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLoca
 }
 func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
 	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
 	}
@@ -138,15 +138,15 @@ func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolic
 	}
 
 	httpRsp, err := client.Do(httpReq)
-	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
-	} else if httpRsp.StatusCode >= 400 {
-		return nil, errors.E(nil, httpRsp.Status)
+	}
+	defer httpRsp.Body.Close()
+	if httpRsp.StatusCode >= 400 {
+		return nil, fmt.Errorf(httpRsp.Status)
 	}
 
-	buf := new(bytes.Buffer)
-	err = buf.ReadFrom(httpRsp.Body)
+	buf, err := ioutil.ReadAll(httpRsp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolic
 }
 func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
 	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
 	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
 	}
@@ -170,15 +170,15 @@ func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolic
 	}
 
 	httpRsp, err := client.Do(httpReq)
-	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
-	} else if httpRsp.StatusCode >= 400 {
-		return nil, errors.E(nil, httpRsp.Status)
+	}
+	defer httpRsp.Body.Close()
+	if httpRsp.StatusCode >= 400 {
+		return nil, fmt.Errorf(httpRsp.Status)
 	}
 
-	buf := new(bytes.Buffer)
-	err = buf.ReadFrom(httpRsp.Body)
+	buf, err := ioutil.ReadAll(httpRsp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolic
 }
 func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPermissionsRequest, opts ...gax.CallOption) (*iampb.TestIamPermissionsResponse, error) {
 	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}
+	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
 	if jsonReq, err := marshaler.Marshal(req); err != nil {
 		return nil, err
 	}
@@ -202,15 +202,15 @@ func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestI
 	}
 
 	httpRsp, err := client.Do(httpReq)
-	defer httpRsp.Body.Close()
 	if err != nil{
 		return nil, err
-	} else if httpRsp.StatusCode >= 400 {
-		return nil, errors.E(nil, httpRsp.Status)
+	}
+	defer httpRsp.Body.Close()
+	if httpRsp.StatusCode >= 400 {
+		return nil, fmt.Errorf(httpRsp.Status)
 	}
 
-	buf := new(bytes.Buffer)
-	err = buf.ReadFrom(httpRsp.Body)
+	buf, err := ioutil.ReadAll(httpRsp.Body)
 	if err != nil {
 		return nil, err
 	}

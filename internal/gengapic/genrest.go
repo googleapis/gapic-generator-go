@@ -37,7 +37,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %s struct {", lowcaseServName)
-	p("  host string")
+	p("  endpoint string")
 	p("  httpClient http.Client")
 	p("}")
 	p("")
@@ -46,7 +46,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "http"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "ioutil"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -183,7 +183,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
-	// TODO(dovs): handle deadlines?
+	// TODO(dovs): handle deadlines
 	// TODO(dovs): handle call options
 	p("// The default (false) for the other options are fine.")
 	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
@@ -192,7 +192,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("}")
 	p("")
 	// TODO(dovs): handle path parameters
-	p(`url := fmt.Sprintf("https://%%s%s", c.host)`, info.url)
+	p(`url := fmt.Sprintf("%%s%s", c.endpoint)`, info.url)
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return err")
@@ -244,7 +244,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle call options
 	// TODO(dovs): handle path parameters
 	p("// The default (false) for the other options are fine.")
-	p("marshaler := protojson.MarshalOptions{AllowPartial: true, Multiline: true, EmitUnpopulated: true}")
+	p("marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 	p("if jsonReq, err := marshaler.Marshal(req); err != nil {")
 	p("  return nil, err")
 	p("}")
@@ -256,15 +256,15 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("}")
 	p("")
 	p("httpRsp, err := client.Do(httpReq)")
-	p("defer httpRsp.Body.Close()")
 	p("if err != nil{")
 	p(" return nil, err")
-	p("} else if httpRsp.StatusCode >= 400 {")
-	p("  return nil, errors.E(nil, httpRsp.Status)")
+	p("}")
+	p("defer httpRsp.Body.Close()")
+	p("if httpRsp.StatusCode >= 400 {")
+	p("  return nil, fmt.Errorf(httpRsp.Status)")
 	p("}")
 	p("")
-	p("buf := new(bytes.Buffer)")
-	p("err = buf.ReadFrom(httpRsp.Body)")
+	p("buf, err := ioutil.ReadAll(httpRsp.Body)")
 	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
