@@ -131,35 +131,3 @@ type restClient struct {
 	httpClient http.Client
 }
 
-func (c *restClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
-	// The default (false) for the other options are fine.
-	marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}
-	if jsonReq, err := marshaler.Marshal(req); err != nil {
-		return nil, err
-	}
-
-	url := fmt.Sprintf("%s/zip", c.endpoint)
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, bytes.NewReader(jsonReq))
-	if err != nil {
-		return nil, err
-	}
-
-	httpRsp, err := client.Do(httpReq)
-	if err != nil{
-		return nil, err
-	}
-	defer httpRsp.Body.Close()
-	if httpRsp.StatusCode >= 400 {
-		return nil, fmt.Errorf(httpRsp.Status)
-	}
-
-	buf, err := ioutil.ReadAll(httpRsp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
-	rsp := &mypackagepb.Foo{}
-
-	return rsp, unmarshaler.Unmarshal(buf, rsp)
-}

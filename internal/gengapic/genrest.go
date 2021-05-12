@@ -43,7 +43,6 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("}")
 	p("")
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
-	g.genRESTMethods(serv, servName)
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
