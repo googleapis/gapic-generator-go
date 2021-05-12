@@ -127,15 +127,7 @@ func (c *gRPCClient) Close() error {
 
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type restClient struct {
-	host string
+	endpoint string
+	httpClient http.Client
 }
 
-func (c *restClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
-		return nil, err
-
-	}
-	return nil, nil
-
-}
