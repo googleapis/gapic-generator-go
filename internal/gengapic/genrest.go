@@ -186,7 +186,8 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// TODO(dovs): handle deadlines
 	// TODO(dovs): handle call options
 	p("// The default (false) for the other options are fine.")
-	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
+	p("// Field names should be lowerCamel, not snake.")
+	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
 	p("if jsonReq, err := m.Marshal(req); err != nil {")
 	p("  return err")
 	p("}")
