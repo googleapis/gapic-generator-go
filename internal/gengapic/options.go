@@ -132,7 +132,7 @@ func parseOptions(parameter *string) (*options, error) {
 					return nil, errors.E(nil, "invalid transport option: %s", t)
 				}
 			}
-			for t, _ := range transports {
+			for t := range transports {
 				opts.transports = append(opts.transports, t)
 			}
 			sort.Slice(opts.transports, func(i, j int) bool {

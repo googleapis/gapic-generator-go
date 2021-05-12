@@ -47,6 +47,8 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -186,7 +188,8 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("// The default (false) for the other options are fine.")
 	p("// Field names should be lowerCamel, not snake.")
 	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
-	p("if jsonReq, err := m.Marshal(req); err != nil {")
+	p("jsonReq, err := m.Marshal(req)")
+	p("if err != nil {")
 	p("  return err")
 	p("}")
 	p("")
@@ -197,14 +200,14 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("    return err")
 	p("}")
 	p("")
-	p("httpRsp, err := client.Do(httpReq)")
+	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
 	p(" return err")
 	p("}")
 	p("defer httpRsp.Body.Close()")
-	p("if httpRsp.StatusCode != 200 {")
+	p("if httpRsp.StatusCode != http.StatusOK {")
 	// TODO(dovs): handle this error more
-	p("  return errors.New(httpRsp.Status)")
+	p("  return fmt.Errorf(httpRsp.Status)")
 	p("}")
 	p("")
 	p("return nil")
@@ -246,7 +249,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("// The default (false) for the other options are fine.")
 	p("// TODO(dovs): handle path parameters")
 	p("marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
-	p("if jsonReq, err := marshaler.Marshal(req); err != nil {")
+	p("jsonReq, err := marshaler.Marshal(req)")
+	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
 	p("")
@@ -256,12 +260,12 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("    return nil, err")
 	p("}")
 	p("")
-	p("httpRsp, err := client.Do(httpReq)")
+	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
 	p(" return nil, err")
 	p("}")
 	p("defer httpRsp.Body.Close()")
-	p("if httpRsp.StatusCode >= 400 {")
+	p("if httpRsp.StatusCode >= http.StatusOK {")
 	// TODO(dovs): handle this error more
 	p("  return nil, fmt.Errorf(httpRsp.Status)")
 	p("}")
