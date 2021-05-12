@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/errors"
@@ -134,6 +135,9 @@ func parseOptions(parameter *string) (*options, error) {
 			for t, _ := range transports {
 				opts.transports = append(opts.transports, t)
 			}
+			sort.Slice(opts.transports, func(i, j int) bool {
+				return opts.transports[i] < opts.transports[j]
+			})
 		}
 	}
 
