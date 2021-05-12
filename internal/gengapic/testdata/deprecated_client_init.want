@@ -43,6 +43,7 @@ func (c *Client) Connection() *grpc.ClientConn {
 	return c.internalClient.Connection()
 }
 
+// Zip does some stuff.
 func (c *Client) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
 	return c.internalClient.Zip(ctx, req, opts...)
 }
@@ -134,6 +135,7 @@ type restClient struct {
 	host string
 }
 
+// Zip does some stuff.
 func (c *restClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
 	m := jsonpb.Marshaler{}
 	if jsonReq, err := m.MarshalToString(req); err != nil {
