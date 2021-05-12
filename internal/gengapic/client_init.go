@@ -239,6 +239,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		return err
 	}
 
+	// Generate method documentation just before any method is generated.
 	g.methodDoc(m)
 
 	if m.GetOutputType() == emptyType {
