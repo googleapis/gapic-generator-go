@@ -57,9 +57,6 @@ type generator struct {
 	// Auxiliary types to be generated in the package
 	aux *auxTypes
 
-	// Release level that defaults to GA/nothing
-	relLvl string
-
 	// The Go module prefix to strip from the go-gapic-package
 	// used as the generated file name.
 	modulePrefix string
