@@ -136,7 +136,6 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 	}
 
 	if m.GetOutputType() == emptyType {
-		// TODO(dovs)
 		return g.emptyUnaryRESTCall(servName, m)
 	}
 
@@ -199,10 +198,11 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("}")
 	p("")
 	p("httpRsp, err := client.Do(httpReq)")
-	p("defer httpRsp.Body.Close()")
 	p("if err != nil{")
 	p(" return err")
-	p("} else if httpRsp.StatusCode >= 400 {")
+	p("}")
+	p("defer httpRsp.Body.Close()")
+	p("if httpRsp.StatusCode != 200 {")
 	// TODO(dovs): handle this error more
 	p("  return errors.New(httpRsp.Status)")
 	p("}")
@@ -243,8 +243,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle call options
-	// TODO(dovs): handle path parameters
 	p("// The default (false) for the other options are fine.")
+	p("// TODO(dovs): handle path parameters")
 	p("marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 	p("if jsonReq, err := marshaler.Marshal(req); err != nil {")
 	p("  return nil, err")
