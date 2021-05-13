@@ -52,6 +52,7 @@ func (c *FooClient) Connection() *grpc.ClientConn {
 	return c.internalClient.Connection()
 }
 
+// Zip does some stuff.
 func (c *FooClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*ZipOperation, error) {
 	return c.internalClient.Zip(ctx, req, opts...)
 }

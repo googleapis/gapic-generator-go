@@ -239,6 +239,9 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		return err
 	}
 
+	// Generate method documentation just before any method is generated.
+	g.methodDoc(m)
+
 	if m.GetOutputType() == emptyType {
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 			clientTypeName, m.GetName(), inSpec.Name, inType.GetName())
