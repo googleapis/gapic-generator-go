@@ -34,16 +34,13 @@ import (
 
 var complianceClient *showcase.ComplianceClient
 
-// TestComplianceSuite ensures the REST test suite that we require GAPIC generators to pass works
-// correctly. GAPIC generators should generate GAPICs for the Showcase API and issue the unary calls
-// defined in the test suite using the GAPIC surface. The generators' test should follow the
-// high-level logic below, as described in the comments.
+// TestComplianceSuite is used to ensure the REST transport for the GAPIC client emitted by this
+// generator for the Showcase API works correctly. It depends on complianceClient having been
+// already initialized to be REST client.
 func TestComplianceSuite(t *testing.T) {
-	defer check(t) // ???
+	defer check(t)
 	type method func(ctx context.Context, req *genprotopb.RepeatRequest, opts ...gax.CallOption) (*genprotopb.RepeatResponse, error)
 
-	// Set handlers for each test case. When GAPIC generator tests do this, they should have
-	// each of their handlers invoking the correct GAPIC library method for the Showcase API.
 	restRPCs := map[string]method{
 		"Compliance.RepeatDataBody":                 complianceClient.RepeatDataBody,
 		"Compliance.RepeatDataBodyInfo":             complianceClient.RepeatDataBodyInfo,
@@ -86,6 +83,8 @@ func TestComplianceSuite(t *testing.T) {
 	}
 }
 
+// getComplianceSuite returns the ComplianceSuite read and parsed from the appropriate location
+// (current directory if available, otherwise the module path).
 func getComplianceSuite() (*genprotopb.ComplianceSuite, error) {
 	filePath, err := getComplianceSuiteFile()
 	if err != nil {
