@@ -47,8 +47,8 @@ test function: `defer check(t)`.
 ### Updating the Showcase version
 
 To update the version of Showcase referenced for artifact retrieval, change the
-`VERSION` variable in `showcase.bash`. It is also good practice to update the
-`go.mod` to this version.
+`SHOWCASE_SEMVER` variable in `showcase.bash`, and the `showcaseSemver` in
+`main_test.go`. It is also good practice to update the `go.mod` to this version.
 
 ### Cleaning up after the tests
 
