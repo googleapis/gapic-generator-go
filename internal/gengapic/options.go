@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/errors"
@@ -119,16 +120,24 @@ func parseOptions(parameter *string) (*options, error) {
 		case "release-level":
 			opts.relLvl = strings.ToLower(val)
 		case "transport":
+			// Prevent duplicates
+			transports := map[transport]bool{}
 			for _, t := range strings.Split(val, "+") {
 				switch t {
 				case "grpc":
-					opts.transports = append(opts.transports, grpc)
+					transports[grpc] = true
 				case "rest":
-					opts.transports = append(opts.transports, rest)
+					transports[rest] = true
 				default:
 					return nil, errors.E(nil, "invalid transport option: %s", t)
 				}
 			}
+			for t := range transports {
+				opts.transports = append(opts.transports, t)
+			}
+			sort.Slice(opts.transports, func(i, j int) bool {
+				return opts.transports[i] < opts.transports[j]
+			})
 		}
 	}
 
