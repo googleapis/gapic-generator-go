@@ -24,6 +24,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/google/go-cmp/cmp"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	genprotopb "github.com/googleapis/gapic-showcase/server/genproto"
 	gax "github.com/googleapis/gax-go/v2"
@@ -51,25 +53,37 @@ func TestComplianceSuite(t *testing.T) {
 		"Compliance.RepeatDataPathTrailingResource": complianceClient.RepeatDataPathTrailingResource,
 	}
 
-	_ = restRPCs
-	/*
-		        see if suite file exists in pwd; if not, copy it  from
-		         `go env GOMODCACHE`/github.com/googleapis/gapic-showcase@v0.15.0/schema/google/showcase/v1beta1/compliance_suite.json
-		(or .../server/services/compliance_suite.json since that symlink does not seem to exist
-		)
-		       then open the file
-	*/
-
 	suite, err := getComplianceSuite()
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	_ = suite
-	//	t.Errorf("*** path is: %s", reflect.TypeOf(showcase.ComplianceClient{}).PkgPath())
 
-	// exec, _ := os.Executable()
-	// t.Errorf("*** executable is at: %s", exec)
+	for _, group := range suite.GetGroup() {
+		rpcsToTest := group.GetRpcs()
+		for requestIdx, requestProto := range group.GetRequests() {
+			for rpcIdx, rpcName := range rpcsToTest {
+				errorPrefix := fmt.Sprintf("[request %d/%q: rpc %q/%d/%q]",
+					requestIdx, requestProto.GetName(), group.Name, rpcIdx, rpcName)
 
+				// Ensure that we issue only the RPCs the test suite is expecting.
+				method, ok := restRPCs[rpcName]
+				if !ok {
+					t.Errorf("%s could not find client library method for this RPC", errorPrefix)
+					continue
+				}
+
+				response, err := method(context.Background(), requestProto)
+				if err != nil {
+					t.Errorf("%s error: %s", errorPrefix, err)
+				}
+				// Check for expected response.
+				if diff := cmp.Diff(response.GetInfo(), requestProto.GetInfo(), cmp.Comparer(proto.Equal)); diff != "" {
+					t.Errorf("%s unexpected response: got=-, want=+:%s\n------------------------------\n",
+						errorPrefix, diff)
+				}
+			}
+		}
+	}
 }
 
 func getComplianceSuite() (*genprotopb.ComplianceSuite, error) {
@@ -102,6 +116,7 @@ func getComplianceSuiteFile() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("could not determine current directory: %s", err)
 	}
+
 	filePath := path.Join(currentDir, fileName)
 	if _, err := os.Stat(filePath); err == nil {
 		return filePath, nil
@@ -116,7 +131,7 @@ func getComplianceSuiteFile() (string, error) {
 
 	filePath = path.Join(strings.TrimSpace(string(output)), pathInShowcase)
 	if _, err := os.Stat(filePath); err != nil {
-		return "", fmt.Errorf("could not determine location of %q; output: %s", fileName, err)
+		return "", fmt.Errorf("could not determine location of %q; %s", fileName, err)
 	}
 
 	return filePath, nil

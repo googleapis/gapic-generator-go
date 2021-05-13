@@ -68,6 +68,7 @@ func TestMain(m *testing.M) {
 	}
 	defer sequenceClient.Close()
 
+	// TODO: Change to use REST client: complianceClient, err = showcase.NewComplianceRESTClient(ctx, opt)
 	complianceClient, err = showcase.NewComplianceClient(ctx, opt)
 	if err != nil {
 		log.Fatal(err)
