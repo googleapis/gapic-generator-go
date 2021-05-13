@@ -61,7 +61,7 @@ go mod edit -replace=github.com/googleapis/gapic-showcase=./gen/github.com/googl
 
 curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER-$hostos-$hostarch.tar.gz | tar xz
 curl -sSL -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/compliance_suite.json
-ls -la 
+
 ./gapic-showcase run &
 showcase_pid=$!
 

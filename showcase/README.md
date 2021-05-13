@@ -8,8 +8,8 @@ gapic-generator-go, as well as the script used to setup and execute them.
 The tests can be run out-of-the-box in the normal `go test` fashion, so long as
 there is a `gapic-showcase` server already running locally. This does not test
 the Showcase client generated with the locally installed generator - it would
-use the released version of the GAPIC. Running `make test` will execute the
-tests against the locally installed generator.
+use the released version of the GAPIC. Running `make test` (from the repository
+root) will execute the tests against the locally installed generator.
 
 To test the local generator, use the `showcase.bash` script. It does the
 following:
@@ -19,9 +19,9 @@ These are the compiled proto descriptor set, the retry configuration, and a
 pre-compiled server binary.
 
 1. Using protoc and the retrieved artifacts as input, the Go protobuf/gRPC
-bindings, and the Go GAPIC are generated, the latter with the
-**locally installed** gapic-generator-go. Make sure to `make install` so that
-any new changes are utilized during generation.
+bindings, and the Go GAPIC are generated, the latter with the **locally
+installed** gapic-generator-go. Make sure to `make install` (from the repository
+root) so that any new changes are utilized during generation.
 
 1. The submodule's `go.mod` is temporarily edited to replace the remote
 dependency on `github.com/googleapis/gapic-showcase` with the locally generated
