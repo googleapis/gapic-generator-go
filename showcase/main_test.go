@@ -37,6 +37,8 @@ func init() {
 	registerIgnoreGoroutine("google.golang.org/grpc.(*addrConn).connect")
 }
 
+const showcaseSemver = "0.15.0"
+
 func TestMain(m *testing.M) {
 	flag.Parse()
 
@@ -65,6 +67,14 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	defer sequenceClient.Close()
+
+	// TODO: Change to use REST client once the constructor is in place:
+	//  complianceClient, err = showcase.NewComplianceRESTClient(ctx, opt)
+	complianceClient, err = showcase.NewComplianceClient(ctx, opt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer complianceClient.Close()
 
 	os.Exit(m.Run())
 }
