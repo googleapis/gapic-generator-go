@@ -11,6 +11,8 @@ func ExampleNewFooClient() {
 }
 
 func ExampleFooClient_GetEmptyThing() {
+	// import mypackagepb "mypackage"
+
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
@@ -351,6 +353,8 @@ func ExampleFooClient_GetOperation() {
 }
 
 func ExampleFooClient_DeleteOperation() {
+	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
+
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
@@ -368,6 +372,8 @@ func ExampleFooClient_DeleteOperation() {
 }
 
 func ExampleFooClient_CancelOperation() {
+	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
+
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
