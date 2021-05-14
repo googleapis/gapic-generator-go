@@ -32,7 +32,6 @@ func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, serv
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
-		g.methodDoc(m)
 		if err := g.genGRPCMethod(servName, serv, m); err != nil {
 			return errors.E(err, "method: %s", m.GetName())
 		}

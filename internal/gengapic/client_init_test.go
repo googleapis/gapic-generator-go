@@ -376,7 +376,8 @@ func TestClientInit(t *testing.T) {
 		}
 		g.init(&request)
 		g.comments = map[proto.Message]string{
-			tst.serv: "Foo service does stuff.",
+			tst.serv:                "Foo service does stuff.",
+			tst.serv.GetMethod()[0]: "Does some stuff.",
 		}
 		g.mixins = tst.mixins
 		g.serviceConfig = &serviceconfig.Service{
