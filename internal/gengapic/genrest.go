@@ -132,9 +132,8 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
 // If the generated method requires an auxiliary type, it is added to aux.
 func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	if g.isLRO(m) {
-		// TODO(dovs
 		g.aux.lros[m] = true
-		return nil
+		return g.lroRESTCall(servName, m)
 	}
 
 	if m.GetOutputType() == emptyType {
@@ -144,21 +143,150 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 	if pf, err := g.pagingField(m); err != nil {
 		return err
 	} else if pf != nil {
-		// TODO(dovs)
-		return nil
+		iter, err := g.iterTypeOf(pf)
+		if err != nil {
+			return err
+		}
+
+		return g.pagingRESTCall(servName, m, pf, iter)
 	}
 
 	switch {
 	case m.GetClientStreaming():
-		// TODO(dovs)
-		return nil
+		return g.noRequestStreamRESTCall(servName, serv, m)
 	case m.GetServerStreaming():
-		// TODO(dovs)
-		return nil
+		return g.serverStreamRESTCall(servName, serv, m)
 	default:
-		// TODO(dovs)
 		return g.unaryRESTCall(servName, m)
 	}
+}
+
+func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+	// Streaming calls will most likely NEVER be supported for REST clients,
+	// but the interface signature must be preserved.
+	// Making sure not to call streaming methods on a REST client, or checking for
+	// errors in a situation with mixed gRPC and REST clients, is left to user code.
+
+	inType := g.descInfo.Type[*m.InputType]
+
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+	g.imports[inSpec] = true
+
+	servSpec, err := g.descInfo.ImportSpec(s)
+	if err != nil {
+		return err
+	}
+	g.imports[servSpec] = true
+
+	p := g.printf
+	lowcaseServName := lowcaseRestClientName(servName)
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
+	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
+	p("  return resp, fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p("}")
+	p("")
+
+	return nil
+}
+
+func (g *generator) noRequestStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+	// Streaming calls will most likely NEVER be supported for REST clients,
+	// but the interface signature must be preserved.
+	// Making sure not to call streaming methods on a REST client, or checking for
+	// errors in a situation with mixed gRPC and REST clients, is left to user code.
+
+	p := g.printf
+
+	servSpec, err := g.descInfo.ImportSpec(s)
+	if err != nil {
+		return err
+	}
+	g.imports[servSpec] = true
+
+	lowcaseServName := lowcaseRestClientName(servName)
+
+	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
+		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
+	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
+	p("  return resp, fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p("}")
+	p("")
+
+	return nil
+}
+
+func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt *iterType) error {
+	lowcaseServName := lowcaseRestClientName(servName)
+	p := g.printf
+
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	// outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
+
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	// outSpec, err := g.descInfo.ImportSpec(outType)
+	// if err != nil {
+	// 	return err
+	// }
+
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
+	p("it := &%s{}", pt.iterTypeName)
+	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
+	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
+	p("return nil, \"\", fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p("}")
+	p("")
+	p("fetch := func(pageSize int, pageToken string) (string, error) {")
+	p("  items, nextPageToken, err := it.InternalFetch(pageSize, pageToken)")
+	p("  if err != nil {")
+	p("    return \"\", err")
+	p("  }")
+	p("  it.items = append(it.items, items...)")
+	p("  return nextPageToken, nil")
+	p("}")
+	p("")
+	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
+	p("it.pageInfo.MaxSize = int(req.GetPageSize())")
+	p("it.pageInfo.Token = req.GetPageToken()")
+	p("")
+	p("return it")
+	p("}")
+
+	return nil
+}
+
+func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	lowcaseServName := lowcaseRestClientName(servName)
+	p := g.printf
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	// outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
+
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	// outSpec, err := g.descInfo.ImportSpec(outType)
+	// if err != nil {
+	// 	return err
+	// }
+
+	lroType := lroTypeName(m.GetName())
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+	p("    return nil, fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p("}")
+	p("")
+
+	return nil
 }
 
 func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
