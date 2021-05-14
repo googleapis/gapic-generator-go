@@ -1,13 +1,14 @@
 ---
 name: Generator dependency management
 on:
-  push:
-    paths:
-      - go.mod
-      - go.sum
+  # push:
+  #   paths:
+  #     - go.mod
+  #     - go.sum
+  pull_request:
 jobs:
   update-bazel-deps:
-    if: github.ref == 'refs/heads/master'
+    # if: github.ref == 'refs/heads/master'
     outputs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
@@ -46,7 +47,7 @@ jobs:
     - name: Expand repositories archive
       run: |
         tar xvzf repos.tgz
-        rm repose.tgz
+        rm repos.tgz
     - uses: googleapis/code-suggester@v2
       env:
         ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}  
