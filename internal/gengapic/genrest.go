@@ -167,7 +167,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	// Making sure not to call streaming methods on a REST client, or checking for
 	// errors in a situation with mixed gRPC and REST clients, is left to user code.
 
-	inType := g.descInfo.Type[*m.InputType]
+	inType := g.descInfo.Type[m.GetInputType()]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
@@ -185,8 +185,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
-	p("  return resp, fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p(`  return nil, fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
 
@@ -211,8 +210,7 @@ func (g *generator) noRequestStreamRESTCall(servName string, s *descriptor.Servi
 
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
-	p("  return resp, fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p(`  return nil, fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
 
@@ -241,13 +239,13 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	p("return nil, \"\", fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p(`return nil, "", fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")
 	p("  items, nextPageToken, err := it.InternalFetch(pageSize, pageToken)")
 	p("  if err != nil {")
-	p("    return \"\", err")
+	p(`    return "", err`)
 	p("  }")
 	p("  it.items = append(it.items, items...)")
 	p("  return nextPageToken, nil")
@@ -282,7 +280,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	lroType := lroTypeName(m.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
-	p("    return nil, fmt.Errorf(\"%s not yet supported for REST clients\")", m.GetName())
+	p(`    return nil, fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
 
