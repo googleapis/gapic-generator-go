@@ -162,10 +162,9 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 }
 
 func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
-	// Streaming calls will most likely NEVER be supported for REST clients,
+	// Streaming calls are not currently supported for REST clients,
 	// but the interface signature must be preserved.
-	// Making sure not to call streaming methods on a REST client, or checking for
-	// errors in a situation with mixed gRPC and REST clients, is left to user code.
+	// Unimplemented REST methods will always error.
 
 	inType := g.descInfo.Type[m.GetInputType()]
 
@@ -193,10 +192,9 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 }
 
 func (g *generator) noRequestStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
-	// Streaming calls will most likely NEVER be supported for REST clients,
+	// Streaming calls are not currently supported for REST clients,
 	// but the interface signature must be preserved.
-	// Making sure not to call streaming methods on a REST client, or checking for
-	// errors in a situation with mixed gRPC and REST clients, is left to user code.
+	// Unimplemented REST methods will always error.
 
 	p := g.printf
 
