@@ -79,17 +79,11 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	g.imports[inSpec] = true
 
 	p("func Example%sClient_%s() {", servName, m.GetName())
-	p("// import %s \"%s\"", inSpec.Name, inSpec.Path)
 
 	pf, err := g.pagingField(m)
 	if err != nil {
 		return err
 	}
-
-	if pf != nil {
-		p("// import \"google.golang.org/api/iterator\"")
-	}
-	p("")
 
 	g.exampleInitClient(pkgName, servName)
 
