@@ -10,6 +10,8 @@ type internalClient interface {
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 //
 // Foo service does stuff.
+//
+// Deprecated: Foo may be removed in a future version.
 type Client struct {
 	// The internal transport-dependent client.
 	internalClient internalClient
@@ -67,9 +69,10 @@ type gRPCClient struct {
 }
 
 // NewClient creates a new foo client based on gRPC.
-// The returned client must be Closed when it is done being used to clean up its underlying connections.
 //
 // Foo service does stuff.
+//
+// Deprecated: Foo may be removed in a future version.
 func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := defaultGRPCClientOptions()
 	if newClientHook != nil {

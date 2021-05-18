@@ -4,6 +4,8 @@ func ExampleNewFooClient() {
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
+
 	// TODO: Use client.
 	_ = c
 }
@@ -14,6 +16,7 @@ func ExampleFooClient_GetEmptyThing() {
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -25,13 +28,12 @@ func ExampleFooClient_GetEmptyThing() {
 }
 
 func ExampleFooClient_GetOneThing() {
-	// import mypackagepb "mypackage"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -45,13 +47,12 @@ func ExampleFooClient_GetOneThing() {
 }
 
 func ExampleFooClient_GetBigThing() {
-	// import mypackagepb "mypackage"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -70,14 +71,12 @@ func ExampleFooClient_GetBigThing() {
 }
 
 func ExampleFooClient_GetManyThings() {
-	// import mypackagepb "mypackage"
-	// import "google.golang.org/api/iterator"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &mypackagepb.PageInputType{
 		// TODO: Fill request struct fields.
@@ -97,13 +96,12 @@ func ExampleFooClient_GetManyThings() {
 }
 
 func ExampleFooClient_BidiThings() {
-	// import mypackagepb "mypackage"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 	stream, err := c.BidiThings(ctx)
 	if err != nil {
 		// TODO: Handle error.
@@ -133,13 +131,12 @@ func ExampleFooClient_BidiThings() {
 }
 
 func ExampleFooClient_EmptyLRO() {
-	// import mypackagepb "mypackage"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -156,13 +153,12 @@ func ExampleFooClient_EmptyLRO() {
 }
 
 func ExampleFooClient_RespLRO() {
-	// import mypackagepb "mypackage"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
@@ -181,14 +177,12 @@ func ExampleFooClient_RespLRO() {
 }
 
 func ExampleFooClient_ListLocations() {
-	// import locationpb "google.golang.org/genproto/googleapis/cloud/location"
-	// import "google.golang.org/api/iterator"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &locationpb.ListLocationsRequest{
 		// TODO: Fill request struct fields.
@@ -208,13 +202,12 @@ func ExampleFooClient_ListLocations() {
 }
 
 func ExampleFooClient_GetLocation() {
-	// import locationpb "google.golang.org/genproto/googleapis/cloud/location"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &locationpb.GetLocationRequest{
 		// TODO: Fill request struct fields.
@@ -228,13 +221,12 @@ func ExampleFooClient_GetLocation() {
 }
 
 func ExampleFooClient_SetIamPolicy() {
-	// import iampb "google.golang.org/genproto/googleapis/iam/v1"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &iampb.SetIamPolicyRequest{
 		// TODO: Fill request struct fields.
@@ -248,13 +240,12 @@ func ExampleFooClient_SetIamPolicy() {
 }
 
 func ExampleFooClient_GetIamPolicy() {
-	// import iampb "google.golang.org/genproto/googleapis/iam/v1"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &iampb.GetIamPolicyRequest{
 		// TODO: Fill request struct fields.
@@ -268,13 +259,12 @@ func ExampleFooClient_GetIamPolicy() {
 }
 
 func ExampleFooClient_TestIamPermissions() {
-	// import iampb "google.golang.org/genproto/googleapis/iam/v1"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &iampb.TestIamPermissionsRequest{
 		// TODO: Fill request struct fields.
@@ -288,14 +278,12 @@ func ExampleFooClient_TestIamPermissions() {
 }
 
 func ExampleFooClient_ListOperations() {
-	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
-	// import "google.golang.org/api/iterator"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &longrunningpb.ListOperationsRequest{
 		// TODO: Fill request struct fields.
@@ -315,13 +303,12 @@ func ExampleFooClient_ListOperations() {
 }
 
 func ExampleFooClient_GetOperation() {
-	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &longrunningpb.GetOperationRequest{
 		// TODO: Fill request struct fields.
@@ -340,6 +327,7 @@ func ExampleFooClient_DeleteOperation() {
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &longrunningpb.DeleteOperationRequest{
 		// TODO: Fill request struct fields.
@@ -356,6 +344,7 @@ func ExampleFooClient_CancelOperation() {
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &longrunningpb.CancelOperationRequest{
 		// TODO: Fill request struct fields.
@@ -367,13 +356,12 @@ func ExampleFooClient_CancelOperation() {
 }
 
 func ExampleFooClient_WaitOperation() {
-	// import longrunningpb "google.golang.org/genproto/googleapis/longrunning"
-
 	ctx := context.Background()
 	c, err := Bar.NewFooClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
+	defer c.Close()
 
 	req := &longrunningpb.WaitOperationRequest{
 		// TODO: Fill request struct fields.

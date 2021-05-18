@@ -47,7 +47,7 @@ func TestDocFile(t *testing.T) {
 			want:   filepath.Join("testdata", "doc_file_beta.want"),
 		},
 	} {
-		g.relLvl = tst.relLvl
+		g.opts.relLvl = tst.relLvl
 		g.genDocFile(42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
 		txtdiff.Diff(t, "doc_file", g.pt.String(), tst.want)
 		g.reset()

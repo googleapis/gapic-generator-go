@@ -203,6 +203,59 @@ func TestClientOpt(t *testing.T) {
 	}
 }
 
+func TestServiceDoc(t *testing.T) {
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("MyService"),
+	}
+
+	var g generator
+	g.comments = make(map[proto.Message]string)
+
+	for _, tst := range []struct {
+		in, want   string
+		deprecated bool
+	}{
+		{
+			in:   "",
+			want: "",
+		},
+		{
+			in:   "Does stuff.\n It also does other stuffs.",
+			want: "//\n// Does stuff.\n// It also does other stuffs.\n",
+		},
+		{
+			in:         "This is deprecated.\n It does not have a proper comment.",
+			want:       "//\n// This is deprecated.\n// It does not have a proper comment.\n//\n// Deprecated: MyService may be removed in a future version.\n",
+			deprecated: true,
+		},
+		{
+			in:         "Deprecated: this is a proper deprecation notice.",
+			want:       "//\n// MyService is deprecated.\n//\n// Deprecated: this is a proper deprecation notice.\n",
+			deprecated: true,
+		},
+		{
+			in:         "Does my thing.\nDeprecated: this is a proper deprecation notice.",
+			want:       "//\n// Does my thing.\n// Deprecated: this is a proper deprecation notice.\n",
+			deprecated: true,
+		},
+		{
+			in:         "",
+			want:       "//\n// MyService is deprecated.\n//\n// Deprecated: MyService may be removed in a future version.\n",
+			deprecated: true,
+		},
+	} {
+		g.comments[serv] = tst.in
+		serv.Options = &descriptor.ServiceOptions{
+			Deprecated: proto.Bool(tst.deprecated),
+		}
+		g.pt.Reset()
+		g.serviceDoc(serv)
+		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
+			t.Errorf("comment() got(-),want(+):\n%s", diff)
+		}
+	}
+}
+
 func TestClientInit(t *testing.T) {
 	var g generator
 	g.apiName = "Awesome Foo API"
@@ -219,6 +272,15 @@ func TestClientInit(t *testing.T) {
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
 			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".google.longrunning.Operation")},
+		},
+	}
+	servDeprecated := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+		Method: []*descriptor.MethodDescriptorProto{
+			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".mypackage.Foo")},
+		},
+		Options: &descriptor.ServiceOptions{
+			Deprecated: proto.Bool(true),
 		},
 	}
 	for _, tst := range []struct {
@@ -263,107 +325,36 @@ func TestClientInit(t *testing.T) {
 			serv:      servLRO,
 			parameter: proto.String("go-gapic-package=path;mypackage"),
 		},
+		{
+			tstName:   "deprecated_client_init",
+			servName:  "",
+			serv:      servDeprecated,
+			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
+		},
 	} {
+		fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
+			Package: proto.String("mypackage"),
+			Options: &descriptor.FileOptions{
+				GoPackage: proto.String("mypackage"),
+			},
+			Service: []*descriptor.ServiceDescriptorProto{tst.serv},
+			MessageType: []*descriptor.DescriptorProto{
+				{
+					Name: proto.String("Bar"),
+				},
+				{
+					Name: proto.String("Foo"),
+				},
+			},
+		})
 		request := plugin.CodeGeneratorRequest{
 			Parameter: tst.parameter,
-			ProtoFile: []*descriptor.FileDescriptorProto{
-				&descriptor.FileDescriptorProto{
-					Package: proto.String("mypackage"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("mypackage"),
-					},
-					Service: []*descriptor.ServiceDescriptorProto{tst.serv},
-					MessageType: []*descriptor.DescriptorProto{
-						&descriptor.DescriptorProto{
-							Name: proto.String("Bar"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("Foo"),
-						},
-					},
-				},
-				&descriptor.FileDescriptorProto{
-					Package: proto.String("google.longrunning"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.golang.org/genproto/googleapis/longrunning;longrunning"),
-					},
-					MessageType: []*descriptor.DescriptorProto{
-						&descriptor.DescriptorProto{
-							Name: proto.String("Operation"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("GetOperationRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("DeleteOperationRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("WaitOperationRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("ListOperationsRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("ListOperationsResponse"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("CancelOperationRequest"),
-						},
-					},
-				},
-				&descriptor.FileDescriptorProto{
-					Package: proto.String("google.cloud.location"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.golang.org/genproto/googleapis/cloud/location;location"),
-					},
-					MessageType: []*descriptor.DescriptorProto{
-						&descriptor.DescriptorProto{
-							Name: proto.String("ListLocationsRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("ListLocationsResponse"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("Location"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("GetLocationRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("GetLocationResponse"),
-						},
-					},
-				},
-				&descriptor.FileDescriptorProto{
-					Package: proto.String("google.iam.v1"),
-					Options: &descriptor.FileOptions{
-						GoPackage: proto.String("google.golang.org/genproto/googleapis/iam/v1;iam"),
-					},
-					MessageType: []*descriptor.DescriptorProto{
-						&descriptor.DescriptorProto{
-							Name: proto.String("Policy"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("TestIamPermissionsRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("TestIamPermissionsResponse"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("SetIamPolicyRequest"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("SetIamPolicyResponse"),
-						},
-						&descriptor.DescriptorProto{
-							Name: proto.String("GetIamPolicyRequest"),
-						},
-					},
-				},
-			}}
+			ProtoFile: fds,
+		}
 		g.init(&request)
 		g.comments = map[proto.Message]string{
-			tst.serv: "Foo service does stuff.",
+			tst.serv:                "Foo service does stuff.",
+			tst.serv.GetMethod()[0]: "Does some stuff.",
 		}
 		g.mixins = tst.mixins
 		g.serviceConfig = &serviceconfig.Service{
@@ -404,4 +395,13 @@ func TestGenerateDefaultAudience(t *testing.T) {
 			}
 		})
 	}
+}
+
+// mixinDescriptors is used for testing purposes only.
+func mixinDescriptors() []*descriptor.FileDescriptorProto {
+	files := []*descriptor.FileDescriptorProto{}
+	for _, fds := range mixinFiles {
+		files = append(files, fds...)
+	}
+	return files
 }

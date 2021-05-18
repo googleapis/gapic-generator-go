@@ -30,6 +30,7 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 
 	p("func ExampleNew%sClient() {", servName)
 	g.exampleInitClient(pkgName, servName)
+	p("")
 	p("  // TODO: Use client.")
 	p("  _ = c")
 	p("}")
@@ -54,6 +55,7 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
+	p("defer c.Close()")
 }
 
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
@@ -81,18 +83,6 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	pf, err := g.pagingField(m)
 	if err != nil {
 		return err
-	}
-
-	if *m.OutputType != emptyType {
-		p("// import %s \"%s\"", inSpec.Name, inSpec.Path)
-		if pf == nil {
-			p("")
-		}
-	}
-
-	if pf != nil {
-		p("// import \"google.golang.org/api/iterator\"")
-		p("")
 	}
 
 	g.exampleInitClient(pkgName, servName)
