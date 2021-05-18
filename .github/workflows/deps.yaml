@@ -46,7 +46,7 @@ jobs:
     - name: Expand repositories archive
       run: |
         tar xvzf repos.tgz
-        rm repose.tgz
+        rm repos.tgz
     - uses: googleapis/code-suggester@v2
       env:
         ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}  
