@@ -228,18 +228,32 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			seen[field] = true
 
 			accessor := fmt.Sprintf("req%s", buildAccessor(field))
-			typ := g.lookupFieldType(m.GetInputType(), field)
+			f := g.lookupField(m.GetInputType(), field)
 
 			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
-			if typ == descriptor.FieldDescriptorProto_TYPE_STRING {
+			switch f.GetType() {
+			case descriptor.FieldDescriptorProto_TYPE_STRING:
 				accessor = fmt.Sprintf("url.QueryEscape(%s)", accessor)
-			} else if typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE || typ == descriptor.FieldDescriptorProto_TYPE_FLOAT {
+			case descriptor.FieldDescriptorProto_TYPE_DOUBLE:
+				// Double and float are handled the same way.
+				fallthrough
+			case descriptor.FieldDescriptorProto_TYPE_FLOAT:
 				// Format the floating point value with mode 'g' to allow for
 				// exponent formatting when necessary, and decimal when adequate.
 				// QueryEscape the resulting string in case there is a '+' in the
 				// exponent.
 				// See golang.org/pkg/fmt for more information on formatting.
 				accessor = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
+			case descriptor.FieldDescriptorProto_TYPE_ENUM:
+				en := g.descInfo.Type[f.GetTypeName()]
+
+				n, imp, err := g.descInfo.NameSpec(en)
+				if err != nil {
+					return err
+				}
+				g.imports[imp] = true
+
+				accessor = fmt.Sprintf("%s.%s_name[%s]", imp.Name, n, accessor)
 			}
 
 			// URL encode key & values separately per aip.dev/4222.
@@ -274,8 +288,8 @@ func buildAccessor(field string) string {
 	return ax.String()
 }
 
-func (g *generator) lookupFieldType(msgName, field string) descriptor.FieldDescriptorProto_Type {
-	var typ descriptor.FieldDescriptorProto_Type
+func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescriptorProto {
+	var typ *descriptor.FieldDescriptorProto
 	msg := g.descInfo.Type[msgName]
 	msgProto := msg.(*descriptor.DescriptorProto)
 	msgFields := msgProto.GetField()
@@ -286,11 +300,11 @@ func (g *generator) lookupFieldType(msgName, field string) descriptor.FieldDescr
 		// found, continuing if the field is a nested message.
 		for _, f := range msgFields {
 			if f.GetName() == seg {
-				typ = f.GetType()
+				typ = f
 
 				// Search the nested message for the next segment of the
 				// nested field chain.
-				if typ == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				if f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
 					msg = g.descInfo.Type[f.GetTypeName()]
 					msgProto = msg.(*descriptor.DescriptorProto)
 					msgFields = msgProto.GetField()
