@@ -253,6 +253,11 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 				}
 				g.imports[imp] = true
 
+				// protobuf Go generates a mapping from number to string
+				// representation of an enum, in UPPER_SNAKE_CASE form. The map
+				// is named with the enum name and the _name suffix. If it is a
+				// nested enum, the name is prefixed with the parent message name.
+				// For example, Severity_name or Error_Severity_name.
 				accessor = fmt.Sprintf("%s.%s_name[%s]", imp.Name, n, accessor)
 			}
 
@@ -262,6 +267,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			fmt.Fprintf(&values, " %q, %s,", url.QueryEscape(field), accessor)
 			formats.WriteString("%s=%v&")
 		}
+		// Trim the trailing comma and ampersand symbols.
 		f := formats.String()[:formats.Len()-1]
 		v := values.String()[:values.Len()-1]
 
