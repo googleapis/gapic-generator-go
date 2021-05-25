@@ -133,7 +133,50 @@ func (c *gRPCClient) Close() error {
 
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type restClient struct {
+	// The http endpoint to connect to.
 	endpoint string
-	httpClient http.Client
+
+	// The http client.
+	httpClient *http.Client
+
+	// The x-goog-* metadata to be sent with each request.
+	xGoogMetadata metadata.MD
 }
 
+// NewRESTClient creates a new foo rest client.
+//
+// Foo service does stuff.
+//
+// Deprecated: Foo may be removed in a future version.
+func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
+	clientOpts := defaultRESTClientOptions()
+	httpClient, endpoint, err := httptransport.NewClient(ctx, append(clientOpts, opts...)...)
+	if err != nil {
+		return nil, err
+	}
+
+	c := &restClient{
+		endpoint: endpoint,
+		httpClient: httpClient,
+	}
+	c.setGoogleClientInfo()
+
+	return &Client{internalClient: c, CallOptions: defaultCallOptions()}, nil
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *restClient) setGoogleClientInfo(keyval ...string) {
+	kv := append([]string{"gl-go", versionGo()}, keyval...)
+	kv = append(kv, "gapic", versionClient, "gax", gax.Version, "rest", "UNKNOWN")
+	c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))
+}
+
+func (c *restClient) Close() error {
+	return nil
+}
+
+func (c *restClient) Connection() *grpc.ClientConn {
+	return nil
+}
