@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -57,6 +58,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
@@ -171,7 +173,7 @@ func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*
 	}
 
 	// Match using the curly braces but don't include them in the grouping.
-	re := regexp.MustCompile("{([[:alpha:]]+)}")
+	re := regexp.MustCompile("{([^}]+)}")
 	for _, p := range re.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
@@ -198,6 +200,10 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	// is NOT a query parameter.
 	pathParams[info.body] = nil
 	msg := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	if info.body != "" && info.body != "*" {
+		field := g.lookupField(m.GetInputType(), info.body)
+		msg = g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+	}
 
 	// If, and only if, a field is a path parameter, it's not a query parameter.
 	for _, f := range msg.Field {
@@ -207,6 +213,98 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	}
 
 	return queryParams
+}
+
+func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
+	p := g.printf
+	queryParams := g.queryParams(m)
+	if queryParams == nil {
+		return
+	}
+
+	// We want to iterate over fields in a deterministic order
+	// to prevent spurious deltas when regenerating gapics.
+	fields := make([]string, 0, len(queryParams))
+	for p, _ := range queryParams {
+		fields = append(fields, p)
+	}
+	sort.Strings(fields)
+	info, _ := getHTTPInfo(m)
+
+	bodyStr := "req"
+	if info.body != "" && info.body != "*" {
+		bodyStr = "body"
+		p("body := req.Get%s()", snakeToCamel(info.body))
+	}
+	p("queryParamStrs := []string{}")
+	// TODO(dovs): make this work for nested fields
+	for _, f := range fields {
+		field := queryParams[f]
+		f = snakeToCamel(f)
+		// Note: something very strange has happened
+		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			// It's a slice, so check for nil
+			p("if %s.Get%s() != nil {", bodyStr, f)
+		} else {
+			// Default values are type specific
+			switch field.GetType() {
+			case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+				p("if %s.Get%s() != nil {", bodyStr, f)
+			case descriptor.FieldDescriptorProto_TYPE_BYTES:
+				p("if %s.Get%s() != nil {", bodyStr, f)
+			case descriptor.FieldDescriptorProto_TYPE_STRING:
+				p(`if %s.Get%s() != "" {`, bodyStr, f)
+			case descriptor.FieldDescriptorProto_TYPE_BOOL:
+				p(`if %s.Get%s() {`, bodyStr, f)
+			default: // Handles all numeric types
+				p(`if %s.Get%s() != 0 {`, bodyStr, f)
+			}
+		}
+		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", %s.Get%s()))", lowerFirst(f), bodyStr, f)
+		p("}")
+	}
+
+	p(`query := strings.ReplaceAll(strings.Join(queryParamStrs, "&"), " ", "+")`)
+	p("")
+}
+
+func (g *generator) generateUrlString(m *descriptor.MethodDescriptorProto) error {
+	info, err := getHTTPInfo(m)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return errors.E(nil, "method has no http info: %s", m.GetName())
+	}
+
+	p := g.printf
+
+	bodyStr := "req"
+	if info.body != "" && info.body != "*" {
+		// Setting the local variable 'body' is already handled by generateQueryString
+		bodyStr = "body"
+	}
+
+	fmtStr := fmt.Sprintf("%%s%s", info.url)
+	// TODO(dovs): handle more complex path urls involving = and *,
+	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
+	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)}`)
+	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
+
+	p(`url := fmt.Sprintf("%s",`, fmtStr)
+	p("c.endpoint,")
+	// Can't just reuse pathParams because the order matters
+	for _, path := range re.FindAllStringSubmatch(info.url, -1) {
+		// In the returned slice, the zeroth element is the full regex match,
+		// and the subsequent elements are the sub group matches.
+		// See the docs for FindStringSubmatch for further details.
+		//
+		// buildAccessor handles nested fields for us.
+		p("%s%s,", bodyStr, buildAccessor(path[1]))
+	}
+	p(")")
+	p("")
+	return nil
 }
 
 func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
@@ -445,8 +543,12 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("  return err")
 	p("}")
 	p("")
-	// TODO(dovs): handle path parameters
-	p(`url := fmt.Sprintf("%%s%s", c.endpoint)`, info.url)
+	g.generateQueryString(m)
+	g.generateUrlString(m)
+	p(`if query != "" {`)
+	p(`    url += "?" + query`)
+	p("}")
+	p("")
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return err")
@@ -507,16 +609,20 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines?
-	// TODO(dovs): handle call options
-	p("// The default (false) for the other options are fine.")
-	p("// TODO(dovs): handle path parameters")
+	// TODO(dovs): handle calloptions
 	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 	p("jsonReq, err := m.Marshal(req)")
 	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
 	p("")
-	p(`url := fmt.Sprintf("%%s%s", c.endpoint)`, info.url)
+	// TOOD(dovs) reenable
+	g.generateQueryString(m)
+	g.generateUrlString(m)
+	p(`if query != "" {`)
+	p(`    url += "?" + query`)
+	p("}")
+	p("")
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return nil, err")

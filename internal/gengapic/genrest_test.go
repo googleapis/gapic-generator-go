@@ -118,7 +118,7 @@ func TestPathParams(t *testing.T) {
 			},
 		},
 		{
-			name:     "disjoin_fields_and_params",
+			name:     "disjoint_fields_and_params",
 			url:      "/kingdom/{kingdom}",
 			fields:   []string{"name", "mass_kg"},
 			expected: map[string]*descriptor.FieldDescriptorProto{},
