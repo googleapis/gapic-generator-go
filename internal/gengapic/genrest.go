@@ -58,6 +58,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -80,12 +81,13 @@ func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, s
 	p := g.printf
 
 	var host string
-	if eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost); err == nil {
-		host = *eHost.(*string)
-	} else {
+	eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
+	if err != nil {
 		fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
 		return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
 	}
+
+	host = *eHost.(*string)
 
 	p("func default%sRESTClientOptions() []option.ClientOption {", servName)
 	p("  return []option.ClientOption{")
@@ -140,11 +142,18 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("}")
 	p("")
 
+	// Close method
+	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// the client is no longer required.")
 	p("func (c *%s) Close() error {", lowcaseServName)
+	p("    c.httpClient.CloseIdleConnections()")
 	p("    return nil")
 	p("}")
 	p("")
 
+	p("// Connection returns a connection to the API service.")
+	p("//")
+	p("// Deprecated.")
 	p("func (c *%s) Connection() *grpc.ClientConn {", lowcaseServName)
 	p("    return nil")
 	p("}")
@@ -344,6 +353,17 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("}")
 	p("")
 
+	p("// %[1]s returns a new %[1]s from a given name.", lroType)
+	p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
+	p("func (c *%s) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
+	p("  return &%s{", lroType)
+	// TODO(dovs): return a non-empty and useful object
+	p("  }")
+	p("}")
+	p("")
+
+	g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+
 	return nil
 }
 
@@ -394,7 +414,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// It's a little more verbose to set here explicitly, but
 	// it's conceptually cleaner.
 	// TODO(dovs) add field headers.
-	p(`httpReq.Header["content-type"] = []string{"application/json",}`)
+	p(`httpReq.Header["Content-Type"] = []string{"application/json",}`)
 	p("")
 	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
@@ -463,7 +483,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// It's a little more verbose to set here explicitly, but
 	// it's conceptually cleaner.
 	// TODO(dovs) add field headers.
-	p(`httpReq.Header["content-type"] = []string{"application/json",}`)
+	p(`httpReq.Header["Content-Type"] = []string{"application/json",}`)
 	p("")
 	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
