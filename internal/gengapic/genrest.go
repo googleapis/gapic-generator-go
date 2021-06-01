@@ -141,11 +141,18 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("}")
 	p("")
 
+	// Close method
+	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// the client is no longer required.")
 	p("func (c *%s) Close() error {", lowcaseServName)
+	p("    c.httpClient.CloseIdleConnections()")
 	p("    return nil")
 	p("}")
 	p("")
 
+	p("// Connection returns a connection to the API service.")
+	p("//")
+	p("// Deprecated.")
 	p("func (c *%s) Connection() *grpc.ClientConn {", lowcaseServName)
 	p("    return nil")
 	p("}")
