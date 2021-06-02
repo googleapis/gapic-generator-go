@@ -295,7 +295,7 @@ func buildAccessor(field string) string {
 }
 
 func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescriptorProto {
-	var typ *descriptor.FieldDescriptorProto
+	var desc *descriptor.FieldDescriptorProto
 	msg := g.descInfo.Type[msgName]
 	msgProto := msg.(*descriptor.DescriptorProto)
 	msgFields := msgProto.GetField()
@@ -306,7 +306,7 @@ func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescript
 		// found, continuing if the field is a nested message.
 		for _, f := range msgFields {
 			if f.GetName() == seg {
-				typ = f
+				desc = f
 
 				// Search the nested message for the next segment of the
 				// nested field chain.
@@ -319,7 +319,7 @@ func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescript
 			}
 		}
 	}
-	return typ
+	return desc
 }
 
 func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
