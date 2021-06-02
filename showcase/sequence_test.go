@@ -19,12 +19,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
 	gax "github.com/googleapis/gax-go/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var sequenceClient *showcase.SequenceClient
@@ -100,19 +100,19 @@ func Test_Sequence_Retry(t *testing.T) {
 	responses := []*showcasepb.Sequence_Response{
 		{
 			Status: status.New(codes.Unavailable, "Unavailable").Proto(),
-			Delay:  ptypes.DurationProto(100 * time.Millisecond),
+			Delay:  durationpb.New(100 * time.Millisecond),
 		},
 		{
 			Status: status.New(codes.Unavailable, "Unavailable").Proto(),
-			Delay:  ptypes.DurationProto(100 * time.Millisecond),
+			Delay:  durationpb.New(100 * time.Millisecond),
 		},
 		{
 			Status: status.New(codes.Unavailable, "Unavailable").Proto(),
-			Delay:  ptypes.DurationProto(100 * time.Millisecond),
+			Delay:  durationpb.New(100 * time.Millisecond),
 		},
 		{
 			Status: status.New(codes.Unavailable, "Unavailable").Proto(),
-			Delay:  ptypes.DurationProto(100 * time.Millisecond),
+			Delay:  durationpb.New(100 * time.Millisecond),
 		},
 		{
 			Status: status.New(codes.OK, "OK").Proto(),
