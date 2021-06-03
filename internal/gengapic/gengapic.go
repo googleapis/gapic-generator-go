@@ -258,7 +258,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 				// is named with the enum name and the _name suffix. If it is a
 				// nested enum, the name is prefixed with the parent message name.
 				// For example, Severity_name or Error_Severity_name.
-				accessor = fmt.Sprintf("%s.%s_name[%s]", imp.Name, n, accessor)
+				accessor = fmt.Sprintf("%s.%s_name[int32(%s)]", imp.Name, n, accessor)
 			}
 
 			// URL encode key & values separately per aip.dev/4222.
