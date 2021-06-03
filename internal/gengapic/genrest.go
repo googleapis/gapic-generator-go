@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -38,8 +39,14 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	p("type %s struct {", lowcaseServName)
+	p("  // The http endpoint to connect to.")
 	p("  endpoint string")
-	p("  httpClient http.Client")
+	p("")
+	p("  // The http client.")
+	p("  httpClient *http.Client")
+	p("")
+	p("	// The x-goog-* metadata to be sent with each request.")
+	p("	 xGoogMetadata metadata.MD")
 	p("}")
 	p("")
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
@@ -49,6 +56,9 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
@@ -67,25 +77,86 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 	return nil
 }
 
+func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
+	p := g.printf
+
+	var host string
+	eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
+	if err != nil {
+		fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
+		return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
+	}
+
+	host = *eHost.(*string)
+
+	p("func default%sRESTClientOptions() []option.ClientOption {", servName)
+	p("  return []option.ClientOption{")
+	p("    internaloption.WithDefaultEndpoint(%q),", host)
+	p("    internaloption.WithDefaultMTLSEndpoint(%q),", generateDefaultMTLSEndpoint(host))
+	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
+	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
+	p("  }")
+	p("}")
+
+	return nil
+}
+
 func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
-	// p := g.printf
+	p := g.printf
+	lowcaseServName := lowcaseRestClientName(servName)
 
-	// clientName := camelToSnake(serv.GetName())
-	// clientName = strings.Replace(clientName, "_", " ", -1)
+	clientName := camelToSnake(serv.GetName())
+	clientName = strings.Replace(clientName, "_", " ", -1)
 
-	// NOTE(dovs): enable this function only when we can verify that it works.
-	// If we leave it commented out, we can change it, and we don't have to
-	// guarantee correctness or stability.
-	//
-	// p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
-	// g.serviceDoc(serv)
-	// p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-	// p("    c := &%s{", servName)
-	// p("    }")
-	// p("")
-	// p("    return &%sClient{internal%[1]sClient: c, CallOptions: default%[1]sCallOptions()}, nil", servName)
-	// p("}")
+	p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
+	g.serviceDoc(serv)
+	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
+	p("    clientOpts := default%sRESTClientOptions()", servName)
+	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, append(clientOpts, opts...)...)")
+	p("    if err != nil {")
+	p("        return nil, err")
+	p("    }")
+	p("")
+	p("    c := &%s{", lowcaseServName)
+	p("        endpoint: endpoint,")
+	p("        httpClient: httpClient,")
+	p("    }")
+	p("    c.setGoogleClientInfo()")
+	p("")
+	// TODO(dovs): make rest default call options
+	// TODO(dovs): set the LRO client
+	p("    return &%[1]sClient{internalClient: c, CallOptions: default%[1]sCallOptions()}, nil", servName)
+	p("}")
+	p("")
 
+	g.restClientOptions(serv, servName)
+
+	// setGoogleClientInfo method
+	p("// setGoogleClientInfo sets the name and version of the application in")
+	p("// the `x-goog-api-client` header passed on each request. Intended for")
+	p("// use by Google-written clients.")
+	p("func (c *%s) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
+	p(`  kv := append([]string{"gl-go", versionGo()}, keyval...)`)
+	p(`  kv = append(kv, "gapic", versionClient, "gax", gax.Version, "rest", "UNKNOWN")`)
+	p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
+	p("}")
+	p("")
+
+	// Close method
+	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// the client is no longer required.")
+	p("func (c *%s) Close() error {", lowcaseServName)
+	p("    c.httpClient.CloseIdleConnections()")
+	p("    return nil")
+	p("}")
+	p("")
+
+	p("// Connection returns a connection to the API service.")
+	p("//")
+	p("// Deprecated.")
+	p("func (c *%s) Connection() *grpc.ClientConn {", lowcaseServName)
+	p("    return nil")
+	p("}")
 }
 
 type httpInfo struct {
@@ -282,6 +353,17 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("}")
 	p("")
 
+	p("// %[1]s returns a new %[1]s from a given name.", lroType)
+	p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
+	p("func (c *%s) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
+	p("  return &%s{", lroType)
+	// TODO(dovs): return a non-empty and useful object
+	p("  }")
+	p("}")
+	p("")
+
+	g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+
 	return nil
 }
 
@@ -323,6 +405,16 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("if err != nil {")
 	p("    return err")
 	p("}")
+	p("")
+	p("// Set the headers")
+	p("for k, v := range c.xGoogMetadata {")
+	p("  httpReq.Header[k] = v")
+	p("}")
+	// The content type is separate from x-goog metadata.
+	// It's a little more verbose to set here explicitly, but
+	// it's conceptually cleaner.
+	// TODO(dovs) add field headers.
+	p(`httpReq.Header["Content-Type"] = []string{"application/json",}`)
 	p("")
 	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
@@ -372,8 +464,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle call options
 	p("// The default (false) for the other options are fine.")
 	p("// TODO(dovs): handle path parameters")
-	p("marshaler := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
-	p("jsonReq, err := marshaler.Marshal(req)")
+	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
+	p("jsonReq, err := m.Marshal(req)")
 	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
@@ -383,12 +475,22 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("if err != nil {")
 	p("    return nil, err")
 	p("}")
+	p("// Set the headers")
+	p("for k, v := range c.xGoogMetadata {")
+	p("  httpReq.Header[k] = v")
+	p("}")
+	// The content type is separate from x-goog metadata.
+	// It's a little more verbose to set here explicitly, but
+	// it's conceptually cleaner.
+	// TODO(dovs) add field headers.
+	p(`httpReq.Header["Content-Type"] = []string{"application/json",}`)
 	p("")
 	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
 	p(" return nil, err")
 	p("}")
 	p("defer httpRsp.Body.Close()")
+	p("")
 	p("if httpRsp.StatusCode >= http.StatusOK {")
 	// TODO(dovs): handle this error more
 	p("  return nil, fmt.Errorf(httpRsp.Status)")
@@ -399,10 +501,10 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("  return nil, err")
 	p("}")
 	p("")
-	p("unmarshaler := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
+	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("rsp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("")
-	p("return rsp, unmarshaler.Unmarshal(buf, rsp)")
+	p("return rsp, unm.Unmarshal(buf, rsp)")
 	p("}")
 	return nil
 }
