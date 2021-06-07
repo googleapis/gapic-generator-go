@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"bytes"
+	"fmt"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -118,6 +119,13 @@ func TestGenMethod(t *testing.T) {
 		},
 	}
 
+	topLevelEnum := &descriptor.EnumDescriptorProto{
+		Name: proto.String("TopLevelEnum"),
+	}
+	nestedEnum := &descriptor.EnumDescriptorProto{
+		Name: proto.String("NestedEnum"),
+	}
+
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -142,6 +150,19 @@ func TestGenMethod(t *testing.T) {
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
 				TypeName: proto.String(".my.pkg.ExtraMessage"),
 			},
+			{
+				Name:     proto.String("top_level_enum"),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				TypeName: proto.String(".my.pkg.TopLevelEnum"),
+			},
+			{
+				Name:     proto.String("nested_enum"),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				TypeName: proto.String(".my.pkg.InputType.NestedEnum"),
+			},
+		},
+		EnumType: []*descriptor.EnumDescriptorProto{
+			nestedEnum,
 		},
 	}
 	outputType := &descriptor.DescriptorProto{
@@ -207,6 +228,11 @@ func TestGenMethod(t *testing.T) {
 					Post: "/v1/{field_name.nested=projects/*/foo/*}/bars/{another=bar/*/baz/*}/buz/{biz}/booz",
 				},
 			},
+			{
+				Pattern: &annotations.HttpRule_Post{
+					Post: "/v1/{top_level_enum}/enums/{nested_enum}",
+				},
+			},
 		},
 	}
 	proto.SetExtension(opts, annotations.E_Http, ext)
@@ -254,16 +280,19 @@ func TestGenMethod(t *testing.T) {
 	}
 
 	commonTypes(&g)
-	for _, typ := range []*descriptor.DescriptorProto{
-		inputType, outputType, pageInputType, pageInputTypeOptional, pageOutputType, extra,
+	for _, typ := range []pbinfo.ProtoType{
+		inputType, outputType, pageInputType, pageInputTypeOptional, pageOutputType, extra, topLevelEnum,
 	} {
-		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
+		g.descInfo.Type[".my.pkg."+typ.GetName()] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 	g.descInfo.ParentFile[serv] = file
 	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{
 		paginatedField: pageOutputType,
+		nestedEnum:     inputType,
 	}
+	n := fmt.Sprintf(".my.pkg.%s.%s", inputType.GetName(), nestedEnum.GetName())
+	g.descInfo.Type[n] = nestedEnum
 
 	meths := []*descriptor.MethodDescriptorProto{
 		{
@@ -663,9 +692,13 @@ func Test_parseRequestHeaders(t *testing.T) {
 	}
 }
 
-func Test_lookupFieldType(t *testing.T) {
+func Test_lookupField(t *testing.T) {
 	typep := func(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
 		return &t
+	}
+
+	topLevelEnum := &descriptor.EnumDescriptorProto{
+		Name: proto.String("TopLevelEnum"),
 	}
 
 	extra := &descriptor.DescriptorProto{
@@ -702,13 +735,24 @@ func Test_lookupFieldType(t *testing.T) {
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String("ExtraMessage"),
 			},
+			{
+				Name:     proto.String("top_level_enum"),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				TypeName: proto.String("TopLevelEnum"),
+			},
+			{
+				Name:     proto.String("nested_enum"),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				TypeName: proto.String("NestedEnum"),
+			},
 		},
 	}
 
 	var g generator
 	g.descInfo.Type = map[string]pbinfo.ProtoType{
-		inputType.GetName(): inputType,
-		extra.GetName():     extra,
+		inputType.GetName():    inputType,
+		extra.GetName():        extra,
+		topLevelEnum.GetName(): topLevelEnum,
 	}
 
 	for _, tst := range []struct {
@@ -745,11 +789,17 @@ func Test_lookupFieldType(t *testing.T) {
 			field: "msg.leaf",
 			want:  descriptor.FieldDescriptorProto_TYPE_STRING,
 		},
+		{
+			name:  "top level enum",
+			msg:   "InputType",
+			field: "top_level_enum",
+			want:  descriptor.FieldDescriptorProto_TYPE_ENUM,
+		},
 	} {
-		got := g.lookupFieldType(tst.msg, tst.field)
+		got := g.lookupField(tst.msg, tst.field)
 
-		if got != tst.want {
-			t.Errorf("Test_lookupFieldType(%s): got %v want %v", tst.name, got, tst.want)
+		if got.GetType() != tst.want {
+			t.Errorf("Test_lookupField(%s): got %v want %v", tst.name, got.GetType(), tst.want)
 		}
 	}
 }

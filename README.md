@@ -1,7 +1,6 @@
 API Client Generator for Go
 ===========================
 
-[![CircleCI](https://circleci.com/gh/googleapis/gapic-generator-go.svg?style=svg)](https://circleci.com/gh/googleapis/gapic-generator-go) 
 ![latest release](https://img.shields.io/github/v/release/googleapis/gapic-generator-go)
 ![Go version](https://img.shields.io/github/go-mod/go-version/googleapis/gapic-generator-go)
 
@@ -63,9 +62,9 @@ The supported configuration annotations include:
 
 Invocation
 ----------
-`protoc -I $API_COMMON_PROTOS --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
+`protoc -I $GOOGLEAPIS --go_gapic_out [OUTPUT_DIR] --go_gapic_opt 'go-gapic-package=package/path/url;name' a.proto b.proto`
 
-**Note:** The `$API_COMMON_PROTOS` variable represents a path to the [googleapis/api-common-protos](https://github.com/googleapis/api-common-protos) directory to import the configuration annotations.
+**Note:** The `$GOOGLEAPIS` variable represents a path to the [googleapis/googleapis](https://github.com/googleapis/googleapis) directory to import the configuration annotations.
 
 The `go_gapic_opt` protoc plugin option flag is necessary to convey configuration information not present in the protos. 
 The plugin option's value is a key-value pair delimited by an equal sign `=`.

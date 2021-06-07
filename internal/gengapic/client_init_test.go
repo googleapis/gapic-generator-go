@@ -312,6 +312,7 @@ func TestClientInit(t *testing.T) {
 		mixins    mixins
 		serv      *descriptor.ServiceDescriptorProto
 		parameter *string
+		imports   map[pbinfo.ImportSpec]bool
 	}{
 		{
 			tstName: "foo_client_init",
@@ -322,6 +323,15 @@ func TestClientInit(t *testing.T) {
 			servName:  "Foo",
 			serv:      servPlain,
 			parameter: proto.String("go-gapic-package=path;mypackage"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "google.golang.org/grpc/metadata"}:                                          true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                 true,
+				{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}:              true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+			},
 		},
 		{
 			tstName: "foo_rest_client_init",
@@ -332,12 +342,20 @@ func TestClientInit(t *testing.T) {
 			servName:  "Foo",
 			serv:      servPlain,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
+			imports:   map[pbinfo.ImportSpec]bool{},
 		},
 		{
 			tstName:   "empty_client_init",
 			servName:  "",
 			serv:      servPlain,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                  true,
+				{Path: "google.golang.org/grpc"}:                                   true,
+				{Path: "google.golang.org/grpc/metadata"}:                          true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
+			},
 		},
 		{
 			tstName: "lro_client_init",
@@ -347,18 +365,34 @@ func TestClientInit(t *testing.T) {
 			servName:  "Foo",
 			serv:      servLRO,
 			parameter: proto.String("go-gapic-package=path;mypackage"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "google.golang.org/grpc/metadata"}:                                          true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                 true,
+				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
+				{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}:                 true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+			},
 		},
 		{
 			tstName:   "deprecated_client_init",
 			servName:  "",
 			serv:      servDeprecated,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                  true,
+				{Path: "google.golang.org/grpc"}:                                   true,
+				{Path: "google.golang.org/grpc/metadata"}:                          true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
+			},
 		},
 	} {
 		fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
 			Package: proto.String("mypackage"),
 			Options: &descriptor.FileOptions{
-				GoPackage: proto.String("mypackage"),
+				GoPackage: proto.String("github.com/googleapis/mypackage/v1"),
 			},
 			Service: []*descriptor.ServiceDescriptorProto{tst.serv},
 			MessageType: []*descriptor.DescriptorProto{
@@ -391,6 +425,10 @@ func TestClientInit(t *testing.T) {
 
 		g.reset()
 		g.makeClients(tst.serv, tst.servName)
+
+		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+			t.Errorf("ClientInit(%s) imports got(-),want(+):\n%s", tst.tstName, diff)
+		}
 
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
