@@ -101,9 +101,6 @@ func TestGRPCClientField(t *testing.T) {
 }
 
 func TestGenMethod(t *testing.T) {
-	typep := func(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
-		return &t
-	}
 	labelp := func(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
 		return &l
 	}

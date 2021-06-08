@@ -15,14 +15,14 @@
 package gengapic
 
 import (
-	"reflect"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 )
 
 // This is a hack to provide an lvalue for a constant.
@@ -30,19 +30,15 @@ func typep(typ descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptor
 	return &typ
 }
 
-// Another hack, this time for field numbers.
-func idxAddr(i int) *int32 {
-	j := int32(i)
-	return &j
-}
-
-func setupMethod(t *testing.T, g *generator, url string, allFieldNames []string) *descriptor.MethodDescriptorProto {
+// Note: the fields parameter contains the names of _all_ the request message's fields,
+// not just those that are path or query params.
+func setupMethod(g *generator, url string, fields []string) (*descriptor.MethodDescriptorProto, error) {
 	msg := &descriptor.DescriptorProto{
 		Name: proto.String("IdentifyRequest"),
 	}
-	for i, name := range allFieldNames {
+	for i, name := range fields {
 		j := int32(i)
-		msg.Field = append(msg.Field,
+		msg.Field = append(msg.GetField(),
 			&descriptor.FieldDescriptorProto{
 				Name:   proto.String(name),
 				Number: &j,
@@ -57,22 +53,18 @@ func setupMethod(t *testing.T, g *generator, url string, allFieldNames []string)
 	}
 
 	// Just use Get for everything and assume parsing general verbs is tested elsewhere.
-	if err := proto.SetExtension(mthd.Options, annotations.E_Http, &annotations.HttpRule{
+	proto.SetExtension(mthd.GetOptions(), annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: url,
 		},
-	}); err != nil {
-		t.Fatal(err)
-	}
+	})
 
 	srv := &descriptor.ServiceDescriptorProto{
 		Name:    proto.String("IdentifyMolluscService"),
 		Method:  []*descriptor.MethodDescriptorProto{mthd},
 		Options: &descriptor.ServiceOptions{},
 	}
-	if err := proto.SetExtension(srv.Options, annotations.E_DefaultHost, proto.String("linnaean.taxonomy.com")); err != nil {
-		t.Fatal(err)
-	}
+	proto.SetExtension(srv.GetOptions(), annotations.E_DefaultHost, "linnaean.taxonomy.com")
 
 	fds := []*descriptor.FileDescriptorProto{
 		&descriptor.FileDescriptorProto{
@@ -87,7 +79,7 @@ func setupMethod(t *testing.T, g *generator, url string, allFieldNames []string)
 	}
 	g.init(&req)
 
-	return mthd
+	return mthd, nil
 }
 
 func TestPathParams(t *testing.T) {
@@ -96,75 +88,79 @@ func TestPathParams(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.opts = &options{transports: []transport{rest}}
 
-	for tstNum, tst := range []struct {
-		url           string
-		allFieldNames []string
-		expected      map[string]*descriptor.FieldDescriptorProto
+	for _, tst := range []struct {
+		name     string
+		url      string
+		fields   []string
+		expected map[string]*descriptor.FieldDescriptorProto
 	}{
-		// Null case: no params
 		{
-			url:           "/kingdom",
-			allFieldNames: []string{"name", "mass_kg"},
-			expected:      map[string]*descriptor.FieldDescriptorProto{},
+			name:     "no_params",
+			url:      "/kingdom",
+			fields:   []string{"name", "mass_kg"},
+			expected: map[string]*descriptor.FieldDescriptorProto{},
 		},
-		// Reasonable case: params are a subset of fields
 		{
-			url:           "/kingdom/{kingdom}/phylum/{phylum}",
-			allFieldNames: []string{"name", "mass_kg", "kingdom", "phylum"},
+			name:   "params_subset_of_fields",
+			url:    "/kingdom/{kingdom}/phylum/{phylum}",
+			fields: []string{"name", "mass_kg", "kingdom", "phylum"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"kingdom": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("kingdom"),
-					Number: idxAddr(2),
+					Number: proto.Int32(int32(2)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 				"phylum": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("phylum"),
-					Number: idxAddr(3),
+					Number: proto.Int32(int32(3)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
-		// Degenerate case 1: params and fields are disjoint
 		{
-			url:           "/kingdom/{kingdom}",
-			allFieldNames: []string{"name", "mass_kg"},
-			expected:      map[string]*descriptor.FieldDescriptorProto{},
+			name:     "disjoin_fields_and_params",
+			url:      "/kingdom/{kingdom}",
+			fields:   []string{"name", "mass_kg"},
+			expected: map[string]*descriptor.FieldDescriptorProto{},
 		},
-		// Degenerate case 2: params and fields intersect but are not subsets
 		{
-			url:           "/kingdom/{kingdom}/phylum/{phylum}",
-			allFieldNames: []string{"name", "mass_kg", "kingdom"},
+			name:   "params_and_fields_intersect",
+			url:    "/kingdom/{kingdom}/phylum/{phylum}",
+			fields: []string{"name", "mass_kg", "kingdom"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"kingdom": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("kingdom"),
-					Number: idxAddr(2),
+					Number: proto.Int32(int32(2)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
-		// Degenerate case 3: fields are a subset of params
 		{
-			url:           "/kingdom/{kingdom}/phylum/{phylum}/class/{class}",
-			allFieldNames: []string{"kingdom", "phylum"},
+			name:   "fields_subset_of_params",
+			url:    "/kingdom/{kingdom}/phylum/{phylum}/class/{class}",
+			fields: []string{"kingdom", "phylum"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"kingdom": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("kingdom"),
-					Number: idxAddr(0),
+					Number: proto.Int32(int32(0)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 				"phylum": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("phylum"),
-					Number: idxAddr(1),
+					Number: proto.Int32(int32(1)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
 	} {
-		mthd := setupMethod(t, &g, tst.url, tst.allFieldNames)
+		mthd, err := setupMethod(&g, tst.url, tst.fields)
+		if err != nil {
+			t.Errorf("test %s setup got error: %s", tst.name, err.Error())
+		}
 
 		actual := g.pathParams(mthd)
-		if !reflect.DeepEqual(actual, tst.expected) {
-			t.Errorf("test %d, pathParams(%q) = %q, want %q", tstNum, tst.url, actual, tst.expected)
+		if diff := cmp.Diff(actual, tst.expected, cmp.Comparer(proto.Equal)); diff != "" {
+			t.Errorf("test %s, got(-),want(+):\n%s", tst.name, diff)
 		}
 	}
 }
@@ -175,57 +171,61 @@ func TestQueryParams(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.opts = &options{transports: []transport{rest}}
 	for _, tst := range []struct {
-		url           string
-		allFieldNames []string
-		expected      map[string]*descriptor.FieldDescriptorProto
+		name     string
+		url      string
+		fields   []string
+		expected map[string]*descriptor.FieldDescriptorProto
 	}{
-		// All params are path params
 		{
-			url:           "/kingdom/{kingdom}",
-			allFieldNames: []string{"kingdom"},
-			expected:      map[string]*descriptor.FieldDescriptorProto{},
+			name:     "all_params_are_path",
+			url:      "/kingdom/{kingdom}",
+			fields:   []string{"kingdom"},
+			expected: map[string]*descriptor.FieldDescriptorProto{},
 		},
-		// Degenerate case: no fields
 		{
-			url:           "/kingdom/{kingdom}",
-			allFieldNames: []string{},
-			expected:      map[string]*descriptor.FieldDescriptorProto{},
+			name:     "no_fields",
+			url:      "/kingdom/{kingdom}",
+			fields:   []string{},
+			expected: map[string]*descriptor.FieldDescriptorProto{},
 		},
-		// No path params
 		{
-			url:           "/kingdom",
-			allFieldNames: []string{"mass_kg"},
+			name:   "no_path_params",
+			url:    "/kingdom",
+			fields: []string{"mass_kg"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"mass_kg": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("mass_kg"),
-					Number: idxAddr(0),
+					Number: proto.Int32(int32(0)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
-		// Interesting case: some params are path and some are query
 		{
-			url:           "/kingdom/{kingdom}/phylum/{phylum}",
-			allFieldNames: []string{"kingdom", "phylum", "mass_kg", "guess"},
+			name:   "path_query_param_mix",
+			url:    "/kingdom/{kingdom}/phylum/{phylum}",
+			fields: []string{"kingdom", "phylum", "mass_kg", "guess"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"mass_kg": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("mass_kg"),
-					Number: idxAddr(2),
+					Number: proto.Int32(int32(2)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 				"guess": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("guess"),
-					Number: idxAddr(3),
+					Number: proto.Int32(int32(3)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
 	} {
-		mthd := setupMethod(t, &g, tst.url, tst.allFieldNames)
+		mthd, err := setupMethod(&g, tst.url, tst.fields)
+		if err != nil {
+			t.Errorf("test %s setup got error: %s", tst.name, err.Error())
+		}
 
 		actual := g.queryParams(mthd)
-		if !reflect.DeepEqual(actual, tst.expected) {
-			t.Errorf("queryParams(%q) = %q, want %q", tst.url, actual, tst.expected)
+		if diff := cmp.Diff(actual, tst.expected, cmp.Comparer(proto.Equal)); diff != "" {
+			t.Errorf("test %s, got(-),want(+):\n%s", tst.name, diff)
 		}
 	}
 }
