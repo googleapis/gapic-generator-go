@@ -52,6 +52,7 @@ go_test(
         "doc_file_test.go",
         "example_test.go",
         "gengapic_test.go",
+        "genrest_test.go",
         "helpers_test.go",
         "markdown_test.go",
         "metadata_test.go",
