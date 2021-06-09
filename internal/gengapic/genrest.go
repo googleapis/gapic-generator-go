@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -104,7 +105,6 @@ func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, s
 func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
-
 	clientName := camelToSnake(serv.GetName())
 	clientName = strings.Replace(clientName, "_", " ", -1)
 
@@ -161,6 +161,52 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 type httpInfo struct {
 	verb, url, body string
+}
+
+func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
+	pathParams := map[string]*descriptor.FieldDescriptorProto{}
+	info, err := getHTTPInfo(m)
+	if info == nil || err != nil {
+		return pathParams
+	}
+
+	// Match using the curly braces but don't include them in the grouping.
+	re := regexp.MustCompile("{([[:alpha:]]+)}")
+	for _, p := range re.FindAllStringSubmatch(info.url, -1) {
+		// In the returned slice, the zeroth element is the full regex match,
+		// and the subsequent elements are the sub group matches.
+		// See the docs for FindStringSubmatch for further details.
+		param := p[1]
+		field := g.lookupField(m.GetInputType(), param)
+		if field == nil {
+			continue
+		}
+		pathParams[param] = field
+	}
+
+	return pathParams
+}
+
+func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
+	queryParams := map[string]*descriptor.FieldDescriptorProto{}
+	info, err := getHTTPInfo(m)
+	if info == nil || err != nil {
+		return queryParams
+	}
+	pathParams := g.pathParams(m)
+	// Minor hack: we want to make sure that the body parameter, if one exists,
+	// is NOT a query parameter.
+	pathParams[info.body] = nil
+	msg := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+
+	// If, and only if, a field is a path parameter, it's not a query parameter.
+	for _, f := range msg.Field {
+		if _, ok := pathParams[f.GetName()]; !ok {
+			queryParams[f.GetName()] = f
+		}
+	}
+
+	return queryParams
 }
 
 func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
