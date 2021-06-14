@@ -39,8 +39,7 @@ protoc \
 	--go_gapic_opt 'grpc-service-config=showcase_grpc_service_config.json' \
 	--go_gapic_opt 'api-service-config=showcase_v1beta1.yaml' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
-	google/showcase/v1beta1/echo.proto google/showcase/v1beta1/identity.proto google/showcase/v1beta1/sequence.proto \
-        google/showcase/v1beta1/compliance.proto
+	google/showcase/v1beta1/echo.proto google/showcase/v1beta1/identity.proto google/showcase/v1beta1/sequence.proto google/showcase/v1beta1/compliance.proto
 
 hostos=$(go env GOHOSTOS)
 hostarch=$(go env GOHOSTARCH)
