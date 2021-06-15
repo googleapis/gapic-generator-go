@@ -227,7 +227,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	// We want to iterate over fields in a deterministic order
 	// to prevent spurious deltas when regenerating gapics.
 	fields := make([]string, 0, len(queryParams))
-	for p, _ := range queryParams {
+	for p := range queryParams {
 		fields = append(fields, p)
 	}
 	sort.Strings(fields)
@@ -267,7 +267,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("")
 }
 
-func (g *generator) generateUrlString(m *descriptor.MethodDescriptorProto) error {
+func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error {
 	info, err := getHTTPInfo(m)
 	if err != nil {
 		return err
@@ -538,7 +538,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("}")
 	p("")
 	g.generateQueryString(m)
-	g.generateUrlString(m)
+	g.generateURLString(m)
 	p(`if query != "" {`)
 	p(`    url += "?" + query`)
 	p("}")
@@ -612,7 +612,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("")
 	// TOOD(dovs) reenable
 	g.generateQueryString(m)
-	g.generateUrlString(m)
+	g.generateURLString(m)
 	p(`if query != "" {`)
 	p(`    url += "?" + query`)
 	p("}")
