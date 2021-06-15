@@ -299,7 +299,7 @@ func TestClientInit(t *testing.T) {
 		},
 	}
 	for _, s := range []*descriptor.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
-		proto.SetExtension(s.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
+		proto.SetExtension(s.Method[0].GetOptions(), annotations.E_Http, &annotations.HttpRule{
 			Pattern: &annotations.HttpRule_Get{
 				Get: "/zip",
 			},

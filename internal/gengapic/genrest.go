@@ -20,11 +20,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 )
 
 func lowcaseRestClientName(servName string) string {
@@ -47,7 +47,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("  // The http client.")
 	p("  httpClient *http.Client")
 	p("")
-	p("	// The x-goog-* metadata to be sent with each request.")
+	p("	 // The x-goog-* metadata to be sent with each request.")
 	p("	 xGoogMetadata metadata.MD")
 	p("}")
 	p("")
@@ -81,16 +81,17 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 }
 
 func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
+	if !proto.HasExtension(serv.GetOptions(), annotations.E_DefaultHost) {
+		// Not an error, just doesn't apply to us.
+		return nil
+	}
+
 	p := g.printf
 
 	var host string
-	eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
-	if err != nil {
-		fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
-		return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
-	}
+	eHost := proto.GetExtension(serv.GetOptions(), annotations.E_DefaultHost)
 
-	host = *eHost.(*string)
+	host = eHost.(string)
 
 	p("func default%sRESTClientOptions() []option.ClientOption {", servName)
 	p("  return []option.ClientOption{")
@@ -113,8 +114,8 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
 	g.serviceDoc(serv)
 	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-	p("    clientOpts := default%sRESTClientOptions()", servName)
-	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, append(clientOpts, opts...)...)")
+	p("    clientOpts := append(default%sRESTClientOptions(), opts...)", servName)
+	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)")
 	p("    if err != nil {")
 	p("        return nil, err")
 	p("    }")
@@ -198,7 +199,8 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	pathParams := g.pathParams(m)
 	// Minor hack: we want to make sure that the body parameter, if one exists,
 	// is NOT a query parameter.
-	pathParams[info.body] = nil
+	dummyField := &descriptor.FieldDescriptorProto{}
+	pathParams[info.body] = dummyField
 	msg := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
 	if info.body != "" && info.body != "*" {
 		field := g.lookupField(m.GetInputType(), info.body)
@@ -206,7 +208,7 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	}
 
 	// If, and only if, a field is a path parameter, it's not a query parameter.
-	for _, f := range msg.Field {
+	for _, f := range msg.GetField() {
 		if _, ok := pathParams[f.GetName()]; !ok {
 			queryParams[f.GetName()] = f
 		}
@@ -231,9 +233,9 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	sort.Strings(fields)
 	info, _ := getHTTPInfo(m)
 
-	bodyStr := "req"
+	requestObject := "req"
 	if info.body != "" && info.body != "*" {
-		bodyStr = "body"
+		requestObject = "body"
 		p("body := req.Get%s()", snakeToCamel(info.body))
 	}
 	p("queryParamStrs := []string{}")
@@ -241,26 +243,23 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	for _, f := range fields {
 		field := queryParams[f]
 		f = snakeToCamel(f)
-		// Note: something very strange has happened
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
-			p("if %s.Get%s() != nil {", bodyStr, f)
+			p("if %s.Get%s() != nil {", requestObject, f)
 		} else {
 			// Default values are type specific
 			switch field.GetType() {
-			case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-				p("if %s.Get%s() != nil {", bodyStr, f)
-			case descriptor.FieldDescriptorProto_TYPE_BYTES:
-				p("if %s.Get%s() != nil {", bodyStr, f)
+			case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_BYTES:
+				p("if %s.Get%s() != nil {", requestObject, f)
 			case descriptor.FieldDescriptorProto_TYPE_STRING:
-				p(`if %s.Get%s() != "" {`, bodyStr, f)
+				p(`if %s.Get%s() != "" {`, requestObject, f)
 			case descriptor.FieldDescriptorProto_TYPE_BOOL:
-				p(`if %s.Get%s() {`, bodyStr, f)
+				p(`if %s.Get%s() {`, requestObject, f)
 			default: // Handles all numeric types
-				p(`if %s.Get%s() != 0 {`, bodyStr, f)
+				p(`if %s.Get%s() != 0 {`, requestObject, f)
 			}
 		}
-		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", %s.Get%s()))", lowerFirst(f), bodyStr, f)
+		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", %s.Get%s()))", lowerFirst(f), requestObject, f)
 		p("}")
 	}
 
@@ -279,10 +278,10 @@ func (g *generator) generateUrlString(m *descriptor.MethodDescriptorProto) error
 
 	p := g.printf
 
-	bodyStr := "req"
+	requestObject := "req"
 	if info.body != "" && info.body != "*" {
 		// Setting the local variable 'body' is already handled by generateQueryString
-		bodyStr = "body"
+		requestObject = "body"
 	}
 
 	fmtStr := fmt.Sprintf("%%s%s", info.url)
@@ -300,7 +299,7 @@ func (g *generator) generateUrlString(m *descriptor.MethodDescriptorProto) error
 		// See the docs for FindStringSubmatch for further details.
 		//
 		// buildAccessor handles nested fields for us.
-		p("%s%s,", bodyStr, buildAccessor(path[1]))
+		p("%s%s,", requestObject, buildAccessor(path[1]))
 	}
 	p(")")
 	p("")
@@ -312,15 +311,10 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
 		return nil, nil
 	}
 
-	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-	if err == proto.ErrMissingExtension {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
+	eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 
 	httpRule := eHTTP.(*annotations.HttpRule)
-	info := httpInfo{body: httpRule.Body}
+	info := httpInfo{body: httpRule.GetBody()}
 
 	switch httpRule.GetPattern().(type) {
 	case *annotations.HttpRule_Get:
@@ -562,7 +556,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// It's a little more verbose to set here explicitly, but
 	// it's conceptually cleaner.
 	// TODO(dovs) add field headers.
-	p(`httpReq.Header["Content-Type"] = []string{"application/json",}`)
+	p(`httpReq.Header["Content-Type"] = []string{"application/json"}`)
 	p("")
 	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
@@ -658,5 +652,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("")
 	p("return rsp, unm.Unmarshal(buf, rsp)")
 	p("}")
+
 	return nil
 }
