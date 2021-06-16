@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	showcase "github.com/googleapis/gapic-showcase/client"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 )
@@ -72,7 +71,7 @@ func TestMain(m *testing.M) {
 	// TODO: Change to use REST client once the constructor is in place:
 	//  complianceClient, err = showcase.NewComplianceRESTClient(ctx, opt)
 
-	complianceClient, err = showcase.NewComplianceRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithCredentials(&google.Credentials{}))
+	complianceClient, err = showcase.NewComplianceRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithoutAuthentication())
 	if err != nil {
 		log.Fatal(err)
 	}
