@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_library")
+load("@rules_gapic//:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 
 def _go_gapic_postprocessed_srcjar_impl(ctx):
     go_ctx = go_context(ctx)

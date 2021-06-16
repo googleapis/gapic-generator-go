@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go:def.bzl", "GoLibrary", "GoSource")
-load("@com_google_api_codegen//rules_gapic:gapic_pkg.bzl", "construct_package_dir_paths")
+load("@rules_gapic//:gapic_pkg.bzl", "construct_package_dir_paths")
 
 def _go_gapic_src_pkg_impl(ctx):
     srcjars = []
