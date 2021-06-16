@@ -77,6 +77,7 @@ go_test(
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
         "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
         "@org_golang_google_genproto//googleapis/gapic/metadata",
+        "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//encoding/protojson",
         "@org_golang_google_protobuf//types/known/apipb",
         "@org_golang_google_protobuf//types/pluginpb",
