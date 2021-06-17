@@ -236,6 +236,14 @@ func (g *gcli) genCommands() {
 					if fType := f.GetType(); fType != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
 						cmd.OutputMessageType = pbinfo.GoTypeForPrim[fType]
 						g.subcommands[srv.GetName()] = append(g.subcommands[srv.GetName()], &cmd)
+						putImport(cmd.Imports, &pbinfo.ImportSpec{
+							Path: "google.golang.org/api/iterator",
+						})
+						// add fmt for verbose printing
+						putImport(cmd.Imports, &pbinfo.ImportSpec{
+							Path: "fmt",
+						})
+						g.genCommandFile(&cmd)
 						continue
 					}
 

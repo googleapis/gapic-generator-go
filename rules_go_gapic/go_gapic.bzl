@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_google_api_codegen//rules_gapic:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_library")
+load("@rules_gapic//:gapic.bzl", "proto_custom_library", "unzipped_srcjar")
 
 def _go_gapic_postprocessed_srcjar_impl(ctx):
     go_ctx = go_context(ctx)
@@ -154,7 +154,7 @@ def go_gapic_library(
     "@org_golang_google_grpc//codes:go_default_library",
     "@org_golang_google_grpc//metadata:go_default_library",
     "@org_golang_google_grpc//status:go_default_library",
-    "@com_github_golang_protobuf//proto:go_default_library",
+    "@org_golang_google_protobuf//proto:go_default_library",
     "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
     "@org_golang_google_protobuf//types/known/wrapperspb:go_default_library",
     "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",

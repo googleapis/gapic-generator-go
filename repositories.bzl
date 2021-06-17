@@ -15,7 +15,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(
     "@bazel_gazelle//:deps.bzl",
-
     gazelle_go_repository = "go_repository",
 )
 
@@ -276,8 +275,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:2dB4bZ/B7RJdKuvHk3mKTzL2xwrikb+Y/QQy7WdyBPk=",
-        version = "v0.0.0-20210607140030-00d4fb20b1ae",
+        sum = "h1:7TIh9IZzwv/Gxqf+uYm45KzZTG1BlkZzb3yOa9GqgVE=",
+        version = "v0.0.0-20210614182748-5b3b54cad159",
     )
     go_repository(
         name = "org_golang_google_grpc",
@@ -355,14 +354,21 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
-        sum = "h1:kRBLX7v7Af8W7Gdbbc908OJcdgtK8bOz9Uaj8/F1ACA=",
-        version = "v0.1.2",
+        sum = "h1:L69ShwSZEyCsLKoAxDKeMvLDZkumEe8gXUZAjab0tX8=",
+        version = "v0.1.3",
     )
     go_repository(
         name = "org_golang_x_xerrors",
         importpath = "golang.org/x/xerrors",
         sum = "h1:go1bK/D/BFZV2I8cIQd1NKEZ+0owSTG1fDTci4IqFcE=",
         version = "v0.0.0-20200804184101-5ec99f83aff1",
+    )
+    _rules_gapic_version = "0.5.4"
+    _maybe(
+        http_archive,
+        name = "rules_gapic",
+        strip_prefix = "rules_gapic-%s" % _rules_gapic_version,
+        urls = ["https://github.com/googleapis/rules_gapic/archive/v%s.tar.gz" % _rules_gapic_version],
     )
 
 def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):

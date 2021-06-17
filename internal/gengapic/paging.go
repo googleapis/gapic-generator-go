@@ -240,7 +240,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("}")
 	p("")
 
-	g.imports[pbinfo.ImportSpec{Path: "github.com/golang/protobuf/proto"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
