@@ -87,8 +87,8 @@ type fooRESTClient struct {
 //
 // Foo service does stuff.
 func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
-	clientOpts := defaultFooRESTClientOptions()
-	httpClient, endpoint, err := httptransport.NewClient(ctx, append(clientOpts, opts...)...)
+	clientOpts := append(defaultFooRESTClientOptions(), opts...)
+	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
 	if err != nil {
 		return nil, err
 	}

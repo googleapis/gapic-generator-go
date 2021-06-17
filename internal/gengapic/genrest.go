@@ -17,13 +17,14 @@ package gengapic
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 )
 
 func lowcaseRestClientName(servName string) string {
@@ -46,7 +47,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("  // The http client.")
 	p("  httpClient *http.Client")
 	p("")
-	p("	// The x-goog-* metadata to be sent with each request.")
+	p("	 // The x-goog-* metadata to be sent with each request.")
 	p("	 xGoogMetadata metadata.MD")
 	p("}")
 	p("")
@@ -79,16 +80,17 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 }
 
 func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
+	if !proto.HasExtension(serv.GetOptions(), annotations.E_DefaultHost) {
+		// Not an error, just doesn't apply to us.
+		return nil
+	}
+
 	p := g.printf
 
 	var host string
-	eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
-	if err != nil {
-		fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
-		return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
-	}
+	eHost := proto.GetExtension(serv.GetOptions(), annotations.E_DefaultHost)
 
-	host = *eHost.(*string)
+	host = eHost.(string)
 
 	p("func default%sRESTClientOptions() []option.ClientOption {", servName)
 	p("  return []option.ClientOption{")
@@ -111,8 +113,8 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
 	g.serviceDoc(serv)
 	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-	p("    clientOpts := default%sRESTClientOptions()", servName)
-	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, append(clientOpts, opts...)...)")
+	p("    clientOpts := append(default%sRESTClientOptions(), opts...)", servName)
+	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)")
 	p("    if err != nil {")
 	p("        return nil, err")
 	p("    }")
@@ -171,7 +173,7 @@ func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*
 	}
 
 	// Match using the curly braces but don't include them in the grouping.
-	re := regexp.MustCompile("{([[:alpha:]]+)}")
+	re := regexp.MustCompile("{([^}]+)}")
 	for _, p := range re.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
@@ -193,15 +195,31 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	if info == nil || err != nil {
 		return queryParams
 	}
-	pathParams := g.pathParams(m)
-	// Minor hack: we want to make sure that the body parameter, if one exists,
-	// is NOT a query parameter.
-	pathParams[info.body] = nil
-	msg := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	if info.body == "" || info.body == "*" {
+		// The request is the body, so no additional query params.
+		return queryParams
 
-	// If, and only if, a field is a path parameter, it's not a query parameter.
-	for _, f := range msg.Field {
-		if _, ok := pathParams[f.GetName()]; !ok {
+	}
+
+	pathParams := g.pathParams(m)
+	// Minor hack: we want to make sure that the body parameter is NOT a query parameter.
+	pathParams[info.body] = &descriptor.FieldDescriptorProto{}
+
+	request := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	// Body parameters are fields present in the request body.
+	// This may be the request message itself or a subfield.
+	// Body parameters are not valid query parameters,
+	// because that means the same param would be sent more than once.
+	var bodyMsg *descriptor.DescriptorProto
+	bodyField := g.lookupField(m.GetInputType(), info.body)
+	if bodyField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+		bodyMsg = g.descInfo.Type[bodyField.GetTypeName()].(*descriptor.DescriptorProto)
+	}
+
+	for _, f := range request.GetField() {
+		// If, and only if, a field is not a path parameter or a body parameter,
+		// it is a query parameter.
+		if _, ok := pathParams[f.GetName()]; !ok && g.lookupField(bodyMsg.GetName(), f.GetName()) == nil {
 			queryParams[f.GetName()] = f
 		}
 	}
@@ -209,20 +227,105 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	return queryParams
 }
 
+func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
+	p := g.printf
+	queryParams := g.queryParams(m)
+	if queryParams == nil || len(queryParams) == 0 {
+		return
+	}
+
+	// Don't need the import unless we're constructing a query param
+	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
+
+	// We want to iterate over fields in a deterministic order
+	// to prevent spurious deltas when regenerating gapics.
+	fields := make([]string, 0, len(queryParams))
+	for p := range queryParams {
+		fields = append(fields, p)
+	}
+	sort.Strings(fields)
+
+	p("queryParamStrs := []string{}")
+	// TODO(dovs): make this work for nested fields
+	for _, f := range fields {
+		field := queryParams[f]
+		f = snakeToCamel(f)
+		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			// It's a slice, so check for nil
+			p("if req.Get%s() != nil {", f)
+		} else {
+			// Default values are type specific
+			switch field.GetType() {
+			case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_BYTES:
+				p("if req.Get%s() != nil {", f)
+			case descriptor.FieldDescriptorProto_TYPE_STRING:
+				p(`if req.Get%s() != "" {`, f)
+			case descriptor.FieldDescriptorProto_TYPE_BOOL:
+				p(`if req.Get%s() {`, f)
+			default: // Handles all numeric types
+				p(`if req.Get%s() != 0 {`, f)
+			}
+		}
+		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", req.Get%s()))", lowerFirst(f), f)
+		p("}")
+	}
+
+	p(`query := strings.ReplaceAll(strings.Join(queryParamStrs, "&"), " ", "+")`)
+	p("")
+	p(`if query != "" {`)
+	p(`    url += "?" + query`)
+	p("}")
+	p("")
+}
+
+func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error {
+	info, err := getHTTPInfo(m)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return errors.E(nil, "method has no http info: %s", m.GetName())
+	}
+
+	p := g.printf
+
+	requestObject := "req"
+	if info.body != "" && info.body != "*" {
+		// Setting the local variable 'body' is already handled by generateQueryString
+		requestObject = "body"
+	}
+
+	fmtStr := fmt.Sprintf("%%s%s", info.url)
+	// TODO(dovs): handle more complex path urls involving = and *,
+	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
+	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)}`)
+	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
+
+	p(`url := fmt.Sprintf("%s",`, fmtStr)
+	p("c.endpoint,")
+	// Can't just reuse pathParams because the order matters
+	for _, path := range re.FindAllStringSubmatch(info.url, -1) {
+		// In the returned slice, the zeroth element is the full regex match,
+		// and the subsequent elements are the sub group matches.
+		// See the docs for FindStringSubmatch for further details.
+		//
+		// buildAccessor handles nested fields for us.
+		p("%s%s,", requestObject, buildAccessor(path[1]))
+	}
+	p(")")
+	p("")
+	return nil
+}
+
 func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
 	if m == nil || m.GetOptions() == nil {
 		return nil, nil
 	}
 
-	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-	if err == proto.ErrMissingExtension {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
+	eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 
 	httpRule := eHTTP.(*annotations.HttpRule)
-	info := httpInfo{body: httpRule.Body}
+	info := httpInfo{body: httpRule.GetBody()}
 
 	switch httpRule.GetPattern().(type) {
 	case *annotations.HttpRule_Get:
@@ -440,13 +543,20 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("// The default (false) for the other options are fine.")
 	p("// Field names should be lowerCamel, not snake.")
 	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
-	p("jsonReq, err := m.Marshal(req)")
+	requestObject := "req"
+	if info.body != "" && info.body != "*" {
+		requestObject = "body"
+		p("body := req.Get%s()", snakeToCamel(info.body))
+	}
+
+	p("jsonReq, err := m.Marshal(%s)", requestObject)
 	p("if err != nil {")
 	p("  return err")
 	p("}")
 	p("")
-	// TODO(dovs): handle path parameters
-	p(`url := fmt.Sprintf("%%s%s", c.endpoint)`, info.url)
+	g.generateURLString(m)
+	g.generateQueryString(m)
+	p("")
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return err")
@@ -460,7 +570,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// It's a little more verbose to set here explicitly, but
 	// it's conceptually cleaner.
 	// TODO(dovs) add field headers.
-	p(`httpReq.Header["Content-Type"] = []string{"application/json",}`)
+	p(`httpReq.Header["Content-Type"] = []string{"application/json"}`)
 	p("")
 	p("httpRsp, err := c.httpClient.Do(httpReq)")
 	p("if err != nil{")
@@ -507,16 +617,23 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines?
-	// TODO(dovs): handle call options
-	p("// The default (false) for the other options are fine.")
-	p("// TODO(dovs): handle path parameters")
+	// TODO(dovs): handle calloptions
 	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
-	p("jsonReq, err := m.Marshal(req)")
+	requestObject := "req"
+	if info.body != "" && info.body != "*" {
+		requestObject = "body"
+		p("body := req.Get%s()", snakeToCamel(info.body))
+	}
+
+	p("jsonReq, err := m.Marshal(%s)", requestObject)
 	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
 	p("")
-	p(`url := fmt.Sprintf("%%s%s", c.endpoint)`, info.url)
+	// TOOD(dovs) reenable
+	g.generateURLString(m)
+	g.generateQueryString(m)
+	p("")
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return nil, err")
@@ -552,5 +669,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("")
 	p("return rsp, unm.Unmarshal(buf, rsp)")
 	p("}")
+
 	return nil
 }
