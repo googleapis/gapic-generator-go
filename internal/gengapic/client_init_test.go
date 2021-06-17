@@ -343,9 +343,8 @@ func TestClientInit(t *testing.T) {
 			serv:      servPlain,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "bytes"}:   true,
-				{Path: "fmt"}:     true,
-				{Path: "strings"}: true,
+				{Path: "bytes"}: true,
+				{Path: "fmt"}:   true,
 				{Path: "google.golang.org/api/option/internaloption"}:   true,
 				{Path: "google.golang.org/grpc/metadata"}:               true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
@@ -360,9 +359,8 @@ func TestClientInit(t *testing.T) {
 			serv:      servPlain,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "bytes"}:   true,
-				{Path: "fmt"}:     true,
-				{Path: "strings"}: true,
+				{Path: "bytes"}: true,
+				{Path: "fmt"}:   true,
 				{Path: "google.golang.org/api/option/internaloption"}:   true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "io/ioutil"}:                       true,
@@ -411,7 +409,6 @@ func TestClientInit(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "io/ioutil"}:                                     true,
 				{Path: "net/http"}:                                      true,
-				{Path: "strings"}:                                       true,
 			},
 		},
 	} {

@@ -297,6 +297,13 @@ func buildAccessor(field string) string {
 func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescriptorProto {
 	var desc *descriptor.FieldDescriptorProto
 	msg := g.descInfo.Type[msgName]
+
+	// It could be that "msgName" is a field that is not a message.
+	// Fail cleanly in that case.
+	if msg == nil {
+		return desc
+	}
+
 	msgProto := msg.(*descriptor.DescriptorProto)
 	msgFields := msgProto.GetField()
 

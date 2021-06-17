@@ -58,7 +58,6 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
@@ -196,20 +195,31 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	if info == nil || err != nil {
 		return queryParams
 	}
-	pathParams := g.pathParams(m)
-	// Minor hack: we want to make sure that the body parameter, if one exists,
-	// is NOT a query parameter.
-	dummyField := &descriptor.FieldDescriptorProto{}
-	pathParams[info.body] = dummyField
-	msg := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
-	if info.body != "" && info.body != "*" {
-		field := g.lookupField(m.GetInputType(), info.body)
-		msg = g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+	if info.body == "" || info.body == "*" {
+		// The request is the body, so no additional query params.
+		return queryParams
+
 	}
 
-	// If, and only if, a field is a path parameter, it's not a query parameter.
-	for _, f := range msg.GetField() {
-		if _, ok := pathParams[f.GetName()]; !ok {
+	pathParams := g.pathParams(m)
+	// Minor hack: we want to make sure that the body parameter is NOT a query parameter.
+	pathParams[info.body] = &descriptor.FieldDescriptorProto{}
+
+	request := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	// Body parameters are fields present in the request body.
+	// This may be the request message itself or a subfield.
+	// Body parameters are not valid query parameters,
+	// because that means the same param would be sent more than once.
+	var bodyMsg *descriptor.DescriptorProto
+	bodyField := g.lookupField(m.GetInputType(), info.body)
+	if bodyField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+		bodyMsg = g.descInfo.Type[bodyField.GetTypeName()].(*descriptor.DescriptorProto)
+	}
+
+	for _, f := range request.GetField() {
+		// If, and only if, a field is not a path parameter or a body parameter,
+		// it is a query parameter.
+		if _, ok := pathParams[f.GetName()]; !ok && g.lookupField(bodyMsg.GetName(), f.GetName()) == nil {
 			queryParams[f.GetName()] = f
 		}
 	}
@@ -220,9 +230,12 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p := g.printf
 	queryParams := g.queryParams(m)
-	if queryParams == nil {
+	if queryParams == nil || len(queryParams) == 0 {
 		return
 	}
+
+	// Don't need the import unless we're constructing a query param
+	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
 
 	// We want to iterate over fields in a deterministic order
 	// to prevent spurious deltas when regenerating gapics.
@@ -231,13 +244,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		fields = append(fields, p)
 	}
 	sort.Strings(fields)
-	info, _ := getHTTPInfo(m)
 
-	requestObject := "req"
-	if info.body != "" && info.body != "*" {
-		requestObject = "body"
-		p("body := req.Get%s()", snakeToCamel(info.body))
-	}
 	p("queryParamStrs := []string{}")
 	// TODO(dovs): make this work for nested fields
 	for _, f := range fields {
@@ -245,25 +252,29 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		f = snakeToCamel(f)
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
-			p("if %s.Get%s() != nil {", requestObject, f)
+			p("if req.Get%s() != nil {", f)
 		} else {
 			// Default values are type specific
 			switch field.GetType() {
 			case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_BYTES:
-				p("if %s.Get%s() != nil {", requestObject, f)
+				p("if req.Get%s() != nil {", f)
 			case descriptor.FieldDescriptorProto_TYPE_STRING:
-				p(`if %s.Get%s() != "" {`, requestObject, f)
+				p(`if req.Get%s() != "" {`, f)
 			case descriptor.FieldDescriptorProto_TYPE_BOOL:
-				p(`if %s.Get%s() {`, requestObject, f)
+				p(`if req.Get%s() {`, f)
 			default: // Handles all numeric types
-				p(`if %s.Get%s() != 0 {`, requestObject, f)
+				p(`if req.Get%s() != 0 {`, f)
 			}
 		}
-		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", %s.Get%s()))", lowerFirst(f), requestObject, f)
+		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", req.Get%s()))", lowerFirst(f), f)
 		p("}")
 	}
 
 	p(`query := strings.ReplaceAll(strings.Join(queryParamStrs, "&"), " ", "+")`)
+	p("")
+	p(`if query != "" {`)
+	p(`    url += "?" + query`)
+	p("}")
 	p("")
 }
 
@@ -532,16 +543,19 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("// The default (false) for the other options are fine.")
 	p("// Field names should be lowerCamel, not snake.")
 	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
-	p("jsonReq, err := m.Marshal(req)")
+	requestObject := "req"
+	if info.body != "" && info.body != "*" {
+		requestObject = "body"
+		p("body := req.Get%s()", snakeToCamel(info.body))
+	}
+
+	p("jsonReq, err := m.Marshal(%s)", requestObject)
 	p("if err != nil {")
 	p("  return err")
 	p("}")
 	p("")
-	g.generateQueryString(m)
 	g.generateURLString(m)
-	p(`if query != "" {`)
-	p(`    url += "?" + query`)
-	p("}")
+	g.generateQueryString(m)
 	p("")
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
@@ -605,17 +619,20 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle calloptions
 	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
-	p("jsonReq, err := m.Marshal(req)")
+	requestObject := "req"
+	if info.body != "" && info.body != "*" {
+		requestObject = "body"
+		p("body := req.Get%s()", snakeToCamel(info.body))
+	}
+
+	p("jsonReq, err := m.Marshal(%s)", requestObject)
 	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
 	p("")
 	// TOOD(dovs) reenable
-	g.generateQueryString(m)
 	g.generateURLString(m)
-	p(`if query != "" {`)
-	p(`    url += "?" + query`)
-	p("}")
+	g.generateQueryString(m)
 	p("")
 	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")

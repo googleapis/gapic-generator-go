@@ -32,7 +32,7 @@ func typep(typ descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptor
 
 // Note: the fields parameter contains the names of _all_ the request message's fields,
 // not just those that are path or query params.
-func setupMethod(g *generator, url string, fields []string) (*descriptor.MethodDescriptorProto, error) {
+func setupMethod(g *generator, url, body string, fields []string) (*descriptor.MethodDescriptorProto, error) {
 	msg := &descriptor.DescriptorProto{
 		Name: proto.String("IdentifyRequest"),
 	}
@@ -54,6 +54,7 @@ func setupMethod(g *generator, url string, fields []string) (*descriptor.MethodD
 
 	// Just use Get for everything and assume parsing general verbs is tested elsewhere.
 	proto.SetExtension(mthd.GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Body: body,
 		Pattern: &annotations.HttpRule_Get{
 			Get: url,
 		},
@@ -90,6 +91,7 @@ func TestPathParams(t *testing.T) {
 
 	for _, tst := range []struct {
 		name     string
+		body     string
 		url      string
 		fields   []string
 		expected map[string]*descriptor.FieldDescriptorProto
@@ -153,7 +155,7 @@ func TestPathParams(t *testing.T) {
 			},
 		},
 	} {
-		mthd, err := setupMethod(&g, tst.url, tst.fields)
+		mthd, err := setupMethod(&g, tst.url, tst.body, tst.fields)
 		if err != nil {
 			t.Errorf("test %s setup got error: %s", tst.name, err.Error())
 		}
@@ -172,6 +174,7 @@ func TestQueryParams(t *testing.T) {
 	g.opts = &options{transports: []transport{rest}}
 	for _, tst := range []struct {
 		name     string
+		body     string
 		url      string
 		fields   []string
 		expected map[string]*descriptor.FieldDescriptorProto
@@ -190,8 +193,9 @@ func TestQueryParams(t *testing.T) {
 		},
 		{
 			name:   "no_path_params",
+			body:   "guess",
 			url:    "/kingdom",
-			fields: []string{"mass_kg"},
+			fields: []string{"mass_kg", "guess"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"mass_kg": &descriptor.FieldDescriptorProto{
 					Name:   proto.String("mass_kg"),
@@ -202,6 +206,7 @@ func TestQueryParams(t *testing.T) {
 		},
 		{
 			name:   "path_query_param_mix",
+			body:   "guess",
 			url:    "/kingdom/{kingdom}/phylum/{phylum}",
 			fields: []string{"kingdom", "phylum", "mass_kg", "guess"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
@@ -210,15 +215,10 @@ func TestQueryParams(t *testing.T) {
 					Number: proto.Int32(int32(2)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
-				"guess": &descriptor.FieldDescriptorProto{
-					Name:   proto.String("guess"),
-					Number: proto.Int32(int32(3)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-				},
 			},
 		},
 	} {
-		mthd, err := setupMethod(&g, tst.url, tst.fields)
+		mthd, err := setupMethod(&g, tst.url, tst.body, tst.fields)
 		if err != nil {
 			t.Errorf("test %s setup got error: %s", tst.name, err.Error())
 		}
