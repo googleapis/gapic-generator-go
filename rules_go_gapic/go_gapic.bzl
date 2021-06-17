@@ -154,7 +154,7 @@ def go_gapic_library(
     "@org_golang_google_grpc//codes:go_default_library",
     "@org_golang_google_grpc//metadata:go_default_library",
     "@org_golang_google_grpc//status:go_default_library",
-    "@com_github_golang_protobuf//proto:go_default_library",
+    "@org_golang_google_protobuf//proto:go_default_library",
     "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
     "@org_golang_google_protobuf//types/known/wrapperspb:go_default_library",
     "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
