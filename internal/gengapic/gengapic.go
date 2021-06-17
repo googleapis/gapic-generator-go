@@ -298,8 +298,7 @@ func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescript
 	var desc *descriptor.FieldDescriptorProto
 	msg := g.descInfo.Type[msgName]
 
-	// It could be that "msgName" is a field that is not a message.
-	// Fail cleanly in that case.
+	// If the message doesn't exist, fail cleanly.
 	if msg == nil {
 		return desc
 	}
