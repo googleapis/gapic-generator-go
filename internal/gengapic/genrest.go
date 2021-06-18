@@ -577,6 +577,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p(" return err")
 	p("}")
 	p("defer httpRsp.Body.Close()")
+	p("")
 	p("if httpRsp.StatusCode != http.StatusOK {")
 	// TODO(dovs): handle this error more
 	p("  return fmt.Errorf(httpRsp.Status)")
@@ -654,7 +655,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("}")
 	p("defer httpRsp.Body.Close()")
 	p("")
-	p("if httpRsp.StatusCode >= http.StatusOK {")
+	p("if httpRsp.StatusCode != http.StatusOK {")
 	// TODO(dovs): handle this error more
 	p("  return nil, fmt.Errorf(httpRsp.Status)")
 	p("}")

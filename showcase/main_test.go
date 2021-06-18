@@ -70,8 +70,8 @@ func TestMain(m *testing.M) {
 
 	// TODO: Change to use REST client once query params are cleaned up.
 	// The custom endpoint bypasses https.
-	// complianceClient, err = showcase.NewComplianceRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithoutAuthentication())
-	complianceClient, err = showcase.NewComplianceClient(ctx, opt)
+	complianceClient, err = showcase.NewComplianceRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithoutAuthentication())
+	// complianceClient, err = showcase.NewComplianceClient(ctx, opt)
 
 	if err != nil {
 		log.Fatal(err)
