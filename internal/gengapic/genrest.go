@@ -381,6 +381,24 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 	}
 }
 
+func (g *generator) shouldDisableComplexPaths(m *descriptor.MethodDescriptorProto) bool {
+	p := g.printf
+
+	info, _ := getHTTPInfo(m)
+
+	re := regexp.MustCompile(`[^a-zA-Z0-9_.]+?`)
+	pathParams := g.pathParams(m)
+	for pName := range pathParams {
+		if re.MatchString(pName) {
+			p(`    return nil, fmt.Errorf("complex url paths are not yet supported: %s")`, info.url)
+			p("}")
+			p("")
+			return true
+		}
+	}
+	return false
+}
+
 func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	// Streaming calls are not currently supported for REST clients,
 	// but the interface signature must be preserved.
@@ -536,6 +554,11 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
+	// TODO(dovs): fix complex path logic
+	if g.shouldDisableComplexPaths(m) {
+		return nil
+	}
+
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines
@@ -613,6 +636,11 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+
+	// TODO(dovs): fix complex path logic
+	if g.shouldDisableComplexPaths(m) {
+		return nil
+	}
 
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
