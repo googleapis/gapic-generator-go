@@ -34,6 +34,7 @@ protoc \
 	--experimental_allow_proto3_optional \
 	--go_out=plugins=grpc:./gen \
 	--go_gapic_out ./gen \
+	--go_gapic_opt 'transport=rest+grpc' \
 	--go_gapic_opt 'go-gapic-package=github.com/googleapis/gapic-showcase/client;client' \
 	--go_gapic_opt 'grpc-service-config=showcase_grpc_service_config.json' \
 	--go_gapic_opt 'api-service-config=showcase_v1beta1.yaml' \
@@ -58,6 +59,8 @@ popd
 go mod edit -replace=github.com/googleapis/gapic-showcase=./gen/github.com/googleapis/gapic-showcase
 
 curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER-$hostos-$hostarch.tar.gz | tar xz
+curl -sSL -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/compliance_suite.json
+
 ./gapic-showcase run &
 showcase_pid=$!
 

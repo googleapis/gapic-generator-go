@@ -73,52 +73,54 @@ func (c *FooClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPe
 
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type fooRESTClient struct {
-	host string
+	// The http endpoint to connect to.
+	endpoint string
+
+	// The http client.
+	httpClient *http.Client
+
+	// The x-goog-* metadata to be sent with each request.
+	xGoogMetadata metadata.MD
 }
 
-// Zip does some stuff.
-func (c *fooRESTClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
+// NewFooRESTClient creates a new foo rest client.
+//
+// Foo service does stuff.
+func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
+	clientOpts := append(defaultFooRESTClientOptions(), opts...)
+	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
+	if err != nil {
 		return nil, err
-
 	}
-	return nil, nil
 
+	c := &fooRESTClient{
+		endpoint: endpoint,
+		httpClient: httpClient,
+	}
+	c.setGoogleClientInfo()
+
+	return &FooClient{internalClient: c, CallOptions: defaultFooCallOptions()}, nil
 }
-func (c *fooRESTClient) GetLocation(ctx context.Context, req *locationpb.GetLocationRequest, opts ...gax.CallOption) (*locationpb.Location, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
-		return nil, err
 
-	}
-	return nil, nil
-
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *fooRESTClient) setGoogleClientInfo(keyval ...string) {
+	kv := append([]string{"gl-go", versionGo()}, keyval...)
+	kv = append(kv, "gapic", versionClient, "gax", gax.Version, "rest", "UNKNOWN")
+	c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))
 }
-func (c *fooRESTClient) SetIamPolicy(ctx context.Context, req *iampb.SetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
-		return nil, err
 
-	}
-	return nil, nil
-
+// Close closes the connection to the API service. The user should invoke this when
+// the client is no longer required.
+func (c *fooRESTClient) Close() error {
+	c.httpClient.CloseIdleConnections()
+	return nil
 }
-func (c *fooRESTClient) GetIamPolicy(ctx context.Context, req *iampb.GetIamPolicyRequest, opts ...gax.CallOption) (*iampb.Policy, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
-		return nil, err
 
-	}
-	return nil, nil
-
-}
-func (c *fooRESTClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPermissionsRequest, opts ...gax.CallOption) (*iampb.TestIamPermissionsResponse, error) {
-	m := jsonpb.Marshaler{}
-	if jsonReq, err := m.MarshalToString(req); err != nil {
-		return nil, err
-
-	}
-	return nil, nil
-
+// Connection returns a connection to the API service.
+//
+// Deprecated.
+func (c *fooRESTClient) Connection() *grpc.ClientConn {
+	return nil
 }

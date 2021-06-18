@@ -265,24 +265,47 @@ func TestClientInit(t *testing.T) {
 	servPlain := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".mypackage.Foo")},
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptor.MethodOptions{},
+			},
 		},
 	}
 	servLRO := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".google.longrunning.Operation")},
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".google.longrunning.Operation"),
+				Options:    &descriptor.MethodOptions{},
+			},
 		},
 	}
 	servDeprecated := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), InputType: proto.String(".mypackage.Bar"), OutputType: proto.String(".mypackage.Foo")},
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptor.MethodOptions{},
+			},
 		},
 		Options: &descriptor.ServiceOptions{
 			Deprecated: proto.Bool(true),
 		},
 	}
+	for _, s := range []*descriptor.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
+		proto.SetExtension(s.Method[0].GetOptions(), annotations.E_Http, &annotations.HttpRule{
+			Pattern: &annotations.HttpRule_Get{
+				Get: "/zip",
+			},
+		})
+	}
+
 	for _, tst := range []struct {
 		tstName   string
 		servName  string
@@ -319,7 +342,16 @@ func TestClientInit(t *testing.T) {
 			servName:  "Foo",
 			serv:      servPlain,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
-			imports:   map[pbinfo.ImportSpec]bool{},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "bytes"}: true,
+				{Path: "fmt"}:   true,
+				{Path: "google.golang.org/api/option/internaloption"}:   true,
+				{Path: "google.golang.org/grpc/metadata"}:               true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "io/ioutil"}: true,
+				{Path: "net/http"}:  true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
+			},
 		},
 		{
 			tstName:   "empty_client_init",
@@ -327,11 +359,18 @@ func TestClientInit(t *testing.T) {
 			serv:      servPlain,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "context"}:                                                  true,
-				{Path: "google.golang.org/grpc"}:                                   true,
-				{Path: "google.golang.org/grpc/metadata"}:                          true,
-				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
-				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
+				{Path: "bytes"}: true,
+				{Path: "fmt"}:   true,
+				{Path: "google.golang.org/api/option/internaloption"}:   true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "io/ioutil"}:                       true,
+				{Path: "net/http"}:                        true,
+				{Path: "context"}:                         true,
+				{Path: "google.golang.org/grpc"}:          true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:    true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:        true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
 			},
 		},
 		{
@@ -343,13 +382,13 @@ func TestClientInit(t *testing.T) {
 			serv:      servLRO,
 			parameter: proto.String("go-gapic-package=path;mypackage"),
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "context"}:                                                                  true,
-				{Path: "google.golang.org/grpc"}:                                                   true,
-				{Path: "google.golang.org/grpc/metadata"}:                                          true,
 				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                 true,
 				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
 				{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}:                 true,
 				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+				{Path: "context"}:                         true,
+				{Path: "google.golang.org/grpc"}:          true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
 			},
 		},
 		{
@@ -358,11 +397,18 @@ func TestClientInit(t *testing.T) {
 			serv:      servDeprecated,
 			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "context"}:                                                  true,
-				{Path: "google.golang.org/grpc"}:                                   true,
-				{Path: "google.golang.org/grpc/metadata"}:                          true,
-				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
-				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:    true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:        true,
+				{Path: "bytes"}:   true,
+				{Path: "context"}: true,
+				{Path: "fmt"}:     true,
+				{Path: "google.golang.org/api/option/internaloption"}:   true,
+				{Path: "google.golang.org/grpc"}:                        true,
+				{Path: "google.golang.org/grpc/metadata"}:               true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "io/ioutil"}:                                     true,
+				{Path: "net/http"}:                                      true,
 			},
 		},
 	} {

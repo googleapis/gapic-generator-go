@@ -23,10 +23,6 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
-func typep(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
-	return &t
-}
-
 func TestTree(t *testing.T) {
 	fieldVals := [][]string{
 		{"a.b", "1"},

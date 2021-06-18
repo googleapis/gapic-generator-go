@@ -51,9 +51,6 @@ func TestExample(t *testing.T) {
 		Name: proto.String("OutputType"),
 	}
 
-	typep := func(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
-		return &t
-	}
 	labelp := func(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
 		return &l
 	}

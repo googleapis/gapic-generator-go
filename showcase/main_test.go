@@ -37,6 +37,8 @@ func init() {
 	registerIgnoreGoroutine("google.golang.org/grpc.(*addrConn).connect")
 }
 
+const showcaseSemver = "0.15.0"
+
 func TestMain(m *testing.M) {
 	flag.Parse()
 
@@ -65,6 +67,16 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	defer sequenceClient.Close()
+
+	// TODO: Change to use REST client once query params are cleaned up.
+	// The custom endpoint bypasses https.
+	// complianceClient, err = showcase.NewComplianceRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithoutAuthentication())
+	complianceClient, err = showcase.NewComplianceClient(ctx, opt)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer complianceClient.Close()
 
 	os.Exit(m.Run())
 }

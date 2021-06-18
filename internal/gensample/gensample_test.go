@@ -27,6 +27,10 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
 
+func typep(typ descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
+	return &typ
+}
+
 func TestUnary(t *testing.T) {
 	t.Parallel()
 
