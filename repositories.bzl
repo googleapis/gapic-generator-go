@@ -236,12 +236,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:uPZaMiz6Sz0PZs3IZJWpU5qHKGNy///1pacZC9txiUI=",
         version = "v0.0.0-20180912061657-c5d65f63c638",
     )
-    _maybe(
-        http_archive,
-        name = "com_google_api_codegen",
-        strip_prefix = "gapic-generator-2.4.5",
-        urls = ["https://github.com/googleapis/gapic-generator/archive/v2.4.5.zip"],
-    )
     go_repository(
         name = "com_google_cloud_go",
         importpath = "cloud.google.com/go",
