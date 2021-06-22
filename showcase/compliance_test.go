@@ -60,8 +60,8 @@ func TestComplianceSuite(t *testing.T) {
 	restRPCs := map[string]method{
 		"Compliance.RepeatDataBody":                 complianceClient.RepeatDataBody,
 		"Compliance.RepeatDataBodyInfo":             complianceClient.RepeatDataBodyInfo,
-		"Compliance.RepeatDataQuery":                complianceClient.RepeatDataQuery,
-		"Compliance.RepeatDataSimplePath":           complianceClient.RepeatDataSimplePath,
+		"Compliance.RepeatDataQuery":                wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
+		"Compliance.RepeatDataSimplePath":           wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
 		"Compliance.RepeatDataPathResource":         wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
 		"Compliance.RepeatDataPathTrailingResource": wipMethod, // TODO: replace with complianceClient.RepeatDataPathTrailingResource,
 	}
