@@ -127,7 +127,7 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("")
 	// TODO(dovs): make rest default call options
 	// TODO(dovs): set the LRO client
-	p("    return &%[1]sClient{internalClient: c, CallOptions: default%[1]sCallOptions()}, nil", servName)
+	p("    return &%[1]sClient{internalClient: c, CallOptions: &%[1]sCallOptions{}}, nil", servName)
 	p("}")
 	p("")
 
@@ -494,6 +494,9 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("return it")
 	p("}")
 
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
+
 	return nil
 }
 
@@ -520,16 +523,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("}")
 	p("")
 
-	p("// %[1]s returns a new %[1]s from a given name.", lroType)
-	p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
-	p("func (c *%s) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
-	p("  return &%s{", lroType)
-	// TODO(dovs): return a non-empty and useful object
-	p("  }")
-	p("}")
-	p("")
-
-	g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
 
 	return nil
 }
@@ -600,6 +594,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p(" return err")
 	p("}")
 	p("defer httpRsp.Body.Close()")
+	p("")
 	p("if httpRsp.StatusCode != http.StatusOK {")
 	// TODO(dovs): handle this error more
 	p("  return fmt.Errorf(httpRsp.Status)")
@@ -682,7 +677,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("}")
 	p("defer httpRsp.Body.Close()")
 	p("")
-	p("if httpRsp.StatusCode >= http.StatusOK {")
+	p("if httpRsp.StatusCode != http.StatusOK {")
 	// TODO(dovs): handle this error more
 	p("  return nil, fmt.Errorf(httpRsp.Status)")
 	p("}")

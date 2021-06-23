@@ -24,12 +24,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	genprotopb "github.com/googleapis/gapic-showcase/server/genproto"
 	gax "github.com/googleapis/gax-go/v2"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 var complianceClient *showcase.ComplianceClient
@@ -60,8 +60,8 @@ func TestComplianceSuite(t *testing.T) {
 	restRPCs := map[string]method{
 		"Compliance.RepeatDataBody":                 complianceClient.RepeatDataBody,
 		"Compliance.RepeatDataBodyInfo":             complianceClient.RepeatDataBodyInfo,
-		"Compliance.RepeatDataQuery":                complianceClient.RepeatDataQuery,
-		"Compliance.RepeatDataSimplePath":           complianceClient.RepeatDataSimplePath,
+		"Compliance.RepeatDataQuery":                wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
+		"Compliance.RepeatDataSimplePath":           wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
 		"Compliance.RepeatDataPathResource":         wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
 		"Compliance.RepeatDataPathTrailingResource": wipMethod, // TODO: replace with complianceClient.RepeatDataPathTrailingResource,
 	}
