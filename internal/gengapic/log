@@ -1,0 +1,351 @@
+--- FAIL: TestClientOpt (0.00s)
+    client_init_test.go:202: foo_opt: (+got,-want)
+          // FooCallOptions contains the retry settings for each method of FooClient.
+          type FooCallOptions struct {
+          	Zip []gax.CallOption
+          	Zap []gax.CallOption
+          	Smack []gax.CallOption
+          	ListLocations []gax.CallOption
+          	GetLocation []gax.CallOption
+          	SetIamPolicy []gax.CallOption
+          	GetIamPolicy []gax.CallOption
+          	TestIamPermissions []gax.CallOption
+          	ListOperations []gax.CallOption
+          	GetOperation []gax.CallOption
+          	DeleteOperation []gax.CallOption
+          	CancelOperation []gax.CallOption
+          	WaitOperation []gax.CallOption
+          }
+          
+          func defaultFooGRPCClientOptions() []option.ClientOption {
+          	return []option.ClientOption{
+          		internaloption.WithDefaultEndpoint("foo.googleapis.com:443"),
+          		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:443"),
+          		internaloption.WithDefaultAudience("https://foo.googleapis.com/"),
+          		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
+          		internaloption.EnableJwtWithScope(),
+          		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
+          		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+          		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
+          	}
+          }
+          
+          func defaultFooCallOptions() *FooCallOptions {
+          	return &FooCallOptions{
+          		Zip: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(123456)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(123456)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    100 * time.Millisecond,
+          					Max:        60000 * time.Millisecond,
+          					Multiplier: 1.30,
+          				})
+          			}),
+          		},
+          		Zap: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		Smack: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		ListLocations: []gax.CallOption{
+          		},
+          		GetLocation: []gax.CallOption{
+          		},
+          		SetIamPolicy: []gax.CallOption{
+          		},
+          		GetIamPolicy: []gax.CallOption{
+          		},
+          		TestIamPermissions: []gax.CallOption{
+          		},
+          		ListOperations: []gax.CallOption{
+          		},
+          		GetOperation: []gax.CallOption{
+          		},
+          		DeleteOperation: []gax.CallOption{
+          		},
+          		CancelOperation: []gax.CallOption{
+          		},
+          		WaitOperation: []gax.CallOption{
+          		},
+          	}
+          }
+        + 
+          
+    client_init_test.go:202: empty_opt: (+got,-want)
+          // CallOptions contains the retry settings for each method of Client.
+          type CallOptions struct {
+          	Zip []gax.CallOption
+          	Zap []gax.CallOption
+          	Smack []gax.CallOption
+          	ListLocations []gax.CallOption
+          	GetLocation []gax.CallOption
+          	SetIamPolicy []gax.CallOption
+          	GetIamPolicy []gax.CallOption
+          	TestIamPermissions []gax.CallOption
+          	ListOperations []gax.CallOption
+          	GetOperation []gax.CallOption
+          	DeleteOperation []gax.CallOption
+          	CancelOperation []gax.CallOption
+          	WaitOperation []gax.CallOption
+          }
+          
+          func defaultGRPCClientOptions() []option.ClientOption {
+          	return []option.ClientOption{
+          		internaloption.WithDefaultEndpoint("foo.googleapis.com:443"),
+          		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:443"),
+          		internaloption.WithDefaultAudience("https://foo.googleapis.com/"),
+          		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
+          		internaloption.EnableJwtWithScope(),
+          		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
+          		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+          		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
+          	}
+          }
+          
+          func defaultCallOptions() *CallOptions {
+          	return &CallOptions{
+          		Zip: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(123456)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(123456)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    100 * time.Millisecond,
+          					Max:        60000 * time.Millisecond,
+          					Multiplier: 1.30,
+          				})
+          			}),
+          		},
+          		Zap: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		Smack: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		ListLocations: []gax.CallOption{
+          		},
+          		GetLocation: []gax.CallOption{
+          		},
+          		SetIamPolicy: []gax.CallOption{
+          		},
+          		GetIamPolicy: []gax.CallOption{
+          		},
+          		TestIamPermissions: []gax.CallOption{
+          		},
+          		ListOperations: []gax.CallOption{
+          		},
+          		GetOperation: []gax.CallOption{
+          		},
+          		DeleteOperation: []gax.CallOption{
+          		},
+          		CancelOperation: []gax.CallOption{
+          		},
+          		WaitOperation: []gax.CallOption{
+          		},
+          	}
+          }
+        + 
+          
+    client_init_test.go:202: host_port_opt: (+got,-want)
+          // BarCallOptions contains the retry settings for each method of BarClient.
+          type BarCallOptions struct {
+          	Smack []gax.CallOption
+          	ListLocations []gax.CallOption
+          	GetLocation []gax.CallOption
+          	SetIamPolicy []gax.CallOption
+          	GetIamPolicy []gax.CallOption
+          	TestIamPermissions []gax.CallOption
+          	ListOperations []gax.CallOption
+          	GetOperation []gax.CallOption
+          	DeleteOperation []gax.CallOption
+          	CancelOperation []gax.CallOption
+          	WaitOperation []gax.CallOption
+          }
+          
+          func defaultBarGRPCClientOptions() []option.ClientOption {
+          	return []option.ClientOption{
+          		internaloption.WithDefaultEndpoint("foo.googleapis.com:1234"),
+          		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:1234"),
+          		internaloption.WithDefaultAudience("https://foo.googleapis.com/"),
+          		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
+          		internaloption.EnableJwtWithScope(),
+          		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
+          		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+          		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
+          	}
+          }
+          
+          func defaultBarCallOptions() *BarCallOptions {
+          	return &BarCallOptions{
+          		Smack: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		ListLocations: []gax.CallOption{
+          		},
+          		GetLocation: []gax.CallOption{
+          		},
+          		SetIamPolicy: []gax.CallOption{
+          		},
+          		GetIamPolicy: []gax.CallOption{
+          		},
+          		TestIamPermissions: []gax.CallOption{
+          		},
+          		ListOperations: []gax.CallOption{
+          		},
+          		GetOperation: []gax.CallOption{
+          		},
+          		DeleteOperation: []gax.CallOption{
+          		},
+          		CancelOperation: []gax.CallOption{
+          		},
+          		WaitOperation: []gax.CallOption{
+          		},
+          	}
+          }
+        + 
+          
+    client_init_test.go:202: iam_override_opt: (+got,-want)
+          // BazCallOptions contains the retry settings for each method of BazClient.
+          type BazCallOptions struct {
+          	GetIamPolicy []gax.CallOption
+          	SetIamPolicy []gax.CallOption
+          	TestIamPermissions []gax.CallOption
+          	ListLocations []gax.CallOption
+          	GetLocation []gax.CallOption
+          	ListOperations []gax.CallOption
+          	GetOperation []gax.CallOption
+          	DeleteOperation []gax.CallOption
+          	CancelOperation []gax.CallOption
+          	WaitOperation []gax.CallOption
+          }
+          
+          func defaultBazGRPCClientOptions() []option.ClientOption {
+          	return []option.ClientOption{
+          		internaloption.WithDefaultEndpoint("foo.googleapis.com:1234"),
+          		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:1234"),
+          		internaloption.WithDefaultAudience("https://foo.googleapis.com/"),
+          		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
+          		internaloption.EnableJwtWithScope(),
+          		option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),
+          		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+          		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
+          	}
+          }
+          
+          func defaultBazCallOptions() *BazCallOptions {
+          	return &BazCallOptions{
+          		GetIamPolicy: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		SetIamPolicy: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		TestIamPermissions: []gax.CallOption{
+          			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
+          			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+          			gax.WithRetry(func() gax.Retryer {
+          				return gax.OnCodes([]codes.Code{
+          					codes.Unknown,
+          				}, gax.Backoff{
+          					Initial:    10 * time.Millisecond,
+          					Max:        7000 * time.Millisecond,
+          					Multiplier: 1.10,
+          				})
+          			}),
+          		},
+          		ListLocations: []gax.CallOption{
+          		},
+          		GetLocation: []gax.CallOption{
+          		},
+          		ListOperations: []gax.CallOption{
+          		},
+          		GetOperation: []gax.CallOption{
+          		},
+          		DeleteOperation: []gax.CallOption{
+          		},
+          		CancelOperation: []gax.CallOption{
+          		},
+          		WaitOperation: []gax.CallOption{
+          		},
+          	}
+          }
+        + 
+          
+FAIL
+FAIL	github.com/googleapis/gapic-generator-go/internal/gengapic	0.233s
+FAIL
