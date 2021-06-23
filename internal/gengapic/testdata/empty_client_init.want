@@ -155,7 +155,7 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 	}
 	c.setGoogleClientInfo()
 
-	return &Client{internalClient: c, CallOptions: defaultCallOptions()}, nil
+	return &Client{internalClient: c, CallOptions: &CallOptions{}}, nil
 }
 
 // setGoogleClientInfo sets the name and version of the application in
