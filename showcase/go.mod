@@ -3,6 +3,7 @@ module showcase
 go 1.13
 
 require (
+	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.5
 	github.com/googleapis/gapic-showcase v0.15.0
 	github.com/googleapis/gax-go/v2 v2.0.5

@@ -99,7 +99,7 @@ func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooCli
 	}
 	c.setGoogleClientInfo()
 
-	return &FooClient{internalClient: c, CallOptions: defaultFooCallOptions()}, nil
+	return &FooClient{internalClient: c, CallOptions: &FooCallOptions{}}, nil
 }
 
 // setGoogleClientInfo sets the name and version of the application in

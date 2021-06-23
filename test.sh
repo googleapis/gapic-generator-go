@@ -36,11 +36,11 @@ generate() {
 	protoc --go_gapic_out "$OUT" -I "$GOOGLEAPIS" $*
 }
 
-echo "Generating Cloud KMS v1"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms,transport=grpc+rest' $GOOGLEAPIS/google/cloud/kms/v1/*.proto
+echo "Generating Cloud KMS v1 - gRPC"
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms,transport=grpc' $GOOGLEAPIS/google/cloud/kms/v1/*.proto
 
-echo "Generating Cloud Data Catalog v1beta1"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog,transport=grpc+rest' $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto
+echo "Generating Cloud Data Catalog v1beta1 - REST"
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog,transport=rest' $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto
 
 echo "Generating Cloud Text-to-Speech v1 w/gRPC ServiceConfig"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/texttospeech/apiv1;texttospeech,transport=grpc+rest' --go_gapic_opt "grpc-service-config=$GOOGLEAPIS/google/cloud/texttospeech/v1/texttospeech_grpc_service_config.json" $GOOGLEAPIS/google/cloud/texttospeech/v1/*.proto
