@@ -55,6 +55,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
@@ -195,10 +196,9 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	if info == nil || err != nil {
 		return queryParams
 	}
-	if info.body == "" || info.body == "*" {
-		// The request is the body, so no additional query params.
+	if info.body == "*" {
+		// The entire request is the REST body.
 		return queryParams
-
 	}
 
 	pathParams := g.pathParams(m)
@@ -210,21 +210,85 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	// This may be the request message itself or a subfield.
 	// Body parameters are not valid query parameters,
 	// because that means the same param would be sent more than once.
-	var bodyMsg *descriptor.DescriptorProto
 	bodyField := g.lookupField(m.GetInputType(), info.body)
-	if bodyField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-		bodyMsg = g.descInfo.Type[bodyField.GetTypeName()].(*descriptor.DescriptorProto)
-	}
 
-	for _, f := range request.GetField() {
-		// If, and only if, a field is not a path parameter or a body parameter,
+	// Possible query parameters are all leaf fields in the request or body.
+	pathToLeaf := g.getLeafs(request, bodyField)
+	// Iterate in sorted order to
+	for path, leaf := range pathToLeaf {
+		// If, and only if, a leaf field is not a path parameter or a body parameter,
 		// it is a query parameter.
-		if _, ok := pathParams[f.GetName()]; !ok && g.lookupField(bodyMsg.GetName(), f.GetName()) == nil {
-			queryParams[f.GetName()] = f
+		if _, ok := pathParams[path]; !ok && g.lookupField(request.GetName(), leaf.GetName()) == nil {
+			queryParams[path] = leaf
 		}
 	}
 
 	return queryParams
+}
+
+// Returns a map from fully qualified path to field descriptor for all the leaf fields of a message 'm',
+// where a "leaf" field is a non-message whose top message ancestor is 'm'.
+// e.g. for a message like the following
+//
+// message Mollusc {
+//     message Squid {
+//         message Mantle {
+//             int32 mass_kg = 1;
+//         }
+//         Mantle mantle = 1;
+//     }
+//     Squid squid = 1;
+// }
+//
+// The one entry would be
+// "squid.mantle.mass_kg": *descriptor.FieldDescriptorProto...
+func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...*descriptor.FieldDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
+	pathsToLeafs := map[string]*descriptor.FieldDescriptorProto{}
+
+	var recurse func([]*descriptor.FieldDescriptorProto, *descriptor.DescriptorProto)
+
+	recurse = func(
+		stack []*descriptor.FieldDescriptorProto,
+		m *descriptor.DescriptorProto,
+	) {
+
+	OUTER:
+		for _, field := range m.GetField() {
+			if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+					// Repeated message fields must not be mapped because no
+					// client library can support such complicated mappings.
+					// https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#grpc-transcoding
+					continue OUTER
+				}
+				for _, f := range excludedFields {
+					if field == f {
+						continue OUTER
+					}
+				}
+				// Short circuit on infinite recursion
+				for _, p := range stack {
+					if p == field {
+						continue OUTER
+					}
+				}
+
+				subMsg := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+				recurse(append(stack, field), subMsg)
+			} else {
+				elts := []string{}
+				for _, f := range stack {
+					elts = append(elts, f.GetName())
+				}
+				elts = append(elts, field.GetName())
+				key := strings.Join(elts, ".")
+				pathsToLeafs[key] = field
+			}
+		}
+	}
+
+	recurse([]*descriptor.FieldDescriptorProto{}, msg)
+	return pathsToLeafs
 }
 
 func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
@@ -234,9 +298,6 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		return
 	}
 
-	// Don't need the import unless we're constructing a query param
-	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
-
 	// We want to iterate over fields in a deterministic order
 	// to prevent spurious deltas when regenerating gapics.
 	fields := make([]string, 0, len(queryParams))
@@ -245,36 +306,40 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	}
 	sort.Strings(fields)
 
-	p("queryParamStrs := []string{}")
+	requestObject := "req"
+
+	p("params := url.Values{}")
 	// TODO(dovs): make this work for nested fields
-	for _, f := range fields {
-		field := queryParams[f]
-		f = snakeToCamel(f)
+	for _, path := range fields {
+		field := queryParams[path]
+		accessor := buildAccessor(path)
+		closer := "}"
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
-			p("if req.Get%s() != nil {", f)
-		} else {
+			p("if %s%s != nil {", requestObject, accessor)
+		} else if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_OPTIONAL {
 			// Default values are type specific
 			switch field.GetType() {
+			// Degenerate case, field should never be a message because that implies it's not a leaf.
 			case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_BYTES:
-				p("if req.Get%s() != nil {", f)
+				p("if %s%s != nil {", requestObject, accessor)
 			case descriptor.FieldDescriptorProto_TYPE_STRING:
-				p(`if req.Get%s() != "" {`, f)
+				p(`if %s%s != "" {`, requestObject, accessor)
 			case descriptor.FieldDescriptorProto_TYPE_BOOL:
-				p(`if req.Get%s() {`, f)
-			default: // Handles all numeric types
-				p(`if req.Get%s() != 0 {`, f)
+				p(`if %s%s {`, requestObject, accessor)
+			default: // Handles all numeric types including enums
+				p(`if %s%s != 0 {`, requestObject, accessor)
 			}
+		} else {
+			// This is a required field, so we must include the field
+			// even if it has default value.
+			closer = ""
 		}
-		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", req.Get%s()))", lowerFirst(f), f)
-		p("}")
+		p("    params.Add(\"%s\", fmt.Sprintf(\"%%v\", %s%s))", lowerFirst(snakeToCamel(path)), requestObject, accessor)
+		p(closer)
 	}
-
-	p(`query := strings.ReplaceAll(strings.Join(queryParamStrs, "&"), " ", "+")`)
 	p("")
-	p(`if query != "" {`)
-	p(`    url += "?" + query`)
-	p("}")
+	p("baseUrl.RawQuery = params.Encode()")
 	p("")
 }
 
@@ -295,14 +360,15 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 		requestObject = "body"
 	}
 
-	fmtStr := fmt.Sprintf("%%s%s", info.url)
+	fmtStr := fmt.Sprintf("%s", info.url)
 	// TODO(dovs): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
 	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)}`)
 	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
-	p(`url := fmt.Sprintf("%s",`, fmtStr)
-	p("c.endpoint,")
+	// TODO(dovs): handle error
+	p("baseUrl, _ := url.Parse(c.endpoint)")
+	p(`baseUrl.Path += fmt.Sprintf("%s",`, fmtStr)
 	// Can't just reuse pathParams because the order matters
 	for _, path := range re.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
@@ -574,7 +640,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
+	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", baseUrl.String(), bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return err")
 	p("}")
@@ -657,7 +723,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
+	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", baseUrl.String(), bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return nil, err")
 	p("}")

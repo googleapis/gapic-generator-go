@@ -229,3 +229,144 @@ func TestQueryParams(t *testing.T) {
 		}
 	}
 }
+
+func TestLeafFields(t *testing.T) {
+	var g generator
+	g.apiName = "Awesome Mollusc API"
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.opts = &options{transports: []transport{rest}}
+
+	basicMsg := &descriptor.DescriptorProto{
+		Name: proto.String("Clam"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("mass_kg"),
+				Number: proto.Int32(int32(0)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			},
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("saltwater_p"),
+				Number: proto.Int32(int32(1)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_BOOL),
+			},
+		},
+	}
+
+	innermostMsg := &descriptor.DescriptorProto{
+		Name: proto.String("Chromatophore"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("color_code"),
+				Number: proto.Int32(int32(0)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			},
+		},
+	}
+	nestedMsg := &descriptor.DescriptorProto{
+		Name: proto.String("Mantle"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("mass_kg"),
+				Number: proto.Int32(int32(0)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			},
+			&descriptor.FieldDescriptorProto{
+				Name:     proto.String("chromatophore"),
+				Number:   proto.Int32(int32(1)),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".animalia.mollusca.Chromatophore"),
+			},
+		},
+	}
+
+	complexMsg := &descriptor.DescriptorProto{
+		Name: proto.String("Squid"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("length_m"),
+				Number: proto.Int32(int32(0)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			},
+			&descriptor.FieldDescriptorProto{
+				Name:     proto.String("mantle"),
+				Number:   proto.Int32(int32(1)),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".animalia.mollusca.Mantle"),
+			},
+		},
+	}
+
+	recursiveMsg := &descriptor.DescriptorProto{
+		// Usually it's turtles all the way down, but here it's whelks
+		Name: proto.String("Whelk"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("mass_kg"),
+				Number: proto.Int32(int32(0)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			},
+			&descriptor.FieldDescriptorProto{
+				Name:     proto.String("whelk"),
+				Number:   proto.Int32(int32(1)),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".animalia.mollusca.Whelk"),
+			},
+		},
+	}
+
+	file := &descriptor.FileDescriptorProto{
+		Package: proto.String("animalia.mollusca"),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+		MessageType: []*descriptor.DescriptorProto{
+			basicMsg,
+			innermostMsg,
+			nestedMsg,
+			complexMsg,
+			recursiveMsg,
+		},
+	}
+	req := plugin.CodeGeneratorRequest{
+		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
+		ProtoFile: []*descriptor.FileDescriptorProto{file},
+	}
+	g.init(&req)
+
+	for _, tst := range []struct {
+		name     string
+		msg      *descriptor.DescriptorProto
+		expected map[string]*descriptor.FieldDescriptorProto
+	}{
+		{
+			name: "basic_message_test",
+			msg:  basicMsg,
+			expected: map[string]*descriptor.FieldDescriptorProto{
+				"mass_kg":     basicMsg.GetField()[0],
+				"saltwater_p": basicMsg.GetField()[1],
+			},
+		},
+		{
+			name: "complex_message_test",
+			msg:  complexMsg,
+			expected: map[string]*descriptor.FieldDescriptorProto{
+				"length_m":                        complexMsg.GetField()[0],
+				"mantle.mass_kg":                  nestedMsg.GetField()[0],
+				"mantle.chromatophore.color_code": innermostMsg.GetField()[0],
+			},
+		},
+		{
+			name: "recursive_message",
+			msg:  recursiveMsg,
+			expected: map[string]*descriptor.FieldDescriptorProto{
+				"mass_kg":       recursiveMsg.GetField()[0],
+				"whelk.mass_kg": recursiveMsg.GetField()[0],
+			},
+		},
+	} {
+		actual := g.getLeafs(tst.msg)
+		if diff := cmp.Diff(actual, tst.expected, cmp.Comparer(proto.Equal)); diff != "" {
+			t.Errorf("test %s, got(-),want(+):\n%s", tst.name, diff)
+		}
+	}
+}

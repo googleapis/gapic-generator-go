@@ -354,6 +354,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}:               true,
 				{Path: "io/ioutil"}:                                                   true,
 				{Path: "net/http"}:                                                    true,
+				{Path: "net/url"}:                                                     true,
 				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
 			},
 		},
@@ -370,6 +371,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "io/ioutil"}:                       true,
 				{Path: "net/http"}:                        true,
+				{Path: "net/url"}:                         true,
 				{Path: "context"}:                         true,
 				{Path: "google.golang.org/grpc"}:          true,
 				{Path: "google.golang.org/grpc/metadata"}: true,
@@ -416,6 +418,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "io/ioutil"}:                                     true,
 				{Path: "net/http"}:                                      true,
+				{Path: "net/url"}:                                       true,
 			},
 		},
 	} {
