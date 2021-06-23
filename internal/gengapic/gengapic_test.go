@@ -489,7 +489,8 @@ func TestGenLRO(t *testing.T) {
 		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.opts = &options{
-		pkgName: "pkg",
+		pkgName:    "pkg",
+		transports: []transport{grpc},
 	}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{

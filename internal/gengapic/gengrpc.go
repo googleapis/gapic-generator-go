@@ -27,6 +27,14 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
+func lowcaseGRPCClientName(servName string) string {
+	if servName == "" {
+		return "gRPCClient"
+	}
+
+	return lowerFirst(servName + "GRPCClient")
+}
+
 func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
 
@@ -91,7 +99,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 
 	p := g.printf
 
-	lowcaseServName := lowerFirst(servName + "GRPCClient")
+	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
@@ -136,7 +144,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptor.MethodDesc
 
 	p := g.printf
 
-	lowcaseServName := lowerFirst(servName + "GRPCClient")
+	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
@@ -264,7 +272,7 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p := g.printf
 
 	// We DON'T want to export the transport layers.
-	lowcaseServName := lowerFirst(servName + "GRPCClient")
+	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	p("// %s is a client for interacting with %s over gRPC transport.", lowcaseServName, g.apiName)
 	p("//")
@@ -315,7 +323,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 	clientName := camelToSnake(serv.GetName())
 	clientName = strings.Replace(clientName, "_", " ", -1)
-	lowcaseServName := lowerFirst(servName + "GRPCClient")
+	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	// Factory function
 	p("// New%sClient creates a new %s client based on gRPC.", servName, clientName)

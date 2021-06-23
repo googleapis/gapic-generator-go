@@ -74,11 +74,15 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 	p("Close() error")
 	p("setGoogleClientInfo(...string)")
 	p("Connection() *grpc.ClientConn")
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
 
 	// The mixin methods are for manipulating LROs, IAM, and Location.
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
-	// methods := serv.GetMethod()
 
+	if len(methods) > 0 {
+		g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
+	}
 	for _, m := range methods {
 
 		inType := g.descInfo.Type[m.GetInputType()]

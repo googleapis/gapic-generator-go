@@ -93,8 +93,6 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		return fmt.Errorf("rpc %q has google.longrunning.operation_info but is missing option google.longrunning.operation_info.response_type", mFQN)
 	}
 
-	lowcaseServName := lowerFirst(servName + "GRPCClient")
-
 	var respType string
 	{
 		// eLRO.ResponseType is either fully-qualified or top-level in the same package as the method.
@@ -154,16 +152,28 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 
 	// LRO from name
 	{
-		p("// %[1]s returns a new %[1]s from a given name.", lroType)
-		p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
-		p("func (c *%s) %[2]s(name string) *%[2]s {", lowcaseServName, lroType)
-		p("  return &%s{", lroType)
-		p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
-		p("  }")
-		p("}")
-		p("")
+		lowGRPC := lowcaseGRPCClientName(servName)
+		lowREST := lowcaseRestClientName(servName)
+		for _, t := range g.opts.transports {
+			p("// %[1]s returns a new %[1]s from a given name.", lroType)
+			p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
+			switch t {
+			case grpc:
+				p("func (c *%s) %[2]s(name string) *%[2]s {", lowGRPC, lroType)
+				p("  return &%s{", lroType)
+				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
+				p("  }")
+				// TODO(noahdietz): move this outside of the for-loop when REST starts using it.
+				g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+			case rest:
+				p("func (c *%s) %[2]s(name string) *%[2]s {", lowREST, lroType)
+				// TODO(dovs): return a non-empty and useful object
+				p("  return &%s{}", lroType)
+			}
+			p("}")
 
-		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+			p("")
+		}
 	}
 
 	// Wait

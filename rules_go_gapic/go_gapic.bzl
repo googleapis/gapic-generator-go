@@ -93,6 +93,7 @@ def go_gapic_library(
   samples = [],
   sample_only = False,
   metadata = False,
+  transport = ["grpc"],
   **kwargs):
 
   file_args = {}
@@ -110,8 +111,13 @@ def go_gapic_library(
     for path in samples:
         file_args[path] = "sample"
 
+  t = transport[0]
+  if len(transport) > 1:
+    t = "+".join(transport)
+
   plugin_args = [
     "go-gapic-package={}".format(importpath),
+    "transport={}".format(t)
   ]
 
   if release_level:
@@ -149,12 +155,14 @@ def go_gapic_library(
     "@org_golang_google_api//option:go_default_library",
     "@org_golang_google_api//option/internaloption:go_default_library",
     "@org_golang_google_api//iterator:go_default_library",
+    "@org_golang_google_api//transport/http:go_default_library",
     "@org_golang_google_api//transport/grpc:go_default_library",
     "@org_golang_google_grpc//:go_default_library",
     "@org_golang_google_grpc//codes:go_default_library",
     "@org_golang_google_grpc//metadata:go_default_library",
     "@org_golang_google_grpc//status:go_default_library",
     "@org_golang_google_protobuf//proto:go_default_library",
+    "@org_golang_google_protobuf//encoding/protojson:go_default_library",
     "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
     "@org_golang_google_protobuf//types/known/wrapperspb:go_default_library",
     "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
