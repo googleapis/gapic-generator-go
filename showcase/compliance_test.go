@@ -24,12 +24,12 @@ import (
 	"strings"
 	"testing"
 
-	"google.golang.org/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	genprotopb "github.com/googleapis/gapic-showcase/server/genproto"
 	gax "github.com/googleapis/gax-go/v2"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 var complianceClient *showcase.ComplianceClient
