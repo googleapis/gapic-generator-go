@@ -603,6 +603,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("return nil")
 	p("}")
 
+	g.imports[inSpec] = true
 	return nil
 }
 
