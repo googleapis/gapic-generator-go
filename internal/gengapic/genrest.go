@@ -245,7 +245,7 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...*descriptor.FieldDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
 	pathsToLeafs := map[string]*descriptor.FieldDescriptorProto{}
 
-	isInSliceP := func(fields []*descriptor.FieldDescriptorProto, field *descriptor.FieldDescriptorProto) bool {
+	contains := func(fields []*descriptor.FieldDescriptorProto, field *descriptor.FieldDescriptorProto) bool {
 		for _, f := range fields {
 			if field == f {
 				return true
@@ -270,11 +270,11 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 					// https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#grpc-transcoding
 					continue
 				}
-				if isInSliceP(excludedFields, field) {
+				if contains(excludedFields, field) {
 					continue
 				}
 				// Short circuit on infinite recursion
-				if isInSliceP(stack, field) {
+				if contains(stack, field) {
 					continue
 				}
 
@@ -317,14 +317,9 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	for _, path := range fields {
 		field := queryParams[path]
 		accessor := buildAccessor(path)
-		closer := "}"
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
 			p("if %s%s != nil {", requestObject, accessor)
-		} else if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REQUIRED {
-			// This is a required field, so we must include the field
-			// even if it has default value.
-			closer = ""
 		} else {
 			// Default values are type specific
 			switch field.GetType() {
@@ -340,7 +335,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			}
 		}
 		p("    params.Add(\"%s\", fmt.Sprintf(\"%%v\", %s%s))", lowerFirst(snakeToCamel(path)), requestObject, accessor)
-		p(closer)
+		p("}")
 	}
 	p("")
 	p("baseUrl.RawQuery = params.Encode()")
@@ -364,7 +359,7 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 		requestObject = "body"
 	}
 
-	fmtStr := fmt.Sprintf("%s", info.url)
+	fmtStr := info.url
 	// TODO(dovs): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
 	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)}`)
@@ -372,7 +367,8 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 
 	// TODO(dovs): handle error
 	p("baseUrl, _ := url.Parse(c.endpoint)")
-	p(`baseUrl.Path += fmt.Sprintf("%s",`, fmtStr)
+
+	tokens := []string{fmt.Sprintf(`"%s"`, fmtStr)}
 	// Can't just reuse pathParams because the order matters
 	for _, path := range re.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
@@ -380,9 +376,9 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 		// See the docs for FindStringSubmatch for further details.
 		//
 		// buildAccessor handles nested fields for us.
-		p("%s%s,", requestObject, buildAccessor(path[1]))
+		tokens = append(tokens, fmt.Sprintf("%s%s", requestObject, buildAccessor(path[1])))
 	}
-	p(")")
+	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 	return nil
 }
