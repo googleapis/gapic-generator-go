@@ -30,6 +30,10 @@ func typep(typ descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptor
 	return &typ
 }
 
+func labelp(lbl descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
+	return &lbl
+}
+
 // Note: the fields parameter contains the names of _all_ the request message's fields,
 // not just those that are path or query params.
 func setupMethod(g *generator, url, body string, fields []string) (*descriptor.MethodDescriptorProto, error) {
@@ -278,7 +282,6 @@ func TestLeafFields(t *testing.T) {
 			},
 		},
 	}
-
 	complexMsg := &descriptor.DescriptorProto{
 		Name: proto.String("Squid"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -314,6 +317,24 @@ func TestLeafFields(t *testing.T) {
 		},
 	}
 
+	overarchingMsg := &descriptor.DescriptorProto{
+		Name: proto.String("Trawl"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:     proto.String("clams"),
+				Number:   proto.Int32(int32(0)),
+				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".animalia.mollusca"),
+			},
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("mass_kg"),
+				Number: proto.Int32(int32(1)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+			},
+		},
+	}
+
 	file := &descriptor.FileDescriptorProto{
 		Package: proto.String("animalia.mollusca"),
 		Options: &descriptor.FileOptions{
@@ -325,6 +346,7 @@ func TestLeafFields(t *testing.T) {
 			nestedMsg,
 			complexMsg,
 			recursiveMsg,
+			overarchingMsg,
 		},
 	}
 	req := plugin.CodeGeneratorRequest{
@@ -334,9 +356,10 @@ func TestLeafFields(t *testing.T) {
 	g.init(&req)
 
 	for _, tst := range []struct {
-		name     string
-		msg      *descriptor.DescriptorProto
-		expected map[string]*descriptor.FieldDescriptorProto
+		name           string
+		msg            *descriptor.DescriptorProto
+		expected       map[string]*descriptor.FieldDescriptorProto
+		excludedFields []*descriptor.FieldDescriptorProto
 	}{
 		{
 			name: "basic_message_test",
@@ -356,15 +379,33 @@ func TestLeafFields(t *testing.T) {
 			},
 		},
 		{
-			name: "recursive_message",
+			name: "excluded_message_test",
+			msg:  complexMsg,
+			expected: map[string]*descriptor.FieldDescriptorProto{
+				"length_m":       complexMsg.GetField()[0],
+				"mantle.mass_kg": nestedMsg.GetField()[0],
+			},
+			excludedFields: []*descriptor.FieldDescriptorProto{
+				nestedMsg.GetField()[1],
+			},
+		},
+		{
+			name: "recursive_message_test",
 			msg:  recursiveMsg,
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"mass_kg":       recursiveMsg.GetField()[0],
 				"whelk.mass_kg": recursiveMsg.GetField()[0],
 			},
 		},
+		{
+			name: "repeated_message_test",
+			msg:  overarchingMsg,
+			expected: map[string]*descriptor.FieldDescriptorProto{
+				"mass_kg": overarchingMsg.GetField()[1],
+			},
+		},
 	} {
-		actual := g.getLeafs(tst.msg)
+		actual := g.getLeafs(tst.msg, tst.excludedFields...)
 		if diff := cmp.Diff(actual, tst.expected, cmp.Comparer(proto.Equal)); diff != "" {
 			t.Errorf("test %s, got(-),want(+):\n%s", tst.name, diff)
 		}

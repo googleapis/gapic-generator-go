@@ -21,7 +21,7 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	return
 fi
 
-SHOWCASE_SEMVER=0.15.0
+SHOWCASE_SEMVER=0.16.0
 
 rm -rf gen
 mkdir gen

@@ -245,32 +245,37 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...*descriptor.FieldDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
 	pathsToLeafs := map[string]*descriptor.FieldDescriptorProto{}
 
+	isInSliceP := func(fields []*descriptor.FieldDescriptorProto, field *descriptor.FieldDescriptorProto) bool {
+		for _, f := range fields {
+			if field == f {
+				return true
+			}
+		}
+		return false
+	}
+
+	// We need to declare and define this function in two steps
+	// so that we can use it recursively.
 	var recurse func([]*descriptor.FieldDescriptorProto, *descriptor.DescriptorProto)
 
 	recurse = func(
 		stack []*descriptor.FieldDescriptorProto,
 		m *descriptor.DescriptorProto,
 	) {
-
-	OUTER:
 		for _, field := range m.GetField() {
 			if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
 				if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 					// Repeated message fields must not be mapped because no
 					// client library can support such complicated mappings.
 					// https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#grpc-transcoding
-					continue OUTER
+					continue
 				}
-				for _, f := range excludedFields {
-					if field == f {
-						continue OUTER
-					}
+				if isInSliceP(excludedFields, field) {
+					continue
 				}
 				// Short circuit on infinite recursion
-				for _, p := range stack {
-					if p == field {
-						continue OUTER
-					}
+				if isInSliceP(stack, field) {
+					continue
 				}
 
 				subMsg := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
@@ -309,7 +314,6 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	requestObject := "req"
 
 	p("params := url.Values{}")
-	// TODO(dovs): make this work for nested fields
 	for _, path := range fields {
 		field := queryParams[path]
 		accessor := buildAccessor(path)
@@ -317,7 +321,11 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
 			p("if %s%s != nil {", requestObject, accessor)
-		} else if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_OPTIONAL {
+		} else if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REQUIRED {
+			// This is a required field, so we must include the field
+			// even if it has default value.
+			closer = ""
+		} else {
 			// Default values are type specific
 			switch field.GetType() {
 			// Degenerate case, field should never be a message because that implies it's not a leaf.
@@ -330,10 +338,6 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			default: // Handles all numeric types including enums
 				p(`if %s%s != 0 {`, requestObject, accessor)
 			}
-		} else {
-			// This is a required field, so we must include the field
-			// even if it has default value.
-			closer = ""
 		}
 		p("    params.Add(\"%s\", fmt.Sprintf(\"%%v\", %s%s))", lowerFirst(snakeToCamel(path)), requestObject, accessor)
 		p(closer)
@@ -662,7 +666,6 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("defer httpRsp.Body.Close()")
 	p("")
 	p("if httpRsp.StatusCode != http.StatusOK {")
-	// TODO(dovs): handle this error more
 	p("  return fmt.Errorf(httpRsp.Status)")
 	p("}")
 	p("")
@@ -744,7 +747,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("defer httpRsp.Body.Close()")
 	p("")
 	p("if httpRsp.StatusCode != http.StatusOK {")
-	// TODO(dovs): handle this error more
 	p("  return nil, fmt.Errorf(httpRsp.Status)")
 	p("}")
 	p("")
