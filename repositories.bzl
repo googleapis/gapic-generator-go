@@ -989,6 +989,8 @@ def com_googleapis_gapic_generator_go_repositories():
     )
     go_repository(
         name = "com_google_cloud_go",
+        # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
+        build_extra_args = ["-exclude=longrunning/autogen/info.go"],
         importpath = "cloud.google.com/go",
         sum = "h1:hVhK90DwCdOAYGME/FJd9vNIZye9HBR6Yy3fu4js3N8=",
         version = "v0.84.0",
@@ -1292,7 +1294,7 @@ def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):
 # targets. This way we get both the _maybe functionality and still use
 # gazelle update-repos. The real go_repository rule is loaded with an alias:
 # gazelle_go_repository.
-def go_repository(name, importpath, sum, version, build_file_proto_mode = ""):
+def go_repository(name, importpath, sum, version, build_file_proto_mode = "", build_extra_args = []):
     # Forecfully ignore this dep, because it is not actually needed, but appears
     # in the go.sum for some reason. Including it will interfere with compiling
     # a generated client in go_gapic_library.
@@ -1309,4 +1311,5 @@ def go_repository(name, importpath, sum, version, build_file_proto_mode = ""):
         sum = sum,
         version = version,
         build_file_proto_mode = build_file_proto_mode,
+        build_extra_args = build_extra_args,
     )
