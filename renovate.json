@@ -2,9 +2,6 @@
   "extends": [
     "config:base"
   ],
-  "ignorePaths": [
-    "showcase"
-  ],
   "golang": {
     "ignoreDeps": [
       "github.com/russross/blackfriday"

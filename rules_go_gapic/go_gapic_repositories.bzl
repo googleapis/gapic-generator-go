@@ -26,15 +26,15 @@ def go_gapic_repositories():
         go_repository,
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:l2Nfbl2GPXdWorv+dT2XfinX2jOOw4zv1VhLstx+6rE=",
-        version = "v0.36.0",
+        sum = "h1:gjIBDxlTG7vnzMmEnYwTnvLTF8Rjzo+ETCgEX1YZ/fY=",
+        version = "v0.49.0",
     )
     _maybe(
         go_repository,
         name = "org_golang_x_oauth2",
         importpath = "golang.org/x/oauth2",
-        sum = "h1:ld7aEMNHoBnnDAX15v1T6z31v8HwR2A9FYOuAhWqkwc=",
-        version = "v0.0.0-20200902213428-5d25da1a8d43",
+        sum = "h1:pERGha6IgvMUdN6oJbwjZTt1ai5/O855Qmv1Bsc0v18=",
+        version = "v0.0.0-20210622215436-a8dc77f794b6",
     )
     _maybe(
         go_repository,
