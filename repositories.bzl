@@ -1295,15 +1295,6 @@ def _maybe(repo_rule, name, strip_repo_prefix = "", **kwargs):
 # gazelle update-repos. The real go_repository rule is loaded with an alias:
 # gazelle_go_repository.
 def go_repository(name, importpath, sum, version, build_file_proto_mode = "", build_extra_args = []):
-    # Forecfully ignore this dep, because it is not actually needed, but appears
-    # in the go.sum for some reason. Including it will interfere with compiling
-    # a generated client in go_gapic_library.
-    #
-    # //rules_go_gapic:go_gapic_repositories.bzl should be used to bring in the
-    # go_gapic_library compile-time dependencies.
-    if name.startswith("com_google_cloud_go"):
-        return
-
     _maybe(
         gazelle_go_repository,
         name = name,
