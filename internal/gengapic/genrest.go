@@ -321,7 +321,10 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			// It's a slice, so check for nil
 			p("if %s%s != nil {", requestObject, accessor)
 		} else if field.GetProto3Optional() {
-			p("if %s%s != nil {", requestObject, buildAccessor(path, true))
+			// Split right before the raw access
+			elts := strings.Split(path, ".")
+			elts = elts[:len(elts)-1]
+			p("if %[1]s%[2]s != nil && %[1]s%[3]s != nil {", requestObject, buildAccessor(strings.Join(elts, "."), false), buildAccessor(path, true))
 		} else {
 			// Default values are type specific
 			switch field.GetType() {

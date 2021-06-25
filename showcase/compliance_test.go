@@ -60,8 +60,7 @@ func TestComplianceSuite(t *testing.T) {
 	restRPCs := map[string]method{
 		"Compliance.RepeatDataBody":     complianceClient.RepeatDataBody,
 		"Compliance.RepeatDataBodyInfo": complianceClient.RepeatDataBodyInfo,
-		// TODO(dovs): Broken subtests are "Extreme values", "zero values for non-string fields", "Zero values for all fields"
-		"Compliance.RepeatDataQuery": wipMethod, // TODO: replace with complianceClient.RepeatDataQuery,
+		"Compliance.RepeatDataQuery":    complianceClient.RepeatDataQuery,
 		// TODO(dovs): Broken subtests are "Extreme values", "Zero values for non-string fields"
 		"Compliance.RepeatDataSimplePath":           wipMethod, // TODO: replace with complianceClient.RepeatDataSimplePath
 		"Compliance.RepeatDataPathResource":         wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
