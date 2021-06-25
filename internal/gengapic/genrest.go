@@ -319,37 +319,35 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	}
 	sort.Strings(fields)
 
-	requestObject := "req"
-
 	p("params := url.Values{}")
 	for _, path := range fields {
 		field := queryParams[path]
 		accessor := fieldGetter(path)
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
-			p("if %s%s != nil {", requestObject, accessor)
+			p("if req%s != nil {", accessor)
 		} else if field.GetProto3Optional() {
 			// Split right before the raw access
 			toks := strings.Split(path, ".")
 			toks = toks[:len(toks)-1]
 			parentField := fieldGetter(strings.Join(toks, "."))
 			directLeafField := directAccess(path)
-			p("if %[1]s%[2]s != nil && %[1]s%[3]s != nil {", requestObject, parentField, directLeafField)
+			p("if req%s != nil && req%s != nil {", parentField, directLeafField)
 		} else {
 			// Default values are type specific
 			switch field.GetType() {
 			// Degenerate case, field should never be a message because that implies it's not a leaf.
 			case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_BYTES:
-				p("if %s%s != nil {", requestObject, accessor)
+				p("if req%s != nil {", accessor)
 			case descriptor.FieldDescriptorProto_TYPE_STRING:
-				p(`if %s%s != "" {`, requestObject, accessor)
+				p(`if req%s != "" {`, accessor)
 			case descriptor.FieldDescriptorProto_TYPE_BOOL:
-				p(`if %s%s {`, requestObject, accessor)
+				p(`if req%s {`, accessor)
 			default: // Handles all numeric types including enums
-				p(`if %s%s != 0 {`, requestObject, accessor)
+				p(`if req%s != 0 {`, accessor)
 			}
 		}
-		p("    params.Add(\"%s\", fmt.Sprintf(\"%%v\", %s%s))", lowerFirst(snakeToCamel(path)), requestObject, accessor)
+		p("    params.Add(\"%s\", fmt.Sprintf(\"%%v\", req%s))", lowerFirst(snakeToCamel(path)), accessor)
 		p("}")
 	}
 	p("")
@@ -368,12 +366,6 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 
 	p := g.printf
 
-	requestObject := "req"
-	if info.body != "" && info.body != "*" {
-		// Setting the local variable 'body' is already handled by generateQueryString
-		requestObject = "body"
-	}
-
 	fmtStr := info.url
 	// TODO(dovs): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
@@ -389,9 +381,7 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
-		//
-		// buildAccessor handles nested fields for us.
-		tokens = append(tokens, fmt.Sprintf("%s%s", requestObject, buildAccessor(path[1], false)))
+		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
 	}
 	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")

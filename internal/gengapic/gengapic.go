@@ -286,6 +286,11 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 }
 
 func buildAccessor(field string, rawFinal bool) string {
+	// Corner case if passed the result of strings.Join on an empty slice.
+	if field == "" {
+		return ""
+	}
+
 	var ax strings.Builder
 	split := strings.Split(field, ".")
 	idx := len(split)
