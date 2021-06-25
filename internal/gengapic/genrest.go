@@ -258,36 +258,44 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 	// so that we can use it recursively.
 	var recurse func([]*descriptor.FieldDescriptorProto, *descriptor.DescriptorProto)
 
+	handleLeaf := func(field *descriptor.FieldDescriptorProto, stack []*descriptor.FieldDescriptorProto) {
+		elts := []string{}
+		for _, f := range stack {
+			elts = append(elts, f.GetName())
+		}
+		elts = append(elts, field.GetName())
+		key := strings.Join(elts, ".")
+		pathsToLeafs[key] = field
+	}
+
+	handleMsg := func(field *descriptor.FieldDescriptorProto, stack []*descriptor.FieldDescriptorProto) {
+		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			// Repeated message fields must not be mapped because no
+			// client library can support such complicated mappings.
+			// https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#grpc-transcoding
+			return
+		}
+		if contains(excludedFields, field) {
+			return
+		}
+		// Short circuit on infinite recursion
+		if contains(stack, field) {
+			return
+		}
+
+		subMsg := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+		recurse(append(stack, field), subMsg)
+	}
+
 	recurse = func(
 		stack []*descriptor.FieldDescriptorProto,
 		m *descriptor.DescriptorProto,
 	) {
 		for _, field := range m.GetField() {
 			if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-				if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
-					// Repeated message fields must not be mapped because no
-					// client library can support such complicated mappings.
-					// https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#grpc-transcoding
-					continue
-				}
-				if contains(excludedFields, field) {
-					continue
-				}
-				// Short circuit on infinite recursion
-				if contains(stack, field) {
-					continue
-				}
-
-				subMsg := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
-				recurse(append(stack, field), subMsg)
+				handleMsg(field, stack)
 			} else {
-				elts := []string{}
-				for _, f := range stack {
-					elts = append(elts, f.GetName())
-				}
-				elts = append(elts, field.GetName())
-				key := strings.Join(elts, ".")
-				pathsToLeafs[key] = field
+				handleLeaf(field, stack)
 			}
 		}
 	}
@@ -316,15 +324,17 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("params := url.Values{}")
 	for _, path := range fields {
 		field := queryParams[path]
-		accessor := buildAccessor(path, false)
+		accessor := fieldGetter(path)
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
 			p("if %s%s != nil {", requestObject, accessor)
 		} else if field.GetProto3Optional() {
 			// Split right before the raw access
-			elts := strings.Split(path, ".")
-			elts = elts[:len(elts)-1]
-			p("if %[1]s%[2]s != nil && %[1]s%[3]s != nil {", requestObject, buildAccessor(strings.Join(elts, "."), false), buildAccessor(path, true))
+			toks := strings.Split(path, ".")
+			toks = toks[:len(toks)-1]
+			parentField := fieldGetter(strings.Join(toks, "."))
+			directLeafField := directAccess(path)
+			p("if %[1]s%[2]s != nil && %[1]s%[3]s != nil {", requestObject, parentField, directLeafField)
 		} else {
 			// Default values are type specific
 			switch field.GetType() {

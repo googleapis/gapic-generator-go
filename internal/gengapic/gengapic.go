@@ -227,7 +227,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			}
 			seen[field] = true
 
-			accessor := fmt.Sprintf("req%s", buildAccessor(field, false))
+			accessor := fmt.Sprintf("req%s", fieldGetter(field))
 			f := g.lookupField(m.GetInputType(), field)
 
 			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
@@ -299,6 +299,28 @@ func buildAccessor(field string, rawFinal bool) string {
 		fmt.Fprintf(&ax, ".%s", snakeToCamel(split[len(split)-1]))
 	}
 	return ax.String()
+}
+
+// Given a chained description for a field in a proto message,
+// e.g. squid.mantle.mass_kg
+// return the string description of the go expression
+// describing idiomatic access to the terminal field
+// i.e. .GetSquid().GetMantle().GetMassKg()
+//
+// This is the normal way to retrieve values.
+func fieldGetter(field string) string {
+	return buildAccessor(field, false)
+}
+
+// Given a chained description for a field in a proto message,
+// e.g. squid.mantle.mass_kg
+// return the string description of the go expression
+// describing direct access to the terminal field
+// i.e. .GetSquid().GetMantle().MassKg
+//
+// This is used for determining field presence for terminal optional fields.
+func directAccess(field string) string {
+	return buildAccessor(field, true)
 }
 
 func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescriptorProto {
