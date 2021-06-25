@@ -58,11 +58,10 @@ func TestComplianceSuite(t *testing.T) {
 	// restRPCs is a map of the RPC names as they appear in the compliance suite file to the
 	// actual Go methods that implement them.
 	restRPCs := map[string]method{
-		"Compliance.RepeatDataBody":     complianceClient.RepeatDataBody,
-		"Compliance.RepeatDataBodyInfo": complianceClient.RepeatDataBodyInfo,
-		"Compliance.RepeatDataQuery":    complianceClient.RepeatDataQuery,
-		// TODO(dovs): Broken subtests are "Extreme values", "Zero values for non-string fields"
-		"Compliance.RepeatDataSimplePath":           wipMethod, // TODO: replace with complianceClient.RepeatDataSimplePath
+		"Compliance.RepeatDataBody":                 complianceClient.RepeatDataBody,
+		"Compliance.RepeatDataBodyInfo":             complianceClient.RepeatDataBodyInfo,
+		"Compliance.RepeatDataQuery":                complianceClient.RepeatDataQuery,
+		"Compliance.RepeatDataSimplePath":           complianceClient.RepeatDataSimplePath,
 		"Compliance.RepeatDataPathResource":         wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
 		"Compliance.RepeatDataPathTrailingResource": wipMethod, // TODO: replace with complianceClient.RepeatDataPathTrailingResource,
 	}
