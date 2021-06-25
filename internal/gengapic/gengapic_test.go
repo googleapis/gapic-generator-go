@@ -585,17 +585,19 @@ lros:
 
 func Test_buildAccessor(t *testing.T) {
 	tests := []struct {
-		name  string
-		field string
-		want  string
+		name     string
+		field    string
+		want     string
+		rawFinal bool
 	}{
 		{name: "simple", field: "foo_foo", want: ".GetFooFoo()"},
 		{name: "nested", field: "foo_foo.bar_bar", want: ".GetFooFoo().GetBarBar()"},
 		{name: "numbers", field: "foo_foo64", want: ".GetFooFoo64()"},
+		{name: "raw_final", field: "foo.bar.baz.bif", want: ".GetFoo().GetBar().GetBaz().Bif", rawFinal: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := buildAccessor(tt.field); got != tt.want {
+			if got := buildAccessor(tt.field, tt.rawFinal); got != tt.want {
 				t.Errorf("buildAccessor() = %v, want %v", got, tt.want)
 			}
 		})

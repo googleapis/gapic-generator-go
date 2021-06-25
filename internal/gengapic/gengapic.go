@@ -227,7 +227,7 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 			}
 			seen[field] = true
 
-			accessor := fmt.Sprintf("req%s", buildAccessor(field))
+			accessor := fmt.Sprintf("req%s", buildAccessor(field, false))
 			f := g.lookupField(m.GetInputType(), field)
 
 			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
@@ -285,11 +285,18 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 	return nil
 }
 
-func buildAccessor(field string) string {
+func buildAccessor(field string, rawFinal bool) string {
 	var ax strings.Builder
 	split := strings.Split(field, ".")
-	for _, s := range split {
+	idx := len(split)
+	if rawFinal {
+		idx--
+	}
+	for _, s := range split[:idx] {
 		fmt.Fprintf(&ax, ".Get%s()", snakeToCamel(s))
+	}
+	if rawFinal {
+		fmt.Fprintf(&ax, ".%s", snakeToCamel(split[len(split)-1]))
 	}
 	return ax.String()
 }

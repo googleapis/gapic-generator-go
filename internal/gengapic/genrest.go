@@ -316,10 +316,12 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("params := url.Values{}")
 	for _, path := range fields {
 		field := queryParams[path]
-		accessor := buildAccessor(path)
+		accessor := buildAccessor(path, false)
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
 			p("if %s%s != nil {", requestObject, accessor)
+		} else if field.GetProto3Optional() {
+			p("if %s%s != nil {", requestObject, buildAccessor(path, true))
 		} else {
 			// Default values are type specific
 			switch field.GetType() {
@@ -376,7 +378,7 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 		// See the docs for FindStringSubmatch for further details.
 		//
 		// buildAccessor handles nested fields for us.
-		tokens = append(tokens, fmt.Sprintf("%s%s", requestObject, buildAccessor(path[1])))
+		tokens = append(tokens, fmt.Sprintf("%s%s", requestObject, buildAccessor(path[1], false)))
 	}
 	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
