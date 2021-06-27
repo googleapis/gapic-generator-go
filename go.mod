@@ -6,7 +6,7 @@ require (
 	github.com/jhump/protoreflect v1.8.2
 	gitlab.com/golang-commonmark/markdown v0.0.0-20191127184510-91b5b3c99c19
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 

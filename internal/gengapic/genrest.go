@@ -673,6 +673,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("return nil")
 	p("}")
 
+	g.imports[inSpec] = true
 	return nil
 }
 
@@ -761,6 +762,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("")
 	p("return rsp, unm.Unmarshal(buf, rsp)")
 	p("}")
+	g.imports[inSpec] = true
+	g.imports[outSpec] = true
 
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
