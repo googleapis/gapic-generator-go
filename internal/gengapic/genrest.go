@@ -55,6 +55,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
@@ -195,10 +196,9 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	if info == nil || err != nil {
 		return queryParams
 	}
-	if info.body == "" || info.body == "*" {
-		// The request is the body, so no additional query params.
+	if info.body == "*" {
+		// The entire request is the REST body.
 		return queryParams
-
 	}
 
 	pathParams := g.pathParams(m)
@@ -210,21 +210,98 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 	// This may be the request message itself or a subfield.
 	// Body parameters are not valid query parameters,
 	// because that means the same param would be sent more than once.
-	var bodyMsg *descriptor.DescriptorProto
 	bodyField := g.lookupField(m.GetInputType(), info.body)
-	if bodyField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-		bodyMsg = g.descInfo.Type[bodyField.GetTypeName()].(*descriptor.DescriptorProto)
-	}
 
-	for _, f := range request.GetField() {
-		// If, and only if, a field is not a path parameter or a body parameter,
+	// Possible query parameters are all leaf fields in the request or body.
+	pathToLeaf := g.getLeafs(request, bodyField)
+	// Iterate in sorted order to
+	for path, leaf := range pathToLeaf {
+		// If, and only if, a leaf field is not a path parameter or a body parameter,
 		// it is a query parameter.
-		if _, ok := pathParams[f.GetName()]; !ok && g.lookupField(bodyMsg.GetName(), f.GetName()) == nil {
-			queryParams[f.GetName()] = f
+		if _, ok := pathParams[path]; !ok && g.lookupField(request.GetName(), leaf.GetName()) == nil {
+			queryParams[path] = leaf
 		}
 	}
 
 	return queryParams
+}
+
+// Returns a map from fully qualified path to field descriptor for all the leaf fields of a message 'm',
+// where a "leaf" field is a non-message whose top message ancestor is 'm'.
+// e.g. for a message like the following
+//
+// message Mollusc {
+//     message Squid {
+//         message Mantle {
+//             int32 mass_kg = 1;
+//         }
+//         Mantle mantle = 1;
+//     }
+//     Squid squid = 1;
+// }
+//
+// The one entry would be
+// "squid.mantle.mass_kg": *descriptor.FieldDescriptorProto...
+func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...*descriptor.FieldDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
+	pathsToLeafs := map[string]*descriptor.FieldDescriptorProto{}
+
+	contains := func(fields []*descriptor.FieldDescriptorProto, field *descriptor.FieldDescriptorProto) bool {
+		for _, f := range fields {
+			if field == f {
+				return true
+			}
+		}
+		return false
+	}
+
+	// We need to declare and define this function in two steps
+	// so that we can use it recursively.
+	var recurse func([]*descriptor.FieldDescriptorProto, *descriptor.DescriptorProto)
+
+	handleLeaf := func(field *descriptor.FieldDescriptorProto, stack []*descriptor.FieldDescriptorProto) {
+		elts := []string{}
+		for _, f := range stack {
+			elts = append(elts, f.GetName())
+		}
+		elts = append(elts, field.GetName())
+		key := strings.Join(elts, ".")
+		pathsToLeafs[key] = field
+	}
+
+	handleMsg := func(field *descriptor.FieldDescriptorProto, stack []*descriptor.FieldDescriptorProto) {
+		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			// Repeated message fields must not be mapped because no
+			// client library can support such complicated mappings.
+			// https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#grpc-transcoding
+			return
+		}
+		if contains(excludedFields, field) {
+			return
+		}
+		// Short circuit on infinite recursion
+		if contains(stack, field) {
+			return
+		}
+
+		subMsg := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+		recurse(append(stack, field), subMsg)
+	}
+
+	recurse = func(
+		stack []*descriptor.FieldDescriptorProto,
+		m *descriptor.DescriptorProto,
+	) {
+		for _, field := range m.GetField() {
+			if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				handleMsg(field, stack)
+			} else {
+				handleLeaf(field, stack)
+			}
+		}
+	}
+
+	recurse([]*descriptor.FieldDescriptorProto{}, msg)
+	return pathsToLeafs
 }
 
 func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
@@ -234,9 +311,6 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		return
 	}
 
-	// Don't need the import unless we're constructing a query param
-	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
-
 	// We want to iterate over fields in a deterministic order
 	// to prevent spurious deltas when regenerating gapics.
 	fields := make([]string, 0, len(queryParams))
@@ -245,36 +319,39 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	}
 	sort.Strings(fields)
 
-	p("queryParamStrs := []string{}")
-	// TODO(dovs): make this work for nested fields
-	for _, f := range fields {
-		field := queryParams[f]
-		f = snakeToCamel(f)
+	p("params := url.Values{}")
+	for _, path := range fields {
+		field := queryParams[path]
+		accessor := fieldGetter(path)
 		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			// It's a slice, so check for nil
-			p("if req.Get%s() != nil {", f)
+			p("if req%s != nil {", accessor)
+		} else if field.GetProto3Optional() {
+			// Split right before the raw access
+			toks := strings.Split(path, ".")
+			toks = toks[:len(toks)-1]
+			parentField := fieldGetter(strings.Join(toks, "."))
+			directLeafField := directAccess(path)
+			p("if req%s != nil && req%s != nil {", parentField, directLeafField)
 		} else {
 			// Default values are type specific
 			switch field.GetType() {
+			// Degenerate case, field should never be a message because that implies it's not a leaf.
 			case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_BYTES:
-				p("if req.Get%s() != nil {", f)
+				p("if req%s != nil {", accessor)
 			case descriptor.FieldDescriptorProto_TYPE_STRING:
-				p(`if req.Get%s() != "" {`, f)
+				p(`if req%s != "" {`, accessor)
 			case descriptor.FieldDescriptorProto_TYPE_BOOL:
-				p(`if req.Get%s() {`, f)
-			default: // Handles all numeric types
-				p(`if req.Get%s() != 0 {`, f)
+				p(`if req%s {`, accessor)
+			default: // Handles all numeric types including enums
+				p(`if req%s != 0 {`, accessor)
 			}
 		}
-		p("    queryParamStrs = append(queryParamStrs, fmt.Sprintf(\"%s=%%v\", req.Get%s()))", lowerFirst(f), f)
+		p("    params.Add(\"%s\", fmt.Sprintf(\"%%v\", req%s))", lowerFirst(snakeToCamel(path)), accessor)
 		p("}")
 	}
-
-	p(`query := strings.ReplaceAll(strings.Join(queryParamStrs, "&"), " ", "+")`)
 	p("")
-	p(`if query != "" {`)
-	p(`    url += "?" + query`)
-	p("}")
+	p("baseUrl.RawQuery = params.Encode()")
 	p("")
 }
 
@@ -289,30 +366,24 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 
 	p := g.printf
 
-	requestObject := "req"
-	if info.body != "" && info.body != "*" {
-		// Setting the local variable 'body' is already handled by generateQueryString
-		requestObject = "body"
-	}
-
-	fmtStr := fmt.Sprintf("%%s%s", info.url)
+	fmtStr := info.url
 	// TODO(dovs): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
 	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)}`)
 	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
-	p(`url := fmt.Sprintf("%s",`, fmtStr)
-	p("c.endpoint,")
+	// TODO(dovs): handle error
+	p("baseUrl, _ := url.Parse(c.endpoint)")
+
+	tokens := []string{fmt.Sprintf(`"%s"`, fmtStr)}
 	// Can't just reuse pathParams because the order matters
 	for _, path := range re.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
-		//
-		// buildAccessor handles nested fields for us.
-		p("%s%s,", requestObject, buildAccessor(path[1]))
+		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
 	}
-	p(")")
+	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 	return nil
 }
@@ -574,7 +645,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
+	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", baseUrl.String(), bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return err")
 	p("}")
@@ -596,7 +667,6 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("defer httpRsp.Body.Close()")
 	p("")
 	p("if httpRsp.StatusCode != http.StatusOK {")
-	// TODO(dovs): handle this error more
 	p("  return fmt.Errorf(httpRsp.Status)")
 	p("}")
 	p("")
@@ -658,7 +728,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", url, bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
+	p(`httpReq, err := http.NewRequestWithContext(ctx, "%s", baseUrl.String(), bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
 	p("if err != nil {")
 	p("    return nil, err")
 	p("}")
@@ -679,7 +749,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("defer httpRsp.Body.Close()")
 	p("")
 	p("if httpRsp.StatusCode != http.StatusOK {")
-	// TODO(dovs): handle this error more
 	p("  return nil, fmt.Errorf(httpRsp.Status)")
 	p("}")
 	p("")
@@ -696,5 +765,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 
+	g.imports[inSpec] = true
+	g.imports[outSpec] = true
 	return nil
 }
