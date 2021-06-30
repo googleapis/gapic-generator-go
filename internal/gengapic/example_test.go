@@ -29,6 +29,7 @@ import (
 
 func TestExample(t *testing.T) {
 	var g generator
+	g.opts = &options{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.mixins = mixins{
 		"google.longrunning.Operations":   operationsMethods(),
@@ -158,12 +159,17 @@ func TestExample(t *testing.T) {
 	}
 	for _, tst := range []struct {
 		tstName, pkgName string
+		transports       []transport
 	}{
-		{tstName: "empty_example", pkgName: "Foo"},
-		{tstName: "foo_example", pkgName: "Bar"},
+		{tstName: "empty_example", pkgName: "Foo", transports: []transport{grpc, rest}},
+		{tstName: "empty_example_grpc", pkgName: "Foo", transports: []transport{grpc}},
+		{tstName: "foo_example", pkgName: "Bar", transports: []transport{grpc, rest}},
+		{tstName: "foo_example_rest", pkgName: "Bar", transports: []transport{rest}},
 	} {
 		g.reset()
-		g.genExampleFile(serv, tst.pkgName)
+		g.opts.pkgName = tst.pkgName
+		g.opts.transports = tst.transports
+		g.genExampleFile(serv)
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }

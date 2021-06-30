@@ -24,18 +24,11 @@ import (
 	"google.golang.org/genproto/googleapis/longrunning"
 )
 
-func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgName string) error {
-	servName := pbinfo.ReduceServName(*serv.Name, pkgName)
-	p := g.printf
+func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) error {
+	pkgName := g.opts.pkgName
+	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
 
-	p("func ExampleNew%sClient() {", servName)
-	g.exampleInitClient(pkgName, servName)
-	p("")
-	p("  // TODO: Use client.")
-	p("  _ = c")
-	p("}")
-	p("")
-	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	g.exampleClientFactory(pkgName, servName)
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 
@@ -45,6 +38,26 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto, pkgN
 		}
 	}
 	return nil
+}
+
+func (g *generator) exampleClientFactory(pkgName, servName string) {
+	p := g.printf
+	for _, t := range g.opts.transports {
+		s := servName
+		if t == rest {
+			s += "REST"
+		}
+
+		p("func ExampleNew%sClient() {", s)
+		g.exampleInitClient(pkgName, s)
+		p("")
+		p("  // TODO: Use client.")
+		p("  _ = c")
+		p("}")
+		p("")
+	}
+
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 }
 
 func (g *generator) exampleInitClient(pkgName, servName string) {
@@ -85,7 +98,14 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 		return err
 	}
 
-	g.exampleInitClient(pkgName, servName)
+	// Pick the first transport for simplicity sake. We don't need examples
+	// of each method for both transports when they have the same surface.
+	t := g.opts.transports[0]
+	s := servName
+	if t == rest {
+		s += "REST"
+	}
+	g.exampleInitClient(pkgName, s)
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
