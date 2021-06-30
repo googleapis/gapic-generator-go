@@ -86,7 +86,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.commit(outFile+"_client.go", g.opts.pkgName)
 
 		g.reset()
-		if err := g.genExampleFile(s, g.opts.pkgName); err != nil {
+		if err := g.genExampleFile(s); err != nil {
 			return &g.resp, errors.E(err, "example: %s", s.GetName())
 		}
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true

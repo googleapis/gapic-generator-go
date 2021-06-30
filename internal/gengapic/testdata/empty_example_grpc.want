@@ -1,6 +1,6 @@
-func ExampleNewFooClient() {
+func ExampleNewClient() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -10,21 +10,9 @@ func ExampleNewFooClient() {
 	_ = c
 }
 
-func ExampleNewFooRESTClient() {
+func ExampleClient_GetEmptyThing() {
 	ctx := context.Background()
-	c, err := Bar.NewFooRESTClient(ctx)
-	if err != nil {
-		// TODO: Handle error.
-	}
-	defer c.Close()
-
-	// TODO: Use client.
-	_ = c
-}
-
-func ExampleFooClient_GetEmptyThing() {
-	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -39,9 +27,9 @@ func ExampleFooClient_GetEmptyThing() {
 	}
 }
 
-func ExampleFooClient_GetOneThing() {
+func ExampleClient_GetOneThing() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -58,9 +46,9 @@ func ExampleFooClient_GetOneThing() {
 	_ = resp
 }
 
-func ExampleFooClient_GetBigThing() {
+func ExampleClient_GetBigThing() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -82,9 +70,9 @@ func ExampleFooClient_GetBigThing() {
 	_ = resp
 }
 
-func ExampleFooClient_GetManyThings() {
+func ExampleClient_GetManyThings() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -107,9 +95,9 @@ func ExampleFooClient_GetManyThings() {
 	}
 }
 
-func ExampleFooClient_BidiThings() {
+func ExampleClient_BidiThings() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -142,9 +130,9 @@ func ExampleFooClient_BidiThings() {
 	}
 }
 
-func ExampleFooClient_EmptyLRO() {
+func ExampleClient_EmptyLRO() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -164,9 +152,9 @@ func ExampleFooClient_EmptyLRO() {
 	}
 }
 
-func ExampleFooClient_RespLRO() {
+func ExampleClient_RespLRO() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -188,9 +176,9 @@ func ExampleFooClient_RespLRO() {
 	_ = resp
 }
 
-func ExampleFooClient_ListLocations() {
+func ExampleClient_ListLocations() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -213,9 +201,9 @@ func ExampleFooClient_ListLocations() {
 	}
 }
 
-func ExampleFooClient_GetLocation() {
+func ExampleClient_GetLocation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -232,9 +220,9 @@ func ExampleFooClient_GetLocation() {
 	_ = resp
 }
 
-func ExampleFooClient_SetIamPolicy() {
+func ExampleClient_SetIamPolicy() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -251,9 +239,9 @@ func ExampleFooClient_SetIamPolicy() {
 	_ = resp
 }
 
-func ExampleFooClient_GetIamPolicy() {
+func ExampleClient_GetIamPolicy() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -270,9 +258,9 @@ func ExampleFooClient_GetIamPolicy() {
 	_ = resp
 }
 
-func ExampleFooClient_TestIamPermissions() {
+func ExampleClient_TestIamPermissions() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -289,9 +277,9 @@ func ExampleFooClient_TestIamPermissions() {
 	_ = resp
 }
 
-func ExampleFooClient_ListOperations() {
+func ExampleClient_ListOperations() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -314,9 +302,9 @@ func ExampleFooClient_ListOperations() {
 	}
 }
 
-func ExampleFooClient_GetOperation() {
+func ExampleClient_GetOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -333,9 +321,9 @@ func ExampleFooClient_GetOperation() {
 	_ = resp
 }
 
-func ExampleFooClient_DeleteOperation() {
+func ExampleClient_DeleteOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -350,9 +338,9 @@ func ExampleFooClient_DeleteOperation() {
 	}
 }
 
-func ExampleFooClient_CancelOperation() {
+func ExampleClient_CancelOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -367,9 +355,9 @@ func ExampleFooClient_CancelOperation() {
 	}
 }
 
-func ExampleFooClient_WaitOperation() {
+func ExampleClient_WaitOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Foo.NewClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
