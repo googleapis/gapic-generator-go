@@ -98,7 +98,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 		return err
 	}
 
-	// Pick the first transport for simplicity sake. We don't need examples
+	// Pick the first transport for simplicity. We don't need examples
 	// of each method for both transports when they have the same surface.
 	t := g.opts.transports[0]
 	s := servName
