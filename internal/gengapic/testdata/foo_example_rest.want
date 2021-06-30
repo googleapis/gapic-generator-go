@@ -1,15 +1,3 @@
-func ExampleNewFooClient() {
-	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
-	if err != nil {
-		// TODO: Handle error.
-	}
-	defer c.Close()
-
-	// TODO: Use client.
-	_ = c
-}
-
 func ExampleNewFooRESTClient() {
 	ctx := context.Background()
 	c, err := Bar.NewFooRESTClient(ctx)
@@ -24,7 +12,7 @@ func ExampleNewFooRESTClient() {
 
 func ExampleFooClient_GetEmptyThing() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -41,7 +29,7 @@ func ExampleFooClient_GetEmptyThing() {
 
 func ExampleFooClient_GetOneThing() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -60,7 +48,7 @@ func ExampleFooClient_GetOneThing() {
 
 func ExampleFooClient_GetBigThing() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -84,7 +72,7 @@ func ExampleFooClient_GetBigThing() {
 
 func ExampleFooClient_GetManyThings() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -109,7 +97,7 @@ func ExampleFooClient_GetManyThings() {
 
 func ExampleFooClient_BidiThings() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -144,7 +132,7 @@ func ExampleFooClient_BidiThings() {
 
 func ExampleFooClient_EmptyLRO() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -166,7 +154,7 @@ func ExampleFooClient_EmptyLRO() {
 
 func ExampleFooClient_RespLRO() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -190,7 +178,7 @@ func ExampleFooClient_RespLRO() {
 
 func ExampleFooClient_ListLocations() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -215,7 +203,7 @@ func ExampleFooClient_ListLocations() {
 
 func ExampleFooClient_GetLocation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -234,7 +222,7 @@ func ExampleFooClient_GetLocation() {
 
 func ExampleFooClient_SetIamPolicy() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -253,7 +241,7 @@ func ExampleFooClient_SetIamPolicy() {
 
 func ExampleFooClient_GetIamPolicy() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -272,7 +260,7 @@ func ExampleFooClient_GetIamPolicy() {
 
 func ExampleFooClient_TestIamPermissions() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -291,7 +279,7 @@ func ExampleFooClient_TestIamPermissions() {
 
 func ExampleFooClient_ListOperations() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -316,7 +304,7 @@ func ExampleFooClient_ListOperations() {
 
 func ExampleFooClient_GetOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -335,7 +323,7 @@ func ExampleFooClient_GetOperation() {
 
 func ExampleFooClient_DeleteOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -352,7 +340,7 @@ func ExampleFooClient_DeleteOperation() {
 
 func ExampleFooClient_CancelOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
@@ -369,7 +357,7 @@ func ExampleFooClient_CancelOperation() {
 
 func ExampleFooClient_WaitOperation() {
 	ctx := context.Background()
-	c, err := Bar.NewFooClient(ctx)
+	c, err := Bar.NewFooRESTClient(ctx)
 	if err != nil {
 		// TODO: Handle error.
 	}
