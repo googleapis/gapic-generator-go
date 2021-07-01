@@ -170,7 +170,8 @@ func (c *restClient) setGoogleClientInfo(keyval ...string) {
 // Close closes the connection to the API service. The user should invoke this when
 // the client is no longer required.
 func (c *restClient) Close() error {
-	c.httpClient.CloseIdleConnections()
+	// Replace httpClient with nil to force cleanup.
+	c.httpClient = nil
 	return nil
 }
 
