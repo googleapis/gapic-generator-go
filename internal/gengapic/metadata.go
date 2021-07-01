@@ -15,16 +15,22 @@
 package gengapic
 
 import (
+	"regexp"
+
 	"google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+var spaceSanitizerRegex = regexp.MustCompile(`:\s*`)
 
 func (g *generator) genGapicMetadataFile() error {
 	data, err := protojson.MarshalOptions{Multiline: true}.Marshal(g.metadata)
 	if err != nil {
 		return err
 	}
-
+	// Hack to standardize output from protojson which is currently non-deterministic
+	// with spacing after json keys.
+	spaceSanitizerRegex.ReplaceAll(data, []byte(": "))
 	g.pt.Printf("%s", data)
 	return nil
 }
