@@ -1,0 +1,23 @@
+{
+  "schema": "schema",
+  "comment": "comment",
+  "language": "language",
+  "protoPackage": "packagename",
+  "libraryPackage": "lib",
+  "services": {
+    "FooService": {
+      "clients": {
+        "grpc": {
+          "libraryClient": "libClient",
+          "rpcs": {
+            "GetBook": {
+              "methods": [
+                "GetBook"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

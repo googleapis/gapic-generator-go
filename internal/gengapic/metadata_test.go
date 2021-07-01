@@ -19,6 +19,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
+	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/gapic/metadata"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 )
@@ -201,4 +202,32 @@ func TestAddMetadataMethod(t *testing.T) {
 			t.Errorf("addMetadataMethod(%q, %q, %q): got(-),want(+):\n%s", tst.service, "grpc", tst.rpc, diff)
 		}
 	}
+}
+
+func TestGenGapicMetadataFile_standardized(t *testing.T) {
+	g := generator{
+		metadata: &metadatapb.GapicMetadata{
+			Schema:         "schema",
+			Comment:        "comment",
+			Language:       "language",
+			ProtoPackage:   "packagename",
+			LibraryPackage: "lib",
+			Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+				"FooService": {
+					Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						"grpc": {
+							LibraryClient: "libClient",
+							Rpcs: map[string]*metadata.GapicMetadata_MethodList{
+								"GetBook": {Methods: []string{"GetBook"}},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	if err := g.genGapicMetadataFile(); err != nil {
+		t.Fatalf("got genGapicMetadataFile() = %v, want nil", err)
+	}
+	txtdiff.Diff(t, "genGapicMetadataFile", g.pt.String(), "testdata/metadata.want")
 }
