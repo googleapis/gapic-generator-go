@@ -30,7 +30,7 @@ func (g *generator) genGapicMetadataFile() error {
 	}
 	// Hack to standardize output from protojson which is currently non-deterministic
 	// with spacing after json keys.
-	spaceSanitizerRegex.ReplaceAll(data, []byte(": "))
+	data = spaceSanitizerRegex.ReplaceAll(data, []byte(": "))
 	g.pt.Printf("%s", data)
 	return nil
 }
