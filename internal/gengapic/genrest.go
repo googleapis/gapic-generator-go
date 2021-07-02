@@ -16,7 +16,6 @@ package gengapic
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 	"sort"
 	"strings"
@@ -629,7 +628,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// TODO(dovs): handle deadlines
 	// TODO(dovs): handle call options
 	body := "nil"
-	if info.verb != http.MethodGet && info.verb != http.MethodDelete {
+	if info.verb != "get" && info.verb != "delete" {
 		p("// The default (false) for the other options are fine.")
 		p("// Field names should be lowerCamel, not snake.")
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
@@ -720,7 +719,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle calloptions
 	body := "nil"
-	if info.verb != http.MethodGet && info.verb != http.MethodDelete {
+	if info.verb != "get" && info.verb != "delete" {
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 		requestObject := "req"
 		if info.body != "" && info.body != "*" {
