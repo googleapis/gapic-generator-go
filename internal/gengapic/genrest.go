@@ -88,10 +88,10 @@ func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, s
 
 	p := g.printf
 
-	var host string
 	eHost := proto.GetExtension(serv.GetOptions(), annotations.E_DefaultHost)
 
-	host = eHost.(string)
+	// Default to https, just as gRPC defaults to a secure connection.
+	host := fmt.Sprintf("https://%s", eHost.(string))
 
 	p("func default%sRESTClientOptions() []option.ClientOption {", servName)
 	p("  return []option.ClientOption{")
