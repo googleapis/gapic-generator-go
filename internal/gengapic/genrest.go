@@ -632,8 +632,9 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 
 	// Marshal body for HTTP methods that take a body.
 	if info.body != "" {
-		p("// The default (false) for the other options are fine.")
-		p("// Field names should be lowerCamel, not snake.")
+		if info.verb == "get" || info.verb == "detele" {
+			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
+		}
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
 		requestObject := "req"
 		if info.body != "*" {
@@ -726,6 +727,9 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 
 	// Marshal body for HTTP methods that take a body.
 	if info.body != "" {
+		if info.verb == "get" || info.verb == "detele" {
+			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
+		}
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 		requestObject := "req"
 		if info.body != "*" {
