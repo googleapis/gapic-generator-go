@@ -630,7 +630,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 
 	body := "nil"
 
-	// Marshal body for HTTP methods that take a body
+	// Marshal body for HTTP methods that take a body.
 	if info.body != "" {
 		p("// The default (false) for the other options are fine.")
 		p("// Field names should be lowerCamel, not snake.")
@@ -724,7 +724,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 
 	body := "nil"
 
-	// Marshal body for HTTP methods that take a body
+	// Marshal body for HTTP methods that take a body.
 	if info.body != "" {
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 		requestObject := "req"
