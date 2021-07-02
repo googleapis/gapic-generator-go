@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"net/http"
 	"regexp"
 	"sort"
 	"strings"
@@ -629,10 +630,12 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// TODO(dovs): handle call options
 
 	body := "nil"
+	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
+	// TODO(dovs): add tests generating methods with(out) a request body.
 	if info.body != "" {
-		if info.verb == "get" || info.verb == "detele" {
+		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
@@ -654,7 +657,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, strings.ToUpper(info.verb), body)
+	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
 	p("if err != nil {")
 	p("    return err")
 	p("}")
@@ -724,10 +727,12 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle calloptions
 
 	body := "nil"
+	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
+	// TODO(dovs): add tests generating methods with(out) a request body.
 	if info.body != "" {
-		if info.verb == "get" || info.verb == "detele" {
+		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
@@ -750,7 +755,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, strings.ToUpper(info.verb), body)
+	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
 	p("if err != nil {")
 	p("    return nil, err")
 	p("}")
