@@ -627,13 +627,16 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines
 	// TODO(dovs): handle call options
+
 	body := "nil"
-	if info.verb != "get" && info.verb != "delete" {
+
+	// Marshal body for HTTP methods that take a body
+	if info.body != "" {
 		p("// The default (false) for the other options are fine.")
 		p("// Field names should be lowerCamel, not snake.")
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
 		requestObject := "req"
-		if info.body != "" && info.body != "*" {
+		if info.body != "*" {
 			requestObject = "body"
 			p("body := req.Get%s()", snakeToCamel(info.body))
 		}
@@ -718,20 +721,23 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle calloptions
+
 	body := "nil"
-	if info.verb != "get" && info.verb != "delete" {
+
+	// Marshal body for HTTP methods that take a body
+	if info.body != "" {
 		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
 		requestObject := "req"
-		if info.body != "" && info.body != "*" {
+		if info.body != "*" {
 			requestObject = "body"
 			p("body := req.Get%s()", snakeToCamel(info.body))
 		}
-
 		p("jsonReq, err := m.Marshal(%s)", requestObject)
 		p("if err != nil {")
 		p("  return nil, err")
 		p("}")
 		p("")
+
 		body = "bytes.NewReader(jsonReq)"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
