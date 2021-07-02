@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"net/http"
 	"regexp"
 	"sort"
 	"strings"
@@ -53,12 +54,10 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("")
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
 
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
@@ -629,24 +628,30 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines
 	// TODO(dovs): handle call options
-	p("// The default (false) for the other options are fine.")
-	p("// Field names should be lowerCamel, not snake.")
-	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
-	requestObject := "req"
-	if info.body != "" && info.body != "*" {
-		requestObject = "body"
-		p("body := req.Get%s()", snakeToCamel(info.body))
+	body := "nil"
+	if info.verb != http.MethodGet && info.verb != http.MethodDelete {
+		p("// The default (false) for the other options are fine.")
+		p("// Field names should be lowerCamel, not snake.")
+		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
+		requestObject := "req"
+		if info.body != "" && info.body != "*" {
+			requestObject = "body"
+			p("body := req.Get%s()", snakeToCamel(info.body))
+		}
+		p("jsonReq, err := m.Marshal(%s)", requestObject)
+		p("if err != nil {")
+		p("  return err")
+		p("}")
+		p("")
+		body = "bytes.NewReader(jsonReq)"
+		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
-	p("jsonReq, err := m.Marshal(%s)", requestObject)
-	p("if err != nil {")
-	p("  return err")
-	p("}")
-	p("")
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
+	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, strings.ToUpper(info.verb), body)
 	p("if err != nil {")
 	p("    return err")
 	p("}")
@@ -714,23 +719,29 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle calloptions
-	p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
-	requestObject := "req"
-	if info.body != "" && info.body != "*" {
-		requestObject = "body"
-		p("body := req.Get%s()", snakeToCamel(info.body))
+	body := "nil"
+	if info.verb != http.MethodGet && info.verb != http.MethodDelete {
+		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
+		requestObject := "req"
+		if info.body != "" && info.body != "*" {
+			requestObject = "body"
+			p("body := req.Get%s()", snakeToCamel(info.body))
+		}
+
+		p("jsonReq, err := m.Marshal(%s)", requestObject)
+		p("if err != nil {")
+		p("  return nil, err")
+		p("}")
+		p("")
+		body = "bytes.NewReader(jsonReq)"
+		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	p("jsonReq, err := m.Marshal(%s)", requestObject)
-	p("if err != nil {")
-	p("  return nil, err")
-	p("}")
-	p("")
 	// TOOD(dovs) reenable
 	g.generateURLString(m)
 	g.generateQueryString(m)
 	p("")
-	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), bytes.NewReader(jsonReq))`, strings.ToUpper(info.verb))
+	p(`httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, strings.ToUpper(info.verb), body)
 	p("if err != nil {")
 	p("    return nil, err")
 	p("}")
@@ -765,6 +776,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("")
 	p("return rsp, unm.Unmarshal(buf, rsp)")
 	p("}")
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 
