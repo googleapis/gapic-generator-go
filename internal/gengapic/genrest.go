@@ -638,7 +638,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
-		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true, UseProtoNames: false}")
+		p("m := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: false}")
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"
@@ -735,7 +735,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
-		p("m := protojson.MarshalOptions{AllowPartial: true, EmitUnpopulated: true}")
+		p("m := protojson.MarshalOptions{AllowPartial: true}")
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"
