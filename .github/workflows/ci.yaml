@@ -69,11 +69,11 @@ jobs:
         go install github.com/golang/protobuf/protoc-gen-go
         curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
         unzip googleapis.zip -x "googleapis-master/google/ads/*"
-        mv googleapis-master googleapis
+        mv googleapis-master /tmp/googleapis
     - name: Run integration tests
       run: |
         export PATH=$PATH:protobuf/bin
-        export GOOGLEAPIS=googleapis
+        export GOOGLEAPIS=/tmp/googleapis
         make test
   bazel-build:
     runs-on: ubuntu-latest
