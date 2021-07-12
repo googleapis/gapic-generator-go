@@ -40,6 +40,7 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:qet1QNfXsQxTZqLG4oE62mJzwPIB8+Tee4RNCL9ulrY=",
         version = "v0.0.0-20151022065526-2efee857e7cf",
     )
+
     go_repository(
         name = "com_github_antihax_optional",
         importpath = "github.com/antihax/optional",
@@ -231,6 +232,7 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=",
         version = "v1.4.9",
     )
+
     go_repository(
         name = "com_github_ghodss_yaml",
         importpath = "github.com/ghodss/yaml",
@@ -416,6 +418,7 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:Ovs26xHkKqVztRpIrF/92BcuyuQ/YW4NSIpoGtfXNho=",
         version = "v1.2.0",
     )
+
     go_repository(
         name = "com_github_grpc_ecosystem_grpc_gateway",
         importpath = "github.com/grpc-ecosystem/grpc-gateway",
@@ -555,8 +558,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This should be retained by gazelle.
         build_file_proto_mode = "disable",
         importpath = "github.com/jhump/protoreflect",
-        sum = "h1:k2xE7wcUomeqwY0LDCYA16y4WWfyTcMx5mKhk0d4ua0=",
-        version = "v1.8.2",
+        sum = "h1:npqHz788dryJiR/l6K/RUQAyh2SwV91+d1dnh4RjO9w=",
+        version = "v1.9.0",
     )
     go_repository(
         name = "com_github_jonboulle_clockwork",
@@ -809,6 +812,7 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:YZcsG11NqnK4czYLrWd9mpEuAJIHVQLwdrleYfszMAA=",
         version = "v0.7.1",
     )
+
     go_repository(
         name = "com_github_rogpeppe_fastuuid",
         importpath = "github.com/rogpeppe/fastuuid",
@@ -1111,6 +1115,7 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:gqCw0LfLxScz8irSi8exQc7fyQ0fKQU/qnC/X8+V/1M=",
         version = "v0.23.0",
     )
+
     go_repository(
         name = "io_opentelemetry_go_proto_otlp",
         importpath = "go.opentelemetry.io/proto/otlp",
@@ -1151,8 +1156,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:HBPuvo39L0DgfVn9eHR3ki/RjZoUFWa+em77e7KFDfs=",
-        version = "v0.0.0-20210701191553-46259e63a0a9",
+        sum = "h1:C+heNsV69Z0EjfRnhU7mg6EX5zz5l7x7hhTil+Ayj8g=",
+        version = "v0.0.0-20210712171009-5404628d0f46",
     )
     go_repository(
         name = "org_golang_google_grpc",
