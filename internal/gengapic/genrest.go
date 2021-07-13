@@ -410,7 +410,7 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
 		info.url = httpRule.GetPatch()
 	case *annotations.HttpRule_Put:
 		info.verb = "put"
-		info.url = httpRule.GetPatch()
+		info.url = httpRule.GetPut()
 	case *annotations.HttpRule_Delete:
 		info.verb = "delete"
 		info.url = httpRule.GetDelete()
