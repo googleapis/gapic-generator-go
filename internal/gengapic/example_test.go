@@ -52,10 +52,6 @@ func TestExample(t *testing.T) {
 		Name: proto.String("OutputType"),
 	}
 
-	labelp := func(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
-		return &l
-	}
-
 	pageInputType := &descriptor.DescriptorProto{
 		Name: proto.String("PageInputType"),
 		Field: []*descriptor.FieldDescriptorProto{
