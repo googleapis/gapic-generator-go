@@ -60,6 +60,7 @@ go_test(
         "mixins_test.go",
         "options_test.go",
         "paging_test.go",
+        "test_utils.go",
     ],
     data = glob(["testdata/**"]),
     embed = [":gengapic"],
