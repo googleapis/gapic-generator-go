@@ -138,6 +138,15 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 			hasNextToken = true
 		}
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			if f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				repeatedType := g.descInfo.Type[f.GetTypeName()]
+				repeatedMsg, _ := repeatedType.(*descriptor.DescriptorProto)
+				if repeatedMsg.GetOptions().GetMapEntry() {
+					// Do NOT consider map fields.
+					continue
+				}
+			}
+
 			elemFields = append(elemFields, f)
 		}
 	}
@@ -159,6 +168,69 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 		}
 	}
 	return elemFields[0], nil
+}
+
+// diregapicPagingField reports the "resource field" to be iterated over by paginating method m
+// and the "num elements" field that tells the server the maximum number of elements to return per page.
+// Makes particular allowance for diregapic idioms: maps can be paginated over,
+// and either 'page_size' XOR 'max_results' are allowable fields in the request.
+func (g *generator) diregapicPagingField(m *descriptor.MethodDescriptorProto) (*descriptor.FieldDescriptorProto, *descriptor.FieldDescriptorProto, error) {
+	if m.GetClientStreaming() || m.GetServerStreaming() {
+		return nil, nil, nil
+	}
+
+	inType := g.descInfo.Type[m.GetInputType()]
+	if inType == nil {
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
+	}
+	inMsg, ok := inType.(*descriptor.DescriptorProto)
+	if !ok {
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
+	}
+
+	outType := g.descInfo.Type[m.GetOutputType()]
+	if outType == nil {
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
+	}
+	outMsg, ok := outType.(*descriptor.DescriptorProto)
+	if !ok {
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
+	}
+
+	var pageSizeField *descriptor.FieldDescriptorProto
+	hasPageToken := false
+	for _, f := range inMsg.GetField() {
+		if (f.GetName() == "page_size" || f.GetName() == "max_results") && f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 {
+			if pageSizeField != nil {
+				return nil, nil, errors.E(nil, "found both page_size and max_results fields in message %q", m.GetInputType())
+			}
+			pageSizeField = f
+			continue
+		}
+
+		hasPageToken = hasPageToken || (f.GetName() == "page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)
+	}
+
+	if !hasPageToken || pageSizeField == nil {
+		// Not an error, just not diregapic paginated
+		return nil, nil, nil
+	}
+
+	hasNextPageToken := false
+	var repeatedField *descriptor.FieldDescriptorProto
+	for _, f := range outMsg.GetField() {
+		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			if repeatedField != nil {
+				return nil, nil, errors.E(nil, "found multiple repeated or map fields in message %q", m.GetOutputType())
+			}
+			repeatedField = f
+			continue
+		}
+
+		hasNextPageToken = hasNextPageToken || (f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)
+	}
+
+	return repeatedField, pageSizeField, nil
 }
 
 func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt *iterType) error {
