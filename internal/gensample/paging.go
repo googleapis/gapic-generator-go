@@ -22,9 +22,9 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
-// pagingField reports the "resource field" to be iterated over by paginating method m.
+// getPagingFields reports the "resource field" to be iterated over by paginating method m.
 // This is temporarily copied from gengapic/paging.go. We probably need to read this from annoations later.
-func pagingField(info pbinfo.Info, m *descriptor.MethodDescriptorProto) (*descriptor.FieldDescriptorProto, error) {
+func getPagingFields(info pbinfo.Info, m *descriptor.MethodDescriptorProto) (*descriptor.FieldDescriptorProto, error) {
 	var (
 		hasSize, hasToken, hasNextToken bool
 		elemFields                      []*descriptor.FieldDescriptorProto

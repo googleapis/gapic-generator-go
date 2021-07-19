@@ -403,7 +403,7 @@ func (g *generator) genStandaloneSample(sampConf schema_v1p2.Sample, methConf GA
 	} else if meth.GetServerStreaming() || meth.GetClientStreaming() {
 		// TODO(hzyi): github.com/googleapis/gapic-generator-go/issues/177
 		err = errors.E(nil, "streaming methods not supported yet")
-	} else if pf, err2 := pagingField(g.descInfo, meth); err2 != nil {
+	} else if pf, err2 := getPagingFields(g.descInfo, meth); err2 != nil {
 		err = errors.E(err2, "can't determine whether method is paging")
 	} else if pf != nil {
 		err = g.paging(meth, pf, sampConf.Response)

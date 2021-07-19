@@ -431,7 +431,7 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 		return g.emptyUnaryRESTCall(servName, m)
 	}
 
-	if pf, err := g.pagingField(m); err != nil {
+	if pf, ps, err := g.getPagingFields(m); err != nil {
 		return err
 	} else if pf != nil {
 		iter, err := g.iterTypeOf(pf)
@@ -439,7 +439,7 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 			return err
 		}
 
-		return g.pagingRESTCall(servName, m, pf, iter)
+		return g.pagingRESTCall(servName, m, pf, ps, iter)
 	}
 
 	switch {
@@ -524,7 +524,7 @@ func (g *generator) noRequestStreamRESTCall(servName string, s *descriptor.Servi
 	return nil
 }
 
-func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt *iterType) error {
+func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescriptorProto, elemField, pageSize *descriptor.FieldDescriptorProto, pt *iterType) error {
 	lowcaseServName := lowcaseRestClientName(servName)
 	p := g.printf
 
@@ -540,7 +540,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	// if err != nil {
 	// 	return err
 	// }
-
+	pageSizeFieldName := snakeToCamel(pageSize.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
@@ -559,7 +559,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("}")
 	p("")
 	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
-	p("it.pageInfo.MaxSize = int(req.GetPageSize())")
+	p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
 	p("it.pageInfo.Token = req.GetPageToken()")
 	p("")
 	p("return it")

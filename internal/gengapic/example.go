@@ -93,7 +93,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	p("func Example%sClient_%s() {", servName, m.GetName())
 
-	pf, err := g.pagingField(m)
+	pf, _, err := g.getPagingFields(m)
 	if err != nil {
 		return err
 	}

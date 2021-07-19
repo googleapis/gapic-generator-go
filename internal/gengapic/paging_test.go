@@ -24,164 +24,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
-func TestPagingField(t *testing.T) {
-	resField := &descriptor.FieldDescriptorProto{
-		Name:   proto.String("resource"),
-		Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-		Label:  labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-		Number: proto.Int32(1),
-	}
-	mapField := &descriptor.FieldDescriptorProto{
-		Name:     proto.String("map"),
-		Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-		Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-		TypeName: proto.String("MapEntry"),
-		Number:   proto.Int32(1),
-	}
-
-	otherRepField := &descriptor.FieldDescriptorProto{
-		Name:   proto.String("unreachable"),
-		Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-		Label:  labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-		Number: proto.Int32(0),
-	}
-
-	g := &generator{}
-	g.descInfo.Type = map[string]pbinfo.ProtoType{
-		"Foo": &descriptor.DescriptorProto{
-			Name: proto.String("Foo"),
-		},
-		"MapEntry": &descriptor.DescriptorProto{
-			Name: proto.String("MapEntry"),
-			Field: []*descriptor.FieldDescriptorProto{
-				{
-					Name:   proto.String("key"),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-					Number: proto.Int32(int32(1)),
-				},
-				{
-					Name:   proto.String("value"),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-					Number: proto.Int32(int32(2)),
-				},
-			},
-			Options: &descriptor.MessageOptions{MapEntry: proto.Bool(bool(true))},
-		},
-		"PageIn": &descriptor.DescriptorProto{
-			Name: proto.String("PageIn"),
-			Field: []*descriptor.FieldDescriptorProto{
-				{
-					Name:  proto.String("page_size"),
-					Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				},
-				{
-					Name:  proto.String("page_token"),
-					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				},
-			},
-		},
-		"PageOut": &descriptor.DescriptorProto{
-			Name: proto.String("PageOut"),
-			Field: []*descriptor.FieldDescriptorProto{
-				{
-					Name:  proto.String("next_page_token"),
-					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				},
-				resField,
-			},
-		},
-		"MapOut": &descriptor.DescriptorProto{
-			Name: proto.String("MapOut"),
-			Field: []*descriptor.FieldDescriptorProto{
-				{
-					Name:  proto.String("next_page_token"),
-					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				},
-				mapField,
-			},
-		},
-		"NoRepeatedOut": &descriptor.DescriptorProto{
-			Name: proto.String("NoRepeatedOut"),
-			Field: []*descriptor.FieldDescriptorProto{
-				{
-					Name:  proto.String("next_page_token"),
-					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				},
-				// No repeated field
-			},
-		},
-		"BadPageOut": &descriptor.DescriptorProto{
-			Name: proto.String("BadPageOut"),
-			Field: []*descriptor.FieldDescriptorProto{
-				{
-					Name:  proto.String("next_page_token"),
-					Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-					Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				},
-				// resource is not first repeated field in message
-				resField,
-				otherRepField,
-			},
-		},
-	}
-
-	for _, tst := range []struct {
-		in, out string
-		field   *descriptor.FieldDescriptorProto
-		err     bool
-	}{
-		{
-			in:  "Foo",
-			out: "Foo",
-		},
-		{
-			in:  "PageIn",
-			out: "Foo",
-		},
-		{
-			in:  "Foo",
-			out: "PageOut",
-		},
-		{
-			in:    "PageIn",
-			out:   "PageOut",
-			field: resField,
-		},
-		{
-			in:  "PageIn",
-			out: "NoRepeatedOut",
-		},
-		{
-			in:  "PageIn",
-			out: "MapOut",
-		},
-		{
-			in:  "PageIn",
-			out: "BadPageOut",
-			err: true,
-		},
-	} {
-		meth := &descriptor.MethodDescriptorProto{
-			Name:       proto.String("TestPagingField"),
-			InputType:  proto.String(tst.in),
-			OutputType: proto.String(tst.out),
-		}
-		f, err := g.pagingField(meth)
-		if tst.err && err == nil {
-			t.Errorf("pagingField(%v)=%v, expected error", meth, f)
-		} else if !tst.err && err != nil {
-			t.Errorf("pagingField(%v) errors %q, expected %v", meth, err, tst.field)
-		} else if f != tst.field {
-			t.Errorf("pagingField(%v)=%v, want %v", meth, f, tst.field)
-		}
-	}
-}
-
+// TODO(dovs): Augment with map iterator
 func TestIterTypeOf(t *testing.T) {
 	msgType := &descriptor.DescriptorProto{
 		Name: proto.String("Foo"),
@@ -249,7 +92,7 @@ func TestIterTypeOf(t *testing.T) {
 	}
 }
 
-func TestDiregapicPagingField(t *testing.T) {
+func TestPagingField(t *testing.T) {
 	g := generator{
 		apiName: "Awesome API",
 		imports: map[pbinfo.ImportSpec]bool{},
@@ -307,7 +150,7 @@ func TestDiregapicPagingField(t *testing.T) {
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-				TypeName: proto.String(".diregapic.paging.RandomMessage"),
+				TypeName: proto.String(".paging.RandomMessage"),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 			},
 		},
@@ -325,7 +168,7 @@ func TestDiregapicPagingField(t *testing.T) {
 				Name:     proto.String("value"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-				TypeName: proto.String(".diregapic.paging.RandomMessage"),
+				TypeName: proto.String(".paging.RandomMessage"),
 			},
 		},
 	}
@@ -342,7 +185,7 @@ func TestDiregapicPagingField(t *testing.T) {
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-				TypeName: proto.String(".diregapic.paging.ItemsEntry"),
+				TypeName: proto.String(".paging.ItemsEntry"),
 			},
 		},
 	}
@@ -359,14 +202,14 @@ func TestDiregapicPagingField(t *testing.T) {
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-				TypeName: proto.String(".diregapic.paging.RandomMessage"),
+				TypeName: proto.String(".paging.RandomMessage"),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 			},
 			&descriptor.FieldDescriptorProto{
 				Name:     proto.String("items_2"),
 				Number:   proto.Int32(int32(3)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-				TypeName: proto.String(".diregapic.paging.RandomMessage"),
+				TypeName: proto.String(".paging.RandomMessage"),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 			},
 		},
@@ -384,14 +227,14 @@ func TestDiregapicPagingField(t *testing.T) {
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-				TypeName: proto.String(".diregapic.paging.ItemsEntry"),
+				TypeName: proto.String(".paging.ItemsEntry"),
 			},
 			&descriptor.FieldDescriptorProto{
 				Name:     proto.String("items_2"),
 				Number:   proto.Int32(int32(3)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-				TypeName: proto.String(".diregapic.paging.ItemsEntry"),
+				TypeName: proto.String(".paging.ItemsEntry"),
 			},
 		},
 	}
@@ -399,39 +242,39 @@ func TestDiregapicPagingField(t *testing.T) {
 	// Methods
 	validPageSizeMthd := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("ValidPageSize"),
-		InputType:  proto.String(".diregapic.paging.ValidPageSizeRequest"),
-		OutputType: proto.String(".diregapic.paging.ValidRepeatedResponse"),
+		InputType:  proto.String(".paging.ValidPageSizeRequest"),
+		OutputType: proto.String(".paging.ValidRepeatedResponse"),
 	}
 	validMaxResultsMthd := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("ValidMaxResults"),
-		InputType:  proto.String(".diregapic.paging.ValidMaxResultsRequest"),
-		OutputType: proto.String(".diregapic.paging.ValidMapResponse"),
+		InputType:  proto.String(".paging.ValidMaxResultsRequest"),
+		OutputType: proto.String(".paging.ValidMapResponse"),
 	}
 	clientStreamingMthd := &descriptor.MethodDescriptorProto{
 		Name:            proto.String("ClientStreaming"),
-		InputType:       proto.String(".diregapic.paging.ValidPageSizeRequest"),
-		OutputType:      proto.String(".diregapic.paging.ValidRepeatedResponse"),
+		InputType:       proto.String(".paging.ValidPageSizeRequest"),
+		OutputType:      proto.String(".paging.ValidRepeatedResponse"),
 		ClientStreaming: proto.Bool(bool(true)),
 	}
 	serverStreamingMthd := &descriptor.MethodDescriptorProto{
 		Name:            proto.String("ServerStreaming"),
-		InputType:       proto.String(".diregapic.paging.ValidPageSizeRequest"),
-		OutputType:      proto.String(".diregapic.paging.ValidRepeatedResponse"),
+		InputType:       proto.String(".paging.ValidPageSizeRequest"),
+		OutputType:      proto.String(".paging.ValidRepeatedResponse"),
 		ServerStreaming: proto.Bool(bool(true)),
 	}
 	tooManyRepeatedMthd := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("TooManyRepeated"),
-		InputType:  proto.String(".diregapic.paging.ValidPageSizeRequest"),
-		OutputType: proto.String(".diregapic.paging.TooManyRepeatedResponse"),
+		InputType:  proto.String(".paging.ValidPageSizeRequest"),
+		OutputType: proto.String(".paging.TooManyRepeatedResponse"),
 	}
 	tooManyMapMthd := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("TooManyMap"),
-		InputType:  proto.String(".diregapic.paging.ValidPageSizeRequest"),
-		OutputType: proto.String(".diregapic.paging.TooManyMapResponse"),
+		InputType:  proto.String(".paging.ValidPageSizeRequest"),
+		OutputType: proto.String(".paging.TooManyMapResponse"),
 	}
 
 	file := &descriptor.FileDescriptorProto{
-		Package: proto.String("diregapic.paging"),
+		Package: proto.String("paging"),
 		Options: &descriptor.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
@@ -469,8 +312,8 @@ func TestDiregapicPagingField(t *testing.T) {
 
 	for _, tst := range []struct {
 		mthd      *descriptor.MethodDescriptorProto
-		sizeField *descriptor.FieldDescriptorProto // A nil field means this is not a Diregapic paged method
-		iterField *descriptor.FieldDescriptorProto // A nil field means this is not a Diregapic paged method
+		sizeField *descriptor.FieldDescriptorProto // A nil field means this is not a paged method
+		iterField *descriptor.FieldDescriptorProto // A nil field means this is not a paged method
 	}{
 		{mthd: clientStreamingMthd},
 		{mthd: serverStreamingMthd},
@@ -479,7 +322,7 @@ func TestDiregapicPagingField(t *testing.T) {
 		{mthd: validPageSizeMthd, sizeField: validPageSize.GetField()[0], iterField: validRepeated.GetField()[1]},
 		{mthd: validMaxResultsMthd, sizeField: validMaxResults.GetField()[0], iterField: validMap.GetField()[1]},
 	} {
-		actualIter, actualSize, err := g.diregapicPagingField(tst.mthd)
+		actualIter, actualSize, err := g.getPagingFields(tst.mthd)
 		if actualSize != tst.sizeField {
 			t.Errorf("test %s page size field: got %s, want %s, err %q", tst.mthd.GetName(), actualSize, tst.sizeField, err)
 		}

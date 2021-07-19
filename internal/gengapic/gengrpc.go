@@ -61,7 +61,7 @@ func (g *generator) genGRPCMethod(servName string, serv *descriptor.ServiceDescr
 		return g.emptyUnaryGRPCCall(servName, m)
 	}
 
-	if pf, err := g.pagingField(m); err != nil {
+	if pf, ps, err := g.getPagingFields(m); err != nil {
 		return err
 	} else if pf != nil {
 		iter, err := g.iterTypeOf(pf)
@@ -69,7 +69,7 @@ func (g *generator) genGRPCMethod(servName string, serv *descriptor.ServiceDescr
 			return err
 		}
 
-		return g.pagingCall(servName, m, pf, iter)
+		return g.pagingCall(servName, m, pf, ps, iter)
 	}
 
 	switch {
