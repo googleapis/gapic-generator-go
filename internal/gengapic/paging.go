@@ -136,10 +136,17 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	for _, f := range outMsg.GetField() {
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			if repeatedField != nil {
-				return nil, nil, errors.E(nil, "found multiple repeated or map fields in message %q", m.GetOutputType())
+				// Repeated fields are tacitly okay as long as the
+				// first listed repeated field has the lowest field number.
+				// In this case, subsequent repeated fields are ignored.
+				// See https://aip.dev/4233 for details.
+				if repeatedField.GetNumber() > f.GetNumber() {
+					return nil, nil, errors.E(nil, "found multiple repeated or map fields in message %q", m.GetOutputType())
+				}
+				// We want the _first_ repeated field to be one paged over.
+				continue
 			}
 			repeatedField = f
-			continue
 		}
 
 		hasNextPageToken = hasNextPageToken || (f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)

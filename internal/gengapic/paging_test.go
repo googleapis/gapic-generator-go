@@ -190,8 +190,8 @@ func TestPagingField(t *testing.T) {
 		},
 	}
 	invalidRsp := &descriptor.DescriptorProto{Name: proto.String("InvalidResponse")}
-	tooManyRepeated := &descriptor.DescriptorProto{
-		Name: proto.String("TooManyRepeatedResponse"),
+	multipleRepeated := &descriptor.DescriptorProto{
+		Name: proto.String("MultipleRepeatedResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
 			&descriptor.FieldDescriptorProto{
 				Name:   proto.String("next_page_token"),
@@ -208,6 +208,30 @@ func TestPagingField(t *testing.T) {
 			&descriptor.FieldDescriptorProto{
 				Name:     proto.String("items_2"),
 				Number:   proto.Int32(int32(3)),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".paging.RandomMessage"),
+				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+			},
+		},
+	}
+	tooManyRepeated := &descriptor.DescriptorProto{
+		Name: proto.String("TooManyRepeatedResponse"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("next_page_token"),
+				Number: proto.Int32(int32(1)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			},
+			&descriptor.FieldDescriptorProto{
+				Name:     proto.String("items"),
+				Number:   proto.Int32(int32(3)), // Note that the "first" repeated field has a higher field number.
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".paging.RandomMessage"),
+				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+			},
+			&descriptor.FieldDescriptorProto{
+				Name:     proto.String("items_2"),
+				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".paging.RandomMessage"),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
@@ -224,14 +248,14 @@ func TestPagingField(t *testing.T) {
 			},
 			&descriptor.FieldDescriptorProto{
 				Name:     proto.String("items"),
-				Number:   proto.Int32(int32(2)),
+				Number:   proto.Int32(int32(3)), // Note that the "first" repeated field has a higher field number.
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 				TypeName: proto.String(".paging.ItemsEntry"),
 			},
 			&descriptor.FieldDescriptorProto{
 				Name:     proto.String("items_2"),
-				Number:   proto.Int32(int32(3)),
+				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 				TypeName: proto.String(".paging.ItemsEntry"),
@@ -244,6 +268,11 @@ func TestPagingField(t *testing.T) {
 		Name:       proto.String("ValidPageSize"),
 		InputType:  proto.String(".paging.ValidPageSizeRequest"),
 		OutputType: proto.String(".paging.ValidRepeatedResponse"),
+	}
+	validPageSizeMultipleMthd := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("ValidPageSizeMultiple"),
+		InputType:  proto.String(".paging.ValidPageSizeRequest"),
+		OutputType: proto.String(".paging.MultipleRepeatedResponse"),
 	}
 	validMaxResultsMthd := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("ValidMaxResults"),
@@ -281,6 +310,7 @@ func TestPagingField(t *testing.T) {
 		MessageType: []*descriptor.DescriptorProto{
 			invalidRsp,
 			mapEntry,
+			multipleRepeated,
 			randomMessage,
 			tooManyMap,
 			tooManyRepeated,
@@ -299,6 +329,7 @@ func TestPagingField(t *testing.T) {
 					tooManyRepeatedMthd,
 					validMaxResultsMthd,
 					validPageSizeMthd,
+					validPageSizeMultipleMthd,
 				},
 			},
 		},
@@ -320,6 +351,7 @@ func TestPagingField(t *testing.T) {
 		{mthd: tooManyMapMthd},
 		{mthd: tooManyRepeatedMthd},
 		{mthd: validPageSizeMthd, sizeField: validPageSize.GetField()[0], iterField: validRepeated.GetField()[1]},
+		{mthd: validPageSizeMultipleMthd, sizeField: validPageSize.GetField()[0], iterField: multipleRepeated.GetField()[1]},
 		{mthd: validMaxResultsMthd, sizeField: validMaxResults.GetField()[0], iterField: validMap.GetField()[1]},
 	} {
 		actualIter, actualSize, err := g.getPagingFields(tst.mthd)
