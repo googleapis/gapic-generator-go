@@ -49,6 +49,15 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			return &iterType{}, err
 		}
 
+		eMsg, ok := eType.(*descriptor.DescriptorProto)
+		if !ok {
+			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
+		}
+		// TODO: handle map entries correctly
+		if eMsg.GetOptions().GetMapEntry() {
+			return nil, errors.E(nil, "iterating over maps not supported yet: %q", eType)
+		}
+
 		// Prepend parent Message name for nested Messages
 		// to match the generated Go type name.
 		typ := eType

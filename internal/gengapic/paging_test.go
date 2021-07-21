@@ -29,17 +29,27 @@ func TestIterTypeOf(t *testing.T) {
 	msgType := &descriptor.DescriptorProto{
 		Name: proto.String("Foo"),
 	}
+	mapEntry := &descriptor.DescriptorProto{
+		Name:    proto.String("FooEntry"),
+		Options: &descriptor.MessageOptions{MapEntry: proto.Bool(bool(true))},
+	}
 	g := &generator{
 		aux: &auxTypes{
 			iters: map[string]*iterType{},
 		},
 		descInfo: pbinfo.Info{
 			Type: map[string]pbinfo.ProtoType{
-				msgType.GetName(): msgType,
+				msgType.GetName():  msgType,
+				mapEntry.GetName(): mapEntry,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{},
 			ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
 				msgType: {
+					Options: &descriptor.FileOptions{
+						GoPackage: proto.String("path/to/foo;foo"),
+					},
+				},
+				mapEntry: {
 					Options: &descriptor.FileOptions{
 						GoPackage: proto.String("path/to/foo;foo"),
 					},
@@ -49,8 +59,9 @@ func TestIterTypeOf(t *testing.T) {
 	}
 
 	for i, tst := range []struct {
-		field *descriptor.FieldDescriptorProto
-		want  iterType
+		field     *descriptor.FieldDescriptorProto
+		want      iterType
+		shouldErr bool
 	}{
 		{
 			field: &descriptor.FieldDescriptorProto{
@@ -81,9 +92,22 @@ func TestIterTypeOf(t *testing.T) {
 				elemImports:  []pbinfo.ImportSpec{{Name: "foopb", Path: "path/to/foo"}},
 			},
 		},
+		{
+			field: &descriptor.FieldDescriptorProto{
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(mapEntry.GetName()),
+			},
+			shouldErr: true,
+		},
 	} {
 		g.descInfo.ParentElement[tst.field] = msgType
 		got, err := g.iterTypeOf(tst.field)
+		if tst.shouldErr {
+			if err == nil {
+				t.Errorf("field %v should error", tst.field)
+			}
+			continue
+		}
 		if err != nil {
 			t.Error(err)
 		} else if diff := cmp.Diff(tst.want, *got, cmp.AllowUnexported(*got)); diff != "" {
