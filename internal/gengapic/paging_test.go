@@ -262,6 +262,28 @@ func TestPagingField(t *testing.T) {
 			},
 		},
 	}
+	noRepeatedField := &descriptor.DescriptorProto{
+		Name: proto.String("NoRepeatedFieldResponse"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:   proto.String("next_page_token"),
+				Number: proto.Int32(int32(1)),
+				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+			},
+		},
+	}
+	noNextPageToken := &descriptor.DescriptorProto{
+		Name: proto.String("NoNextPageTokenResponse"),
+		Field: []*descriptor.FieldDescriptorProto{
+			&descriptor.FieldDescriptorProto{
+				Name:     proto.String("items"),
+				Number:   proto.Int32(int32(1)),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".paging.RandomMessage"),
+				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+			},
+		},
+	}
 
 	// Methods
 	validPageSizeMthd := &descriptor.MethodDescriptorProto{
@@ -301,6 +323,16 @@ func TestPagingField(t *testing.T) {
 		InputType:  proto.String(".paging.ValidPageSizeRequest"),
 		OutputType: proto.String(".paging.TooManyMapResponse"),
 	}
+	noNextPageTokenMthd := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("NoNextPageToken"),
+		InputType:  proto.String(".paging.ValidPageSizeRequest"),
+		OutputType: proto.String(".paging.NoNextPageTokenResponse"),
+	}
+	noRepeatedFieldMthd := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("NoRepeatedField"),
+		InputType:  proto.String(".paging.ValidPageSizeRequest"),
+		OutputType: proto.String(".paging.NoRepeatedFieldResponse"),
+	}
 
 	file := &descriptor.FileDescriptorProto{
 		Package: proto.String("paging"),
@@ -311,6 +343,8 @@ func TestPagingField(t *testing.T) {
 			invalidRsp,
 			mapEntry,
 			multipleRepeated,
+			noNextPageToken,
+			noRepeatedField,
 			randomMessage,
 			tooManyMap,
 			tooManyRepeated,
@@ -324,6 +358,8 @@ func TestPagingField(t *testing.T) {
 				Name: proto.String("TestService"),
 				Method: []*descriptor.MethodDescriptorProto{
 					clientStreamingMthd,
+					noNextPageTokenMthd,
+					noRepeatedFieldMthd,
 					serverStreamingMthd,
 					tooManyMapMthd,
 					tooManyRepeatedMthd,
@@ -350,6 +386,8 @@ func TestPagingField(t *testing.T) {
 		{mthd: serverStreamingMthd},
 		{mthd: tooManyMapMthd},
 		{mthd: tooManyRepeatedMthd},
+		{mthd: noNextPageTokenMthd},
+		{mthd: noRepeatedFieldMthd},
 		{mthd: validPageSizeMthd, sizeField: validPageSize.GetField()[0], iterField: validRepeated.GetField()[1]},
 		{mthd: validPageSizeMultipleMthd, sizeField: validPageSize.GetField()[0], iterField: multipleRepeated.GetField()[1]},
 		{mthd: validMaxResultsMthd, sizeField: validMaxResults.GetField()[0], iterField: validMap.GetField()[1]},

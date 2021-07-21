@@ -92,26 +92,38 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 // Makes particular allowance for diregapic idioms: maps can be paginated over,
 // and either 'page_size' XOR 'max_results' are allowable fields in the request.
 func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeatedField, pageSizeField *descriptor.FieldDescriptorProto, e error) {
+	// TODO: remove this once the next version of the Talent API is published.
+	//
+	// This is a workaround to disable auto-pagination for specifc RPCs in
+	// Talent v4beta1. The API team will make their API non-conforming in the
+	// next version.
+	//
+	// This should not be done for any other API.
+	if g.descInfo.ParentFile[m].GetPackage() == "google.cloud.talent.v4beta1" &&
+		(m.GetName() == "SearchProfiles" || m.GetName() == "SearchJobs") {
+		return nil, nil, nil
+	}
+
 	if m.GetClientStreaming() || m.GetServerStreaming() {
 		return nil, nil, nil
 	}
 
 	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
-		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
+		return nil, nil, errors.E(nil, "expected %q to be message type, found %T", m.GetInputType(), inType)
 	}
 	inMsg, ok := inType.(*descriptor.DescriptorProto)
 	if !ok {
-		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor", m.GetInputType())
 	}
 
 	outType := g.descInfo.Type[m.GetOutputType()]
 	if outType == nil {
-		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
+		return nil, nil, errors.E(nil, "expected %q to be message type, found %T", m.GetOutputType(), outType)
 	}
 	outMsg, ok := outType.(*descriptor.DescriptorProto)
 	if !ok {
-		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor", m.GetOutputType())
 	}
 
 	hasPageToken := false
@@ -136,7 +148,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	for _, f := range outMsg.GetField() {
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			if repeatedField != nil {
-				// Repeated fields are tacitly okay as long as the
+				// Multiple repeated fields are tacitly okay as long as the
 				// first listed repeated field has the lowest field number.
 				// In this case, subsequent repeated fields are ignored.
 				// See https://aip.dev/4233 for details.
@@ -150,6 +162,10 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 		}
 
 		hasNextPageToken = hasNextPageToken || (f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)
+	}
+
+	if !hasNextPageToken || repeatedField == nil {
+		return nil, nil, nil
 	}
 
 	return repeatedField, pageSizeField, nil
