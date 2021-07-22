@@ -138,6 +138,12 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 			hasNextToken = true
 		}
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+			// Ignore repeated fields that are actually synthetic MapEntry types.
+			if eType, ok := g.descInfo.Type[f.GetTypeName()]; ok {
+				if msg, ok := eType.(*descriptor.DescriptorProto); ok && msg.GetOptions().GetMapEntry() {
+					continue
+				}
+			}
 			elemFields = append(elemFields, f)
 		}
 	}
