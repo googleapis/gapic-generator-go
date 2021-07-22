@@ -298,8 +298,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_golang_mock",
         importpath = "github.com/golang/mock",
-        sum = "h1:jlYHihg//f7RRwuPfptm04yp4s7O6Kw8EZiVYIGcH0g=",
-        version = "v1.5.0",
+        sum = "h1:ErTB+efbowRARo13NNdxyJji2egdxLGQhRaY+DUumQc=",
+        version = "v1.6.0",
     )
     go_repository(
         name = "com_github_golang_protobuf",
@@ -347,8 +347,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_google_pprof",
         importpath = "github.com/google/pprof",
-        sum = "h1:ub2sxhs2A0HRa2dWHavvmWxiVGXNfE9wI+gcTMwED8A=",
-        version = "v0.0.0-20210601050228-01bbb1931b22",
+        sum = "h1:2tft2559dNwKl2znYB58oVTql0grRB+Ml3LWIBbc4WM=",
+        version = "v0.0.0-20210609004039-a478d1d731e9",
     )
 
     go_repository(
@@ -1002,8 +1002,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
         build_extra_args = ["-exclude=longrunning/autogen/info.go"],
         importpath = "cloud.google.com/go",
-        sum = "h1:hVhK90DwCdOAYGME/FJd9vNIZye9HBR6Yy3fu4js3N8=",
-        version = "v0.84.0",
+        sum = "h1:8ZtzmY4a2JIO2sljMbpqkDYxA8aJQveYr3AMa+X40oc=",
+        version = "v0.87.0",
     )
     go_repository(
         name = "com_google_cloud_go_bigquery",
@@ -1143,8 +1143,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:LX7NFCFYOHzr7WHaYiRUpeipZe9o5L8T+2F4Z798VDw=",
-        version = "v0.50.0",
+        sum = "h1:SQaA2Cx57B+iPw2MBgyjEkoeMkRK2IenSGoia0U3lCk=",
+        version = "v0.51.0",
     )
 
     go_repository(
@@ -1237,8 +1237,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:RqytpXGR1iVNX7psjB3ff8y7sNFinVFvkx1c8SjBkio=",
-        version = "v0.0.0-20210616094352-59db8d763f22",
+        sum = "h1:F1jZWGFhYfh0Ci55sIpILtKKK8p3i2/krTr0H1rg74I=",
+        version = "v0.0.0-20210630005230-0f9fa26af87c",
     )
     go_repository(
         name = "org_golang_x_term",
