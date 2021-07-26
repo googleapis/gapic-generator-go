@@ -156,6 +156,13 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	hasNextPageToken := false
 	for _, f := range outMsg.GetField() {
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+
+			if eType, ok := g.descInfo.Type[f.GetTypeName()]; f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && ok {
+				if msg, ok := eType.(*descriptor.DescriptorProto); ok && msg.GetOptions().GetMapEntry() {
+					continue
+				}
+			}
+
 			if repeatedField != nil {
 				// Multiple repeated fields are tacitly okay as long as the
 				// first listed repeated field has the lowest field number.
@@ -164,7 +171,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 				if repeatedField.GetNumber() > f.GetNumber() {
 					return nil, nil, errors.E(nil, "found multiple repeated or map fields in message %q", m.GetOutputType())
 				}
-				// We want the _first_ repeated field to be one paged over.
+				// We want the _first_ repeated field to be the one paged over.
 				continue
 			}
 			repeatedField = f

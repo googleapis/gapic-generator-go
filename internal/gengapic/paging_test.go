@@ -320,9 +320,19 @@ func TestPagingField(t *testing.T) {
 		InputType:  proto.String(".paging.ValidPageSizeRequest"),
 		OutputType: proto.String(".paging.MultipleRepeatedResponse"),
 	}
+	validMaxResultsRepeatedMthd := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("ValidMaxResults"),
+		InputType:  proto.String(".paging.ValidMaxResultsRequest"),
+		OutputType: proto.String(".paging.ValidRepeatedResponse"),
+	}
 	validMaxResultsMthd := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("ValidMaxResults"),
 		InputType:  proto.String(".paging.ValidMaxResultsRequest"),
+		OutputType: proto.String(".paging.ValidMapResponse"),
+	}
+	validPageSizeMapMthd := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("ValidPageSize"),
+		InputType:  proto.String(".paging.ValidPageSizeRequest"),
 		OutputType: proto.String(".paging.ValidMapResponse"),
 	}
 	clientStreamingMthd := &descriptor.MethodDescriptorProto{
@@ -388,6 +398,8 @@ func TestPagingField(t *testing.T) {
 					tooManyMapMthd,
 					tooManyRepeatedMthd,
 					validMaxResultsMthd,
+					validMaxResultsRepeatedMthd,
+					validPageSizeMapMthd,
 					validPageSizeMthd,
 					validPageSizeMultipleMthd,
 				},
@@ -412,17 +424,23 @@ func TestPagingField(t *testing.T) {
 		{mthd: tooManyRepeatedMthd},
 		{mthd: noNextPageTokenMthd},
 		{mthd: noRepeatedFieldMthd},
+		{mthd: validMaxResultsRepeatedMthd, sizeField: validMaxResults.GetField()[0], iterField: validRepeated.GetField()[1]},
+		// TODO(dovs): maps are temporarily not supported. Uncomment when support finalizes
+		// {mthd: validPageSizeMapMthd, sizeField: validPageSize.GetField()[0], iterField: validMap.GetField()[1]},
+		{mthd: validPageSizeMapMthd}, // TODO(dovs): remove when maps are supported
 		{mthd: validPageSizeMthd, sizeField: validPageSize.GetField()[0], iterField: validRepeated.GetField()[1]},
 		{mthd: validPageSizeMultipleMthd, sizeField: validPageSize.GetField()[0], iterField: multipleRepeated.GetField()[1]},
-		{mthd: validMaxResultsMthd, sizeField: validMaxResults.GetField()[0], iterField: validMap.GetField()[1]},
+		// TODO(dovs): maps are temporarily not supported. Uncomment when support finalizes
+		// {mthd: validMaxResultsMthd, sizeField: validMaxResults.GetField()[0], iterField: validMap.GetField()[1]},
+		{mthd: validMaxResultsMthd}, // TODO(dovs): remove when maps are supported
 	} {
 		actualIter, actualSize, err := g.getPagingFields(tst.mthd)
 		if actualSize != tst.sizeField {
-			t.Errorf("test %s page size field: got %s, want %s, err %q", tst.mthd.GetName(), actualSize, tst.sizeField, err)
+			t.Errorf("test %s page size field: got %s, want %s, err %v", tst.mthd.GetName(), actualSize, tst.sizeField, err)
 		}
 
 		if actualIter != tst.iterField {
-			t.Errorf("test %s iter field: got %s, want %s, err %q", tst.mthd.GetName(), actualIter, tst.iterField, err)
+			t.Errorf("test %s iter field: got %s, want %s, err %v", tst.mthd.GetName(), actualIter, tst.iterField, err)
 		}
 	}
 }
