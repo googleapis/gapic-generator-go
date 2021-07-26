@@ -104,7 +104,7 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 			return err
 		}
 
-		if pf, err := g.pagingField(m); err != nil {
+		if pf, _, err := g.getPagingFields(m); err != nil {
 			return err
 		} else if pf != nil {
 			iter, err := g.iterTypeOf(pf)
@@ -277,7 +277,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		return nil
 	}
 
-	if pf, err := g.pagingField(m); err != nil {
+	if pf, _, err := g.getPagingFields(m); err != nil {
 		return err
 	} else if pf != nil {
 		iter, err := g.iterTypeOf(pf)

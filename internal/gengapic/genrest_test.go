@@ -25,15 +25,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// This is a hack to provide an lvalue for a constant.
-func typep(typ descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
-	return &typ
-}
-
-func labelp(lbl descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
-	return &lbl
-}
-
 // Note: the fields parameter contains the names of _all_ the request message's fields,
 // not just those that are path or query params.
 func setupMethod(g *generator, url, body string, fields []string) (*descriptor.MethodDescriptorProto, error) {

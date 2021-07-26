@@ -36,6 +36,7 @@ type iterType struct {
 
 // iterTypeOf deduces iterType from a field to be iterated over.
 // elemField should be the "resource" of a paginating RPC.
+// TODO(dovs): augment with paged map iterators
 func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*iterType, error) {
 	var pt iterType
 
@@ -46,6 +47,15 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 		imp, err := g.descInfo.ImportSpec(eType)
 		if err != nil {
 			return &iterType{}, err
+		}
+
+		eMsg, ok := eType.(*descriptor.DescriptorProto)
+		if !ok {
+			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
+		}
+		// TODO: handle map entries correctly
+		if eMsg.GetOptions().GetMapEntry() {
+			return nil, errors.E(nil, "iterating over maps not supported yet: %q", eType)
 		}
 
 		// Prepend parent Message name for nested Messages
@@ -86,15 +96,11 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 	return &pt, nil
 }
 
-// pagingField reports the "resource field" to be iterated over by paginating method m.
-// If the method is not a paging method, pagingField returns (nil, nil).
-// If the method looks like a paging method, but the field cannot be determined, pagingField errors.
-func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descriptor.FieldDescriptorProto, error) {
-	var (
-		hasSize, hasToken, hasNextToken bool
-		elemFields                      []*descriptor.FieldDescriptorProto
-	)
-
+// getPagingFields reports the "resource field" to be iterated over by paginating method m
+// and the "num elements" field that tells the server the maximum number of elements to return per page.
+// Makes particular allowance for diregapic idioms: maps can be paginated over,
+// and either 'page_size' XOR 'max_results' are allowable fields in the request.
+func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeatedField, pageSizeField *descriptor.FieldDescriptorProto, e error) {
 	// TODO: remove this once the next version of the Talent API is published.
 	//
 	// This is a workaround to disable auto-pagination for specifc RPCs in
@@ -104,64 +110,84 @@ func (g *generator) pagingField(m *descriptor.MethodDescriptorProto) (*descripto
 	// This should not be done for any other API.
 	if g.descInfo.ParentFile[m].GetPackage() == "google.cloud.talent.v4beta1" &&
 		(m.GetName() == "SearchProfiles" || m.GetName() == "SearchJobs") {
-		return nil, nil
+		return nil, nil, nil
+	}
+
+	if m.GetClientStreaming() || m.GetServerStreaming() {
+		return nil, nil, nil
 	}
 
 	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
-		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetInputType())
+		return nil, nil, errors.E(nil, "expected %q to be message type, found %T", m.GetInputType(), inType)
 	}
 	inMsg, ok := inType.(*descriptor.DescriptorProto)
 	if !ok {
-		return nil, errors.E(nil, "expected %q to be message type, found %T", m.GetInputType(), inType)
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor", m.GetInputType())
 	}
 
 	outType := g.descInfo.Type[m.GetOutputType()]
 	if outType == nil {
-		return nil, errors.E(nil, "cannot find message type %q, malformed descriptor?", m.GetOutputType())
+		return nil, nil, errors.E(nil, "expected %q to be message type, found %T", m.GetOutputType(), outType)
 	}
 	outMsg, ok := outType.(*descriptor.DescriptorProto)
 	if !ok {
-		return nil, errors.E(nil, "expected %q to be message type, found %T", m.GetOutputType(), outType)
+		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor", m.GetOutputType())
 	}
 
-	for _, f := range inMsg.Field {
-		if f.GetName() == "page_size" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 {
-			hasSize = true
-		}
-		if f.GetName() == "page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING {
-			hasToken = true
-		}
-	}
-	for _, f := range outMsg.Field {
-		if f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING {
-			hasNextToken = true
-		}
-		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
-			elemFields = append(elemFields, f)
-		}
-	}
-
-	// If any of the required pagination fields are missing or if the response
-	// has no repeated fields, it is not a fully conforming paginated method.
-	if !hasSize || !hasToken || !hasNextToken || len(elemFields) == 0 {
-		return nil, nil
-	}
-
-	if len(elemFields) > 1 {
-		// ensure that the first repeated field visited has the lowest field number
-		// according to https://aip.dev/4233, and use that one.
-		min := elemFields[0].GetNumber()
-		for _, elem := range elemFields {
-			if elem.GetNumber() < min {
-				return nil, fmt.Errorf("%s: can't pick repeated field in %s based on aip.dev/4233", *m.Name, outType.GetName())
+	hasPageToken := false
+	for _, f := range inMsg.GetField() {
+		if (f.GetName() == "page_size" || f.GetName() == "max_results") && f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 {
+			if pageSizeField != nil {
+				return nil, nil, errors.E(nil, "found both page_size and max_results fields in message %q", m.GetInputType())
 			}
+			pageSizeField = f
+			continue
 		}
+
+		hasPageToken = hasPageToken || (f.GetName() == "page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)
 	}
-	return elemFields[0], nil
+
+	if !hasPageToken || pageSizeField == nil {
+		// Not an error, just not paginated
+		return nil, nil, nil
+	}
+
+	hasNextPageToken := false
+	for _, f := range outMsg.GetField() {
+		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+
+			if eType, ok := g.descInfo.Type[f.GetTypeName()]; f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && ok {
+				if msg, ok := eType.(*descriptor.DescriptorProto); ok && msg.GetOptions().GetMapEntry() {
+					continue
+				}
+			}
+
+			if repeatedField != nil {
+				// Multiple repeated fields are tacitly okay as long as the
+				// first listed repeated field has the lowest field number.
+				// In this case, subsequent repeated fields are ignored.
+				// See https://aip.dev/4233 for details.
+				if repeatedField.GetNumber() > f.GetNumber() {
+					return nil, nil, errors.E(nil, "found multiple repeated or map fields in message %q", m.GetOutputType())
+				}
+				// We want the _first_ repeated field to be the one paged over.
+				continue
+			}
+			repeatedField = f
+		}
+
+		hasNextPageToken = hasNextPageToken || (f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)
+	}
+
+	if !hasNextPageToken || repeatedField == nil {
+		return nil, nil, nil
+	}
+
+	return repeatedField, pageSizeField, nil
 }
 
-func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField *descriptor.FieldDescriptorProto, pt *iterType) error {
+func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField, pageSize *descriptor.FieldDescriptorProto, pt *iterType) error {
 	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
 	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
 
@@ -199,16 +225,16 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 		return err
 	}
 	g.appendCallOpts(m)
-
+	pageSizeFieldName := snakeToCamel(pageSize.GetName())
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
 	p("  req.PageToken = %s", tok)
 	p("  if pageSize > math.MaxInt32 {")
-	p("    req.PageSize = %s", max)
+	p("    req.%s = %s", pageSizeFieldName, max)
 	p("  } else {")
-	p("    req.PageSize = %s", ps)
+	p("    req.%s = %s", pageSizeFieldName, ps)
 	p("  }")
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
@@ -233,7 +259,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("}")
 
 	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
-	p("it.pageInfo.MaxSize = int(req.GetPageSize())")
+	p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
 	p("it.pageInfo.Token = req.GetPageToken()")
 	p("return it")
 

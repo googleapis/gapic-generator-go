@@ -101,10 +101,6 @@ func TestGRPCClientField(t *testing.T) {
 }
 
 func TestGenMethod(t *testing.T) {
-	labelp := func(l descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
-		return &l
-	}
-
 	extra := &descriptor.DescriptorProto{
 		Name: proto.String("ExtraMessage"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -693,10 +689,6 @@ func Test_parseRequestHeaders(t *testing.T) {
 }
 
 func Test_lookupField(t *testing.T) {
-	typep := func(t descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
-		return &t
-	}
-
 	topLevelEnum := &descriptor.EnumDescriptorProto{
 		Name: proto.String("TopLevelEnum"),
 	}
