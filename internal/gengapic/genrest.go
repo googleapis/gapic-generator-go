@@ -529,24 +529,85 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p := g.printf
 
 	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
-	// outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
+	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
 	}
 
-	// outSpec, err := g.descInfo.ImportSpec(outType)
-	// if err != nil {
-	// 	return err
-	// }
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+	info, err := getHTTPInfo(m)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return errors.E(nil, "method has no http info: %s", m.GetName())
+	}
+	max := "math.MaxInt32"
+	ps := "int32(pageSize)"
+
+	verb := strings.ToUpper(info.verb)
+
 	pageSizeFieldName := snakeToCamel(pageSize.GetName())
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
+	p("m := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: false}")
+	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	p(`return nil, "", fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
+	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
+	p("  if pageSize > math.MaxInt32 {")
+	p("    req.%s = %s", pageSizeFieldName, max)
+	p("  } else {")
+	p("    req.%s = %s", pageSizeFieldName, ps)
+	p("  }")
+	p("  req.PageToken = pageToken")
+	p("")
+	p("  jsonReq, err := m.Marshal(req)")
+	p("  if err != nil {")
+	p(`    return nil, "", err`)
+	p("  }")
+	p("")
+
+	g.generateURLString(m)
+	g.generateQueryString(m)
+
+	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), bytes.NewReader(jsonReq))`, verb)
+	p("  if err != nil {")
+	p(`    return nil, "", err`)
+	p("  }")
+	p("")
+	p("  // Set the headers")
+	p("  for k, v := range c.xGoogMetadata {")
+	p("    httpReq.Header[k] = v")
+	p("  }")
+	p("")
+	p(`  httpReq.Header["Content-Type"] = []string{"application/json"}`)
+	p("  httpRsp, err := c.httpClient.Do(httpReq)")
+	p("  if err != nil{")
+	p(`   return nil, "", err`)
+	p("  }")
+	p("  defer httpRsp.Body.Close()")
+	p("")
+	p("  if httpRsp.StatusCode != http.StatusOK {")
+	p(`    return nil, "", fmt.Errorf(httpRsp.Status)`)
+	p("  }")
+	p("")
+	p("  buf, err := ioutil.ReadAll(httpRsp.Body)")
+	p("  if err != nil {")
+	p(`    return nil, "", err`)
+	p("  }")
+	p("")
+	p("  unm.Unmarshal(buf, resp)")
+	p("  it.Response = resp")
+	// TODO(dovs): handle map pages
+	p("  return resp.Get%s(), resp.GetNextPageToken(), nil", snakeToCamel(elemField.GetName()))
 	p("}")
 	p("")
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")

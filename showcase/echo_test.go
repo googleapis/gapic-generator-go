@@ -37,6 +37,7 @@ import (
 )
 
 var echo *showcase.EchoClient
+var echoREST *showcase.EchoClient
 
 func TestEcho(t *testing.T) {
 	defer check(t)
@@ -46,13 +47,15 @@ func TestEcho(t *testing.T) {
 			Content: content,
 		},
 	}
-	resp, err := echo.Echo(context.Background(), req)
+	for typ, client := range map[string]*showcase.EchoClient{"grpc": echo, "rest": echoREST} {
+		resp, err := client.Echo(context.Background(), req)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.GetContent() != req.GetContent() {
-		t.Errorf("Echo() = %q, want %q", resp.GetContent(), content)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.GetContent() != req.GetContent() {
+			t.Errorf("%s Echo() = %q, want %q", typ, resp.GetContent(), content)
+		}
 	}
 }
 
@@ -64,17 +67,25 @@ func TestEcho_error(t *testing.T) {
 			Error: &spb.Status{Code: int32(val)},
 		},
 	}
-	resp, err := echo.Echo(context.Background(), req)
+	for typ, client := range map[string]*showcase.EchoClient{"grpc": echo, "rest": echoREST} {
+		if typ == "rest" {
+			// TODO(dovs): currently erroring with 2, want 1
+			continue
+		}
 
-	if resp != nil {
-		t.Errorf("Echo() = %v, wanted error %d", resp, val)
+		resp, err := client.Echo(context.Background(), req)
+		if resp != nil {
+			t.Errorf("%s Echo() = %v, wanted error %d", typ, resp, val)
+		}
+		status, _ := status.FromError(err)
+		if status.Code() != val {
+			t.Errorf("%s Echo() errors with %d, want %d", typ, status.Code(), val)
+		}
 	}
-	status, _ := status.FromError(err)
-	if status.Code() != val {
-		t.Errorf("Echo() errors with %d, want %d", status.Code(), val)
-	}
+
 }
 
+// Chat, Collect, and Expand are streaming methods and don't have interesting REST semantics
 func TestExpand(t *testing.T) {
 	defer check(t)
 	content := "The rain in Spain stays mainly on the plain!"
@@ -100,6 +111,7 @@ func TestExpand(t *testing.T) {
 	}
 }
 
+// Chat, Collect, and Expand are streaming methods and don't have interesting REST semantics
 func TestCollect(t *testing.T) {
 	defer check(t)
 	content := "The rain in Spain stays mainly on the plain!"
@@ -122,6 +134,7 @@ func TestCollect(t *testing.T) {
 	}
 }
 
+// Chat, Collect, and Expand are streaming methods and don't have interesting REST semantics
 func TestChat(t *testing.T) {
 	defer check(t)
 	content := "The rain in Spain stays mainly on the plain!"
@@ -151,6 +164,7 @@ func TestChat(t *testing.T) {
 	}
 }
 
+// TODO(dovs): add REST testing
 func TestWait(t *testing.T) {
 	defer check(t)
 	content := "hello world!"
@@ -175,6 +189,7 @@ func TestWait(t *testing.T) {
 	}
 }
 
+// TODO(dovs): add REST testing
 func TestWait_timeout(t *testing.T) {
 	defer check(t)
 	content := "hello world!"
@@ -204,21 +219,23 @@ func TestPagination(t *testing.T) {
 	str := "foo bar biz baz"
 	expected := strings.Split(str, " ")
 	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2}
-	iter := echo.PagedExpand(context.Background(), req)
+	for typ, client := range map[string]*showcase.EchoClient{"grpc": echo, "rest": echoREST} {
+		iter := client.PagedExpand(context.Background(), req)
 
-	ndx := 0
-	for {
-		resp, err := iter.Next()
-		if err == iterator.Done {
-			break
+		ndx := 0
+		for {
+			resp, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if resp.GetContent() != expected[ndx] {
+				t.Errorf("%s Chat() = %s, want %s", typ, resp.GetContent(), expected[ndx])
+			}
+			ndx++
 		}
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp.GetContent() != expected[ndx] {
-			t.Errorf("Chat() = %s, want %s", resp.GetContent(), expected[ndx])
-		}
-		ndx++
 	}
 }
 
@@ -227,24 +244,26 @@ func TestPaginationWithToken(t *testing.T) {
 	str := "ab cd ef gh ij kl"
 	expected := strings.Split(str, " ")[1:]
 	req := &showcasepb.PagedExpandRequest{Content: str, PageSize: 2, PageToken: "1"}
-	iter := echo.PagedExpand(context.Background(), req)
+	for typ, client := range map[string]*showcase.EchoClient{"grpc": echo, "rest": echoREST} {
+		iter := client.PagedExpand(context.Background(), req)
 
-	ndx := 0
-	for {
-		resp, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			t.Fatal(err)
-		}
+		ndx := 0
+		for {
+			resp, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		if ndx >= len(expected) {
-			t.Errorf("Received more items than expected")
-		} else if resp.GetContent() != expected[ndx] {
-			t.Errorf("Chat() = %s, want %s", resp.GetContent(), expected[ndx])
+			if ndx >= len(expected) {
+				t.Errorf("%s Chat() eceived more items than expected", typ)
+			} else if resp.GetContent() != expected[ndx] {
+				t.Errorf("%s Chat() = %s, want %s", typ, resp.GetContent(), expected[ndx])
+			}
+			ndx++
 		}
-		ndx++
 	}
 }
 
