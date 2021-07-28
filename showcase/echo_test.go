@@ -267,6 +267,9 @@ func TestPaginationWithToken(t *testing.T) {
 	}
 }
 
+// TODO(dovs): the server side is not finished for PagedExpandLegacy.
+// Add tests for that when it's been merged.
+
 func TestBlock(t *testing.T) {
 	defer check(t)
 	content := "hello world!"
