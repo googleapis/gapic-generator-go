@@ -547,13 +547,10 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	if info == nil {
 		return errors.E(nil, "method has no http info: %s", m.GetName())
 	}
-	max := "math.MaxInt32"
-	ps := "int32(pageSize)"
 
 	verb := strings.ToUpper(info.verb)
 
 	pageSizeFieldName := snakeToCamel(pageSize.GetName())
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
@@ -563,9 +560,9 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
 	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("  if pageSize > math.MaxInt32 {")
-	p("    req.%s = %s", pageSizeFieldName, max)
+	p("    req.%s = math.MaxInt32", pageSizeFieldName)
 	p("  } else {")
-	p("    req.%s = %s", pageSizeFieldName, ps)
+	p("    req.%s = int32(pageSize)", pageSizeFieldName)
 	p("  }")
 	p("  req.PageToken = pageToken")
 	p("")
@@ -628,6 +625,9 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+	g.imports[inSpec] = true
+	g.imports[outSpec] = true
 
 	return nil
 }
