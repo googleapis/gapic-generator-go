@@ -603,8 +603,22 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("")
 	p("  unm.Unmarshal(buf, resp)")
 	p("  it.Response = resp")
-	// TODO(dovs): handle map pages
-	p("  return resp.Get%s(), resp.GetNextPageToken(), nil", snakeToCamel(elemField.GetName()))
+	repeatedField, elts := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	if pt.mapValueTypeName != "" {
+		elts = "elts"
+		p("")
+		p("    elts := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
+		p("    for k, v := range %s {", repeatedField)
+		p("        elts = append(elts, %s{k, v})", pt.elemTypeName)
+		p("    }")
+		p("    sort.Slice(elts, func(i, j int) bool { return elts[i].Key < elts[j].Key } )")
+		p("")
+		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
+	} else {
+		elts = repeatedField
+	}
+
+	p("  return %s, resp.GetNextPageToken(), nil", elts)
 	p("}")
 	p("")
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")

@@ -425,14 +425,10 @@ func TestPagingField(t *testing.T) {
 		{mthd: noNextPageTokenMthd},
 		{mthd: noRepeatedFieldMthd},
 		{mthd: validMaxResultsRepeatedMthd, sizeField: validMaxResults.GetField()[0], iterField: validRepeated.GetField()[1]},
-		// TODO(dovs): maps are temporarily not supported. Uncomment when support finalizes
-		// {mthd: validPageSizeMapMthd, sizeField: validPageSize.GetField()[0], iterField: validMap.GetField()[1]},
-		{mthd: validPageSizeMapMthd}, // TODO(dovs): remove when maps are supported
+		{mthd: validPageSizeMapMthd, sizeField: validPageSize.GetField()[0], iterField: validMap.GetField()[1]},
 		{mthd: validPageSizeMthd, sizeField: validPageSize.GetField()[0], iterField: validRepeated.GetField()[1]},
 		{mthd: validPageSizeMultipleMthd, sizeField: validPageSize.GetField()[0], iterField: multipleRepeated.GetField()[1]},
-		// TODO(dovs): maps are temporarily not supported. Uncomment when support finalizes
-		// {mthd: validMaxResultsMthd, sizeField: validMaxResults.GetField()[0], iterField: validMap.GetField()[1]},
-		{mthd: validMaxResultsMthd}, // TODO(dovs): remove when maps are supported
+		{mthd: validMaxResultsMthd, sizeField: validMaxResults.GetField()[0], iterField: validMap.GetField()[1]},
 	} {
 		actualIter, actualSize, err := g.getPagingFields(tst.mthd)
 		if actualSize != tst.sizeField {

@@ -25,13 +25,12 @@ import (
 
 // iterType describes iterators used by paging RPCs.
 type iterType struct {
-	iterTypeName, elemTypeName string
+	iterTypeName, elemTypeName, mapValueTypeName string
 
 	// If the elem type is a message, elemImports contains pbinfo.ImportSpec for the type.
 	// Otherwise, len(elemImports)==0.
 	elemImports []pbinfo.ImportSpec
-
-	generated bool
+	generated   bool
 }
 
 // iterTypeOf deduces iterType from a field to be iterated over.
@@ -49,15 +48,6 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			return &iterType{}, err
 		}
 
-		eMsg, ok := eType.(*descriptor.DescriptorProto)
-		if !ok {
-			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
-		}
-		// TODO: handle map entries correctly
-		if eMsg.GetOptions().GetMapEntry() {
-			return nil, errors.E(nil, "iterating over maps not supported yet: %q", eType)
-		}
-
 		// Prepend parent Message name for nested Messages
 		// to match the generated Go type name.
 		typ := eType
@@ -67,8 +57,33 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			typ = parent
 		}
 
-		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, typeName)
-		pt.iterTypeName = typeName + "Iterator"
+		eMsg, ok := eType.(*descriptor.DescriptorProto)
+		if !ok {
+			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
+		}
+		if eMsg.GetOptions().GetMapEntry() {
+			var valueField *descriptor.FieldDescriptorProto
+			for _, f := range eMsg.GetField() {
+				if f.GetName() == "value" {
+					valueField = f
+					break
+				}
+			}
+			if valueField == nil {
+				return nil, errors.E(nil, "unusual map entry message: %q", eMsg)
+			}
+
+			if valueField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				pt.mapValueTypeName = valueField.GetTypeName()
+			} else {
+				pt.mapValueTypeName = pbinfo.GoTypeForPrim[valueField.GetType()]
+			}
+			pt.elemTypeName = fmt.Sprintf("String%sPair", upperFirst(pt.mapValueTypeName))
+			pt.iterTypeName = pt.elemTypeName + "Iterator"
+		} else {
+			pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, typeName)
+			pt.iterTypeName = typeName + "Iterator"
+		}
 
 		pt.elemImports = []pbinfo.ImportSpec{imp}
 
@@ -157,12 +172,6 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	for _, f := range outMsg.GetField() {
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 
-			if eType, ok := g.descInfo.Type[f.GetTypeName()]; f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && ok {
-				if msg, ok := eType.(*descriptor.DescriptorProto); ok && msg.GetOptions().GetMapEntry() {
-					continue
-				}
-			}
-
 			if repeatedField != nil {
 				// Multiple repeated fields are tacitly okay as long as the
 				// first listed repeated field has the lowest field number.
@@ -246,7 +255,21 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("  }")
 	p("")
 	p("  it.Response = resp")
-	p("  return resp.Get%s(), resp.GetNextPageToken(), nil", snakeToCamel(elemField.GetName()))
+	repeatedField, elts := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	if pt.mapValueTypeName != "" {
+		elts = "elts"
+		p("")
+		p("    elts := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
+		p("    for k, v := range %s {", repeatedField)
+		p("        elts = append(elts, %s{k, v})", pt.elemTypeName)
+		p("    }")
+		p("    sort.Slice(elts, func(i, j int) bool { return elts[i].Key < elts[j].Key } )")
+		p("")
+		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
+	} else {
+		elts = repeatedField
+	}
+	p("  return %s, resp.GetNextPageToken(), nil", elts)
 	p("}")
 
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")
@@ -278,6 +301,13 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 
 func (g *generator) pagingIter(pt *iterType) {
 	p := g.printf
+	if pt.mapValueTypeName != "" {
+		p("// Holder type for string/%s map entries", pt.mapValueTypeName)
+		p("type %s struct {", pt.elemTypeName)
+		p("  Key string")
+		p("  Value %s", pt.mapValueTypeName)
+		p("}")
+	}
 
 	p("// %s manages a stream of %s.", pt.iterTypeName, pt.elemTypeName)
 	p("type %s struct {", pt.iterTypeName)
