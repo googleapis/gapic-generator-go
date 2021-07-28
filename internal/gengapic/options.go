@@ -43,6 +43,7 @@ type options struct {
 	sampleOnly        bool
 	transports        []transport
 	metadata          bool
+	diregapic         bool
 }
 
 // parseOptions takes a string and parses it into a struct defining
@@ -77,12 +78,16 @@ func parseOptions(parameter *string) (*options, error) {
 		if s == "" {
 			continue
 		}
-		// check for the boolean flag, sample-only, that disables client generation
-		if s == "sample-only" {
+
+		// Check for boolean flags.
+		switch s {
+		case "sample-only":
 			return &options{sampleOnly: true}, nil
-		}
-		if s == "metadata" {
+		case "metadata":
 			opts.metadata = true
+			continue
+		case "diregapic":
+			opts.diregapic = true
 			continue
 		}
 

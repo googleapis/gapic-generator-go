@@ -268,6 +268,67 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	return nil
 }
 
+type customOp struct {
+	proto     *descriptor.DescriptorProto
+	generated bool
+}
+
+func (g *generator) customOperationFullName() string {
+	f := g.descInfo.ParentFile[g.aux.customOp.proto]
+	return fmt.Sprintf(".%s.%s", f.GetPackage(), g.aux.customOp.proto.GetName())
+}
+
+func (g *generator) customOperationPointer() (string, error) {
+	op := g.aux.customOp
+	if op == nil {
+		return "", nil
+	}
+
+	opName, imp, err := g.descInfo.NameSpec(op.proto)
+	if err != nil {
+		return "", err
+	}
+
+	s := fmt.Sprintf("*%s.%s", imp.Name, opName)
+
+	return s, nil
+}
+
+func (g *generator) customOperationInit(p string) string {
+	opName := g.aux.customOp.proto.GetName()
+
+	s := fmt.Sprintf("&%s{proto: %s}", opName, p)
+
+	return s
+}
+
+func (g *generator) customOperationType() error {
+	op := g.aux.customOp
+	if op == nil {
+		return nil
+	}
+	opName := op.proto.GetName()
+
+	ptyp, err := g.customOperationPointer()
+	if err != nil {
+		return err
+	}
+
+	p := g.printf
+
+	p("// %s represents a long running operation for this API.", opName)
+	p("type %s struct {", opName)
+	p("  proto %s", ptyp)
+	p("}")
+	p("")
+	p("// Proto returns the raw type this wraps.")
+	p("func (o *%s) Proto() %s {", opName, ptyp)
+	p("  return o.proto")
+	p("}")
+
+	return nil
+}
+
 func lroTypeName(methodName string) string {
 	return methodName + "Operation"
 }
