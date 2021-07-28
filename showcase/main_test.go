@@ -56,6 +56,13 @@ func TestMain(m *testing.M) {
 	}
 	defer echo.Close()
 
+	// The custom endpoint bypasses https.
+	echoREST, err = showcase.NewEchoRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithoutAuthentication())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer echoREST.Close()
+
 	identity, err = showcase.NewIdentityClient(ctx, opt)
 	if err != nil {
 		log.Fatal(err)
