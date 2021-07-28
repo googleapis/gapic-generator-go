@@ -4,6 +4,7 @@ go_library(
     name = "gengapic",
     srcs = [
         "client_init.go",
+        "custom_operation.go",
         "doc_file.go",
         "example.go",
         "generator.go",
@@ -50,6 +51,7 @@ go_test(
     name = "gengapic_test",
     srcs = [
         "client_init_test.go",
+        "custom_operation_test.go",
         "doc_file_test.go",
         "example_test.go",
         "gengapic_test.go",

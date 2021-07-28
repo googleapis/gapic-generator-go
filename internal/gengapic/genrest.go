@@ -771,7 +771,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	if err != nil {
 		return err
 	}
-	isCustomOp := g.aux.customOp != nil && m.GetOutputType() == g.customOperationFullName()
+	isCustomOp := g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName()
 
 	// Ignore error because the only possible error would be from looking up
 	// the ImportSpec for the OutputType, which has already happened above.
@@ -859,7 +859,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		p("if err := unm.Unmarshal(buf, rsp); err != nil {")
 		p("  return nil, err")
 		p("}")
-		p("op := %s", g.customOperationInit("rsp"))
+		p("op := %s", g.customOpInit("rsp"))
 		ret = "return op, err"
 	}
 	p(ret)
