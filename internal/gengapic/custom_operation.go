@@ -20,16 +20,21 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
+// customOp represents a custom operation type for long running operations.
 type customOp struct {
 	proto     *descriptor.DescriptorProto
 	generated bool
 }
 
+// customOpProtoName builds the fully-qualified proto name for the custom
+// operation message type.
 func (g *generator) customOpProtoName() string {
 	f := g.descInfo.ParentFile[g.aux.customOp.proto]
 	return fmt.Sprintf(".%s.%s", f.GetPackage(), g.aux.customOp.proto.GetName())
 }
 
+// customOpPointerTyp builds a string containing the Go code for a pointer to
+// the custom operation type.
 func (g *generator) customOpPointerTyp() (string, error) {
 	op := g.aux.customOp
 	if op == nil {
@@ -46,6 +51,9 @@ func (g *generator) customOpPointerTyp() (string, error) {
 	return s, nil
 }
 
+// customOpInit builds a string containing the Go code for initializing the
+// operation wrapper type with the Go identifier for a variable that is the
+// proto-defined operation type.
 func (g *generator) customOpInit(p string) string {
 	opName := g.aux.customOp.proto.GetName()
 
@@ -54,6 +62,8 @@ func (g *generator) customOpInit(p string) string {
 	return s
 }
 
+// customOperationType generates the custom operation wrapper type using the
+// generators current printer. This should only be called once per package.
 func (g *generator) customOperationType() error {
 	op := g.aux.customOp
 	if op == nil {
