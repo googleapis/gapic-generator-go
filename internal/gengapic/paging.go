@@ -88,7 +88,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 				if err != nil {
 					return nil, err
 				}
-				
+
 				elems := strings.Split(valueField.GetTypeName(), ".")
 				pt.mapValueTypeName = fmt.Sprintf("*%s.%s", imp.Name, elems[len(elems)-1])
 				pt.elemTypeName = fmt.Sprintf("%sPair", elems[len(elems)-1])
