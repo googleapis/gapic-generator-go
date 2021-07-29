@@ -603,22 +603,22 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("")
 	p("  unm.Unmarshal(buf, resp)")
 	p("  it.Response = resp")
-	repeatedField, elts := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
 	if pt.mapValueTypeName != "" {
-		elts = "elts"
+		elems = "elems"
 		p("")
-		p("    elts := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
+		p("    elems := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
 		p("    for k, v := range %s {", repeatedField)
-		p("        elts = append(elts, %s{k, v})", pt.elemTypeName)
+		p("        elems = append(elems, %s{k, v})", pt.elemTypeName)
 		p("    }")
-		p("    sort.Slice(elts, func(i, j int) bool { return elts[i].Key < elts[j].Key } )")
+		p("    sort.Slice(elems, func(i, j int) bool { return elems[i].Key < elems[j].Key } )")
 		p("")
 		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
 	} else {
-		elts = repeatedField
+		elems = repeatedField
 	}
 
-	p("  return %s, resp.GetNextPageToken(), nil", elts)
+	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 	p("")
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")

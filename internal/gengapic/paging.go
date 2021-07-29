@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
@@ -61,6 +62,12 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 		if !ok {
 			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
 		}
+
+		// Most repeated fields are not maps, so handle maps separately
+		// and override these defaults.
+		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, typeName)
+		pt.iterTypeName = typeName + "Iterator"
+
 		if eMsg.GetOptions().GetMapEntry() {
 			var valueField *descriptor.FieldDescriptorProto
 			for _, f := range eMsg.GetField() {
@@ -73,16 +80,23 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 				return nil, errors.E(nil, "unusual map entry message: %q", eMsg)
 			}
 
+			// The most common case is mapping to messages,
+			// but check in case it's a primitive.
 			if valueField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-				pt.mapValueTypeName = valueField.GetTypeName()
+				vType := g.descInfo.Type[valueField.GetTypeName()]
+				imp, err := g.descInfo.ImportSpec(vType)
+				if err != nil {
+					return nil, err
+				}
+				
+				elems := strings.Split(valueField.GetTypeName(), ".")
+				pt.mapValueTypeName = fmt.Sprintf("*%s.%s", imp.Name, elems[len(elems)-1])
+				pt.elemTypeName = fmt.Sprintf("%sPair", elems[len(elems)-1])
 			} else {
 				pt.mapValueTypeName = pbinfo.GoTypeForPrim[valueField.GetType()]
+				pt.elemTypeName = fmt.Sprintf("%sPair", upperFirst(pt.mapValueTypeName))
 			}
-			pt.elemTypeName = fmt.Sprintf("String%sPair", upperFirst(pt.mapValueTypeName))
 			pt.iterTypeName = pt.elemTypeName + "Iterator"
-		} else {
-			pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, typeName)
-			pt.iterTypeName = typeName + "Iterator"
 		}
 
 		pt.elemImports = []pbinfo.ImportSpec{imp}
@@ -255,21 +269,21 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("  }")
 	p("")
 	p("  it.Response = resp")
-	repeatedField, elts := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
 	if pt.mapValueTypeName != "" {
-		elts = "elts"
+		elems = "elems"
 		p("")
-		p("    elts := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
+		p("    elems := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
 		p("    for k, v := range %s {", repeatedField)
-		p("        elts = append(elts, %s{k, v})", pt.elemTypeName)
+		p("        elems = append(elems, %s{k, v})", pt.elemTypeName)
 		p("    }")
-		p("    sort.Slice(elts, func(i, j int) bool { return elts[i].Key < elts[j].Key } )")
+		p("    sort.Slice(elems, func(i, j int) bool { return elems[i].Key < elems[j].Key } )")
 		p("")
 		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
 	} else {
-		elts = repeatedField
+		elems = repeatedField
 	}
-	p("  return %s, resp.GetNextPageToken(), nil", elts)
+	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")
