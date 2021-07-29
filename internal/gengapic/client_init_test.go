@@ -260,7 +260,10 @@ func TestClientInit(t *testing.T) {
 	var g generator
 	g.apiName = "Awesome Foo API"
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.opts = &options{transports: []transport{grpc}}
+
+	cop := &descriptor.DescriptorProto{
+		Name: proto.String("Operation"),
+	}
 
 	servPlain := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
@@ -296,6 +299,17 @@ func TestClientInit(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{
 			Deprecated: proto.Bool(true),
+		},
+	}
+	servCustomOp := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+		Method: []*descriptor.MethodDescriptorProto{
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Operation"),
+				Options:    &descriptor.MethodOptions{},
+			},
 		},
 	}
 	for _, s := range []*descriptor.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
@@ -415,6 +429,24 @@ func TestClientInit(t *testing.T) {
 				{Path: "net/url"}:                                     true,
 			},
 		},
+		{
+			tstName:   "custom_op_init",
+			servName:  "",
+			serv:      servCustomOp,
+			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest,diregapic"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                      true,
+				{Path: "fmt"}:                          true,
+				{Path: "google.golang.org/api/option"}: true,
+				{Path: "google.golang.org/api/option/internaloption"}: true,
+				{Path: "google.golang.org/grpc"}:                      true,
+				{Path: "google.golang.org/grpc/metadata"}:             true,
+				{Path: "io/ioutil"}:                                   true,
+				{Path: "net/http"}:                                    true,
+				{Path: "net/url"}:                                     true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
+			},
+		},
 	} {
 		fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
 			Package: proto.String("mypackage"),
@@ -429,6 +461,7 @@ func TestClientInit(t *testing.T) {
 				{
 					Name: proto.String("Foo"),
 				},
+				cop,
 			},
 		})
 		request := plugin.CodeGeneratorRequest{
@@ -448,6 +481,9 @@ func TestClientInit(t *testing.T) {
 				{Name: "google.cloud.location.Locations"},
 				{Name: "google.longrunning.Operations"},
 			},
+		}
+		g.aux.customOp = &customOp{
+			proto: cop,
 		}
 
 		g.reset()
