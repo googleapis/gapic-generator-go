@@ -54,7 +54,6 @@ func TestCustomOpProtoName(t *testing.T) {
 }
 
 func TestCustomPointerTyp(t *testing.T) {
-	pkg := "google.cloud.foo.v1"
 	op := &descriptor.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
@@ -67,7 +66,7 @@ func TestCustomPointerTyp(t *testing.T) {
 		descInfo: pbinfo.Info{
 			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
 				op: {
-					Package: proto.String(pkg),
+					Package: proto.String("google.cloud.foo.v1"),
 					Options: &descriptor.FileOptions{
 						GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
 					},
@@ -104,7 +103,6 @@ func TestCustomOpInit(t *testing.T) {
 }
 
 func TestCustomOperationType(t *testing.T) {
-	pkg := "google.cloud.foo.v1"
 	op := &descriptor.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
@@ -117,7 +115,7 @@ func TestCustomOperationType(t *testing.T) {
 		descInfo: pbinfo.Info{
 			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
 				op: {
-					Package: proto.String(pkg),
+					Package: proto.String("google.cloud.foo.v1"),
 					Options: &descriptor.FileOptions{
 						GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
 					},
