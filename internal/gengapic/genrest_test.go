@@ -15,14 +15,18 @@
 package gengapic
 
 import (
+	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 // Note: the fields parameter contains the names of _all_ the request message's fields,
@@ -400,5 +404,89 @@ func TestLeafFields(t *testing.T) {
 		if diff := cmp.Diff(actual, tst.expected, cmp.Comparer(proto.Equal)); diff != "" {
 			t.Errorf("test %s, got(-),want(+):\n%s", tst.name, diff)
 		}
+	}
+}
+
+func TestGenRestMethod(t *testing.T) {
+	pkg := "google.cloud.foo.v1"
+
+	foo := &descriptor.DescriptorProto{
+		Name: proto.String("Foo"),
+	}
+	foofqn := fmt.Sprintf(".%s.Foo", pkg)
+
+	op := &descriptor.DescriptorProto{
+		Name: proto.String("Operation"),
+	}
+	opfqn := fmt.Sprintf(".%s.Operation", pkg)
+
+	opRPCOpt := &descriptor.MethodOptions{}
+	if err := setHTTPOption(opRPCOpt, "/v1/foo"); err != nil {
+		t.Fatal(err)
+	}
+
+	opRPC := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("CustomOp"),
+		InputType:  proto.String(foofqn),
+		OutputType: proto.String(opfqn),
+		Options:    opRPCOpt,
+	}
+
+	s := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("FooService"),
+	}
+
+	f := &descriptor.FileDescriptorProto{
+		Package: proto.String(pkg),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
+		},
+		Service: []*descriptor.ServiceDescriptorProto{s},
+	}
+
+	g := &generator{
+		aux: &auxTypes{
+			customOp: &customOp{
+				message: op,
+			},
+		},
+		opts: &options{},
+		descInfo: pbinfo.Info{
+			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+				op:  f,
+				foo: f,
+				s:   f,
+			},
+			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
+				opRPC: s,
+			},
+			Type: map[string]pbinfo.ProtoType{
+				opfqn:  op,
+				foofqn: foo,
+			},
+		},
+	}
+
+	for _, tst := range []struct {
+		name    string
+		method  *descriptor.MethodDescriptorProto
+		options *options
+	}{
+		{
+			name:    "custom_op",
+			method:  opRPC,
+			options: &options{diregapic: true},
+		},
+	} {
+		s.Method = []*descriptor.MethodDescriptorProto{tst.method}
+		g.opts = tst.options
+		g.imports = make(map[pbinfo.ImportSpec]bool)
+
+		if err := g.genRESTMethod("Foo", s, tst.method); err != nil {
+			t.Fatal(err)
+		}
+
+		txtdiff.Diff(t, fmt.Sprintf("%s_%s", t.Name(), tst.name), g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
+		g.reset()
 	}
 }

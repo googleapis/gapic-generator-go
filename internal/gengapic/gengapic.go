@@ -64,9 +64,15 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.apiName = g.serviceConfig.GetTitle()
 	}
 
+	protoPkg := g.descInfo.ParentFile[genServs[0]].GetPackage()
+
+	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.diregapic && ok {
+		g.aux.customOp = &customOp{op.(*descriptor.DescriptorProto), false}
+	}
+
 	// Use the proto package from the parent file of the first Service seen.
 	if len(genServs) > 0 {
-		g.metadata.ProtoPackage = g.descInfo.ParentFile[genServs[0]].GetPackage()
+		g.metadata.ProtoPackage = protoPkg
 	}
 	g.metadata.LibraryPackage = g.opts.pkgPath
 
@@ -180,6 +186,12 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	for _, iter := range iters {
 		g.pagingIter(iter)
 	}
+	if g.aux.customOp != nil && !g.aux.customOp.generated {
+		if err := g.customOperationType(); err != nil {
+			return err
+		}
+		g.aux.customOp.generated = true
+	}
 
 	return nil
 }
@@ -193,6 +205,8 @@ type auxTypes struct {
 	// Since multiple methods can page over the same type, we dedupe by the name of the iterator,
 	// which is in turn determined by the element type name.
 	iters map[string]*iterType
+
+	customOp *customOp
 }
 
 func (g *generator) deadline(s, m string) {
@@ -432,6 +446,25 @@ func (g *generator) getServiceName(m *descriptor.MethodDescriptorProto) string {
 	f := g.descInfo.ParentFile[m].GetPackage()
 	s := g.descInfo.ParentElement[m].GetName()
 	return fmt.Sprintf("%s.%s", f, s)
+}
+
+func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, error) {
+	outType := g.descInfo.Type[m.GetOutputType()]
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return "", err
+	}
+
+	// Regular return type.
+	retTyp := fmt.Sprintf("*%s.%s", outSpec.Name, outType.GetName())
+
+	// Returning a custom operation, use the wrapper type.
+	if g.opts.diregapic && g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName() {
+		// This will only be *Operation to start.
+		retTyp = fmt.Sprintf("*%s", g.aux.customOp.message.GetName())
+	}
+
+	return retTyp, nil
 }
 
 func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {

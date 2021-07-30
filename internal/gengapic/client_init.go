@@ -98,12 +98,6 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 			continue
 		}
 
-		outType := g.descInfo.Type[m.GetOutputType()]
-		outSpec, err := g.descInfo.ImportSpec(outType)
-		if err != nil {
-			return err
-		}
-
 		if pf, _, err := g.getPagingFields(m); err != nil {
 			return err
 		} else if pf != nil {
@@ -137,9 +131,13 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s.%s_%sClient, error)",
 				m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
 		default:
-			// Regular, unary call
-			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s.%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+			retTyp, err := g.returnType(m)
+			if err != nil {
+				return err
+			}
+
+			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s, error)",
+				m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 		}
 	}
 	p("}")
@@ -255,12 +253,6 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		return nil
 	}
 
-	outType := g.descInfo.Type[m.GetOutputType()]
-	outSpec, err := g.descInfo.ImportSpec(outType)
-	if err != nil {
-		return err
-	}
-
 	if g.isLRO(m) {
 		lroType := lroTypeName(m.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
@@ -317,8 +309,13 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 		return nil
 	default:
-		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+		retTyp, err := g.returnType(m)
+		if err != nil {
+			return err
+		}
+
+		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
+			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
