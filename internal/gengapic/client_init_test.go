@@ -483,7 +483,7 @@ func TestClientInit(t *testing.T) {
 			},
 		}
 		g.aux.customOp = &customOp{
-			proto: cop,
+			message: cop,
 		}
 
 		g.reset()

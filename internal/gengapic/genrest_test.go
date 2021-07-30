@@ -447,7 +447,7 @@ func TestGenRestMethod(t *testing.T) {
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
-				proto: op,
+				message: op,
 			},
 		},
 		opts: &options{},

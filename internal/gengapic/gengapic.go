@@ -461,7 +461,7 @@ func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, err
 	// Returning a custom operation, use the wrapper type.
 	if g.opts.diregapic && g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName() {
 		// This will only be *Operation to start.
-		retTyp = fmt.Sprintf("*%s", g.aux.customOp.proto.GetName())
+		retTyp = fmt.Sprintf("*%s", g.aux.customOp.message.GetName())
 	}
 
 	return retTyp, nil

@@ -35,7 +35,7 @@ func TestCustomOpProtoName(t *testing.T) {
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
-				proto: op,
+				message: op,
 			},
 		},
 		descInfo: pbinfo.Info{
@@ -60,7 +60,7 @@ func TestCustomPointerTyp(t *testing.T) {
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
-				proto: op,
+				message: op,
 			},
 		},
 		descInfo: pbinfo.Info{
@@ -91,7 +91,7 @@ func TestCustomOpInit(t *testing.T) {
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
-				proto: op,
+				message: op,
 			},
 		},
 	}
@@ -109,7 +109,7 @@ func TestCustomOperationType(t *testing.T) {
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
-				proto: op,
+				message: op,
 			},
 		},
 		descInfo: pbinfo.Info{

@@ -22,15 +22,15 @@ import (
 
 // customOp represents a custom operation type for long running operations.
 type customOp struct {
-	proto     *descriptor.DescriptorProto
+	message   *descriptor.DescriptorProto
 	generated bool
 }
 
 // customOpProtoName builds the fully-qualified proto name for the custom
 // operation message type.
 func (g *generator) customOpProtoName() string {
-	f := g.descInfo.ParentFile[g.aux.customOp.proto]
-	return fmt.Sprintf(".%s.%s", f.GetPackage(), g.aux.customOp.proto.GetName())
+	f := g.descInfo.ParentFile[g.aux.customOp.message]
+	return fmt.Sprintf(".%s.%s", f.GetPackage(), g.aux.customOp.message.GetName())
 }
 
 // customOpPointerType builds a string containing the Go code for a pointer to
@@ -41,7 +41,7 @@ func (g *generator) customOpPointerType() (string, error) {
 		return "", nil
 	}
 
-	opName, imp, err := g.descInfo.NameSpec(op.proto)
+	opName, imp, err := g.descInfo.NameSpec(op.message)
 	if err != nil {
 		return "", err
 	}
@@ -55,7 +55,7 @@ func (g *generator) customOpPointerType() (string, error) {
 // operation wrapper type with the Go identifier for a variable that is the
 // proto-defined operation type.
 func (g *generator) customOpInit(p string) string {
-	opName := g.aux.customOp.proto.GetName()
+	opName := g.aux.customOp.message.GetName()
 
 	s := fmt.Sprintf("&%s{proto: %s}", opName, p)
 
@@ -69,7 +69,7 @@ func (g *generator) customOperationType() error {
 	if op == nil {
 		return nil
 	}
-	opName := op.proto.GetName()
+	opName := op.message.GetName()
 
 	ptyp, err := g.customOpPointerType()
 	if err != nil {
