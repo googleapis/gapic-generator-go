@@ -33,9 +33,9 @@ func (g *generator) customOpProtoName() string {
 	return fmt.Sprintf(".%s.%s", f.GetPackage(), g.aux.customOp.proto.GetName())
 }
 
-// customOpPointerTyp builds a string containing the Go code for a pointer to
+// customOpPointerType builds a string containing the Go code for a pointer to
 // the custom operation type.
-func (g *generator) customOpPointerTyp() (string, error) {
+func (g *generator) customOpPointerType() (string, error) {
 	op := g.aux.customOp
 	if op == nil {
 		return "", nil
@@ -71,7 +71,7 @@ func (g *generator) customOperationType() error {
 	}
 	opName := op.proto.GetName()
 
-	ptyp, err := g.customOpPointerTyp()
+	ptyp, err := g.customOpPointerType()
 	if err != nil {
 		return err
 	}

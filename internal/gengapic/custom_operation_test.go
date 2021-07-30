@@ -74,7 +74,7 @@ func TestCustomPointerTyp(t *testing.T) {
 			},
 		},
 	}
-	got, err := g.customOpPointerTyp()
+	got, err := g.customOpPointerType()
 	if err != nil {
 		t.Fatal(err)
 	}
