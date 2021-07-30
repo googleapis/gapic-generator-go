@@ -321,7 +321,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 func (g *generator) pagingIter(pt *iterType) {
 	p := g.printf
 	if pt.mapValueTypeName != "" {
-		p("// % is a holder type for string/%s map entries", pt.elemTypeName, pt.mapValueTypeName)
+		p("// %s is a holder type for string/%s map entries", pt.elemTypeName, pt.mapValueTypeName)
 		p("type %s struct {", pt.elemTypeName)
 		p("  Key string")
 		p("  Value %s", pt.mapValueTypeName)
