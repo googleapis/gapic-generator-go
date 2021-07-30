@@ -1,0 +1,9 @@
+// Operation represents a long running operation for this API.
+type Operation struct {
+	proto *foopb.Operation
+}
+
+// Proto returns the raw type this wraps.
+func (o *Operation) Proto() *foopb.Operation {
+	return o.proto
+}

@@ -31,6 +31,7 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
@@ -851,6 +852,71 @@ func TestGRPCStubCall(t *testing.T) {
 		got := g.grpcStubCall(tst.in)
 		if diff := cmp.Diff(got, tst.want); diff != "" {
 			t.Errorf("TestGRPCStubCall(%s) got(-),want(+):\n%s", tst.name, diff)
+		}
+	}
+}
+
+func TestReturnType(t *testing.T) {
+	op := &descriptor.DescriptorProto{
+		Name: proto.String("Operation"),
+	}
+	foo := &descriptor.DescriptorProto{
+		Name: proto.String("Foo"),
+	}
+	com := &descriptor.MethodDescriptorProto{
+		OutputType: proto.String(".google.cloud.foo.v1.Operation"),
+	}
+	reg := &descriptor.MethodDescriptorProto{
+		OutputType: proto.String(".google.cloud.foo.v1.Foo"),
+	}
+	f := &descriptor.FileDescriptorProto{
+		Package: proto.String("google.cloud.foo.v1"),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
+		},
+	}
+	g := &generator{
+		aux: &auxTypes{
+			customOp: &customOp{
+				message: op,
+			},
+		},
+		opts: &options{
+			diregapic: true,
+		},
+		descInfo: pbinfo.Info{
+			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+				op:  f,
+				foo: f,
+			},
+			Type: map[string]pbinfo.ProtoType{
+				com.GetOutputType(): op,
+				reg.GetOutputType(): foo,
+			},
+		},
+	}
+
+	for _, tst := range []struct {
+		name, want string
+		method     *descriptor.MethodDescriptorProto
+	}{
+		{
+			name:   "custom_operation",
+			method: com,
+			want:   "*Operation",
+		},
+		{
+			name:   "regular_unary",
+			method: reg,
+			want:   "*foopb.Foo",
+		},
+	} {
+		got, err := g.returnType(tst.method)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if diff := cmp.Diff(got, tst.want); diff != "" {
+			t.Errorf("%s: got(-),want(+):\n%s", tst.name, diff)
 		}
 	}
 }

@@ -760,8 +760,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		return errors.E(nil, "method has no http info: %s", m.GetName())
 	}
 
-	inType := g.descInfo.Type[*m.InputType]
-	outType := g.descInfo.Type[*m.OutputType]
+	inType := g.descInfo.Type[m.GetInputType()]
+	outType := g.descInfo.Type[m.GetOutputType()]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
@@ -771,11 +771,16 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	if err != nil {
 		return err
 	}
+	isCustomOp := g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName()
+
+	// Ignore error because the only possible error would be from looking up
+	// the ImportSpec for the OutputType, which has already happened above.
+	retTyp, _ := g.returnType(m)
 
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
-	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 
 	// TODO(dovs): fix complex path logic
 	if g.shouldDisableComplexPaths(m) {
@@ -849,7 +854,15 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("rsp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("")
-	p("return rsp, unm.Unmarshal(buf, rsp)")
+	ret := "return rsp, unm.Unmarshal(buf, rsp)"
+	if isCustomOp {
+		p("if err := unm.Unmarshal(buf, rsp); err != nil {")
+		p("  return nil, err")
+		p("}")
+		p("op := %s", g.customOpInit("rsp"))
+		ret = "return op, err"
+	}
+	p(ret)
 	p("}")
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[inSpec] = true
