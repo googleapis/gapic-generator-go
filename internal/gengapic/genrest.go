@@ -760,8 +760,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		return errors.E(nil, "method has no http info: %s", m.GetName())
 	}
 
-	inType := g.descInfo.Type[*m.InputType]
-	outType := g.descInfo.Type[*m.OutputType]
+	inType := g.descInfo.Type[m.GetInputType()]
+	outType := g.descInfo.Type[m.GetOutputType()]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
