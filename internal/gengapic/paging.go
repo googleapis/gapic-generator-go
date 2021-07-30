@@ -164,7 +164,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		if (f.GetName() == "page_size" || f.GetName() == "max_results") && f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 {
+		if (f.GetName() == "page_size" || f.GetName() == "max_results") && (f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptor.FieldDescriptorProto_TYPE_UINT32) {
 			if pageSizeField != nil {
 				return nil, nil, errors.E(nil, "found both page_size and max_results fields in message %q", m.GetInputType())
 			}
