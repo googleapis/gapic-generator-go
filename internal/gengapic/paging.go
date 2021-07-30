@@ -268,6 +268,8 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("")
 	p("  it.Response = resp")
 	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	// Most paged methods have a normal repeated field and not a map, so use that as a default.
+	elems = repeatedField
 	if pt.mapValueTypeName != "" {
 		elems = "elems"
 		p("")
@@ -278,8 +280,6 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 		p("    sort.Slice(elems, func(i, j int) bool { return elems[i].Key < elems[j].Key } )")
 		p("")
 		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
-	} else {
-		elems = repeatedField
 	}
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
