@@ -208,6 +208,24 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	return repeatedField, pageSizeField, nil
 }
 
+func (g *generator) maybeSortMapPage(elemField *descriptor.FieldDescriptorProto, pt *iterType) string {
+	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	// Most paged methods have a normal repeated field and not a map, so use that as a default.
+	elems = repeatedField
+	if pt.mapValueTypeName != "" {
+		elems = "elems"
+		p("")
+		p("    elems := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
+		p("    for k, v := range %s {", repeatedField)
+		p("        elems = append(elems, %s{k, v})", pt.elemTypeName)
+		p("    }")
+		p("    sort.Slice(elems, func(i, j int) bool { return elems[i].Key < elems[j].Key } )")
+		p("")
+		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
+	}
+	return elems
+}
+
 func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField, pageSize *descriptor.FieldDescriptorProto, pt *iterType) error {
 	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
 	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
@@ -267,20 +285,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("  }")
 	p("")
 	p("  it.Response = resp")
-	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
-	// Most paged methods have a normal repeated field and not a map, so use that as a default.
-	elems = repeatedField
-	if pt.mapValueTypeName != "" {
-		elems = "elems"
-		p("")
-		p("    elems := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
-		p("    for k, v := range %s {", repeatedField)
-		p("        elems = append(elems, %s{k, v})", pt.elemTypeName)
-		p("    }")
-		p("    sort.Slice(elems, func(i, j int) bool { return elems[i].Key < elems[j].Key } )")
-		p("")
-		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
-	}
+	elems := g.maybeSortMapPage(elemField, pt)
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 
@@ -314,7 +319,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 func (g *generator) pagingIter(pt *iterType) {
 	p := g.printf
 	if pt.mapValueTypeName != "" {
-		p("// Holder type for string/%s map entries", pt.mapValueTypeName)
+		p("// % is a holder type for string/%s map entries", pt.elemTypeName, pt.mapValueTypeName)
 		p("type %s struct {", pt.elemTypeName)
 		p("  Key string")
 		p("  Value %s", pt.mapValueTypeName)

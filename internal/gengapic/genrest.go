@@ -603,21 +603,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("")
 	p("  unm.Unmarshal(buf, resp)")
 	p("  it.Response = resp")
-	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
-	if pt.mapValueTypeName != "" {
-		elems = "elems"
-		p("")
-		p("    elems := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
-		p("    for k, v := range %s {", repeatedField)
-		p("        elems = append(elems, %s{k, v})", pt.elemTypeName)
-		p("    }")
-		p("    sort.Slice(elems, func(i, j int) bool { return elems[i].Key < elems[j].Key } )")
-		p("")
-		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
-	} else {
-		elems = repeatedField
-	}
-
+	elems := g.maybeSortMapPage(elemField, pt)
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 	p("")
