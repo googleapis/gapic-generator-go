@@ -25,13 +25,12 @@ import (
 
 // iterType describes iterators used by paging RPCs.
 type iterType struct {
-	iterTypeName, elemTypeName string
+	iterTypeName, elemTypeName, mapValueTypeName string
 
 	// If the elem type is a message, elemImports contains pbinfo.ImportSpec for the type.
 	// Otherwise, len(elemImports)==0.
 	elemImports []pbinfo.ImportSpec
-
-	generated bool
+	generated   bool
 }
 
 // iterTypeOf deduces iterType from a field to be iterated over.
@@ -49,15 +48,6 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			return &iterType{}, err
 		}
 
-		eMsg, ok := eType.(*descriptor.DescriptorProto)
-		if !ok {
-			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
-		}
-		// TODO: handle map entries correctly
-		if eMsg.GetOptions().GetMapEntry() {
-			return nil, errors.E(nil, "iterating over maps not supported yet: %q", eType)
-		}
-
 		// Prepend parent Message name for nested Messages
 		// to match the generated Go type name.
 		typ := eType
@@ -67,8 +57,45 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			typ = parent
 		}
 
+		eMsg, ok := eType.(*descriptor.DescriptorProto)
+		if !ok {
+			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
+		}
+
+		// Most repeated fields are not maps, so handle maps separately
+		// and override these defaults.
 		pt.elemTypeName = fmt.Sprintf("*%s.%s", imp.Name, typeName)
 		pt.iterTypeName = typeName + "Iterator"
+
+		if eMsg.GetOptions().GetMapEntry() {
+			var valueField *descriptor.FieldDescriptorProto
+			for _, f := range eMsg.GetField() {
+				if f.GetName() == "value" {
+					valueField = f
+					break
+				}
+			}
+			if valueField == nil {
+				return nil, errors.E(nil, "unusual map entry message: %q", eMsg)
+			}
+
+			// The most common case is mapping to messages,
+			// but check in case it's a primitive.
+			if valueField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				vType := g.descInfo.Type[valueField.GetTypeName()]
+				n, imp, err := g.descInfo.NameSpec(vType)
+				if err != nil {
+					return nil, err
+				}
+
+				pt.mapValueTypeName = fmt.Sprintf("*%s.%s", imp.Name, n)
+				pt.elemTypeName = fmt.Sprintf("%sPair", n)
+			} else {
+				pt.mapValueTypeName = pbinfo.GoTypeForPrim[valueField.GetType()]
+				pt.elemTypeName = fmt.Sprintf("%sPair", upperFirst(pt.mapValueTypeName))
+			}
+			pt.iterTypeName = pt.elemTypeName + "Iterator"
+		}
 
 		pt.elemImports = []pbinfo.ImportSpec{imp}
 
@@ -137,7 +164,8 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		if (f.GetName() == "page_size" || f.GetName() == "max_results") && f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 {
+		isInt32 := f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptor.FieldDescriptorProto_TYPE_UINT32
+		if (f.GetName() == "page_size" || f.GetName() == "max_results") && isInt32 {
 			if pageSizeField != nil {
 				return nil, nil, errors.E(nil, "found both page_size and max_results fields in message %q", m.GetInputType())
 			}
@@ -156,12 +184,6 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	hasNextPageToken := false
 	for _, f := range outMsg.GetField() {
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
-
-			if eType, ok := g.descInfo.Type[f.GetTypeName()]; f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && ok {
-				if msg, ok := eType.(*descriptor.DescriptorProto); ok && msg.GetOptions().GetMapEntry() {
-					continue
-				}
-			}
 
 			if repeatedField != nil {
 				// Multiple repeated fields are tacitly okay as long as the
@@ -185,6 +207,26 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	}
 
 	return repeatedField, pageSizeField, nil
+}
+
+func (g *generator) maybeSortMapPage(elemField *descriptor.FieldDescriptorProto, pt *iterType) string {
+	p := g.printf
+
+	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	// Most paged methods have a normal repeated field and not a map, so use that as a default.
+	elems = repeatedField
+	if pt.mapValueTypeName != "" {
+		elems = "elems"
+		p("")
+		p("    elems := make([]%s, 0, len(%s))", pt.elemTypeName, repeatedField)
+		p("    for k, v := range %s {", repeatedField)
+		p("        elems = append(elems, %s{k, v})", pt.elemTypeName)
+		p("    }")
+		p("    sort.Slice(elems, func(i, j int) bool { return elems[i].Key < elems[j].Key } )")
+		p("")
+		g.imports[pbinfo.ImportSpec{Path: "sort"}] = true
+	}
+	return elems
 }
 
 func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField, pageSize *descriptor.FieldDescriptorProto, pt *iterType) error {
@@ -246,7 +288,8 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("  }")
 	p("")
 	p("  it.Response = resp")
-	p("  return resp.Get%s(), resp.GetNextPageToken(), nil", snakeToCamel(elemField.GetName()))
+	elems := g.maybeSortMapPage(elemField, pt)
+	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")
@@ -278,6 +321,13 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 
 func (g *generator) pagingIter(pt *iterType) {
 	p := g.printf
+	if pt.mapValueTypeName != "" {
+		p("// %s is a holder type for string/%s map entries", pt.elemTypeName, pt.mapValueTypeName)
+		p("type %s struct {", pt.elemTypeName)
+		p("  Key string")
+		p("  Value %s", pt.mapValueTypeName)
+		p("}")
+	}
 
 	p("// %s manages a stream of %s.", pt.iterTypeName, pt.elemTypeName)
 	p("type %s struct {", pt.iterTypeName)

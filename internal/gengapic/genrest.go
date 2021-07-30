@@ -550,6 +550,18 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 
 	verb := strings.ToUpper(info.verb)
 
+	max := "math.MaxInt32"
+	psTyp := pbinfo.GoTypeForPrim[pageSize.GetType()]
+	ps := fmt.Sprintf("%s(pageSize)", psTyp)
+	if isOptional(inType, pageSize.GetName()) {
+		max = fmt.Sprintf("proto.%s(%s)", upperFirst(psTyp), max)
+		ps = fmt.Sprintf("proto.%s(%s)", upperFirst(psTyp), ps)
+	}
+	tok := "pageToken"
+	if isOptional(inType, "page_token") {
+		tok = fmt.Sprintf("proto.String(%s)", tok)
+	}
+
 	pageSizeFieldName := snakeToCamel(pageSize.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
@@ -560,11 +572,11 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
 	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("  if pageSize > math.MaxInt32 {")
-	p("    req.%s = math.MaxInt32", pageSizeFieldName)
+	p("    req.%s = %s", pageSizeFieldName, max)
 	p("  } else {")
-	p("    req.%s = int32(pageSize)", pageSizeFieldName)
+	p("    req.%s = %s", pageSizeFieldName, ps)
 	p("  }")
-	p("  req.PageToken = pageToken")
+	p("  req.PageToken = %s", tok)
 	p("")
 	p("  jsonReq, err := m.Marshal(req)")
 	p("  if err != nil {")
@@ -603,8 +615,8 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("")
 	p("  unm.Unmarshal(buf, resp)")
 	p("  it.Response = resp")
-	// TODO(dovs): handle map pages
-	p("  return resp.Get%s(), resp.GetNextPageToken(), nil", snakeToCamel(elemField.GetName()))
+	elems := g.maybeSortMapPage(elemField, pt)
+	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 	p("")
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")
