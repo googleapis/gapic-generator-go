@@ -17,7 +17,6 @@ package gengapic
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
@@ -84,14 +83,13 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 			// but check in case it's a primitive.
 			if valueField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
 				vType := g.descInfo.Type[valueField.GetTypeName()]
-				imp, err := g.descInfo.ImportSpec(vType)
+				n, imp, err := g.descInfo.NameSpec(vType)
 				if err != nil {
 					return nil, err
 				}
 
-				elems := strings.Split(valueField.GetTypeName(), ".")
-				pt.mapValueTypeName = fmt.Sprintf("*%s.%s", imp.Name, elems[len(elems)-1])
-				pt.elemTypeName = fmt.Sprintf("%sPair", elems[len(elems)-1])
+				pt.mapValueTypeName = fmt.Sprintf("*%s.%s", imp.Name, n)
+				pt.elemTypeName = fmt.Sprintf("%sPair", n)
 			} else {
 				pt.mapValueTypeName = pbinfo.GoTypeForPrim[valueField.GetType()]
 				pt.elemTypeName = fmt.Sprintf("%sPair", upperFirst(pt.mapValueTypeName))
