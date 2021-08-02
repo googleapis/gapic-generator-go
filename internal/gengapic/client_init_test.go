@@ -19,11 +19,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/golang/protobuf/ptypes/duration"
-	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -32,7 +29,11 @@ import (
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	code "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/known/apipb"
+	duration "google.golang.org/protobuf/types/known/durationpb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func TestClientHook(t *testing.T) {
@@ -132,25 +133,19 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	if err := proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com")); err != nil {
-		t.Fatal(err)
-	}
+	proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com"))
 
 	// Test some annotations
-	if err := proto.SetExtension(serv.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
+	proto.SetExtension(serv.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: "/zip",
 		},
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if err := proto.SetExtension(serv.Method[1].Options, annotations.E_Http, &annotations.HttpRule{
+	})
+	proto.SetExtension(serv.Method[1].Options, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/zap",
 		},
-	}); err != nil {
-		t.Fatal(err)
-	}
+	})
 
 	servHostPort := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("ServHostPort"),
@@ -159,9 +154,7 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	if err := proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234")); err != nil {
-		t.Fatal(err)
-	}
+	proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234"))
 
 	servIAMOverride := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("ServIamOverride"),
@@ -172,9 +165,7 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	if err := proto.SetExtension(servIAMOverride.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234")); err != nil {
-		t.Fatal(err)
-	}
+	proto.SetExtension(servIAMOverride.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234"))
 
 	f := &descriptor.FileDescriptorProto{
 		Package: proto.String("bar"),
@@ -209,7 +200,7 @@ func TestServiceDoc(t *testing.T) {
 	}
 
 	var g generator
-	g.comments = make(map[proto.Message]string)
+	g.comments = make(map[protoiface.MessageV1]string)
 
 	for _, tst := range []struct {
 		in, want   string
@@ -469,7 +460,7 @@ func TestClientInit(t *testing.T) {
 			ProtoFile: fds,
 		}
 		g.init(&request)
-		g.comments = map[proto.Message]string{
+		g.comments = map[protoiface.MessageV1]string{
 			tst.serv:                "Foo service does stuff.",
 			tst.serv.GetMethod()[0]: "Does some stuff.",
 		}

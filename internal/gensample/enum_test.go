@@ -17,9 +17,9 @@ package gensample
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestEnumFmt(t *testing.T) {
