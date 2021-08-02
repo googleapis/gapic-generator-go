@@ -39,7 +39,10 @@ protoc \
 	--go_gapic_opt 'grpc-service-config=showcase_grpc_service_config.json' \
 	--go_gapic_opt 'api-service-config=showcase_v1beta1.yaml' \
 	--descriptor_set_in=<(curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER.desc) \
-	google/showcase/v1beta1/echo.proto google/showcase/v1beta1/identity.proto google/showcase/v1beta1/sequence.proto google/showcase/v1beta1/compliance.proto
+	google/showcase/v1beta1/echo.proto \
+	google/showcase/v1beta1/identity.proto \
+	google/showcase/v1beta1/sequence.proto \
+	google/showcase/v1beta1/compliance.proto
 
 hostos=$(go env GOHOSTOS)
 hostarch=$(go env GOHOSTARCH)
@@ -56,7 +59,17 @@ sed $SEDARGS '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;
 
 popd
 
+# Write Go pkg data for Showcase client in latest release.
+apidiff -w pkg.latest github.com/googleapis/gapic-showcase/client
+
 go mod edit -replace=github.com/googleapis/gapic-showcase=./gen/github.com/googleapis/gapic-showcase
+
+# Compare Go pkg of lastest release to locally regenerated/replaced client.
+apidiff -incompatible pkg.latest github.com/googleapis/gapic-showcase/client > diff.txt
+if [[ -s diff.txt ]]; then
+	cat diff.txt
+	exit 1
+fi
 
 curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER-$hostos-$hostarch.tar.gz | tar xz
 curl -sSL -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/compliance_suite.json
