@@ -94,6 +94,7 @@ def go_gapic_library(
   sample_only = False,
   metadata = False,
   transport = ["grpc"],
+  diregapic = False,
   **kwargs):
 
   file_args = {}
@@ -128,6 +129,9 @@ def go_gapic_library(
 
   if metadata:
     plugin_args.append("metadata")
+
+  if diregapic:
+    plugin_args.append("diregapic")
 
   srcjar_name = name+"_srcjar"
   raw_srcjar_name = srcjar_name+"_raw"
