@@ -567,27 +567,30 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
-	p("m := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: false}")
+
+	maybeReqBytes := "nil"
+	if info.body != "" {
+		p("m := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: false}")
+		maybeReqBytes = "bytes.NewReader(jsonReq)"
+		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+	}
+
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
-	p("  if pageSize > math.MaxInt32 {")
-	p("    req.%s = %s", pageSizeFieldName, max)
-	p("  } else {")
-	p("    req.%s = %s", pageSizeFieldName, ps)
-	p("  }")
-	p("  req.PageToken = %s", tok)
-	p("")
-	p("  jsonReq, err := m.Marshal(req)")
-	p("  if err != nil {")
-	p(`    return nil, "", err`)
-	p("  }")
-	p("")
+	g.internalFetchSetup(outType, outSpec, tok, pageSizeFieldName, max, ps)
+
+	if info.body != "" {
+		p("  jsonReq, err := m.Marshal(req)")
+		p("  if err != nil {")
+		p(`    return nil, "", err`)
+		p("  }")
+		p("")
+	}
 
 	g.generateURLString(m)
 	g.generateQueryString(m)
 
-	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), bytes.NewReader(jsonReq))`, verb)
+	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, maybeReqBytes)
 	p("  if err != nil {")
 	p(`    return nil, "", err`)
 	p("  }")
@@ -619,20 +622,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 	p("")
-	p("fetch := func(pageSize int, pageToken string) (string, error) {")
-	p("  items, nextPageToken, err := it.InternalFetch(pageSize, pageToken)")
-	p("  if err != nil {")
-	p(`    return "", err`)
-	p("  }")
-	p("  it.items = append(it.items, items...)")
-	p("  return nextPageToken, nil")
-	p("}")
-	p("")
-	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
-	p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
-	p("it.pageInfo.Token = req.GetPageToken()")
-	p("")
-	p("return it")
+	g.makeFetchAndIterUpdate(pageSizeFieldName)
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
