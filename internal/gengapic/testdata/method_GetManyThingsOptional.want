@@ -5,11 +5,13 @@ func (c *fooGRPCClient) GetManyThingsOptional(ctx context.Context, req *mypackag
 	it := &StringIterator{}
 	req = proto.Clone(req).(*mypackagepb.PageInputTypeOptional)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]string, string, error) {
-		var resp *mypackagepb.PageOutputType
-		req.PageToken = proto.String(pageToken)
+		resp := &mypackagepb.PageOutputType{}
+		if pageToken != "" {
+			req.PageToken = proto.String(pageToken)
+		}
 		if pageSize > math.MaxInt32 {
 			req.PageSize = proto.Int32(math.MaxInt32)
-		} else {
+		} else if pageSize != 0 {
 			req.PageSize = proto.Int32(int32(pageSize))
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
@@ -32,9 +34,11 @@ func (c *fooGRPCClient) GetManyThingsOptional(ctx context.Context, req *mypackag
 		it.items = append(it.items, items...)
 		return nextPageToken, nil
 	}
+
 	it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)
 	it.pageInfo.MaxSize = int(req.GetPageSize())
 	it.pageInfo.Token = req.GetPageToken()
+
 	return it
 }
 

@@ -229,6 +229,39 @@ func (g *generator) maybeSortMapPage(elemField *descriptor.FieldDescriptorProto,
 	return elems
 }
 
+func (g *generator) makeFetchAndIterUpdate(pageSizeFieldName string) {
+	p := g.printf
+
+	p("fetch := func(pageSize int, pageToken string) (string, error) {")
+	p("  items, nextPageToken, err := it.InternalFetch(pageSize, pageToken)")
+	p("  if err != nil {")
+	p(`    return "", err`)
+	p("  }")
+	p("  it.items = append(it.items, items...)")
+	p("  return nextPageToken, nil")
+	p("}")
+	p("")
+	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
+	p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
+	p("it.pageInfo.Token = req.GetPageToken()")
+	p("")
+	p("return it")
+}
+
+func (g *generator) internalFetchSetup(outType *descriptor.DescriptorProto, outSpec pbinfo.ImportSpec, tok, pageSizeFieldName, max, ps string) {
+	p := g.printf
+
+	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
+	p(`  if pageToken != "" {`)
+	p("    req.PageToken = %s", tok)
+	p("  }")
+	p("  if pageSize > math.MaxInt32 {")
+	p("    req.%s = %s", pageSizeFieldName, max)
+	p("  } else if pageSize != 0 {")
+	p("    req.%s = %s", pageSizeFieldName, ps)
+	p("  }")
+}
+
 func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField, pageSize *descriptor.FieldDescriptorProto, pt *iterType) error {
 	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
 	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
@@ -271,13 +304,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
-	p("  req.PageToken = %s", tok)
-	p("  if pageSize > math.MaxInt32 {")
-	p("    req.%s = %s", pageSizeFieldName, max)
-	p("  } else {")
-	p("    req.%s = %s", pageSizeFieldName, ps)
-	p("  }")
+	g.internalFetchSetup(outType, outSpec, tok, pageSizeFieldName, max, ps)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
 	p("    resp, err = %s", g.grpcStubCall(m))
@@ -291,21 +318,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	elems := g.maybeSortMapPage(elemField, pt)
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
-
-	p("fetch := func(pageSize int, pageToken string) (string, error) {")
-	p("  items, nextPageToken, err := it.InternalFetch(pageSize, pageToken)")
-	p("  if err != nil {")
-	p("    return \"\", err")
-	p("  }")
-	p("  it.items = append(it.items, items...)")
-	p("  return nextPageToken, nil")
-	p("}")
-
-	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
-	p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
-	p("it.pageInfo.Token = req.GetPageToken()")
-	p("return it")
-
+	g.makeFetchAndIterUpdate(pageSizeFieldName)
 	p("}")
 	p("")
 
