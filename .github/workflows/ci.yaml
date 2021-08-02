@@ -66,7 +66,7 @@ jobs:
         sudo ln -s /usr/src/protoc/bin/protoc /usr/local/bin/protoc
     - name: Install tools and dependencies
       run: |
-        go install golang.org/x/exp/cmd/apidiff@latest
+        go install golang.org/x/exp/cmd/apidiff
         go install github.com/golang/protobuf/protoc-gen-go
         curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
         unzip googleapis.zip -x "googleapis-master/google/ads/*"
