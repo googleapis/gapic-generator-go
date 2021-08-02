@@ -133,7 +133,7 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	proto.SetExtension(serv.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com"))
+	proto.SetExtension(serv.Options, annotations.E_DefaultHost, "foo.googleapis.com")
 
 	// Test some annotations
 	proto.SetExtension(serv.Method[0].Options, annotations.E_Http, &annotations.HttpRule{
@@ -154,7 +154,7 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234"))
+	proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, "foo.googleapis.com:1234")
 
 	servIAMOverride := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("ServIamOverride"),
@@ -165,7 +165,7 @@ func TestClientOpt(t *testing.T) {
 		},
 		Options: &descriptor.ServiceOptions{},
 	}
-	proto.SetExtension(servIAMOverride.Options, annotations.E_DefaultHost, proto.String("foo.googleapis.com:1234"))
+	proto.SetExtension(servIAMOverride.Options, annotations.E_DefaultHost, "foo.googleapis.com:1234")
 
 	f := &descriptor.FileDescriptorProto{
 		Package: proto.String("bar"),
