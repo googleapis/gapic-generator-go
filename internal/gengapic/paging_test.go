@@ -17,11 +17,12 @@ package gengapic
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 // TODO(dovs): Augment with map iterator
@@ -43,7 +44,7 @@ func TestIterTypeOf(t *testing.T) {
 				mapEntry.GetName(): mapEntry,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{},
-			ParentFile: map[proto.Message]*descriptor.FileDescriptorProto{
+			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
 				msgType: {
 					Options: &descriptor.FileOptions{
 						GoPackage: proto.String("path/to/foo;foo"),

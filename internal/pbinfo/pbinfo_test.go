@@ -17,8 +17,8 @@ package pbinfo
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestNameSpec(t *testing.T) {

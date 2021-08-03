@@ -17,11 +17,11 @@ package gengapic
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/gapic/metadata"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestAddMetadataServiceForTransport(t *testing.T) {
