@@ -21,9 +21,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -31,7 +29,9 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
+	duration "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
@@ -412,7 +412,7 @@ func TestMethodDoc(t *testing.T) {
 	}
 
 	g := generator{
-		comments: make(map[proto.Message]string),
+		comments: make(map[protoiface.MessageV1]string),
 	}
 
 	for _, tst := range []struct {
@@ -613,7 +613,7 @@ func TestIsLRO(t *testing.T) {
 	}
 
 	var g generator
-	g.descInfo.ParentFile = map[proto.Message]*descriptor.FileDescriptorProto{
+	g.descInfo.ParentFile = map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
 		lroGetOp: {
 			Package: proto.String("google.longrunning"),
 		},
@@ -671,10 +671,7 @@ func Test_parseRequestHeaders(t *testing.T) {
 		if tst.pattern != "" {
 			m.Options = &descriptor.MethodOptions{}
 
-			err := setHTTPOption(m.Options, tst.pattern)
-			if err != nil {
-				t.Errorf("parseRequestHeaders(%s): failed to set http annotation: %v", tst.name, err)
-			}
+			setHTTPOption(m.Options, tst.pattern)
 		}
 
 		got, err := parseRequestHeaders(m)
@@ -921,8 +918,8 @@ func TestReturnType(t *testing.T) {
 	}
 }
 
-func setHTTPOption(o *descriptor.MethodOptions, pattern string) error {
-	return proto.SetExtension(o, annotations.E_Http, &annotations.HttpRule{
+func setHTTPOption(o *descriptor.MethodOptions, pattern string) {
+	proto.SetExtension(o, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: pattern,
 		},

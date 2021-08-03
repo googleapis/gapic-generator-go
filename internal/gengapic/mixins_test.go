@@ -17,11 +17,12 @@ package gengapic
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/known/apipb"
 )
 
@@ -46,7 +47,7 @@ func TestCollectMixins(t *testing.T) {
 	}
 	iamDescription := "Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set."
 	g := generator{
-		comments: make(map[proto.Message]string),
+		comments: make(map[protoiface.MessageV1]string),
 		mixins:   make(mixins),
 		serviceConfig: &serviceconfig.Service{
 			Apis: []*apipb.Api{
@@ -101,8 +102,8 @@ func TestCollectMixins(t *testing.T) {
 	} {
 		if got := len(g.mixins[want.api]); got != want.len {
 			t.Errorf("TestCollectMixins(%q) got %d method(s), want %d method(s)\n", want.api, got, want.len)
-		} else if got, err := proto.GetExtension(g.mixins[want.api][0].GetOptions(), annotations.E_Http); err != nil || !cmp.Equal(got, want.ext, cmp.Comparer(proto.Equal)) {
-			t.Errorf("TestCollectMixins(%q) got %v, want %v; error(%v)\n", want.api, got, want.ext, err)
+		} else if got := proto.GetExtension(g.mixins[want.api][0].GetOptions(), annotations.E_Http); !cmp.Equal(got, want.ext, cmp.Comparer(proto.Equal)) {
+			t.Errorf("TestCollectMixins(%q) got %v, want %v\n", want.api, got, want.ext)
 		} else if diff := cmp.Diff(g.comments[g.mixins[want.api][0]], want.comment); diff != "" {
 			t.Errorf("TestCollectMixins(%q) got(-),want(+):\n%s", want.api, diff)
 		}

@@ -421,9 +421,7 @@ func TestGenRestMethod(t *testing.T) {
 	opfqn := fmt.Sprintf(".%s.Operation", pkg)
 
 	opRPCOpt := &descriptor.MethodOptions{}
-	if err := setHTTPOption(opRPCOpt, "/v1/foo"); err != nil {
-		t.Fatal(err)
-	}
+	setHTTPOption(opRPCOpt, "/v1/foo")
 
 	opRPC := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("CustomOp"),
