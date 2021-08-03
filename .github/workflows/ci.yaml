@@ -72,7 +72,7 @@ jobs:
         unzip googleapis.zip -x "googleapis-master/google/ads/*"
         mv googleapis-master /tmp/googleapis
     - name: Create Go package API baseline
-      if: "!contains(github.event.issue.labels.*.name, 'breaking change allowed')"
+      if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
       run: |
         cd showcase
         apidiff -w pkg.latest github.com/googleapis/gapic-showcase/client
@@ -82,7 +82,7 @@ jobs:
         export GOOGLEAPIS=/tmp/googleapis
         make test
     - name: Compare regenerated code to baseline
-      if: "!contains(github.event.issue.labels.*.name, 'breaking change allowed')"
+      if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
       run: |
         cd showcase
         apidiff -incompatible pkg.latest github.com/googleapis/gapic-showcase/client > diff.txt && cat diff.txt && ! [ -s diff.txt ]
