@@ -288,64 +288,116 @@ func TestGenMethod(t *testing.T) {
 	n := fmt.Sprintf(".my.pkg.%s.%s", inputType.GetName(), nestedEnum.GetName())
 	g.descInfo.Type[n] = nestedEnum
 
-	meths := []*descriptor.MethodDescriptorProto{
-		{
-			Name:       proto.String("GetEmptyThing"),
-			InputType:  proto.String(".my.pkg.InputType"),
-			OutputType: proto.String(emptyType),
-			Options:    opts,
-		},
-		{
-			Name:       proto.String("GetOneThing"),
-			InputType:  proto.String(".my.pkg.InputType"),
-			OutputType: proto.String(".my.pkg.OutputType"),
-			Options:    opts,
-		},
-		{
-			Name:       proto.String("GetManyThings"),
-			InputType:  proto.String(".my.pkg.PageInputType"),
-			OutputType: proto.String(".my.pkg.PageOutputType"),
-			Options:    opts,
-		},
-		{
-			Name:       proto.String("GetManyThingsOptional"),
-			InputType:  proto.String(".my.pkg.PageInputTypeOptional"),
-			OutputType: proto.String(".my.pkg.PageOutputType"),
-			Options:    opts,
-		},
-		{
-			Name:            proto.String("ServerThings"),
-			InputType:       proto.String(".my.pkg.InputType"),
-			OutputType:      proto.String(".my.pkg.OutputType"),
-			ServerStreaming: proto.Bool(true),
-			Options:         opts,
-		},
-		{
-			Name:            proto.String("ClientThings"),
-			InputType:       proto.String(".my.pkg.InputType"),
-			OutputType:      proto.String(".my.pkg.OutputType"),
-			ClientStreaming: proto.Bool(true),
-			Options:         opts,
-		},
-		{
-			Name:            proto.String("BidiThings"),
-			InputType:       proto.String(".my.pkg.InputType"),
-			OutputType:      proto.String(".my.pkg.OutputType"),
-			ServerStreaming: proto.Bool(true),
-			ClientStreaming: proto.Bool(true),
-			Options:         opts,
-		},
-	}
-
 methods:
-	for _, m := range meths {
-		g.pt.Reset()
-		g.descInfo.ParentElement[m] = serv
+	for _, tst := range []struct {
+		m       *descriptor.MethodDescriptorProto
+		imports map[pbinfo.ImportSpec]bool
+	}{
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:       proto.String("GetEmptyThing"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(emptyType),
+				Options:    opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}:                            true,
+				{Path: "net/url"}:                        true,
+				{Path: "time"}:                           true,
+				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+		},
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:       proto.String("GetOneThing"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(".my.pkg.OutputType"),
+				Options:    opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}:                            true,
+				{Path: "net/url"}:                        true,
+				{Path: "time"}:                           true,
+				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+		},
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:       proto.String("GetManyThings"),
+				InputType:  proto.String(".my.pkg.PageInputType"),
+				OutputType: proto.String(".my.pkg.PageOutputType"),
+				Options:    opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}:                              true,
+				{Path: "google.golang.org/api/iterator"}:   true,
+				{Path: "google.golang.org/protobuf/proto"}: true,
+				{Path: "net/url"}:                          true,
+				{Name: "mypackagepb", Path: "mypackage"}:   true,
+			},
+		},
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:       proto.String("GetManyThingsOptional"),
+				InputType:  proto.String(".my.pkg.PageInputTypeOptional"),
+				OutputType: proto.String(".my.pkg.PageOutputType"),
+				Options:    opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}:                              true,
+				{Path: "google.golang.org/api/iterator"}:   true,
+				{Path: "google.golang.org/protobuf/proto"}: true,
+				{Path: "net/url"}:                          true,
+				{Name: "mypackagepb", Path: "mypackage"}:   true,
+			},
+		},
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:            proto.String("ServerThings"),
+				InputType:       proto.String(".my.pkg.InputType"),
+				OutputType:      proto.String(".my.pkg.OutputType"),
+				ServerStreaming: proto.Bool(true),
+				Options:         opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}:                            true,
+				{Path: "net/url"}:                        true,
+				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+		},
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:            proto.String("ClientThings"),
+				InputType:       proto.String(".my.pkg.InputType"),
+				OutputType:      proto.String(".my.pkg.OutputType"),
+				ClientStreaming: proto.Bool(true),
+				Options:         opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+		},
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:            proto.String("BidiThings"),
+				InputType:       proto.String(".my.pkg.InputType"),
+				OutputType:      proto.String(".my.pkg.OutputType"),
+				ServerStreaming: proto.Bool(true),
+				ClientStreaming: proto.Bool(true),
+				Options:         opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+		},
+	} {
+		g.reset()
+		g.descInfo.ParentElement[tst.m] = serv
 
 		g.aux = &auxTypes{
 			iters: map[string]*iterType{},
 		}
-		if err := g.genGRPCMethod("Foo", serv, m); err != nil {
+		if err := g.genGRPCMethod("Foo", serv, tst.m); err != nil {
 			t.Error(err)
 			continue
 		}
@@ -368,7 +420,11 @@ methods:
 			g.pagingIter(iter)
 		}
 
-		txtdiff.Diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+			t.Errorf("TestGenMethod(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
+		}
+
+		txtdiff.Diff(t, tst.m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+tst.m.GetName()+".want"))
 	}
 }
 

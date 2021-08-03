@@ -469,11 +469,16 @@ func TestGenRestMethod(t *testing.T) {
 		name    string
 		method  *descriptor.MethodDescriptorProto
 		options *options
+		imports map[pbinfo.ImportSpec]bool
 	}{
 		{
 			name:    "custom_op",
 			method:  opRPC,
 			options: &options{diregapic: true},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+			},
 		},
 	} {
 		s.Method = []*descriptor.MethodDescriptorProto{tst.method}
@@ -482,6 +487,10 @@ func TestGenRestMethod(t *testing.T) {
 
 		if err := g.genRESTMethod("Foo", s, tst.method); err != nil {
 			t.Fatal(err)
+		}
+
+		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+			t.Errorf("TestGenRESTMethod(%s): imports got(-),want(+):\n%s", tst.name, diff)
 		}
 
 		txtdiff.Diff(t, fmt.Sprintf("%s_%s", t.Name(), tst.name), g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
