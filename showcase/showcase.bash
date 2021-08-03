@@ -42,6 +42,7 @@ protoc \
 	google/showcase/v1beta1/echo.proto \
 	google/showcase/v1beta1/identity.proto \
 	google/showcase/v1beta1/sequence.proto \
+	google/showcase/v1beta1/testing.proto \
 	google/showcase/v1beta1/messaging.proto \
 	google/showcase/v1beta1/compliance.proto
 
