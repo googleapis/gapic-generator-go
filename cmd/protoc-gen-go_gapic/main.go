@@ -19,10 +19,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/gengapic"
-	"github.com/googleapis/gapic-generator-go/internal/gensample"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -40,12 +39,6 @@ func main() {
 		genResp.Error = proto.String(err.Error())
 	}
 
-	sampleResp, err := gensample.PluginEntry(&genReq)
-	if err != nil {
-		sampleResp.Error = proto.String(err.Error())
-	}
-
-	genResp = merge(genResp, sampleResp)
 	genResp.SupportedFeatures = proto.Uint64(uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
 
 	outBytes, err := proto.Marshal(genResp)
@@ -55,17 +48,4 @@ func main() {
 	if _, err := os.Stdout.Write(outBytes); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func merge(gapicResp, sampleResp *plugin.CodeGeneratorResponse) *plugin.CodeGeneratorResponse {
-	if gapicResp.GetError() != "" {
-		return gapicResp
-	}
-	if sampleResp.GetError() != "" {
-		return sampleResp
-	}
-	resp := plugin.CodeGeneratorResponse{}
-	resp.File = append(resp.File, gapicResp.GetFile()...)
-	resp.File = append(resp.File, sampleResp.GetFile()...)
-	return &resp
 }

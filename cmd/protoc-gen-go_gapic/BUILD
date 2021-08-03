@@ -8,9 +8,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//internal/gengapic",
-        "//internal/gensample",
-        "@com_github_golang_protobuf//proto",
         "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
+        "@org_golang_google_protobuf//proto",
     ],
 )
 
