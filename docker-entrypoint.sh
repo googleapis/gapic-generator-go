@@ -18,9 +18,6 @@
 GO_GAPIC_PACKAGE=
 GAPIC_SERVICE_CONFIG=
 GRPC_SERVICE_CONFIG=
-GAPIC_CONFIG=
-SAMPLES=
-SAMPLE_ONLY=
 RELEASE_LEVEL=
 
 # enable extended globbing for flag pattern matching
@@ -33,9 +30,6 @@ while true; do
     --api-service-config ) API_SERVICE_CONFIG="api-service-config=/conf/$2"; shift 2;;
     --gapic-service-config ) API_SERVICE_CONFIG="api-service-config=/conf/$2"; shift 2;;
     --grpc-service-config ) GRPC_SERVICE_CONFIG="grpc-service-config=/conf/$2"; shift 2;;
-    --gapic-config ) GAPIC_CONFIG="gapic-config=/conf/$2"; shift 2;;
-    --sample ) SAMPLES="${SAMPLES}sample=/conf/$2,"; shift 2;;
-    --sample-only ) SAMPLE_ONLY="sample-only"; shift 1;;
     --release-level ) RELEASE_LEVEL="release-level=$2"; shift 2 ;; 
     --go-gapic* ) echo "Skipping unrecognized go-gapic flag: $1" >&2; shift ;;
     --* | +([[:word:][:punct:]]) ) shift ;;
@@ -48,18 +42,10 @@ if [ -z "$GO_GAPIC_PACKAGE" ]; then
   exit 64
 fi
 
-# Trim the last comma from $SAMPLES
-if [ ! -z "$SAMPLES" ]; then
-  SAMPLES=${SAMPLES::-1}
-fi
-
 protoc --proto_path=/protos/ --proto_path=/in/ \
                   --go_gapic_out=/out/ \
                   --go_gapic_opt="$GO_GAPIC_PACKAGE" \
                   --go_gapic_opt="$RELEASE_LEVEL" \
                   --go_gapic_opt="$API_SERVICE_CONFIG" \
                   --go_gapic_opt="$GRPC_SERVICE_CONFIG" \
-                  --go_gapic_opt="$GAPIC_CONFIG" \
-                  --go_gapic_opt="$SAMPLES" \
-                  --go_gapic_opt="$SAMPLE_ONLY" \
                   `find /in/ -name *.proto`

@@ -19,9 +19,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/gencli"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {

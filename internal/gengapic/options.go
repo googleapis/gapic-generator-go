@@ -40,7 +40,6 @@ type options struct {
 	modulePrefix      string
 	grpcConfPath      string
 	serviceConfigPath string
-	sampleOnly        bool
 	transports        []transport
 	metadata          bool
 	diregapic         bool
@@ -51,7 +50,6 @@ type options struct {
 // Options are comma-separated key/value pairs which are in turn delimited with '='.
 // Valid options include:
 // * go-gapic-package (package and module naming info)
-// * sample-only (only checked for presence)
 // * api-service-config (filepath)
 // * grpc-service-config (filepath)
 // * module (name)
@@ -66,7 +64,7 @@ type options struct {
 // It returns a pointer to a populated options if no errors were encountered while parsing.
 // If errors were encountered, it returns a nil pointer and the first error.
 func parseOptions(parameter *string) (*options, error) {
-	opts := options{sampleOnly: false}
+	opts := options{}
 
 	if parameter == nil {
 		return nil, errors.E(nil, "empty options parameter")
@@ -81,8 +79,6 @@ func parseOptions(parameter *string) (*options, error) {
 
 		// Check for boolean flags.
 		switch s {
-		case "sample-only":
-			return &options{sampleOnly: true}, nil
 		case "metadata":
 			opts.metadata = true
 			continue

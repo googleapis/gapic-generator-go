@@ -93,12 +93,6 @@ The configuration supported by the plugin option includes:
   * `api-service-config`: the path the service YAML file.
     * This is used for service-level client documentation.
 
-  * `sample`: path to sample configuration files.
-    * This is used for sample generation. Refer to [sample generation guide](./cmd/gen-go-sample/README.md) for more details.
-
-  * `gapic`: path to the legacy gapic configuration file.
-    * This is used for sample generation only. Both gapic config itself and this option will be deprecated soon. Refer to [sample generation guide](./cmd/gen-go-sample/README.md) for more details.
-
 Bazel
 -----
 
@@ -151,14 +145,6 @@ following attributes:
 
   * `service_yaml`: a label for a service YAML file.
     * _Note: This option will eventually be deprecated._
-
-  * `samples`: a path to a sample config file. There 
-  can exist multiples of this.
-
-  * `gapic_yaml`: path to a gapic configuration file.
-    * _Note: This config is only used to generate samples._
-
-  * `sample_only`: if present, directs the generator to forgo client generation and generate only samples.
 
   * `metadata`: if `True`, [GapicMetadata](https://github.com/googleapis/googleapis/blob/master/gapic/metadata/gapic_metadata.proto) will be generated in JSON form. The default is `False`.
 

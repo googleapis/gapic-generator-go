@@ -90,8 +90,6 @@ def go_gapic_library(
   grpc_service_config = None,
   service_yaml = None,
   gapic_yaml = None,
-  samples = [],
-  sample_only = False,
   metadata = False,
   transport = ["grpc"],
   diregapic = False,
@@ -104,13 +102,6 @@ def go_gapic_library(
 
   if service_yaml:
     file_args[service_yaml] = "api-service-config"
-  
-  if gapic_yaml:
-    file_args[gapic_yaml] = "gapic-config"
-
-  if samples:
-    for path in samples:
-        file_args[path] = "sample"
 
   t = transport[0]
   if len(transport) > 1:
@@ -123,9 +114,6 @@ def go_gapic_library(
 
   if release_level:
     plugin_args.append("release-level={}".format(release_level))
-
-  if sample_only:
-    plugin_args.append("sample-only")
 
   if metadata:
     plugin_args.append("metadata")

@@ -21,7 +21,7 @@ Test everything and run Showcase integration tests:
     make test
 
 When opening a PR, please prefix the title with the main component the change effects,
-separated from the message with a colon. This chould be one of `gapic`, `gencli`, `samples`,
+separated from the message with a colon. This chould be one of `gapic`, `gencli`,
 `bazel`, or `chore`. For example:
 
     gapic: strip reference links in comments
