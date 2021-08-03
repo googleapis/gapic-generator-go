@@ -66,15 +66,26 @@ jobs:
         sudo ln -s /usr/src/protoc/bin/protoc /usr/local/bin/protoc
     - name: Install tools and dependencies
       run: |
+        go install golang.org/x/exp/cmd/apidiff
         go install github.com/golang/protobuf/protoc-gen-go
         curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
         unzip googleapis.zip -x "googleapis-master/google/ads/*"
         mv googleapis-master /tmp/googleapis
+    - name: Create Go package API baseline
+      if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
+      run: |
+        cd showcase
+        apidiff -w pkg.latest github.com/googleapis/gapic-showcase/client
     - name: Run integration tests
       run: |
         export PATH=$PATH:protobuf/bin
         export GOOGLEAPIS=/tmp/googleapis
         make test
+    - name: Compare regenerated code to baseline
+      if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
+      run: |
+        cd showcase
+        apidiff -incompatible pkg.latest github.com/googleapis/gapic-showcase/client > diff.txt && cat diff.txt && ! [ -s diff.txt ]
   bazel-build:
     runs-on: ubuntu-latest
     container: gcr.io/gapic-images/googleapis:latest
