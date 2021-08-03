@@ -61,17 +61,7 @@ sed $SEDARGS '1,/WaitOperation(ctx/{s/WaitOperation(ctx/WaitOperationMixin(ctx/;
 
 popd
 
-# Write Go pkg data for Showcase client in latest release.
-apidiff -w pkg.latest github.com/googleapis/gapic-showcase/client
-
 go mod edit -replace=github.com/googleapis/gapic-showcase=./gen/github.com/googleapis/gapic-showcase
-
-# Compare Go pkg of lastest release to locally regenerated/replaced client.
-apidiff -incompatible pkg.latest github.com/googleapis/gapic-showcase/client > diff.txt
-if [[ -s diff.txt ]]; then
-	cat diff.txt
-	exit 1
-fi
 
 curl -sSL https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/gapic-showcase-$SHOWCASE_SEMVER-$hostos-$hostarch.tar.gz | tar xz
 curl -sSL -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_SEMVER/compliance_suite.json
