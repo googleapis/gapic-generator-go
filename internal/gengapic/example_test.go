@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
@@ -156,16 +157,72 @@ func TestExample(t *testing.T) {
 	for _, tst := range []struct {
 		tstName, pkgName string
 		transports       []transport
+		imports          map[pbinfo.ImportSpec]bool
 	}{
-		{tstName: "empty_example", pkgName: "Foo", transports: []transport{grpc, rest}},
-		{tstName: "empty_example_grpc", pkgName: "Foo", transports: []transport{grpc}},
-		{tstName: "foo_example", pkgName: "Bar", transports: []transport{grpc, rest}},
-		{tstName: "foo_example_rest", pkgName: "Bar", transports: []transport{rest}},
+		{
+			tstName:    "empty_example",
+			pkgName:    "Foo",
+			transports: []transport{grpc, rest},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                        true,
+				{Path: "google.golang.org/api/iterator"}: true,
+				{Path: "io"}:                             true,
+				{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}:              true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
+				{Name: "mypackagepb", Path: "mypackage"}:                                           true,
+			},
+		},
+		{
+			tstName:    "empty_example_grpc",
+			pkgName:    "Foo",
+			transports: []transport{grpc},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                        true,
+				{Path: "google.golang.org/api/iterator"}: true,
+				{Path: "io"}:                             true,
+				{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}:              true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
+				{Name: "mypackagepb", Path: "mypackage"}:                                           true,
+			},
+		},
+		{
+			tstName:    "foo_example",
+			pkgName:    "Bar",
+			transports: []transport{grpc, rest},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                        true,
+				{Path: "google.golang.org/api/iterator"}: true,
+				{Path: "io"}:                             true,
+				{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}:              true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
+				{Name: "mypackagepb", Path: "mypackage"}:                                           true,
+			},
+		},
+		{
+			tstName:    "foo_example_rest",
+			pkgName:    "Bar",
+			transports: []transport{rest},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                        true,
+				{Path: "google.golang.org/api/iterator"}: true,
+				{Path: "io"}:                             true,
+				{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}:              true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
+				{Name: "mypackagepb", Path: "mypackage"}:                                           true,
+			},
+		},
 	} {
 		g.reset()
 		g.opts.pkgName = tst.pkgName
 		g.opts.transports = tst.transports
 		g.genExampleFile(serv)
+		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+			t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
+		}
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
 }

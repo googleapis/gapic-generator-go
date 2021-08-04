@@ -49,22 +49,6 @@ func TestClientHook(t *testing.T) {
 }
 
 func TestClientOpt(t *testing.T) {
-	var g generator
-	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.mixins = mixins{
-		"google.longrunning.Operations":   operationsMethods(),
-		"google.cloud.location.Locations": locationMethods(),
-		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
-	}
-	g.serviceConfig = &serviceconfig.Service{
-		Apis: []*apipb.Api{
-			{Name: "foo.bar.Baz"},
-			{Name: "google.iam.v1.IAMPolicy"},
-			{Name: "google.cloud.location.Locations"},
-			{Name: "google.longrunning.Operations"},
-		},
-	}
-	g.opts = &options{transports: []transport{grpc}}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
 			{
@@ -116,12 +100,31 @@ func TestClientOpt(t *testing.T) {
 	}
 	data, err := protojson.Marshal(cpb)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	in := bytes.NewReader(data)
-	g.grpcConf, err = conf.New(in)
+	grpcConf, err := conf.New(in)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
+	}
+
+	g := generator{
+		imports: map[pbinfo.ImportSpec]bool{},
+		mixins: mixins{
+			"google.longrunning.Operations":   operationsMethods(),
+			"google.cloud.location.Locations": locationMethods(),
+			"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
+		},
+		serviceConfig: &serviceconfig.Service{
+			Apis: []*apipb.Api{
+				{Name: "foo.bar.Baz"},
+				{Name: "google.iam.v1.IAMPolicy"},
+				{Name: "google.cloud.location.Locations"},
+				{Name: "google.longrunning.Operations"},
+			},
+		},
+		opts:     &options{transports: []transport{grpc}},
+		grpcConf: grpcConf,
 	}
 
 	serv := &descriptor.ServiceDescriptorProto{
@@ -178,17 +181,70 @@ func TestClientOpt(t *testing.T) {
 		tstName, servName string
 		serv              *descriptor.ServiceDescriptorProto
 		hasOverride       bool
+		imports           map[pbinfo.ImportSpec]bool
 	}{
-		{tstName: "foo_opt", servName: "Foo", serv: serv},
-		{tstName: "empty_opt", servName: "", serv: serv},
-		{tstName: "host_port_opt", servName: "Bar", serv: servHostPort},
-		{tstName: "iam_override_opt", servName: "Baz", serv: servIAMOverride, hasOverride: true},
+		{
+			tstName:  "foo_opt",
+			servName: "Foo",
+			serv:     serv,
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/api/option"}:                 true,
+				{Path: "google.golang.org/api/option/internaloption"}:  true,
+				{Path: "google.golang.org/grpc/codes"}:                 true,
+				{Path: "math"}:                                         true,
+				{Path: "time"}:                                         true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}: true,
+			},
+		},
+		{
+			tstName:  "empty_opt",
+			servName: "",
+			serv:     serv,
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/api/option"}:                 true,
+				{Path: "google.golang.org/api/option/internaloption"}:  true,
+				{Path: "google.golang.org/grpc/codes"}:                 true,
+				{Path: "math"}:                                         true,
+				{Path: "time"}:                                         true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}: true,
+			},
+		},
+		{
+			tstName:  "host_port_opt",
+			servName: "Bar",
+			serv:     servHostPort,
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/api/option"}:                 true,
+				{Path: "google.golang.org/api/option/internaloption"}:  true,
+				{Path: "google.golang.org/grpc/codes"}:                 true,
+				{Path: "math"}:                                         true,
+				{Path: "time"}:                                         true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}: true,
+			},
+		},
+		{
+			tstName:     "iam_override_opt",
+			servName:    "Baz",
+			serv:        servIAMOverride,
+			hasOverride: true,
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/api/option"}:                 true,
+				{Path: "google.golang.org/api/option/internaloption"}:  true,
+				{Path: "google.golang.org/grpc/codes"}:                 true,
+				{Path: "math"}:                                         true,
+				{Path: "time"}:                                         true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}: true,
+			},
+		},
 	} {
 		g.reset()
 		g.hasIAMPolicyOverrides = tst.hasOverride
 		if err := g.clientOptions(tst.serv, tst.servName); err != nil {
 			t.Error(err)
 			continue
+		}
+		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+			t.Errorf("TestClientOpt(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
 		}
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 	}
