@@ -83,6 +83,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("// Using the Client")
 	p("//")
 	p("// The following is an example of making an API call with the newly created client.")
+	p("//")
 	// Code block for client using the first method of the service
 	tmpMethod := g.pt
 	g.pt = printer.P{}
