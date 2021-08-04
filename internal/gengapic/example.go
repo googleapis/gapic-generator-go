@@ -83,7 +83,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	if inType == nil {
 		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
 	}
-	
+
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	return nil
 }
 
-func (g *generator) exampleMethodBody (pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
 	if m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(pongad): implement this correctly.
 		return nil
@@ -143,7 +143,7 @@ func (g *generator) exampleMethodBody (pkgName, servName string, m *descriptor.M
 	if inType == nil {
 		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
 	}
-	
+
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err

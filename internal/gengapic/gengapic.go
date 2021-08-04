@@ -104,7 +104,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	if err != nil {
 		return &g.resp, err
 	}
-	
+
 	serv := genServs[0]
 
 	g.genDocFile(time.Now().Year(), scopes, serv)
@@ -439,7 +439,7 @@ func (g *generator) comment(s string) {
 	}
 }
 
-// Similar functionality to 'comment', except specifically used for generating formatted code snippets. 
+// Similar functionality to 'comment', except specifically used for generating formatted code snippets.
 func (g *generator) codesnippet(s string) {
 	if s == "" {
 		return

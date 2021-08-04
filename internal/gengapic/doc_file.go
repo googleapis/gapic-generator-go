@@ -24,7 +24,6 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
-
 )
 
 // genDocFile generates doc.go

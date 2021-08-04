@@ -18,11 +18,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
-	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 func TestDocFile(t *testing.T) {
