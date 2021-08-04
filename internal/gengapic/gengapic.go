@@ -104,7 +104,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	if err != nil {
 		return &g.resp, err
 	}
-	g.genDocFile(time.Now().Year(), scopes)
+	
+	serv := genServs[0]
+
+	g.genDocFile(time.Now().Year(), scopes, serv)
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(g.opts.outDir, "doc.go")),
 		Content: proto.String(g.pt.String()),
@@ -432,6 +435,22 @@ func (g *generator) comment(s string) {
 			g.printf("//")
 		} else {
 			g.printf("// %s", l)
+		}
+	}
+}
+
+// Similar functionality to 'comment', except specifically used for generating formatted code snippets. 
+func (g *generator) codesnippet(s string) {
+	if s == "" {
+		return
+	}
+
+	lines := strings.Split(s, "\n")
+	for _, l := range lines {
+		if strings.TrimSpace(l) == "" {
+			g.printf("//")
+		} else {
+			g.printf("//  %s", l)
 		}
 	}
 }

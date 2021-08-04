@@ -83,7 +83,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	if inType == nil {
 		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
 	}
-
+	
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
@@ -128,6 +128,62 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	p("}")
 	p("")
+	return nil
+}
+
+func (g *generator) exampleMethodBody (pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
+	if m.GetClientStreaming() != m.GetServerStreaming() {
+		// TODO(pongad): implement this correctly.
+		return nil
+	}
+
+	p := g.printf
+
+	inType := g.descInfo.Type[m.GetInputType()]
+	if inType == nil {
+		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
+	}
+	
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	g.imports[inSpec] = true
+
+	pf, _, err := g.getPagingFields(m)
+	if err != nil {
+		return err
+	}
+
+	// Pick the first transport for simplicity. We don't need examples
+	// of each method for both transports when they have the same surface.
+	t := g.opts.transports[0]
+	s := servName
+	if t == rest {
+		s += "REST"
+	}
+	g.exampleInitClient(pkgName, s)
+
+	if !m.GetClientStreaming() && !m.GetServerStreaming() {
+		p("")
+		p("req := &%s.%s{", inSpec.Name, inType.GetName())
+		p("  // TODO: Fill request struct fields.")
+		p("}")
+	}
+
+	if pf != nil {
+		g.examplePagingCall(m)
+	} else if g.isLRO(m) {
+		g.exampleLROCall(m)
+	} else if *m.OutputType == emptyType {
+		g.exampleEmptyCall(m)
+	} else if m.GetClientStreaming() && m.GetServerStreaming() {
+		g.exampleBidiCall(m, inType, inSpec)
+	} else {
+		g.exampleUnaryCall(m)
+	}
+
 	return nil
 }
 

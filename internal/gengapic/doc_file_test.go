@@ -20,6 +20,9 @@ import (
 
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/proto"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 func TestDocFile(t *testing.T) {
@@ -30,7 +33,40 @@ func TestDocFile(t *testing.T) {
 			Summary: "The Awesome Foo API is really really awesome. It enables the use of [Foo](https://api.foo.com) with [Buz](https://api.buz.com) and [Baz](https://api.baz.com) to acclerate `bar`.",
 		},
 	}
-	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome"}
+	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome", transports: []transport{grpc}}
+	g.imports = map[pbinfo.ImportSpec]bool{}
+
+	inputType := &descriptor.DescriptorProto{
+		Name: proto.String("InputType"),
+	}
+	outputType := &descriptor.DescriptorProto{
+		Name: proto.String("OutputType"),
+	}
+
+	file := &descriptor.FileDescriptorProto{
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+
+	commonTypes(&g)
+	for _, typ := range []*descriptor.DescriptorProto{
+		inputType, outputType,
+	} {
+		g.descInfo.Type[".my.pkg."+typ.GetName()] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+		Method: []*descriptor.MethodDescriptorProto{
+			{
+				Name:       proto.String("GetOneThing"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(".my.pkg.OutputType"),
+			},
+		},
+	}
 
 	for _, tst := range []struct {
 		relLvl, want string
@@ -48,7 +84,7 @@ func TestDocFile(t *testing.T) {
 		},
 	} {
 		g.opts.relLvl = tst.relLvl
-		g.genDocFile(42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"})
+		g.genDocFile(42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"}, serv)
 		txtdiff.Diff(t, "doc_file", g.pt.String(), tst.want)
 		g.reset()
 	}
