@@ -450,6 +450,7 @@ func (g *generator) codesnippet(s string) {
 		if strings.TrimSpace(l) == "" {
 			g.printf("//")
 		} else {
+			// At least 2 spaces after the // are necessary for GoDoc code snippet formatting.
 			g.printf("//  %s", l)
 		}
 	}

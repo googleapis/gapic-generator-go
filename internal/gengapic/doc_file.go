@@ -22,6 +22,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/license"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
@@ -68,35 +69,27 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("// Example Usage")
 	p("//")
 	p("// To get started with this package, create a client.")
-	p("//")
-	p("//")
 	// Code block for client creation
 	tmpClient := g.pt
 	g.pt = printer.P{}
-	g.exampleInitClient(g.opts.pkgName, serv.GetName())
+	g.exampleInitClient(g.opts.pkgName, pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName))
 	snipClient := g.pt.String()
 	g.pt = tmpClient
 	g.codesnippet(snipClient)
-	p("//")
-	p("//")
 	p("// The client will use your default application credentials. Clients should be reused instead of created as needed.")
 	p("// The methods of Client are safe for concurrent use by multiple goroutines.")
 	p("// The returned client must be Closed when it is done being used.")
 	p("//")
-	p("//")
 	p("// Using the Client")
 	p("//")
 	p("// The following is an example of making an API call with the newly created client.")
-	p("//")
-	p("//")
 	// Code block for client using the first method of the service
 	tmpMethod := g.pt
 	g.pt = printer.P{}
-	g.exampleMethodBody(g.opts.pkgName, serv.GetName(), serv.GetMethod()[0])
+	g.exampleMethodBody(g.opts.pkgName, pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName), serv.GetMethod()[0])
 	snipMethod := g.pt.String()
 	g.pt = tmpMethod
 	g.codesnippet(snipMethod)
-	p("//")
 	p("// Use of Context")
 	p("//")
 	p("// The ctx passed to NewClient is used for authentication requests and")
