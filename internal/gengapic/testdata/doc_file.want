@@ -63,7 +63,6 @@
 //  _ = resp
 //
 //
-//
 // Use of Context
 //
 // The ctx passed to NewClient is used for authentication requests and
