@@ -86,7 +86,7 @@ jobs:
       run: |
         cd showcase
         apidiff -incompatible pkg.latest github.com/googleapis/gapic-showcase/client > diff.txt && cat diff.txt && ! [ -s diff.txt ]
-    - name: Clone googleapis-discovery
+    - name: Download googleapis-discovery
       run: |
         curl -sSL https://github.com/googleapis/googleapis-discovery/archive/master.zip > googleapis-discovery.zip
         unzip googleapis-discovery.zip
@@ -99,7 +99,7 @@ jobs:
     - name: Regenerate compute
       run: |
         export CLOUD_GO=$(pwd)
-        cd ../google-cloud-go/internal/gapicgen
+        cd internal/gapicgen
         go run cloud.google.com/go/internal/gapicgen/cmd/genbot -local -regen-only -only-gapics -gapic=cloud.google.com/go/compute/apiv1  -gocloud-dir=$CLOUD_GO   -googleapis-dir=$GOOGLEAPIS -googleapis-disco-dir=$GOOGLEAPIS_DISCO
   bazel-build:
     runs-on: ubuntu-latest
