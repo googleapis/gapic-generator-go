@@ -79,6 +79,22 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 
 	p := g.printf
 
+	p("func Example%sClient_%s() {", servName, m.GetName())
+	g.exampleMethodBody(pkgName, servName, m)
+
+	p("}")
+	p("")
+	return nil
+}
+
+func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
+	if m.GetClientStreaming() != m.GetServerStreaming() {
+		// TODO(pongad): implement this correctly.
+		return nil
+	}
+
+	p := g.printf
+
 	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
 		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
@@ -90,14 +106,6 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	}
 
 	g.imports[inSpec] = true
-
-	p("func Example%sClient_%s() {", servName, m.GetName())
-
-	pf, _, err := g.getPagingFields(m)
-	if err != nil {
-		return err
-	}
-
 	// Pick the first transport for simplicity. We don't need examples
 	// of each method for both transports when they have the same surface.
 	t := g.opts.transports[0]
@@ -114,6 +122,10 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 		p("}")
 	}
 
+	pf, _, err := g.getPagingFields(m)
+	if err != nil {
+		return err
+	}
 	if pf != nil {
 		g.examplePagingCall(m)
 	} else if g.isLRO(m) {
@@ -126,8 +138,6 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 		g.exampleUnaryCall(m)
 	}
 
-	p("}")
-	p("")
 	return nil
 }
 

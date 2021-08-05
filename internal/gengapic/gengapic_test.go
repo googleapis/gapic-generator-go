@@ -58,6 +58,29 @@ func TestComment(t *testing.T) {
 	}
 }
 
+func TestCodeSnippet(t *testing.T) {
+	var g generator
+
+	for _, tst := range []struct {
+		in, want string
+	}{
+		{
+			in:   "",
+			want: "",
+		},
+		{
+			in:   "abc\ndef\n",
+			want: "//  abc\n//  def\n//\n",
+		},
+	} {
+		g.pt.Reset()
+		g.codesnippet(tst.in)
+		if got := g.pt.String(); got != tst.want {
+			t.Errorf("comment(%q) = %q, want %q", tst.in, got, tst.want)
+		}
+	}
+}
+
 func TestReduceServName(t *testing.T) {
 	for _, tst := range []struct {
 		in, pkg, want string
