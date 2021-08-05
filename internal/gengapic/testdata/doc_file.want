@@ -21,7 +21,7 @@
 // (at https://api.foo.com) with Buz (at https://api.buz.com) and Baz (at
 // https://api.baz.com) to acclerate bar.
 //
-// Example Usage
+// Example usage
 //
 // To get started with this package, create a client.
 //  ctx := context.Background()

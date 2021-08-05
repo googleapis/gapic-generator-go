@@ -23,7 +23,7 @@
 //
 //   NOTE: This package is in alpha. It is not stable, and is likely to change.
 //
-// Example Usage
+// Example usage
 //
 // To get started with this package, create a client.
 //  ctx := context.Background()

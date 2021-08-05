@@ -66,7 +66,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	}
 
 	p("//")
-	p("// Example Usage")
+	p("// Example usage")
 	p("//")
 	p("// To get started with this package, create a client.")
 	// Code block for client creation
