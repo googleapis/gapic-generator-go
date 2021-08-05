@@ -99,7 +99,7 @@ jobs:
     - name: Regenerate compute
       run: |
         export CLOUD_GO=$(pwd)
-        cd google-cloud-go/internal/gapicgen
+        cd ../google-cloud-go/internal/gapicgen
         go run cloud.google.com/go/internal/gapicgen/cmd/genbot -local -regen-only -only-gapics -gapic=cloud.google.com/go/compute/apiv1  -gocloud-dir=$CLOUD_GO   -googleapis-dir=$GOOGLEAPIS -googleapis-disco-dir=$GOOGLEAPIS_DISCO
   bazel-build:
     runs-on: ubuntu-latest
