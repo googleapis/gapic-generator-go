@@ -48,6 +48,7 @@
 //
 //  req := &mypackagepb.InputType{
 //  	// TODO: Fill request struct fields.
+//  	// See https://pkg.go.dev/mypackage#InputType.
 //  }
 //  resp, err := c.GetOneThing(ctx, req)
 //  if err != nil {
