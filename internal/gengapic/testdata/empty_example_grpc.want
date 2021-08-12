@@ -20,6 +20,7 @@ func ExampleClient_GetEmptyThing() {
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
 	}
 	err = c.GetEmptyThing(ctx, req)
 	if err != nil {
@@ -37,6 +38,7 @@ func ExampleClient_GetOneThing() {
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
 	}
 	resp, err := c.GetOneThing(ctx, req)
 	if err != nil {
@@ -56,6 +58,7 @@ func ExampleClient_GetBigThing() {
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
 	}
 	op, err := c.GetBigThing(ctx, req)
 	if err != nil {
@@ -80,6 +83,7 @@ func ExampleClient_GetManyThings() {
 
 	req := &mypackagepb.PageInputType{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#PageInputType.
 	}
 	it := c.GetManyThings(ctx, req)
 	for {
@@ -140,6 +144,7 @@ func ExampleClient_EmptyLRO() {
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
 	}
 	op, err := c.EmptyLRO(ctx, req)
 	if err != nil {
@@ -162,6 +167,7 @@ func ExampleClient_RespLRO() {
 
 	req := &mypackagepb.InputType{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
 	}
 	op, err := c.RespLRO(ctx, req)
 	if err != nil {
@@ -186,6 +192,7 @@ func ExampleClient_ListLocations() {
 
 	req := &locationpb.ListLocationsRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/cloud/location#ListLocationsRequest.
 	}
 	it := c.ListLocations(ctx, req)
 	for {
@@ -211,6 +218,7 @@ func ExampleClient_GetLocation() {
 
 	req := &locationpb.GetLocationRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/cloud/location#GetLocationRequest.
 	}
 	resp, err := c.GetLocation(ctx, req)
 	if err != nil {
@@ -230,6 +238,7 @@ func ExampleClient_SetIamPolicy() {
 
 	req := &iampb.SetIamPolicyRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/iam/v1#SetIamPolicyRequest.
 	}
 	resp, err := c.SetIamPolicy(ctx, req)
 	if err != nil {
@@ -249,6 +258,7 @@ func ExampleClient_GetIamPolicy() {
 
 	req := &iampb.GetIamPolicyRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/iam/v1#GetIamPolicyRequest.
 	}
 	resp, err := c.GetIamPolicy(ctx, req)
 	if err != nil {
@@ -268,6 +278,7 @@ func ExampleClient_TestIamPermissions() {
 
 	req := &iampb.TestIamPermissionsRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/iam/v1#TestIamPermissionsRequest.
 	}
 	resp, err := c.TestIamPermissions(ctx, req)
 	if err != nil {
@@ -287,6 +298,7 @@ func ExampleClient_ListOperations() {
 
 	req := &longrunningpb.ListOperationsRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/longrunning#ListOperationsRequest.
 	}
 	it := c.ListOperations(ctx, req)
 	for {
@@ -312,6 +324,7 @@ func ExampleClient_GetOperation() {
 
 	req := &longrunningpb.GetOperationRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/longrunning#GetOperationRequest.
 	}
 	resp, err := c.GetOperation(ctx, req)
 	if err != nil {
@@ -331,6 +344,7 @@ func ExampleClient_DeleteOperation() {
 
 	req := &longrunningpb.DeleteOperationRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/longrunning#DeleteOperationRequest.
 	}
 	err = c.DeleteOperation(ctx, req)
 	if err != nil {
@@ -348,6 +362,7 @@ func ExampleClient_CancelOperation() {
 
 	req := &longrunningpb.CancelOperationRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/longrunning#CancelOperationRequest.
 	}
 	err = c.CancelOperation(ctx, req)
 	if err != nil {
@@ -365,6 +380,7 @@ func ExampleClient_WaitOperation() {
 
 	req := &longrunningpb.WaitOperationRequest{
 		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/longrunning#WaitOperationRequest.
 	}
 	resp, err := c.WaitOperation(ctx, req)
 	if err != nil {
