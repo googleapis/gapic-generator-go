@@ -608,8 +608,9 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("  }")
 	p("  defer httpRsp.Body.Close()")
 	p("")
-	p("  if httpRsp.StatusCode != http.StatusOK {")
-	p(`    return nil, "", fmt.Errorf(httpRsp.Status)`)
+	p("  err = googleapi.CheckResponse(httpRsp)")
+	p("  if err != nil {")
+	p(`    return nil, "", err`)
 	p("  }")
 	p("")
 	p("  buf, err := ioutil.ReadAll(httpRsp.Body)")
@@ -629,6 +630,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 
@@ -743,13 +745,12 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("}")
 	p("defer httpRsp.Body.Close()")
 	p("")
-	p("if httpRsp.StatusCode != http.StatusOK {")
-	p("  return fmt.Errorf(httpRsp.Status)")
-	p("}")
-	p("")
-	p("return nil")
+	p("// Returns nil if there is no error, otherwise wraps")
+	p("// the response code and body into a non-nil error")
+	p("return googleapi.CheckResponse(httpRsp)")
 	p("}")
 
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[inSpec] = true
 	return nil
 }
@@ -845,8 +846,9 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("}")
 	p("defer httpRsp.Body.Close()")
 	p("")
-	p("if httpRsp.StatusCode != http.StatusOK {")
-	p("  return nil, fmt.Errorf(httpRsp.Status)")
+	p("err = googleapi.CheckResponse(httpRsp)")
+	p("if err != nil {")
+	p("  return nil, err")
 	p("}")
 	p("")
 	p("buf, err := ioutil.ReadAll(httpRsp.Body)")
@@ -867,10 +869,9 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	}
 	p(ret)
 	p("}")
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
-	g.imports[inSpec] = true
-	g.imports[outSpec] = true
 
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 	return nil
