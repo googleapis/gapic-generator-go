@@ -20,8 +20,7 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 	}
 	defer httpRsp.Body.Close()
 
-	err = googleapi.CheckResponse(httpRsp)
-	if err != nil {
+	if err = googleapi.CheckResponse(httpRsp); err != nil {
 		return nil, err
 	}
 
