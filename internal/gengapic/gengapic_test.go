@@ -941,10 +941,31 @@ func TestReturnType(t *testing.T) {
 	}
 	com := &descriptor.MethodDescriptorProto{
 		OutputType: proto.String(".google.cloud.foo.v1.Operation"),
+		Options:    &descriptor.MethodOptions{},
 	}
+	proto.SetExtension(com.GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/v1/operations",
+		},
+	})
 	reg := &descriptor.MethodDescriptorProto{
 		OutputType: proto.String(".google.cloud.foo.v1.Foo"),
+		Options:    &descriptor.MethodOptions{},
 	}
+	proto.SetExtension(reg.GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/v1/operations",
+		},
+	})
+	get := &descriptor.MethodDescriptorProto{
+		OutputType: proto.String(".google.cloud.foo.v1.Operation"),
+		Options:    &descriptor.MethodOptions{},
+	}
+	proto.SetExtension(get.GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/v1/operations",
+		},
+	})
 	f := &descriptor.FileDescriptorProto{
 		Package: proto.String("google.cloud.foo.v1"),
 		Options: &descriptor.FileOptions{
@@ -985,6 +1006,11 @@ func TestReturnType(t *testing.T) {
 			name:   "regular_unary",
 			method: reg,
 			want:   "*foopb.Foo",
+		},
+		{
+			name:   "get_custom_op",
+			method: get,
+			want:   "*foopb.Operation",
 		},
 	} {
 		got, err := g.returnType(tst.method)

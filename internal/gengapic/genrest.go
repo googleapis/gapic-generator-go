@@ -551,6 +551,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	verb := strings.ToUpper(info.verb)
 
 	max := "math.MaxInt32"
+	g.imports[pbinfo.ImportSpec{Path: "math"}] = true
 	psTyp := pbinfo.GoTypeForPrim[pageSize.GetType()]
 	ps := fmt.Sprintf("%s(pageSize)", psTyp)
 	if isOptional(inType, pageSize.GetName()) {
@@ -773,7 +774,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	if err != nil {
 		return err
 	}
-	isCustomOp := g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName()
+	isCustomOp := g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName() && info.verb != "get"
 
 	// Ignore error because the only possible error would be from looking up
 	// the ImportSpec for the OutputType, which has already happened above.
