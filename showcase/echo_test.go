@@ -17,6 +17,7 @@ package showcase
 import (
 	"context"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -25,6 +26,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	locationpb "google.golang.org/genproto/googleapis/cloud/location"
@@ -68,19 +70,25 @@ func TestEcho_error(t *testing.T) {
 		},
 	}
 	for typ, client := range map[string]*showcase.EchoClient{"grpc": echo, "rest": echoREST} {
-		if typ == "rest" {
-			// TODO(dovs): currently erroring with 2, want 1
-			continue
-		}
-
 		resp, err := client.Echo(context.Background(), req)
-		if resp != nil {
+		if resp != nil || err == nil {
 			t.Errorf("%s Echo() = %v, wanted error %d", typ, resp, val)
 		}
-		status, _ := status.FromError(err)
-		if status.Code() != val {
-			t.Errorf("%s Echo() errors with %d, want %d", typ, status.Code(), val)
+		if typ == "grpc" {
+			status, _ := status.FromError(err)
+			if status.Code() != val {
+				t.Errorf("%s Echo() errors with %d, want %d", typ, status.Code(), val)
+			}
+		} else {
+			const ERR_CODE int = http.StatusInternalServerError
+			err, ok := err.(*googleapi.Error)
+			if !ok {
+				t.Errorf("%s Echo() returned unexpected error type: %v", typ, err)
+			} else if err.Code != ERR_CODE {
+				t.Errorf("%s Echo() errors with %d, want %d", typ, err.Code, ERR_CODE)
+			}
 		}
+
 	}
 
 }

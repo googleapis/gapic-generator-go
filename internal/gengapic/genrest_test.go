@@ -481,6 +481,7 @@ func TestGenRestMethod(t *testing.T) {
 			options: &options{diregapic: true},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
+				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
