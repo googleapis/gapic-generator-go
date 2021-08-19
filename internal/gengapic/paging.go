@@ -212,7 +212,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 func (g *generator) maybeSortMapPage(elemField *descriptor.FieldDescriptorProto, pt *iterType) string {
 	p := g.printf
 
-	repeatedField, elems := fmt.Sprintf("resp.Get%s()", snakeToCamel(elemField.GetName())), ""
+	repeatedField, elems := fmt.Sprintf("resp%s", fieldGetter(elemField.GetName())), ""
 	// Most paged methods have a normal repeated field and not a map, so use that as a default.
 	elems = repeatedField
 	if pt.mapValueTypeName != "" {

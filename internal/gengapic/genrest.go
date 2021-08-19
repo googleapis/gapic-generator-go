@@ -706,7 +706,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"
-			p("body := req.Get%s()", snakeToCamel(info.body))
+			p("body := req%s", fieldGetter(info.body))
 		}
 		p("jsonReq, err := m.Marshal(%s)", requestObject)
 		p("if err != nil {")
@@ -808,7 +808,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"
-			p("body := req.Get%s()", snakeToCamel(info.body))
+			p("body := req%s", fieldGetter(info.body))
 		}
 		p("jsonReq, err := m.Marshal(%s)", requestObject)
 		p("if err != nil {")
