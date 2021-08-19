@@ -64,6 +64,10 @@ func snakeToCamel(s string) string {
 	for _, r := range s {
 		if r == '_' {
 			up = true
+		} else if up && unicode.IsDigit(r) {
+			sb.WriteRune('_')
+			sb.WriteRune(r)
+			up = false
 		} else if up {
 			sb.WriteRune(unicode.ToUpper(r))
 			up = false
