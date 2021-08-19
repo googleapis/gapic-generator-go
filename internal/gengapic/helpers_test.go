@@ -45,6 +45,7 @@ func TestSnakeToCamel(t *testing.T) {
 		{"iam_credentials", "IamCredentials"},
 		{"dlp", "Dlp"},
 		{"os_config", "OsConfig"},
+		{"display_video_360_advertiser_links", "DisplayVideo_360AdvertiserLinks"},
 	} {
 		got := snakeToCamel(tst.in)
 		if diff := cmp.Diff(got, tst.want); diff != "" {
