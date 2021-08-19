@@ -3,7 +3,7 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
 
-	httpReq, err := http.NewRequest("GET", baseUrl.String(), nil)
+	httpReq, err := http.NewRequest("POST", baseUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}

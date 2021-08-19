@@ -421,7 +421,11 @@ func TestGenRestMethod(t *testing.T) {
 	opfqn := fmt.Sprintf(".%s.Operation", pkg)
 
 	opRPCOpt := &descriptor.MethodOptions{}
-	setHTTPOption(opRPCOpt, "/v1/foo")
+	proto.SetExtension(opRPCOpt, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/v1/foo",
+		},
+	})
 
 	opRPC := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("CustomOp"),

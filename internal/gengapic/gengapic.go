@@ -474,12 +474,16 @@ func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, err
 	if err != nil {
 		return "", err
 	}
+	info, err := getHTTPInfo(m)
+	if err != nil {
+		return "", err
+	}
 
 	// Regular return type.
 	retTyp := fmt.Sprintf("*%s.%s", outSpec.Name, outType.GetName())
 
-	// Returning a custom operation, use the wrapper type.
-	if g.opts.diregapic && g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName() {
+	// Returning a custom operation, not a GET (which would be a polling RPC), use the wrapper type.
+	if g.opts.diregapic && g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName() && info.verb != "get" {
 		// This will only be *Operation to start.
 		retTyp = fmt.Sprintf("*%s", g.aux.customOp.message.GetName())
 	}
