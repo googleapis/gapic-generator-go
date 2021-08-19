@@ -119,6 +119,7 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 		p("")
 		p("req := &%s.%s{", inSpec.Name, inType.GetName())
 		p("  // TODO: Fill request struct fields.")
+		p("  // See https://pkg.go.dev/%s#%s.", inSpec.Path, inType.GetName())
 		p("}")
 	}
 
