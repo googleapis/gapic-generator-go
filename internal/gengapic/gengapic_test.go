@@ -670,6 +670,7 @@ func Test_buildAccessor(t *testing.T) {
 		{name: "nested", field: "foo_foo.bar_bar", want: ".GetFooFoo().GetBarBar()", variant: fieldGetter},
 		{name: "numbers", field: "foo_foo64", want: ".GetFooFoo64()", variant: fieldGetter},
 		{name: "raw_final", field: "foo.bar.baz.bif", want: ".GetFoo().GetBar().GetBaz().Bif", variant: directAccess},
+		{name: "independent_number", field: "display_video_360_advertiser_links", want: ".GetDisplayVideo_360AdvertiserLinks()", variant: fieldGetter},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
