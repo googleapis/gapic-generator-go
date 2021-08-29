@@ -967,6 +967,16 @@ func TestReturnType(t *testing.T) {
 			Get: "/v1/operations",
 		},
 	})
+	wait := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("Wait"),
+		OutputType: proto.String(".google.cloud.foo.v1.Operation"),
+		Options:    &descriptor.MethodOptions{},
+	}
+	proto.SetExtension(wait.GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/v1/operations",
+		},
+	})
 	f := &descriptor.FileDescriptorProto{
 		Package: proto.String("google.cloud.foo.v1"),
 		Options: &descriptor.FileOptions{
@@ -1011,6 +1021,11 @@ func TestReturnType(t *testing.T) {
 		{
 			name:   "get_custom_op",
 			method: get,
+			want:   "*foopb.Operation",
+		},
+		{
+			name:   "wait_custom_op",
+			method: wait,
 			want:   "*foopb.Operation",
 		},
 	} {
