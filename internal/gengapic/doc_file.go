@@ -80,17 +80,21 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("// The methods of Client are safe for concurrent use by multiple goroutines.")
 	p("// The returned client must be Closed when it is done being used.")
 	p("//")
-	p("// Using the Client")
-	p("//")
-	p("// The following is an example of making an API call with the newly created client.")
-	p("//")
-	// Code block for client using the first method of the service
-	tmpMethod := g.pt
-	g.pt = printer.P{}
-	g.exampleMethodBody(g.opts.pkgName, pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName), serv.GetMethod()[0])
-	snipMethod := g.pt.String()
-	g.pt = tmpMethod
-	g.codesnippet(snipMethod)
+	// If the service does not have any methods, then do not generate sample method snippet.
+	if len(serv.GetMethod()) > 0 {
+		p("// Using the Client")
+		p("//")
+		p("// The following is an example of making an API call with the newly created client.")
+		p("//")
+		// Code block for client using the first method of the service
+		tmpMethod := g.pt
+		g.pt = printer.P{}
+		g.exampleMethodBody(g.opts.pkgName, pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName), serv.GetMethod()[0])
+		snipMethod := g.pt.String()
+		g.pt = tmpMethod
+		g.codesnippet(snipMethod)
+	}
+
 	p("// Use of Context")
 	p("//")
 	p("// The ctx passed to NewClient is used for authentication requests and")
