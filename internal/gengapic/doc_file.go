@@ -79,12 +79,9 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("// The client will use your default application credentials. Clients should be reused instead of created as needed.")
 	p("// The methods of Client are safe for concurrent use by multiple goroutines.")
 	p("// The returned client must be Closed when it is done being used.")
-
+	p("//")
 	// If the service does not have any methods, then do not generate sample method snippet.
-	if serv.GetMethod() == nil || len(serv.GetMethod()[0].GetName()) == 0 {
-		p("//")
-	} else {
-		p("//")
+	if len(serv.GetMethod()[0].GetName()) > 0 {
 		p("// Using the Client")
 		p("//")
 		p("// The following is an example of making an API call with the newly created client.")
