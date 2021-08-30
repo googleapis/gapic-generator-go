@@ -125,8 +125,7 @@ func TestDocFileEmptyService(t *testing.T) {
 	serv := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
-			{
-			},
+			{},
 		},
 	}
 
