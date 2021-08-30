@@ -89,3 +89,65 @@ func TestDocFile(t *testing.T) {
 		g.reset()
 	}
 }
+
+func TestDocFileEmptyService(t *testing.T) {
+	var g generator
+	g.apiName = "Awesome Bar API"
+	g.serviceConfig = &serviceconfig.Service{
+		Documentation: &serviceconfig.Documentation{
+			Summary: "The Awesome Bar API is really really awesome. It enables the use of [Foo](https://api.foo.com) with [Buz](https://api.buz.com) and [Baz](https://api.baz.com) to acclerate `bar`.",
+		},
+	}
+	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome", transports: []transport{grpc}}
+	g.imports = map[pbinfo.ImportSpec]bool{}
+
+	inputType := &descriptor.DescriptorProto{
+		Name: proto.String("InputType"),
+	}
+	outputType := &descriptor.DescriptorProto{
+		Name: proto.String("OutputType"),
+	}
+
+	file := &descriptor.FileDescriptorProto{
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+
+	commonTypes(&g)
+	for _, typ := range []*descriptor.DescriptorProto{
+		inputType, outputType,
+	} {
+		g.descInfo.Type[".my.pkg."+typ.GetName()] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+		Method: []*descriptor.MethodDescriptorProto{
+			{
+			},
+		},
+	}
+
+	for _, tst := range []struct {
+		relLvl, want string
+	}{
+		{
+			want: filepath.Join("testdata", "doc_file_emptyservice.want"),
+		},
+		{
+			relLvl: alpha,
+			want:   filepath.Join("testdata", "doc_file_alpha_emptyservice.want"),
+		},
+		{
+			relLvl: beta,
+			want:   filepath.Join("testdata", "doc_file_beta_emptyservice.want"),
+		},
+	} {
+		g.opts.relLvl = tst.relLvl
+		g.genDocFile(43, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"}, serv)
+		txtdiff.Diff(t, "doc_file", g.pt.String(), tst.want)
+		g.reset()
+	}
+}
