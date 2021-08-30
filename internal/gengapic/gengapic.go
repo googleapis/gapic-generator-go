@@ -481,9 +481,14 @@ func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, err
 
 	// Regular return type.
 	retTyp := fmt.Sprintf("*%s.%s", outSpec.Name, outType.GetName())
+	wrap := g.opts.diregapic && // Generator in DIREGAPIC mode.
+		g.aux.customOp != nil && // API Defines a custom operation.
+		m.GetOutputType() == g.customOpProtoName() && // Method returns the custom operation.
+		info.verb != "get" && // Method is not a GET (polling methods).
+		m.GetName() != "Wait" // Method is not a Wait (uses POST).
 
-	// Returning a custom operation, not a GET (which would be a polling RPC), use the wrapper type.
-	if g.opts.diregapic && g.aux.customOp != nil && m.GetOutputType() == g.customOpProtoName() && info.verb != "get" {
+	// Wrap the raw operation with a custom operation type.
+	if wrap {
 		// This will only be *Operation to start.
 		retTyp = fmt.Sprintf("*%s", g.aux.customOp.message.GetName())
 	}
