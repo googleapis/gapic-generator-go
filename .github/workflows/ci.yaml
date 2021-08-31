@@ -139,6 +139,7 @@ jobs:
           -gocloud-dir=$CLOUD_GO \
           -googleapis-dir=$GOOGLEAPIS \
           -googleapis-disco-dir=$GOOGLEAPIS_DISCO
+        go get ./compute/apiv1
     - name: Compare regenerated code to baseline
       if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
       run: |
