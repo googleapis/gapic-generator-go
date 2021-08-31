@@ -1004,8 +1004,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
         build_extra_args = ["-exclude=longrunning/autogen/info.go"],
         importpath = "cloud.google.com/go",
-        sum = "h1:MjvSkUq8RuAb+2JLDi5VQmmExRJPUQ3JLCWpRB6fmdw=",
-        version = "v0.90.0",
+        sum = "h1:wPBktZFzYBcCZVARvwVKqH1uEj+aLXofJEtrb4oOsio=",
+        version = "v0.93.3",
     )
     go_repository(
         name = "com_google_cloud_go_bigquery",
@@ -1145,8 +1145,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:ECJUVngj71QI6XEm7b1sAf8BljU5inEhMbKPR8Lxhhk=",
-        version = "v0.54.0",
+        sum = "h1:Mdr7qYW89GXMpDUcDJVH45zax8FzmmzL9hZ8rIhgw1g=",
+        version = "v0.55.0",
     )
 
     go_repository(
@@ -1158,8 +1158,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:5eMUso2GVOxypVH1fR4oKgDobrvi4DHctJ4fVk66s/4=",
-        version = "v0.0.0-20210830153122-0bac4d21c8ea",
+        sum = "h1:NHN4wOCScVzKhPenJ2dt+BTs3X/XkBVI/Rh4iDt55T8=",
+        version = "v0.0.0-20210831024726-fe130286e0e2",
     )
     go_repository(
         name = "org_golang_google_grpc",
@@ -1227,8 +1227,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_oauth2",
         importpath = "golang.org/x/oauth2",
-        sum = "h1:4Kd8OPUx1xgUwrHDaviWZO8MsgoZTZYC3g+8m16RBww=",
-        version = "v0.0.0-20210805134026-6f1e6394065a",
+        sum = "h1:Qmd2pbz05z7z6lm0DrgQVVPuBm92jqujBKMHMOlOQEw=",
+        version = "v0.0.0-20210819190943-2bc19b11175f",
     )
     go_repository(
         name = "org_golang_x_sync",
@@ -1239,8 +1239,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:siQdpVirKtzPhKl3lZWozZraCFObP8S1v6PRp0bLrtU=",
-        version = "v0.0.0-20210806184541-e5e7981a1069",
+        sum = "h1:2ucpDCmfkl8Bd/FsLtiD653Wf96cW37s+iGx93zsu4k=",
+        version = "v0.0.0-20210823070655-63515b42dcdf",
     )
     go_repository(
         name = "org_golang_x_term",
