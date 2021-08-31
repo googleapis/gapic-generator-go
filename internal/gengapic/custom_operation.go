@@ -26,6 +26,15 @@ type customOp struct {
 	generated bool
 }
 
+// isCustomOp determines if the given method should return a custom operation wrapper.
+func (g *generator) isCustomOp(m *descriptor.MethodDescriptorProto, info *httpInfo) bool {
+	return g.opts.diregapic && // Generator in DIREGAPIC mode.
+		g.aux.customOp != nil && // API Defines a custom operation.
+		m.GetOutputType() == g.customOpProtoName() && // Method returns the custom operation.
+		info.verb != "get" && // Method is not a GET (polling methods).
+		m.GetName() != "Wait" // Method is not a Wait (uses POST).
+}
+
 // customOpProtoName builds the fully-qualified proto name for the custom
 // operation message type.
 func (g *generator) customOpProtoName() string {
