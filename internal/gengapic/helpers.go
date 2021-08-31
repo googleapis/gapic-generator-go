@@ -118,3 +118,15 @@ func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
 
 	return false
 }
+
+// containsTransport determines if a set of transports contains a specific
+// transport.
+func containsTransport(t []transport, tr transport) bool {
+	for _, x := range t {
+		if x == tr {
+			return true
+		}
+	}
+
+	return false
+}

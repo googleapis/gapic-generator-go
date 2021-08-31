@@ -33,7 +33,7 @@ func TestDocFile(t *testing.T) {
 			Summary: "The Awesome Foo API is really really awesome. It enables the use of [Foo](https://api.foo.com) with [Buz](https://api.buz.com) and [Baz](https://api.baz.com) to acclerate `bar`.",
 		},
 	}
-	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome", transports: []transport{grpc}}
+	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome", transports: []transport{grpc, rest}}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	inputType := &descriptor.DescriptorProto{
