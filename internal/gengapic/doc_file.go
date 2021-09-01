@@ -213,7 +213,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		p("// of receiving an unknown enum value.")
 		p("func maybeUnknownEnum(err error) error {")
 		p(`  if strings.Contains(err.Error(), "invalid value for enum type") {`)
-		p(`    err = xerrors.Errorf("received an unknown enum value, a later version of the library may support it: %%w", err)`)
+		p(`    err = xerrors.Errorf("received an unknown enum value; a later version of the library may support it: %%w", err)`)
 		p("  }")
 		p("  return err")
 		p("}")

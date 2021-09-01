@@ -161,7 +161,7 @@ func versionGo() string {
 // of receiving an unknown enum value.
 func maybeUnknownEnum(err error) error {
 	if strings.Contains(err.Error(), "invalid value for enum type") {
-		err = xerrors.Errorf("received an unknown enum value, a later version of the library may support it: %w", err)
+		err = xerrors.Errorf("received an unknown enum value; a later version of the library may support it: %w", err)
 	}
 	return err
 }
