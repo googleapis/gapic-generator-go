@@ -33,6 +33,7 @@ import (
 // it does not use g.commit().
 func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.ServiceDescriptorProto) {
 	p := g.printf
+	hasREST := containsTransport(g.opts.transports, rest)
 
 	p(license.Apache, year)
 	p("")
@@ -116,6 +117,9 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("%s%q", "\t", "strings")
 	p("%s%q", "\t", "unicode")
 	p("")
+	if hasREST {
+		p("%s%q", "\t", "golang.org/x/xerrors")
+	}
 	p("%s%q", "\t", "google.golang.org/api/option")
 	p("%s%q", "\t", "google.golang.org/grpc/metadata")
 	p(")")
@@ -202,6 +206,17 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		p("  return %q", "UNKNOWN")
 		p("}")
 		p("")
+	}
+
+	if hasREST {
+		p("// maybeUnknownEnum wraps the given proto-JSON parsing error if it is the result")
+		p("// of receiving an unknown enum value.")
+		p("func maybeUnknownEnum(err error) error {")
+		p(`  if strings.Contains(err.Error(), "invalid value for enum type") {`)
+		p(`    err = xerrors.Errorf("received an unknown enum value; a later version of the library may support it: %%w", err)`)
+		p("  }")
+		p("  return err")
+		p("}")
 	}
 }
 

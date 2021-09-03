@@ -856,11 +856,11 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("rsp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("")
-	ret := "return rsp, unm.Unmarshal(buf, rsp)"
+	p("if err := unm.Unmarshal(buf, rsp); err != nil {")
+	p("  return nil, maybeUnknownEnum(err)")
+	p("}")
+	ret := "return rsp, nil"
 	if g.isCustomOp(m, info) {
-		p("if err := unm.Unmarshal(buf, rsp); err != nil {")
-		p("  return nil, err")
-		p("}")
 		p("op := %s", g.customOpInit("rsp"))
 		ret = "return op, err"
 	}
