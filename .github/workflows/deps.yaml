@@ -61,6 +61,7 @@ jobs:
         description: 'Updated Go dependencies for Bazel repositories.'
         title: 'chore: update Bazel Go deps'
         message: 'chore: update Bazel Go deps'
+        primary: 'master'
         labels: |
           automerge
         branch: update-bazel-deps
