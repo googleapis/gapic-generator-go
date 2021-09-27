@@ -18,7 +18,7 @@ jobs:
     - name: Check formatting
       run: gofmt -l ./ > gofmt.txt && ! [ -s gofmt.txt ]
     - name: Install golint
-      run: go get -u golang.org/x/lint/golint
+      run: go install golang.org/x/lint/golint@latest
       if: ${{ always() }}
     - name: Lint
       # Exclude all of the grpc_service_config package (it is generated).
