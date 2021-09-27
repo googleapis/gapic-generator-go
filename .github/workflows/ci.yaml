@@ -21,7 +21,7 @@ jobs:
       run: go get -u golang.org/x/lint/golint
       if: ${{ always() }}
     - name: Lint
-      # Exclude all of the grpc_service_config package (it is generated).
+      # Exclude all of the grpc_service_config package (because it is generated).
       run: golint -set_exit_status $(go list ./... | grep -v 'grpc_service_config') > golint.txt
       if: ${{ always() }}
     - name: Vet
