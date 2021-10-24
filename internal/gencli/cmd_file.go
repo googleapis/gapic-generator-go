@@ -228,6 +228,9 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
 		{{ end }}
+		if err != nil {
+			return err
+		}
 		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
 		var item *{{ .OutputMessageType }}
 		for {
