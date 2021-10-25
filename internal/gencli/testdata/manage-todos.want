@@ -42,6 +42,9 @@ var ManageTodosCmd = &cobra.Command{
 		}
 
 		stream, err := TodoClient.ManageTodos(ctx)
+		if err != nil {
+			return err
+		}
 
 		out, err := os.OpenFile(ManageTodosOutFile, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 		if err != nil {

@@ -37,6 +37,9 @@ var CopyTodosCmd = &cobra.Command{
 		}
 
 		stream, err := TodoClient.CopyTodos(ctx)
+		if err != nil {
+			return err
+		}
 
 		if Verbose {
 			fmt.Println("Client stream open. Close with ctrl+D.")

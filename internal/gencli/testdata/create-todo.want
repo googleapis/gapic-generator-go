@@ -74,6 +74,9 @@ var CreateTodoCmd = &cobra.Command{
 			printVerboseInput("Todo", "CreateTodo", &CreateTodoInput)
 		}
 		resp, err := TodoClient.CreateTodo(ctx, &CreateTodoInput)
+		if err != nil {
+			return err
+		}
 
 		if Verbose {
 			fmt.Print("Output: ")
