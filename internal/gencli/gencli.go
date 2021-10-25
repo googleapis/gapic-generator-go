@@ -360,7 +360,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 
 	cmd.HasEnums = cmd.HasEnums || flag.IsEnum()
 
-	if flag.Required {
+	if flag.Required && !strings.HasPrefix(flag.Usage, "Required. ") {
 		flag.Usage = "Required. " + flag.Usage
 	}
 
@@ -483,7 +483,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 
 		// evaluate field behavior
 		outputOnly, flag.Required = g.getFieldBehavior(field)
-		if flag.Required {
+		if flag.Required && !strings.HasPrefix(flag.Usage, "Required. ") {
 			flag.Usage = "Required. " + flag.Usage
 		}
 
