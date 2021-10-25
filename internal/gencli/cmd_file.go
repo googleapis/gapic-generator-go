@@ -209,12 +209,18 @@ var {{$methodCmdVar}} = &cobra.Command{
 			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
 		}
 		err = {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
+		if err != nil {
+			return err
+		}
 		{{ else }}
 		{{ if and ( not .ClientStreaming ) ( not .Paged ) }}
 		if Verbose {
 			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
 		}
 		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
+		if err != nil {
+			return err
+		}
 		{{ else if and .Paged ( not .IsLRO )}}
 		if Verbose {
 			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
@@ -222,11 +228,17 @@ var {{$methodCmdVar}} = &cobra.Command{
 		iter := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
 		{{ else if ( not .IsLRO )}}
 		stream, err := {{ $serviceClient }}.{{ .Method }}(ctx)
+		if err != nil {
+			return err
+		}
 		{{ else }}
 		if Verbose {
 			printVerboseInput("{{ .Service }}", "{{ .Method }}", &{{ .InputMessageVar }})
 		}
 		resp, err := {{ $serviceClient }}.{{ .Method }}(ctx, &{{ .InputMessageVar }})
+		if err != nil {
+			return err
+		}
 		{{ end }}
 		{{ if and .ServerStreaming ( not .ClientStreaming ) }}
 		var item *{{ .OutputMessageType }}

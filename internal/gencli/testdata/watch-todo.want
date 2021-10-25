@@ -55,6 +55,9 @@ var WatchTodoCmd = &cobra.Command{
 			printVerboseInput("Todo", "WatchTodo", &WatchTodoInput)
 		}
 		resp, err := TodoClient.WatchTodo(ctx, &WatchTodoInput)
+		if err != nil {
+			return err
+		}
 
 		var item *todopb.Todo
 		for {
