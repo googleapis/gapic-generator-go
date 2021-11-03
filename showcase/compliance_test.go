@@ -64,6 +64,8 @@ func TestComplianceSuite(t *testing.T) {
 		"Compliance.RepeatDataSimplePath":           complianceClient.RepeatDataSimplePath,
 		"Compliance.RepeatDataPathResource":         wipMethod, // TODO: replace with complianceClient.RepeatDataPathResource,
 		"Compliance.RepeatDataPathTrailingResource": wipMethod, // TODO: replace with complianceClient.RepeatDataPathTrailingResource,
+		"Compliance.RepeatDataBodyPut":              complianceClient.RepeatDataBodyPut,
+		"Compliance.RepeatDataBodyPatch":            complianceClient.RepeatDataBodyPatch,
 	}
 
 	suite, err := getComplianceSuite()
