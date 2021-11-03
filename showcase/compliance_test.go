@@ -46,7 +46,7 @@ type method func(ctx context.Context, req *genprotopb.RepeatRequest, opts ...gax
 // everything is in place, this method and its references should not be needed for all tests to
 // pass.
 func wipMethod(ctx context.Context, req *genprotopb.RepeatRequest, opts ...gax.CallOption) (*genprotopb.RepeatResponse, error) {
-	return &genprotopb.RepeatResponse{Info: req.GetInfo()}, nil
+	return &genprotopb.RepeatResponse{Request: req}, nil
 }
 
 // TestComplianceSuite is used to ensure the REST transport for the GAPIC client emitted by this
@@ -90,7 +90,7 @@ func TestComplianceSuite(t *testing.T) {
 					t.Errorf("%s error: %s", errorPrefix, err)
 				}
 				// Check for expected response.
-				if diff := cmp.Diff(response.GetInfo(), requestProto.GetInfo(), cmp.Comparer(proto.Equal)); diff != "" {
+				if diff := cmp.Diff(response.GetRequest().GetInfo(), requestProto.GetInfo(), cmp.Comparer(proto.Equal)); diff != "" {
 					t.Errorf("%s unexpected response: got=-, want=+:%s\n------------------------------\n",
 						errorPrefix, diff)
 				}
