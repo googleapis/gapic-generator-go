@@ -132,6 +132,12 @@ func TestHasIAMPolicyMixin(t *testing.T) {
 			"google.longrunning.Operations":   operationsMethods(),
 			"google.cloud.location.Locations": locationMethods(),
 		},
+		serviceConfig: &serviceconfig.Service{
+			Apis: []*apipb.Api{
+				{Name: "foo.bar.Baz"},
+				{Name: "google.iam.v1.IAMPolicy"},
+			},
+		},
 	}
 
 	var want bool
@@ -146,7 +152,13 @@ func TestHasIAMPolicyMixin(t *testing.T) {
 	}
 
 	want = false
+	g.serviceConfig.Apis = []*apipb.Api{{Name: "google.iam.v1.IAMPolicy"}}
+	if got := g.hasIAMPolicyMixin(); !cmp.Equal(got, want) {
+		t.Errorf("TestHasIAMPolicyMixin wanted %v but got %v", want, got)
+	}
+
 	g.hasIAMPolicyOverrides = true
+	g.serviceConfig.Apis = append(g.serviceConfig.Apis, &apipb.Api{Name: "foo.bar.Baz"})
 	if got := g.hasIAMPolicyMixin(); !cmp.Equal(got, want) {
 		t.Errorf("TestHasIAMPolicyMixin wanted %v but got %v", want, got)
 	}

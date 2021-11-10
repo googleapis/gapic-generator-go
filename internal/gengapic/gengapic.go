@@ -57,7 +57,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			continue
 		}
 		fmt.Fprintf(os.Stderr, "Input file: %s\n", f.GetName())
-		if f.GetName() == "google/cloud/location/locations.proto" && g.hasLROMixin() {
+		if !g.includeMixinInputFile(f.GetName()) {
 			continue
 		}
 		genServs = append(genServs, f.GetService()...)
