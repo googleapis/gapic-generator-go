@@ -220,6 +220,10 @@ func (g *generator) checkIAMPolicyOverrides(servs []*descriptor.ServiceDescripto
 	}
 }
 
+// includeMixinInputFile determines if the given proto file name matches
+// a known mixin file and indicates if it should be included in the
+// protos-to-be-generated file set based on if the package is using it for
+// mixins or not.
 func (g *generator) includeMixinInputFile(file string) bool {
 	if file == "google/cloud/location/locations.proto" && g.hasLocationMixin() {
 		return false
