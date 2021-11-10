@@ -17,7 +17,6 @@ package gengapic
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -56,7 +55,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
 			continue
 		}
-		fmt.Fprintf(os.Stderr, "Input file: %s\n", f.GetName())
 		if !g.includeMixinInputFile(f.GetName()) {
 			continue
 		}
