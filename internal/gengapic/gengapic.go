@@ -55,6 +55,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
 			continue
 		}
+		fmt.Printf("Input file: %s\n", f.GetName())
 		if f.GetName() == "google/cloud/location/locations.proto" && g.hasLROMixin() {
 			continue
 		}
