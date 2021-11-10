@@ -190,6 +190,12 @@ func TestHasLocationMixin(t *testing.T) {
 			"google.longrunning.Operations": operationsMethods(),
 			"google.iam.v1.IAMPolicy":       iamPolicyMethods(),
 		},
+		serviceConfig: &serviceconfig.Service{
+			Apis: []*apipb.Api{
+				{Name: "foo.bar.Baz"},
+				{Name: "google.cloud.location.Locations"},
+			},
+		},
 	}
 
 	var want bool
@@ -199,6 +205,12 @@ func TestHasLocationMixin(t *testing.T) {
 
 	want = true
 	g.mixins["google.cloud.location.Locations"] = locationMethods()
+	if got := g.hasLocationMixin(); !cmp.Equal(got, want) {
+		t.Errorf("TestHasLocationMixin wanted %v but got %v", want, got)
+	}
+
+	want = false
+	g.serviceConfig.Apis = []*apipb.Api{{Name: "google.cloud.location.Locations"}}
 	if got := g.hasLocationMixin(); !cmp.Equal(got, want) {
 		t.Errorf("TestHasLocationMixin wanted %v but got %v", want, got)
 	}

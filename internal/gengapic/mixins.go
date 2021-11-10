@@ -194,10 +194,10 @@ func (g *generator) hasIAMPolicyMixin() bool {
 	return len(g.mixins["google.iam.v1.IAMPolicy"]) > 0 && !g.hasIAMPolicyOverrides
 }
 
-// hasLocationixin is a convenience method for determining if the Locations
+// hasLocationMixin is a convenience method for determining if the Locations
 // mixin should be generated.
 func (g *generator) hasLocationMixin() bool {
-	return len(g.mixins["google.cloud.location.Locations"]) > 0
+	return len(g.mixins["google.cloud.location.Locations"]) > 0 && len(g.serviceConfig.GetApis()) > 1
 }
 
 // checkIAMPolicyOverrides determines if any of the given services define an
