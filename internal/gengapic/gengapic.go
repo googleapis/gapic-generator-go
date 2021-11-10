@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -55,7 +56,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
 			continue
 		}
-		fmt.Printf("Input file: %s\n", f.GetName())
+		fmt.Fprintf(os.Stderr, "Input file: %s\n", f.GetName())
 		if f.GetName() == "google/cloud/location/locations.proto" && g.hasLROMixin() {
 			continue
 		}
