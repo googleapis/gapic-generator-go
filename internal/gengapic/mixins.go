@@ -191,13 +191,13 @@ func (g *generator) hasLROMixin() bool {
 // hasIAMPolicyMixin is a convenience method for determining if the IAMPolicy
 // mixin should be generated.
 func (g *generator) hasIAMPolicyMixin() bool {
-	return len(g.mixins["google.iam.v1.IAMPolicy"]) > 0 && !g.hasIAMPolicyOverrides
+	return len(g.mixins["google.iam.v1.IAMPolicy"]) > 0 && !g.hasIAMPolicyOverrides && len(g.serviceConfig.GetApis()) > 1
 }
 
-// hasLocationixin is a convenience method for determining if the Locations
+// hasLocationMixin is a convenience method for determining if the Locations
 // mixin should be generated.
 func (g *generator) hasLocationMixin() bool {
-	return len(g.mixins["google.cloud.location.Locations"]) > 0
+	return len(g.mixins["google.cloud.location.Locations"]) > 0 && len(g.serviceConfig.GetApis()) > 1
 }
 
 // checkIAMPolicyOverrides determines if any of the given services define an
@@ -218,4 +218,21 @@ func (g *generator) checkIAMPolicyOverrides(servs []*descriptor.ServiceDescripto
 			}
 		}
 	}
+}
+
+// includeMixinInputFile determines if the given proto file name matches
+// a known mixin file and indicates if it should be included in the
+// protos-to-be-generated file set based on if the package is using it for
+// mixins or not.
+func (g *generator) includeMixinInputFile(file string) bool {
+	if file == "google/cloud/location/locations.proto" && g.hasLocationMixin() {
+		return false
+	}
+	if file == "google/iam/v1/iam_policy.proto" && g.hasIAMPolicyMixin() {
+		return false
+	}
+	if file == "google/longrunning/operations.proto" && g.hasLROMixin() {
+		return false
+	}
+	return true
 }
