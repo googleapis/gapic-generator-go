@@ -115,10 +115,6 @@ jobs:
         unzip googleapis.zip -x "googleapis-master/google/ads/*"
         mv googleapis-master /tmp/googleapis
         export GOOGLEAPIS=/tmp/googleapis
-        curl -sSL https://github.com/googleapis/googleapis-discovery/archive/master.zip > googleapis-discovery.zip
-        unzip googleapis-discovery.zip
-        mv googleapis-discovery-master /tmp/googleapis-discovery
-        export GOOGLEAPIS_DISCO=/tmp/googleapis-discovery
     - name: Clone google-cloud-go
       uses: actions/checkout@v2
       with:
@@ -137,8 +133,7 @@ jobs:
           -only-gapics \
           -gapic=cloud.google.com/go/compute/apiv1 \
           -gocloud-dir=$CLOUD_GO \
-          -googleapis-dir=$GOOGLEAPIS \
-          -googleapis-disco-dir=$GOOGLEAPIS_DISCO
+          -googleapis-dir=$GOOGLEAPIS
         cd $CLOUD_GO && go get ./compute/apiv1
     - name: Compare regenerated code to baseline
       if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
