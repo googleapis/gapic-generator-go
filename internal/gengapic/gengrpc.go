@@ -199,7 +199,6 @@ func (g *generator) grpcClientOptions(serv *descriptor.ServiceDescriptorProto, s
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("    internaloption.EnableJwtWithScope(),")
-	p("    option.WithGRPCDialOption(grpc.WithDisableServiceConfig()),")
 	p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
 	p("      grpc.MaxCallRecvMsgSize(math.MaxInt32))),")
 	p("  }")
