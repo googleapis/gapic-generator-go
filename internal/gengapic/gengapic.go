@@ -55,6 +55,9 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
 			continue
 		}
+		if !g.includeMixinInputFile(f.GetName()) {
+			continue
+		}
 		genServs = append(genServs, f.GetService()...)
 	}
 
