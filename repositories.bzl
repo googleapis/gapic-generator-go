@@ -984,8 +984,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:FqrtZMB5Wr+/RecOM3uPJNPfWR8Upb5hAPnt7PU6i4k=",
-        version = "v0.0.0-20211021150943-2b146023228c",
+        sum = "h1:0LoCYJF53PEqtJOntKxGD72X/c8Xto5EZ4HLrt9D80I=",
+        version = "v0.0.0-20211115160612-a5da7257a6f7",
     )
     go_repository(
         name = "org_golang_google_grpc",
