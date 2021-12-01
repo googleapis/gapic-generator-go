@@ -474,8 +474,8 @@ func TestGenRestMethod(t *testing.T) {
 				s:   f,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
-				opRPC: s,
-				sizeField: foo,
+				opRPC:      s,
+				sizeField:  foo,
 				otherField: foo,
 			},
 			Type: map[string]pbinfo.ProtoType{
