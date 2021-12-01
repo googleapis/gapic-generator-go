@@ -20,6 +20,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 )
 
 func lowerFirst(s string) string {
@@ -124,6 +126,24 @@ func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
 func containsTransport(t []transport, tr transport) bool {
 	for _, x := range t {
 		if x == tr {
+			return true
+		}
+	}
+
+	return false
+}
+
+// isRequired returns if a field is annotated as REQUIRED or not.
+func isRequired(field *descriptor.FieldDescriptorProto) bool {
+	if field.GetOptions() == nil {
+		return false
+	}
+
+	eBehav := proto.GetExtension(field.GetOptions(), annotations.E_FieldBehavior)
+
+	behaviors := eBehav.([]annotations.FieldBehavior)
+	for _, b := range behaviors {
+		if b == annotations.FieldBehavior_REQUIRED {
 			return true
 		}
 	}

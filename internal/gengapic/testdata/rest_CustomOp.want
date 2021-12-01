@@ -2,6 +2,14 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 	baseUrl, _ := url.Parse(c.endpoint)
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
+	params := url.Values{}
+	if req != nil && req.Other != nil {
+		params.Add("other", fmt.Sprintf("%v", req.GetOther()))
+	}
+	params.Add("size", fmt.Sprintf("%v", req.GetSize()))
+
+	baseUrl.RawQuery = params.Encode()
+
 
 	httpReq, err := http.NewRequest("POST", baseUrl.String(), nil)
 	if err != nil {

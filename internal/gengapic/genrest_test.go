@@ -410,8 +410,22 @@ func TestLeafFields(t *testing.T) {
 func TestGenRestMethod(t *testing.T) {
 	pkg := "google.cloud.foo.v1"
 
+	sizeOpts := &descriptor.FieldOptions{}
+	proto.SetExtension(sizeOpts, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_REQUIRED})
+	sizeField := &descriptor.FieldDescriptorProto{
+		Name:    proto.String("size"),
+		Type:    descriptor.FieldDescriptorProto_TYPE_INT32.Enum(),
+		Options: sizeOpts,
+	}
+	otherField := &descriptor.FieldDescriptorProto{
+		Name:           proto.String("other"),
+		Type:           descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Proto3Optional: proto.Bool(true),
+	}
+
 	foo := &descriptor.DescriptorProto{
-		Name: proto.String("Foo"),
+		Name:  proto.String("Foo"),
+		Field: []*descriptor.FieldDescriptorProto{sizeField, otherField},
 	}
 	foofqn := fmt.Sprintf(".%s.Foo", pkg)
 
@@ -461,6 +475,8 @@ func TestGenRestMethod(t *testing.T) {
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
 				opRPC: s,
+				sizeField: foo,
+				otherField: foo,
 			},
 			Type: map[string]pbinfo.ProtoType{
 				opfqn:  op,

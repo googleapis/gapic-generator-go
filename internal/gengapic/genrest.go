@@ -307,7 +307,7 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p := g.printf
 	queryParams := g.queryParams(m)
-	if queryParams == nil || len(queryParams) == 0 {
+	if len(queryParams) == 0 {
 		return
 	}
 
@@ -322,8 +322,21 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("params := url.Values{}")
 	for _, path := range fields {
 		field := queryParams[path]
+		required := isRequired(field)
 		accessor := fieldGetter(path)
-		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+		singularPrimitive := field.GetType() != fieldTypeMessage &&
+			field.GetType() != fieldTypeBytes &&
+			field.GetLabel() != fieldLabelRepeated
+		paramAdd := fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", lowerFirst(snakeToCamel(path)), "%v", accessor)
+
+		// Only required, singular, primitive field types should be added regardless.
+		if required && singularPrimitive {
+			// Use string format specifier here in order to allow %v to be a raw string.
+			p("%s", paramAdd)
+			continue
+		}
+
+		if field.GetLabel() == fieldLabelRepeated {
 			// It's a slice, so check for nil
 			p("if req%s != nil {", accessor)
 		} else if field.GetProto3Optional() {
@@ -337,17 +350,17 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			// Default values are type specific
 			switch field.GetType() {
 			// Degenerate case, field should never be a message because that implies it's not a leaf.
-			case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_BYTES:
+			case fieldTypeMessage, fieldTypeBytes:
 				p("if req%s != nil {", accessor)
-			case descriptor.FieldDescriptorProto_TYPE_STRING:
+			case fieldTypeString:
 				p(`if req%s != "" {`, accessor)
-			case descriptor.FieldDescriptorProto_TYPE_BOOL:
+			case fieldTypeBool:
 				p(`if req%s {`, accessor)
 			default: // Handles all numeric types including enums
 				p(`if req%s != 0 {`, accessor)
 			}
 		}
-		p("    params.Add(\"%s\", fmt.Sprintf(\"%%v\", req%s))", lowerFirst(snakeToCamel(path)), accessor)
+		p("    %s", paramAdd)
 		p("}")
 	}
 	p("")
