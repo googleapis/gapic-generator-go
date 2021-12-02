@@ -39,6 +39,11 @@ const (
 	alpha               = "alpha"
 	beta                = "beta"
 	disableDeadlinesVar = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
+	fieldTypeBool       = descriptor.FieldDescriptorProto_TYPE_BOOL
+	fieldTypeString     = descriptor.FieldDescriptorProto_TYPE_STRING
+	fieldTypeBytes      = descriptor.FieldDescriptorProto_TYPE_BYTES
+	fieldTypeMessage    = descriptor.FieldDescriptorProto_TYPE_MESSAGE
+	fieldLabelRepeated  = descriptor.FieldDescriptorProto_LABEL_REPEATED
 )
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)

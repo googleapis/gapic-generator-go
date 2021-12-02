@@ -19,7 +19,9 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestCamelToSnake(t *testing.T) {
@@ -159,6 +161,34 @@ func TestHasMethod(t *testing.T) {
 	} {
 		if got := hasMethod(serv, tst.in); !cmp.Equal(got, tst.want) {
 			t.Errorf("TestHasMethod got %v want %v", got, tst.want)
+		}
+	}
+}
+
+func TestIsRequired(t *testing.T) {
+	req := &descriptorpb.FieldOptions{}
+	proto.SetExtension(req, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_REQUIRED})
+
+	notReq := &descriptorpb.FieldOptions{}
+	proto.SetExtension(notReq, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_INPUT_ONLY})
+
+	for _, tst := range []struct {
+		opts *descriptor.FieldOptions
+		want bool
+	}{
+		{
+			opts: req,
+			want: true,
+		},
+		{
+			opts: notReq,
+		},
+		{
+			opts: nil,
+		},
+	} {
+		if got := isRequired(&descriptor.FieldDescriptorProto{Options: tst.opts}); got != tst.want {
+			t.Errorf("isRequired(%q) = got %v, want %v", tst.opts, got, tst.want)
 		}
 	}
 }
