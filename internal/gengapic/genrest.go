@@ -382,7 +382,7 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 	fmtStr := info.url
 	// TODO(dovs): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
-	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)}`)
+	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^}]+)?}`)
 	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
 	// TODO(dovs): handle error
@@ -470,15 +470,11 @@ func (g *generator) shouldDisableComplexPaths(m *descriptor.MethodDescriptorProt
 
 	info, _ := getHTTPInfo(m)
 
-	re := regexp.MustCompile(`[^a-zA-Z0-9_.]+?`)
-	pathParams := g.pathParams(m)
-	for pName := range pathParams {
-		if re.MatchString(pName) {
-			p(`    return nil, fmt.Errorf("complex url paths are not yet supported: %s")`, info.url)
-			p("}")
-			p("")
-			return true
-		}
+	if len(g.pathParams(m)) > 1 {
+		p(`    return nil, fmt.Errorf("complex url paths are not yet supported: %s")`, info.url)
+		p("}")
+		p("")
+		return true
 	}
 	return false
 }
