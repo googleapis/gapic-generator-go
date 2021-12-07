@@ -852,12 +852,19 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("  return nil, err")
 	p("}")
 	p("")
-	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
-	p("rsp := &%s.%s{}", outSpec.Name, outType.GetName())
-	p("")
-	p("if err := unm.Unmarshal(buf, rsp); err != nil {")
-	p("  return nil, maybeUnknownEnum(err)")
-	p("}")
+	if outSpec.Name == "httpbodypb" && outType.GetName() == "HttpBody" {
+		p("rsp := &httpbodypb.HttpBody{")
+		p("  Data: buf,")
+		p("  ContentType: httpRsp.Header[\"Content-Type\"][0],")
+		p("}")
+	} else {
+		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
+		p("rsp := &%s.%s{}", outSpec.Name, outType.GetName())
+		p("")
+		p("if err := unm.Unmarshal(buf, rsp); err != nil {")
+		p("  return nil, maybeUnknownEnum(err)")
+		p("}")
+	}
 	ret := "return rsp, nil"
 	if g.isCustomOp(m, info) {
 		p("op := %s", g.customOpInit("rsp"))
