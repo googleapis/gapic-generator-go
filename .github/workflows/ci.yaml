@@ -3,7 +3,7 @@ name: Generator tests
 on:
   push:
     branches:
-      - master
+      - main
       - diregapic-dev-branch
   pull_request:
 

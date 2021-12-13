@@ -9,7 +9,7 @@ on:
       - showcase/go.sum
 jobs:
   update-bazel-deps:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     outputs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: master
+        ref: main
     - uses: actions/download-artifact@v2
       with:
         name: repositories
@@ -61,7 +61,7 @@ jobs:
         description: 'Updated Go dependencies for Bazel repositories.'
         title: 'chore: update Bazel Go deps'
         message: 'chore: update Bazel Go deps'
-        primary: 'master'
+        primary: 'main'
         labels: |
           automerge
         branch: update-bazel-deps
