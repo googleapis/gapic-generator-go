@@ -59,8 +59,8 @@ jobs:
         upstream_owner: googleapis
         upstream_repo: gapic-generator-go
         description: 'Updated Go dependencies for Bazel repositories.'
-        title: 'chore: update Bazel Go deps'
-        message: 'chore: update Bazel Go deps'
+        title: 'chore(bazel): update Bazel Go deps'
+        message: 'chore(bazel): update Bazel Go deps'
         primary: 'main'
         labels: |
           automerge
