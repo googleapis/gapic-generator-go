@@ -20,18 +20,10 @@ Test everything and run Showcase integration tests:
 
     make test
 
-When opening a PR, please prefix the title with the main component the change effects,
-separated from the message with a colon. This chould be one of `gapic`, `gencli`,
-`bazel`, or `chore`. For example:
-
-    gapic: strip reference links in comments
-
-    gencli: ignore output_only enums
-    
-    bazel: copy go_gapic_assembly_pkg macro impl
-
-This allows the release automation to categorize the commits in the release notes.
-If omitted, the PR title will be changed by a maintainer prior to submission.
+When opening a PR, please follow [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0-beta.4/)
+style for commit messages, and include the subdirectory as the scope, exluding "internal" if present. For
+example, a commit that changes code in the [internal/gengapic](internal/gengapic) directory would be
+`fix(gengapic): change foo to bar`.
 
 ## Bazel BUILD files
 
@@ -48,13 +40,9 @@ Make target: `make update-bazel-repos`.
 
 ## Releases
 
-Releases are made on GitHub via Actions. It is configured to build and push tagged images upon release.
-Tags always begin with a `v` and follow semver.
-
-    git tag v1.2.3 && git push upstream --tags
-
-A GitHub release will be made automatically with release notes generated based on the commit
-messages of commits since the previous tag.
+Releases are managed by [Release Please](https://github.com/googleapis/release-please). Any commit
+merged starting with `fix` or `feat` will trigger a Release Please pull request. Merge that to create
+a release. Generator binaries will be added by CI after the release is created.
 
 ## Contributor License Agreement
 

@@ -1,0 +1,70 @@
+---
+name: assets
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        osarch:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm
+          - os: darwin
+            arch: amd64
+          - os: windows
+            arch: amd64
+    steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.8'
+      - uses: actions/checkout@v2
+      # The generator does not use these,  but we need them to build the
+      # binaries.
+      #
+      # Mousetrap is installed individually because it is needed for the
+      # Windows build. Since we are building on Linux, it is not installed
+      # automatically as a dependency.
+      - name: Install the cross-platform build tool.
+        run: |
+          go get github.com/mitchellh/gox
+          go get github.com/inconshreveable/mousetrap
+      - name: Build for the ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} platform.
+        run: |
+          gox -osarch ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} -output protoc-gen-go_gapic ./cmd/protoc-gen-go_gapic && \
+          tar cvfz protoc-gen-go_gapic.tar.gz protoc-gen-go_gapic*
+      - name: Upload the ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} release.
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./protoc-gen-go_gapic.tar.gz
+          asset_name: protoc-gen-go_gapic-${{ github.event.release.tag_name }}-${{ matrix.osarch.os }}-${{ matrix.osarch.arch }}.tar.gz
+          asset_content_type: application/tar+gzip
+  # push_to_registry:
+  #   needs:
+  #     - inspect
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check out the repo
+  #       uses: actions/checkout@v2
+  #     - name: Compile plugin binary
+  #       run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ./cmd/protoc-gen-go_gapic
+  #     - name: Login to GCR
+  #       uses: docker/login-action@v1
+  #       with:
+  #         registry: gcr.io
+  #         username: _json_key
+  #         password: ${{ secrets.GCR_JSON_KEY }}
+  #     - name: Push to GCR
+  #       uses: docker/build-push-action@v2
+  #       with:
+  #         tags: gcr.io/gapic-images/gapic-generator-go:${{ needs.inspect.outputs.raw_version }},gcr.io/gapic-images/gapic-generator-go:latest
+  #         push: true
+  #         context: .
