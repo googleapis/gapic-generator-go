@@ -1,10 +1,10 @@
-// Copyright (C) 2021  Google LLC
+// Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//     https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -465,10 +465,6 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 	}
 }
 
-func (g *generator) shouldDisableComplexPaths(m *descriptor.MethodDescriptorProto) bool {
-	return false
-}
-
 func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	// Streaming calls are not currently supported for REST clients,
 	// but the interface signature must be preserved.
@@ -683,11 +679,6 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
-	// TODO(dovs): fix complex path logic
-	if g.shouldDisableComplexPaths(m) {
-		return nil
-	}
-
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines
@@ -782,11 +773,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
-
-	// TODO(dovs): fix complex path logic
-	if g.shouldDisableComplexPaths(m) {
-		return nil
-	}
 
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
