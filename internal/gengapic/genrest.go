@@ -838,10 +838,13 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("  return nil, err")
 	p("}")
 	p("")
-	if outSpec.Name == "httpbodypb" && outType.GetName() == "HttpBody" {
+	fqn := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[outType].GetPackage(), outType.GetName())
+	if fqn == "google.api.HttpBody" {
 		p("rsp := &httpbodypb.HttpBody{")
 		p("  Data: buf,")
-		p("  ContentType: httpRsp.Header[\"Content-Type\"][0],")
+		p("}")
+		p(`if headers := httpRsp.Header; len(headers["Content-Type"]) > 0 {`)
+		p(`  rsp.ContentType = headers["Content-Type"][0]`)
 		p("}")
 	} else {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
