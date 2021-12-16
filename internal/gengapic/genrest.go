@@ -382,7 +382,7 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 	fmtStr := info.url
 	// TODO(dovs): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
-	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)}`)
+	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
 	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
 	// TODO(dovs): handle error
@@ -463,24 +463,6 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 	default:
 		return g.unaryRESTCall(servName, m)
 	}
-}
-
-func (g *generator) shouldDisableComplexPaths(m *descriptor.MethodDescriptorProto) bool {
-	p := g.printf
-
-	info, _ := getHTTPInfo(m)
-
-	re := regexp.MustCompile(`[^a-zA-Z0-9_.]+?`)
-	pathParams := g.pathParams(m)
-	for pName := range pathParams {
-		if re.MatchString(pName) {
-			p(`    return nil, fmt.Errorf("complex url paths are not yet supported: %s")`, info.url)
-			p("}")
-			p("")
-			return true
-		}
-	}
-	return false
 }
 
 func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
@@ -697,11 +679,6 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
-	// TODO(dovs): fix complex path logic
-	if g.shouldDisableComplexPaths(m) {
-		return nil
-	}
-
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines
@@ -796,11 +773,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
-
-	// TODO(dovs): fix complex path logic
-	if g.shouldDisableComplexPaths(m) {
-		return nil
-	}
 
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
