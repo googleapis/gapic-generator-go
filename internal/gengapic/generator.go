@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
@@ -30,6 +29,8 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/runtime/protoiface"
 	"gopkg.in/yaml.v2"
 )
 
@@ -39,7 +40,7 @@ type generator struct {
 	descInfo pbinfo.Info
 
 	// Maps proto elements to their comments
-	comments map[proto.Message]string
+	comments map[protoiface.MessageV1]string
 
 	resp plugin.CodeGeneratorResponse
 
@@ -56,10 +57,6 @@ type generator struct {
 
 	// Auxiliary types to be generated in the package
 	aux *auxTypes
-
-	// The Go module prefix to strip from the go-gapic-package
-	// used as the generated file name.
-	modulePrefix string
 
 	// Options for the generator determining module names, transports,
 	// config file paths, etc.
@@ -83,7 +80,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	}
 
 	g.mixins = make(mixins)
-	g.comments = map[proto.Message]string{}
+	g.comments = map[protoiface.MessageV1]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.aux = &auxTypes{
 		iters: map[string]*iterType{},

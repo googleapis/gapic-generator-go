@@ -67,7 +67,7 @@ func setupMethod(g *generator, url, body string, fields []string) (*descriptor.M
 	proto.SetExtension(srv.GetOptions(), annotations.E_DefaultHost, "linnaean.taxonomy.com")
 
 	fds := []*descriptor.FileDescriptorProto{
-		&descriptor.FileDescriptorProto{
+		{
 			Package:     proto.String("identify"),
 			Service:     []*descriptor.ServiceDescriptorProto{srv},
 			MessageType: []*descriptor.DescriptorProto{msg},
@@ -106,12 +106,12 @@ func TestPathParams(t *testing.T) {
 			url:    "/kingdom/{kingdom}/phylum/{phylum}",
 			fields: []string{"name", "mass_kg", "kingdom", "phylum"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
-				"kingdom": &descriptor.FieldDescriptorProto{
+				"kingdom": {
 					Name:   proto.String("kingdom"),
 					Number: proto.Int32(int32(2)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
-				"phylum": &descriptor.FieldDescriptorProto{
+				"phylum": {
 					Name:   proto.String("phylum"),
 					Number: proto.Int32(int32(3)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
@@ -129,7 +129,7 @@ func TestPathParams(t *testing.T) {
 			url:    "/kingdom/{kingdom}/phylum/{phylum}",
 			fields: []string{"name", "mass_kg", "kingdom"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
-				"kingdom": &descriptor.FieldDescriptorProto{
+				"kingdom": {
 					Name:   proto.String("kingdom"),
 					Number: proto.Int32(int32(2)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
@@ -141,12 +141,12 @@ func TestPathParams(t *testing.T) {
 			url:    "/kingdom/{kingdom}/phylum/{phylum}/class/{class}",
 			fields: []string{"kingdom", "phylum"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
-				"kingdom": &descriptor.FieldDescriptorProto{
+				"kingdom": {
 					Name:   proto.String("kingdom"),
 					Number: proto.Int32(int32(0)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 				},
-				"phylum": &descriptor.FieldDescriptorProto{
+				"phylum": {
 					Name:   proto.String("phylum"),
 					Number: proto.Int32(int32(1)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
@@ -196,7 +196,7 @@ func TestQueryParams(t *testing.T) {
 			url:    "/kingdom",
 			fields: []string{"mass_kg", "guess"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
-				"mass_kg": &descriptor.FieldDescriptorProto{
+				"mass_kg": {
 					Name:   proto.String("mass_kg"),
 					Number: proto.Int32(int32(0)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
@@ -209,7 +209,7 @@ func TestQueryParams(t *testing.T) {
 			url:    "/kingdom/{kingdom}/phylum/{phylum}",
 			fields: []string{"kingdom", "phylum", "mass_kg", "guess"},
 			expected: map[string]*descriptor.FieldDescriptorProto{
-				"mass_kg": &descriptor.FieldDescriptorProto{
+				"mass_kg": {
 					Name:   proto.String("mass_kg"),
 					Number: proto.Int32(int32(2)),
 					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
@@ -238,12 +238,12 @@ func TestLeafFields(t *testing.T) {
 	basicMsg := &descriptor.DescriptorProto{
 		Name: proto.String("Clam"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(0)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("saltwater_p"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_BOOL),
@@ -254,7 +254,7 @@ func TestLeafFields(t *testing.T) {
 	innermostMsg := &descriptor.DescriptorProto{
 		Name: proto.String("Chromatophore"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("color_code"),
 				Number: proto.Int32(int32(0)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
@@ -264,12 +264,12 @@ func TestLeafFields(t *testing.T) {
 	nestedMsg := &descriptor.DescriptorProto{
 		Name: proto.String("Mantle"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(0)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("chromatophore"),
 				Number:   proto.Int32(int32(1)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -280,12 +280,12 @@ func TestLeafFields(t *testing.T) {
 	complexMsg := &descriptor.DescriptorProto{
 		Name: proto.String("Squid"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("length_m"),
 				Number: proto.Int32(int32(0)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("mantle"),
 				Number:   proto.Int32(int32(1)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -298,12 +298,12 @@ func TestLeafFields(t *testing.T) {
 		// Usually it's turtles all the way down, but here it's whelks
 		Name: proto.String("Whelk"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(0)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("whelk"),
 				Number:   proto.Int32(int32(1)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -315,14 +315,14 @@ func TestLeafFields(t *testing.T) {
 	overarchingMsg := &descriptor.DescriptorProto{
 		Name: proto.String("Trawl"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("clams"),
 				Number:   proto.Int32(int32(0)),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".animalia.mollusca"),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),

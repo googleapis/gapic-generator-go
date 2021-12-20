@@ -104,6 +104,10 @@ func (m *mdRenderer) plain(t markdown.Token) {
 	case *markdown.HeadingOpen:
 	case *markdown.HeadingClose:
 
+	// ignore ** ** bold markers
+	case *markdown.StrongOpen:
+	case *markdown.StrongClose:
+
 	default:
 		log.Printf("unhandled type: %T", t)
 	}

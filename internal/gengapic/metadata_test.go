@@ -19,7 +19,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
-	"google.golang.org/genproto/googleapis/gapic/metadata"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/proto"
 )
@@ -41,7 +40,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -57,7 +56,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -69,11 +68,11 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -89,7 +88,7 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -101,11 +100,11 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "Client",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -138,7 +137,7 @@ func TestAddMetadataMethod(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -150,7 +149,7 @@ func TestAddMetadataMethod(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs: map[string]*metadata.GapicMetadata_MethodList{
+								Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
 									"GetBook": {Methods: []string{"GetBook"}},
 								},
 							},
@@ -168,7 +167,7 @@ func TestAddMetadataMethod(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs: map[string]*metadata.GapicMetadata_MethodList{
+								Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
 									"ListBooks": {Methods: []string{"ListBooks"}},
 								},
 							},
@@ -182,7 +181,7 @@ func TestAddMetadataMethod(t *testing.T) {
 						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs: map[string]*metadata.GapicMetadata_MethodList{
+								Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
 									"GetBook":   {Methods: []string{"GetBook"}},
 									"ListBooks": {Methods: []string{"ListBooks"}},
 								},
@@ -217,7 +216,7 @@ func TestGenGapicMetadataFile_standardized(t *testing.T) {
 					Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
 						"grpc": {
 							LibraryClient: "libClient",
-							Rpcs: map[string]*metadata.GapicMetadata_MethodList{
+							Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
 								"GetBook": {Methods: []string{"GetBook"}},
 							},
 						},

@@ -30,7 +30,6 @@ go_library(
         "//internal/license",
         "//internal/pbinfo",
         "//internal/printer",
-        "@com_github_golang_protobuf//proto:go_default_library",
         "@com_gitlab_golang_commonmark_markdown//:markdown",
         "@go_googleapis//google/api:annotations_go_proto",
         "@go_googleapis//google/api:serviceconfig_go_proto",
@@ -45,6 +44,7 @@ go_library(
         "@org_golang_google_protobuf//encoding/protojson",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//reflect/protodesc",
+        "@org_golang_google_protobuf//runtime/protoiface",
     ],
 )
 

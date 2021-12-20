@@ -18,13 +18,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 )
 
 // genDocFile generates doc.go
@@ -223,14 +222,8 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
-		eOauthScopes, err := proto.GetExtension(s.Options, annotations.E_OauthScopes)
-		if err == proto.ErrMissingExtension {
-			continue
-		}
-		if err != nil {
-			return nil, errors.E(err, "cannot find scopes for service: %q", s.GetName())
-		}
-		scopes := strings.Split(*eOauthScopes.(*string), ",")
+		eOauthScopes := proto.GetExtension(s.Options, annotations.E_OauthScopes)
+		scopes := strings.Split(eOauthScopes.(string), ",")
 		for _, sc := range scopes {
 			scopeSet[sc] = true
 		}

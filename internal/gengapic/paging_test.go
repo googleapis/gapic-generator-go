@@ -135,12 +135,12 @@ func TestPagingField(t *testing.T) {
 	validPageSize := &descriptor.DescriptorProto{
 		Name: proto.String("ValidPageSizeRequest"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("page_size"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("page_token"),
 				Number: proto.Int32(int32(2)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
@@ -150,12 +150,12 @@ func TestPagingField(t *testing.T) {
 	validMaxResults := &descriptor.DescriptorProto{
 		Name: proto.String("ValidMaxResultsRequest"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("max_results"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("page_token"),
 				Number: proto.Int32(int32(2)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
@@ -166,12 +166,12 @@ func TestPagingField(t *testing.T) {
 	validRepeated := &descriptor.DescriptorProto{
 		Name: proto.String("ValidRepeatedResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("next_page_token"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -184,12 +184,12 @@ func TestPagingField(t *testing.T) {
 		Name:    proto.String("ItemsEntry"),
 		Options: &descriptor.MessageOptions{MapEntry: proto.Bool(bool(true))},
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("key"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("value"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -200,12 +200,12 @@ func TestPagingField(t *testing.T) {
 	validMap := &descriptor.DescriptorProto{
 		Name: proto.String("ValidMapResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("next_page_token"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -218,19 +218,19 @@ func TestPagingField(t *testing.T) {
 	multipleRepeated := &descriptor.DescriptorProto{
 		Name: proto.String("MultipleRepeatedResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("next_page_token"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".paging.RandomMessage"),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items_2"),
 				Number:   proto.Int32(int32(3)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -242,19 +242,19 @@ func TestPagingField(t *testing.T) {
 	tooManyRepeated := &descriptor.DescriptorProto{
 		Name: proto.String("TooManyRepeatedResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("next_page_token"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(3)), // Note that the "first" repeated field has a higher field number.
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".paging.RandomMessage"),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items_2"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -266,19 +266,19 @@ func TestPagingField(t *testing.T) {
 	tooManyMap := &descriptor.DescriptorProto{
 		Name: proto.String("TooManyMapResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("next_page_token"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(3)), // Note that the "first" repeated field has a higher field number.
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
 				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
 				TypeName: proto.String(".paging.ItemsEntry"),
 			},
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items_2"),
 				Number:   proto.Int32(int32(2)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -290,7 +290,7 @@ func TestPagingField(t *testing.T) {
 	noRepeatedField := &descriptor.DescriptorProto{
 		Name: proto.String("NoRepeatedFieldResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:   proto.String("next_page_token"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptor.FieldDescriptorProto_TYPE_STRING),
@@ -300,7 +300,7 @@ func TestPagingField(t *testing.T) {
 	noNextPageToken := &descriptor.DescriptorProto{
 		Name: proto.String("NoNextPageTokenResponse"),
 		Field: []*descriptor.FieldDescriptorProto{
-			&descriptor.FieldDescriptorProto{
+			{
 				Name:     proto.String("items"),
 				Number:   proto.Int32(int32(1)),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
@@ -389,7 +389,7 @@ func TestPagingField(t *testing.T) {
 			validRepeated,
 		},
 		Service: []*descriptor.ServiceDescriptorProto{
-			&descriptor.ServiceDescriptorProto{
+			{
 				Name: proto.String("TestService"),
 				Method: []*descriptor.MethodDescriptorProto{
 					clientStreamingMthd,
