@@ -21,7 +21,20 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	return
 fi
 
-SHOWCASE_SEMVER=0.17.0
+# Capture the version of gapic-showcase dependency listed in the go.mod to
+# download release assets.
+SHOWCASE_SEMVER=
+regex="showcase v([0-9]+\.[0-9]+\.[0-9]+)"
+mod=`cat go.mod`
+
+if [[ $mod =~ $regex ]]
+then
+	SHOWCASE_SEMVER="${BASH_REMATCH[1]}"
+	echo "Using Showcase version ${SHOWCASE_SEMVER}"
+else
+	echo "Could not find a proper version for showcase in go.mod: ${mod}" >&2
+	exit 1
+fi
 
 rm -rf gen
 mkdir gen
