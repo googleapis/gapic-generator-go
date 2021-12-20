@@ -17,11 +17,11 @@ package gengapic
 import (
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/longrunning"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) error {
@@ -147,14 +147,12 @@ func (g *generator) exampleLROCall(m *descriptor.MethodDescriptorProto) {
 	retVars := "resp, err :="
 
 	// if response_type is google.protobuf.Empty, don't generate a "resp" var
-	eLRO, err := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
-	if err == nil {
-		opInfo := eLRO.(*longrunning.OperationInfo)
-		if opInfo.GetResponseType() == emptyValue {
-			// no new variables when this is used
-			// therefore don't attempt to delcare it
-			retVars = "err ="
-		}
+	eLRO := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
+	opInfo := eLRO.(*longrunning.OperationInfo)
+	if opInfo.GetResponseType() == emptyValue {
+		// no new variables when this is used
+		// therefore don't attempt to delcare it
+		retVars = "err ="
 	}
 
 	p("op, err := c.%s(ctx, req)", *m.Name)

@@ -16,15 +16,14 @@ package gengapic
 
 import (
 	"fmt"
-	"log"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/cloud/location"
 	iam "google.golang.org/genproto/googleapis/iam/v1"
 	"google.golang.org/genproto/googleapis/longrunning"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 )
 
@@ -90,9 +89,7 @@ func (g *generator) collectMixinMethods(api string) []*descriptor.MethodDescript
 			continue
 		}
 
-		if err := proto.SetExtension(m.Options, annotations.E_Http, rule); err != nil {
-			log.Println("Encountered error setting HTTP annotations:", err)
-		}
+		proto.SetExtension(m.Options, annotations.E_Http, rule)
 		methodsToGenerate = append(methodsToGenerate, m)
 	}
 

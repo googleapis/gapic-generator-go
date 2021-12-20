@@ -23,12 +23,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -502,11 +502,9 @@ func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, err
 func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
 	var matches [][]string
 
-	eHTTP, err := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-	if m == nil || m.GetOptions() == nil || err == proto.ErrMissingExtension {
+	eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
+	if m == nil || m.GetOptions() == nil {
 		return nil, nil
-	} else if err != nil {
-		return nil, err
 	}
 
 	http := eHTTP.(*annotations.HttpRule)

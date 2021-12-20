@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/protobuf/proto"
 )
 
 func lowcaseGRPCClientName(servName string) string {
@@ -180,13 +180,8 @@ func (g *generator) grpcClientOptions(serv *descriptor.ServiceDescriptorProto, s
 	p := g.printf
 
 	// defaultClientOptions
-	var host string
-	if eHost, err := proto.GetExtension(serv.Options, annotations.E_DefaultHost); err == nil {
-		host = *eHost.(*string)
-	} else {
-		fqn := g.descInfo.ParentFile[serv].GetPackage() + "." + serv.GetName()
-		return fmt.Errorf("service %q is missing option google.api.default_host", fqn)
-	}
+	eHost := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
+	host := eHost.(string)
 
 	if !strings.Contains(host, ":") {
 		host += ":443"

@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/longrunning"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
@@ -83,10 +83,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	lroType := lroTypeName(m.GetName())
 	p := g.printf
 
-	eLRO, err := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
-	if err != nil {
-		return fmt.Errorf("rpc %q returns google.longrunning.Operation but is missing option google.longrunning.operation_info", mFQN)
-	}
+	eLRO := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
 	opInfo := eLRO.(*longrunning.OperationInfo)
 	fullName := opInfo.GetResponseType()
 	if fullName == "" {
