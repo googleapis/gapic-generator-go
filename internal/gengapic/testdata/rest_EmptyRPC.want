@@ -1,0 +1,35 @@
+func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...gax.CallOption) error {
+	baseUrl, _ := url.Parse(c.endpoint)
+	baseUrl.Path += fmt.Sprintf("/v1/foo")
+
+	params := url.Values{}
+	if req != nil && req.Other != nil {
+		params.Add("other", fmt.Sprintf("%v", req.GetOther()))
+	}
+	params.Add("size", fmt.Sprintf("%v", req.GetSize()))
+
+	baseUrl.RawQuery = params.Encode()
+
+
+	httpReq, err := http.NewRequest("DELETE", baseUrl.String(), nil)
+	if err != nil {
+		return err
+	}
+	httpReq = httpReq.WithContext(ctx)
+
+	// Set the headers
+	for k, v := range c.xGoogMetadata {
+		httpReq.Header[k] = v
+	}
+	httpReq.Header["Content-Type"] = []string{"application/json"}
+
+	httpRsp, err := c.httpClient.Do(httpReq)
+	if err != nil{
+		return err
+	}
+	defer httpRsp.Body.Close()
+
+	// Returns nil if there is no error, otherwise wraps
+	// the response code and body into a non-nil error
+	return googleapi.CheckResponse(httpRsp)
+}

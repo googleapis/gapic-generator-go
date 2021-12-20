@@ -26,7 +26,9 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Note: the fields parameter contains the names of _all_ the request message's fields,
@@ -429,6 +431,36 @@ func TestGenRestMethod(t *testing.T) {
 	}
 	foofqn := fmt.Sprintf(".%s.Foo", pkg)
 
+	pageSizeField := &descriptor.FieldDescriptorProto{
+		Name: proto.String("page_size"),
+		Type: descriptor.FieldDescriptorProto_TYPE_INT32.Enum(),
+	}
+	pageTokenField := &descriptor.FieldDescriptorProto{
+		Name: proto.String("page_token"),
+		Type: descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+	}
+	pagedFooReq := &descriptor.DescriptorProto{
+		Name:  proto.String("PagedFoodRequest"),
+		Field: []*descriptor.FieldDescriptorProto{pageSizeField, pageTokenField},
+	}
+	pagedFooReqFQN := fmt.Sprintf(".%s.PagedFooRequest", pkg)
+
+	foosField := &descriptor.FieldDescriptorProto{
+		Name:     proto.String("foos"),
+		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		TypeName: proto.String(foofqn),
+		Label:    descriptor.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+	}
+	nextPageTokenField := &descriptor.FieldDescriptorProto{
+		Name: proto.String("next_page_token"),
+		Type: descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+	}
+	pagedFooRes := &descriptor.DescriptorProto{
+		Name:  proto.String("PagedFoodResponse"),
+		Field: []*descriptor.FieldDescriptorProto{foosField, nextPageTokenField},
+	}
+	pagedFooResFQN := fmt.Sprintf(".%s.PagedFooResponse", pkg)
+
 	op := &descriptor.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
@@ -448,6 +480,49 @@ func TestGenRestMethod(t *testing.T) {
 		Options:    opRPCOpt,
 	}
 
+	emptyRPCOpt := &descriptor.MethodOptions{}
+	proto.SetExtension(emptyRPCOpt, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Delete{
+			Delete: "/v1/foo",
+		},
+	})
+
+	emptyRPC := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("EmptyRPC"),
+		InputType:  proto.String(foofqn),
+		OutputType: proto.String(emptyType),
+		Options:    emptyRPCOpt,
+	}
+
+	unaryRPCOpt := &descriptor.MethodOptions{}
+	proto.SetExtension(unaryRPCOpt, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/v1/foo",
+		},
+		Body: "*",
+	})
+
+	unaryRPC := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("UnaryRPC"),
+		InputType:  proto.String(foofqn),
+		OutputType: proto.String(foofqn),
+		Options:    unaryRPCOpt,
+	}
+
+	pagingRPCOpt := &descriptor.MethodOptions{}
+	proto.SetExtension(pagingRPCOpt, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/v1/foo",
+		},
+	})
+
+	pagingRPC := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("PagingRPC"),
+		InputType:  proto.String(pagedFooReqFQN),
+		OutputType: proto.String(pagedFooResFQN),
+		Options:    pagingRPCOpt,
+	}
+
 	s := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 	}
@@ -465,22 +540,31 @@ func TestGenRestMethod(t *testing.T) {
 			customOp: &customOp{
 				message: op,
 			},
+			iters: map[string]*iterType{},
 		},
 		opts: &options{},
 		descInfo: pbinfo.Info{
 			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
-				op:  f,
-				foo: f,
-				s:   f,
+				op:          f,
+				foo:         f,
+				s:           f,
+				pagedFooReq: f,
+				pagedFooRes: f,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
 				opRPC:      s,
+				emptyRPC:   s,
+				unaryRPC:   s,
+				pagingRPC:  s,
 				sizeField:  foo,
 				otherField: foo,
 			},
 			Type: map[string]pbinfo.ProtoType{
-				opfqn:  op,
-				foofqn: foo,
+				opfqn:          op,
+				foofqn:         foo,
+				emptyType:      protodesc.ToDescriptorProto((&emptypb.Empty{}).ProtoReflect().Descriptor()),
+				pagedFooReqFQN: pagedFooReq,
+				pagedFooResFQN: pagedFooRes,
 			},
 		},
 	}
@@ -498,6 +582,39 @@ func TestGenRestMethod(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+			},
+		},
+		{
+			name:    "empty_rpc",
+			method:  emptyRPC,
+			options: &options{},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+			},
+		},
+		{
+			name:    "unary_rpc",
+			method:  unaryRPC,
+			options: &options{},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "bytes"}: true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
+				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+			},
+		},
+		{
+			name:    "paging_rpc",
+			method:  pagingRPC,
+			options: &options{},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "math"}: true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
+				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Path: "google.golang.org/api/iterator"}:                         true,
+				{Path: "google.golang.org/protobuf/proto"}:                       true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},

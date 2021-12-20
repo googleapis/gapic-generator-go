@@ -1,0 +1,45 @@
+func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...gax.CallOption) (*foopb.Foo, error) {
+	m := protojson.MarshalOptions{AllowPartial: true}
+	jsonReq, err := m.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	baseUrl, _ := url.Parse(c.endpoint)
+	baseUrl.Path += fmt.Sprintf("/v1/foo")
+
+
+	httpReq, err := http.NewRequest("POST", baseUrl.String(), bytes.NewReader(jsonReq))
+	if err != nil {
+		return nil, err
+	}
+	httpReq = httpReq.WithContext(ctx)
+	// Set the headers
+	for k, v := range c.xGoogMetadata {
+		httpReq.Header[k] = v
+	}
+	httpReq.Header["Content-Type"] = []string{"application/json",}
+
+	httpRsp, err := c.httpClient.Do(httpReq)
+	if err != nil{
+		return nil, err
+	}
+	defer httpRsp.Body.Close()
+
+	if err = googleapi.CheckResponse(httpRsp); err != nil {
+		return nil, err
+	}
+
+	buf, err := ioutil.ReadAll(httpRsp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
+	rsp := &foopb.Foo{}
+
+	if err := unm.Unmarshal(buf, rsp); err != nil {
+		return nil, maybeUnknownEnum(err)
+	}
+	return rsp, nil
+}
