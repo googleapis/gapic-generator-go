@@ -110,6 +110,9 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 
 	p("import (")
 	p("%s%q", "\t", "context")
+	if hasREST {
+		p("%s%q", "\t", "net/http")
+	}
 	p("%s%q", "\t", "os")
 	p("%s%q", "\t", "runtime")
 	p("%s%q", "\t", "strconv")
@@ -215,6 +218,16 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		p(`    err = xerrors.Errorf("received an unknown enum value; a later version of the library may support it: %%w", err)`)
 		p("  }")
 		p("  return err")
+		p("}")
+		p("")
+		p("// buildHeaders extracts metadata from the outgoing context, joins it with any other")
+		p("// given metadata, and converts them into a http.Header. ")
+		p("func buildHeaders(ctx context.Context, mds ...metadata.MD) http.Header {")
+		p("  if cmd, ok := metadata.FromOutgoingContext(ctx); ok {")
+		p("    mds = append(mds, cmd)")
+		p("  }")
+		p("  md := metadata.Join(mds...)")
+		p("  return http.Header(md)")
 		p("}")
 	}
 }

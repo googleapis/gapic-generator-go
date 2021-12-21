@@ -25,18 +25,15 @@ func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFooReques
 
 		baseUrl.RawQuery = params.Encode()
 
+		// Build HTTP headers from client and context metadata.
+		headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))
 		e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			httpReq, err := http.NewRequest("GET", baseUrl.String(), nil)
 			if err != nil {
 				return err
 			}
+			httpReq.Header = headers
 
-			// Set the headers
-			for k, v := range c.xGoogMetadata {
-				httpReq.Header[k] = v
-			}
-
-			httpReq.Header["Content-Type"] = []string{"application/json"}
 			httpRsp, err := c.httpClient.Do(httpReq)
 			if err != nil{
 				return err

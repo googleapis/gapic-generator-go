@@ -585,19 +585,16 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 
 	g.generateURLString(m)
 	g.generateQueryString(m)
-
+	p("  // Build HTTP headers from client and context metadata.")
+	p(`  headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
 	p("  e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`    httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, maybeReqBytes)
 	p("    if err != nil {")
 	p(`      return err`)
 	p("    }")
+	// TODO: Should this http.Request use WithContext?
+	p("    httpReq.Header = headers")
 	p("")
-	p("    // Set the headers")
-	p("    for k, v := range c.xGoogMetadata {")
-	p("      httpReq.Header[k] = v")
-	p("    }")
-	p("")
-	p(`    httpReq.Header["Content-Type"] = []string{"application/json"}`)
 	p("    httpRsp, err := c.httpClient.Do(httpReq)")
 	p("    if err != nil{")
 	p(`     return err`)
@@ -720,22 +717,15 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 
 	g.generateURLString(m)
 	g.generateQueryString(m)
+	p("// Build HTTP headers from client and context metadata.")
+	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
 	p("return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
 	p("  if err != nil {")
 	p("      return err")
 	p("  }")
 	p("  httpReq = httpReq.WithContext(ctx)")
-	p("")
-	p("  // Set the headers")
-	p("  for k, v := range c.xGoogMetadata {")
-	p("    httpReq.Header[k] = v")
-	p("  }")
-	// The content type is separate from x-goog metadata.
-	// It's a little more verbose to set here explicitly, but
-	// it's conceptually cleaner.
-	// TODO(dovs) add field headers.
-	p(`  httpReq.Header["Content-Type"] = []string{"application/json"}`)
+	p("  httpReq.Header = headers")
 	p("")
 	p("  httpRsp, err := c.httpClient.Do(httpReq)")
 	p("  if err != nil{")
@@ -819,6 +809,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TOOD(dovs) reenable
 	g.generateURLString(m)
 	g.generateQueryString(m)
+	p("// Build HTTP headers from client and context metadata.")
+	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
 	if !isHTTPBodyMessage {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	}
@@ -829,15 +821,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("      return err")
 	p("  }")
 	p("  httpReq = httpReq.WithContext(ctx)")
-	p("  // Set the headers")
-	p("  for k, v := range c.xGoogMetadata {")
-	p("    httpReq.Header[k] = v")
-	p("  }")
-	// The content type is separate from x-goog metadata.
-	// It's a little more verbose to set here explicitly, but
-	// it's conceptually cleaner.
-	// TODO(dovs) add field headers.
-	p(`  httpReq.Header["Content-Type"] = []string{"application/json",}`)
+	p("  httpReq.Header = headers")
 	p("")
 	p("  httpRsp, err := c.httpClient.Do(httpReq)")
 	p("  if err != nil{")
