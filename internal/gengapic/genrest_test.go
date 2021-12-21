@@ -440,7 +440,7 @@ func TestGenRestMethod(t *testing.T) {
 		Type: descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
 	}
 	pagedFooReq := &descriptor.DescriptorProto{
-		Name:  proto.String("PagedFoodRequest"),
+		Name:  proto.String("PagedFooRequest"),
 		Field: []*descriptor.FieldDescriptorProto{pageSizeField, pageTokenField},
 	}
 	pagedFooReqFQN := fmt.Sprintf(".%s.PagedFooRequest", pkg)
@@ -456,7 +456,7 @@ func TestGenRestMethod(t *testing.T) {
 		Type: descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
 	}
 	pagedFooRes := &descriptor.DescriptorProto{
-		Name:  proto.String("PagedFoodResponse"),
+		Name:  proto.String("PagedFooResponse"),
 		Field: []*descriptor.FieldDescriptorProto{foosField, nextPageTokenField},
 	}
 	pagedFooResFQN := fmt.Sprintf(".%s.PagedFooResponse", pkg)

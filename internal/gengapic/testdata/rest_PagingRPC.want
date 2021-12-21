@@ -1,9 +1,9 @@
-func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFoodRequest, opts ...gax.CallOption) *FooIterator {
+func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFooRequest, opts ...gax.CallOption) *FooIterator {
 	it := &FooIterator{}
-	req = proto.Clone(req).(*foopb.PagedFoodRequest)
+	req = proto.Clone(req).(*foopb.PagedFooRequest)
 	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*foopb.Foo, string, error) {
-		resp := &foopb.PagedFoodResponse{}
+		resp := &foopb.PagedFooResponse{}
 		if pageToken != "" {
 			req.PageToken = pageToken
 		}
