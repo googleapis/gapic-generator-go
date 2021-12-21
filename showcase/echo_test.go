@@ -16,6 +16,7 @@ package showcase
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -81,11 +82,11 @@ func TestEcho_error(t *testing.T) {
 			}
 		} else {
 			const ERR_CODE int = http.StatusInternalServerError
-			err, ok := err.(*googleapi.Error)
-			if !ok {
+			gerr := &googleapi.Error{}
+			if !errors.As(err, &gerr) {
 				t.Errorf("%s Echo() returned unexpected error type: %v", typ, err)
-			} else if err.Code != ERR_CODE {
-				t.Errorf("%s Echo() errors with %d, want %d", typ, err.Code, ERR_CODE)
+			} else if gerr.Code != ERR_CODE {
+				t.Errorf("%s Echo() errors with %d, want %d", typ, gerr.Code, ERR_CODE)
 			}
 		}
 
