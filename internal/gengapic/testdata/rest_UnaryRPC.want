@@ -8,6 +8,7 @@ func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	baseUrl, _ := url.Parse(c.endpoint)
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
+	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	resp := &foopb.Foo{}
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		httpReq, err := http.NewRequest("POST", baseUrl.String(), bytes.NewReader(jsonReq))
@@ -36,7 +37,6 @@ func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 			return err
 		}
 
-		unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 		if err := unm.Unmarshal(buf, resp); err != nil {
 			return maybeUnknownEnum(err)
 		}

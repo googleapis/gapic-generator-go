@@ -774,6 +774,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	if err != nil {
 		return err
 	}
+	outFqn := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[outType].GetPackage(), outType.GetName())
+	isHTTPBodyMessage := outFqn == "google.api.HttpBody"
 
 	// Ignore error because the only possible error would be from looking up
 	// the ImportSpec for the OutputType, which has already happened above.
@@ -817,6 +819,9 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// TOOD(dovs) reenable
 	g.generateURLString(m)
 	g.generateQueryString(m)
+	if !isHTTPBodyMessage {
+		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
+	}
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
@@ -849,14 +854,12 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("    return err")
 	p("  }")
 	p("")
-	fqn := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[outType].GetPackage(), outType.GetName())
-	if fqn == "google.api.HttpBody" {
+	if isHTTPBodyMessage {
 		p("resp.Data = buf")
 		p(`if headers := httpRsp.Header; len(headers["Content-Type"]) > 0 {`)
 		p(`  resp.ContentType = headers["Content-Type"][0]`)
 		p("}")
 	} else {
-		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 		p("if err := unm.Unmarshal(buf, resp); err != nil {")
 		p("  return maybeUnknownEnum(err)")
 		p("}")

@@ -10,6 +10,7 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 
 	baseUrl.RawQuery = params.Encode()
 
+	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	resp := &foopb.Operation{}
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		httpReq, err := http.NewRequest("POST", baseUrl.String(), nil)
@@ -38,7 +39,6 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 			return err
 		}
 
-		unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 		if err := unm.Unmarshal(buf, resp); err != nil {
 			return maybeUnknownEnum(err)
 		}
