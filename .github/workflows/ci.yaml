@@ -119,6 +119,7 @@ jobs:
     - name: Create Go package API baseline
       if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
       run: |
+        cd compute
         apidiff -w pkg.latest cloud.google.com/go/compute/apiv1
     - name: Regenerate compute
       run: |
@@ -131,10 +132,11 @@ jobs:
           -gapic=cloud.google.com/go/compute/apiv1 \
           -gocloud-dir=$CLOUD_GO \
           -googleapis-dir=$GOOGLEAPIS
-        cd $CLOUD_GO && go get ./compute/apiv1
+        cd $CLOUD_GO/compute && go get ./apiv1
     - name: Compare regenerated code to baseline
       if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
       run: |
+        cd compute
         apidiff -incompatible pkg.latest cloud.google.com/go/compute/apiv1 > diff.txt && cat diff.txt && ! [ -s diff.txt ]
   bazel-build:
     runs-on: ubuntu-latest
