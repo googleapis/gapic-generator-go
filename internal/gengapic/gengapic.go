@@ -470,12 +470,6 @@ func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
 	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
 }
 
-func (g *generator) getServiceName(m *descriptor.MethodDescriptorProto) string {
-	f := g.descInfo.ParentFile[m].GetPackage()
-	s := g.descInfo.ParentElement[m].GetName()
-	return fmt.Sprintf("%s.%s", f, s)
-}
-
 func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, error) {
 	outType := g.descInfo.Type[m.GetOutputType()]
 	outSpec, err := g.descInfo.ImportSpec(outType)

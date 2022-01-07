@@ -232,3 +232,18 @@ func (g *generator) reset() {
 		delete(g.imports, k)
 	}
 }
+
+// fqn recursively builds the fully qualified proto element name,
+// but omits the leading ".". For example, google.foo.v1.FooMessage.
+func (g *generator) fqn(p pbinfo.ProtoType) string {
+	// Base case. Use proto package instead of relative file name.
+	if f, isFile := p.(*descriptor.FileDescriptorProto); isFile {
+		return f.GetPackage()
+	}
+
+	parent := g.descInfo.ParentElement[p]
+	if parent == nil {
+		parent = g.descInfo.ParentFile[p]
+	}
+	return fmt.Sprintf("%s.%s", g.fqn(parent), p.GetName())
+}

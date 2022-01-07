@@ -83,8 +83,7 @@ func (g *generator) genGRPCMethod(servName string, serv *descriptor.ServiceDescr
 }
 
 func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	s := g.descInfo.ParentElement[m]
-	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
+	sFQN := g.fqn(g.descInfo.ParentElement[m])
 	inType := g.descInfo.Type[*m.InputType]
 	outType := g.descInfo.Type[*m.OutputType]
 
@@ -219,7 +218,7 @@ func (g *generator) grpcCallOptions(serv *descriptor.ServiceDescriptorProto, ser
 	p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
 	p("  return &%sCallOptions{", servName)
 	for _, m := range methods {
-		sFQN := g.getServiceName(m)
+		sFQN := g.fqn(g.descInfo.ParentElement[m])
 		mn := m.GetName()
 		p("%s: []gax.CallOption{", mn)
 		if maxReq, ok := c.RequestLimit(sFQN, mn); ok {
