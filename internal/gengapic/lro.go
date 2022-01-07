@@ -25,8 +25,7 @@ import (
 )
 
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	s := g.descInfo.ParentElement[m]
-	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
+	sFQN := g.fqn(g.descInfo.ParentElement[m])
 	inType := g.descInfo.Type[m.GetInputType()]
 	outType := g.descInfo.Type[m.GetOutputType()]
 
