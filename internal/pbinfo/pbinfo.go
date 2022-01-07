@@ -67,31 +67,31 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 
 	for _, f := range files {
 		// ParentFile
-		for _, m := range f.MessageType {
+		for _, m := range f.GetMessageType() {
 			info.ParentFile[m] = f
 		}
-		for _, e := range f.EnumType {
+		for _, e := range f.GetEnumType() {
 			info.ParentFile[e] = f
 		}
-		for _, s := range f.Service {
+		for _, s := range f.GetService() {
 			info.ParentFile[s] = f
-			for _, m := range s.Method {
+			for _, m := range s.GetMethod() {
 				info.ParentFile[m] = f
 				info.ParentElement[m] = s
 			}
 		}
 
 		// Type
-		for _, m := range f.MessageType {
+		for _, m := range f.GetMessageType() {
 			// In descriptors, putting the dot in front means the name is fully-qualified.
 			addMessage(info.Type, info.ParentElement, "."+f.GetPackage(), m, nil)
 		}
-		for _, e := range f.EnumType {
+		for _, e := range f.GetEnumType() {
 			info.Type["."+f.GetPackage()+"."+e.GetName()] = e
 		}
 
 		// Serv
-		for _, s := range f.Service {
+		for _, s := range f.GetService() {
 			fullyQualifiedName := fmt.Sprintf(".%s.%s", f.GetPackage(), s.GetName())
 			info.Serv[fullyQualifiedName] = s
 		}
@@ -107,11 +107,11 @@ func addMessage(typMap map[string]ProtoType, parentMap map[ProtoType]ProtoType, 
 		parentMap[msg] = parentMsg
 	}
 
-	for _, subMsg := range msg.NestedType {
+	for _, subMsg := range msg.GetNestedType() {
 		addMessage(typMap, parentMap, fullName, subMsg, msg)
 	}
 
-	for _, subEnum := range msg.EnumType {
+	for _, subEnum := range msg.GetEnumType() {
 		typMap[fullName+"."+subEnum.GetName()] = subEnum
 		parentMap[subEnum] = msg
 	}
