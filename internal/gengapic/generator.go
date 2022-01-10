@@ -69,6 +69,10 @@ type generator struct {
 	mixins mixins
 
 	hasIAMPolicyOverrides bool
+
+	// customOpServices is a map of service descriptors with methods that create custom operations
+	// to the service descriptors of the custom operation services that manage those custom operation instances.
+	customOpServices map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto
 }
 
 func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
@@ -82,6 +86,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	g.mixins = make(mixins)
 	g.comments = map[protoiface.MessageV1]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.customOpServices = map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{}
 	g.aux = &auxTypes{
 		iters: map[string]*iterType{},
 		lros:  map[*descriptor.MethodDescriptorProto]bool{},
@@ -246,4 +251,16 @@ func (g *generator) fqn(p pbinfo.ProtoType) string {
 		parent = g.descInfo.ParentFile[p]
 	}
 	return fmt.Sprintf("%s.%s", g.fqn(parent), p.GetName())
+}
+
+func (g *generator) nestedName(nested pbinfo.ProtoType) string {
+	name := nested.GetName()
+
+	parent, hasParent := g.descInfo.ParentElement[nested]
+	for hasParent {
+		name = fmt.Sprintf("%s_%s", parent.GetName(), name)
+		parent, hasParent = g.descInfo.ParentElement[parent]
+	}
+
+	return name
 }

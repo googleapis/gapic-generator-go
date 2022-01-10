@@ -50,12 +50,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 
 		// Prepend parent Message name for nested Messages
 		// to match the generated Go type name.
-		typ := eType
-		typeName := typ.GetName()
-		for parent, ok := g.descInfo.ParentElement[typ]; ok; parent, ok = g.descInfo.ParentElement[typ] {
-			typeName = fmt.Sprintf("%s_%s", parent.GetName(), typeName)
-			typ = parent
-		}
+		typeName := g.nestedName(eType)
 
 		eMsg, ok := eType.(*descriptor.DescriptorProto)
 		if !ok {

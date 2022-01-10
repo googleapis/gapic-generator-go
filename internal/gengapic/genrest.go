@@ -48,6 +48,12 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("  // The http client.")
 	p("  httpClient *http.Client")
 	p("")
+	if opServ, ok := g.customOpServices[serv]; ok {
+		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
+		p("// operationClient is used to call the operation-specific management service.")
+		p("operationClient *%sClient", opServName)
+		p("")
+	}
 	p("	 // The x-goog-* metadata to be sent with each request.")
 	p("	 xGoogMetadata metadata.MD")
 	p("}")
@@ -109,6 +115,7 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	lowcaseServName := lowcaseRestClientName(servName)
 	clientName := camelToSnake(serv.GetName())
 	clientName = strings.Replace(clientName, "_", " ", -1)
+	opServ, hasCustomOp := g.customOpServices[serv]
 
 	p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
 	g.serviceDoc(serv)
@@ -125,6 +132,15 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("    }")
 	p("    c.setGoogleClientInfo()")
 	p("")
+	if hasCustomOp {
+		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
+		p("opC, err := New%sRESTClient(ctx, opts...)", opServName)
+		p("if err != nil {")
+		p("  return nil, err")
+		p("}")
+		p("c.operationClient = opC")
+		p("")
+	}
 	// TODO(dovs): make rest default call options
 	// TODO(dovs): set the LRO client
 	p("    return &%[1]sClient{internalClient: c, CallOptions: &%[1]sCallOptions{}}, nil", servName)
@@ -150,6 +166,11 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("func (c *%s) Close() error {", lowcaseServName)
 	p("    // Replace httpClient with nil to force cleanup.")
 	p("    c.httpClient = nil")
+	if hasCustomOp {
+		p("if err := c.operationClient.Close(); err != nil {")
+		p("  return err")
+		p("}")
+	}
 	p("    return nil")
 	p("}")
 	p("")
@@ -771,6 +792,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	// the ImportSpec for the OutputType, which has already happened above.
 	retTyp, _ := g.returnType(m)
 
+	isCustomOp := g.isCustomOp(m, info)
+
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
@@ -855,8 +878,10 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("  return nil, e")
 	p("}")
 	ret := "return resp, nil"
-	if g.isCustomOp(m, info) {
-		p("op := %s", g.customOpInit("resp"))
+	if isCustomOp {
+		s := g.getCustomOpService(m)
+		handleName := handleName(s.GetName(), g.opts.pkgName)
+		p("op := %s", g.customOpInit(handleName, "resp"))
 		ret = "return op, nil"
 	}
 	p(ret)
