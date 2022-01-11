@@ -74,8 +74,9 @@ func (g *generator) customOpInit(h, p string) string {
 	return s
 }
 
-// customOperationType generates the custom operation wrapper type using the
-// generators current printer. This should only be called once per package.
+// customOperationType generates the custom operation wrapper type and operation
+// service handle implementations using the generators current printer. This
+// should only be called once per package.
 func (g *generator) customOperationType() error {
 	op := g.aux.customOp
 	if op == nil {
@@ -94,12 +95,12 @@ func (g *generator) customOperationType() error {
 	}
 	g.imports[opImp] = true
 
-	statusField := getOpField(op.message, extendedops.OperationResponseMapping_STATUS)
+	statusField := operationField(op.message, extendedops.OperationResponseMapping_STATUS)
 	if statusField == nil {
 		return fmt.Errorf("operation message %s is missing an annotated status field", op.message.GetName())
 	}
 
-	opNameField := getOpField(op.message, extendedops.OperationResponseMapping_NAME)
+	opNameField := operationField(op.message, extendedops.OperationResponseMapping_NAME)
 	if opNameField == nil {
 		return fmt.Errorf("operation message %s is missing an annotated name field", op.message.GetName())
 	}
@@ -153,7 +154,7 @@ func (g *generator) customOperationType() error {
 			}
 		}
 		getInput := g.descInfo.Type[get.GetInputType()]
-		inNameField := getOpResponseField(getInput.(*descriptor.DescriptorProto), opNameField.GetName())
+		inNameField := operationResponseField(getInput.(*descriptor.DescriptorProto), opNameField.GetName())
 
 		// type
 		p("// Implements the %s interface for %s.", handleInt, handle.GetName())
@@ -164,6 +165,7 @@ func (g *generator) customOperationType() error {
 		p("")
 
 		// Poll
+		p("// Poll retrieves the latest data for the long-running operation.")
 		p("func (h *%s) Poll(ctx context.Context, opts ...gax.CallOption) error {", n)
 		p("  resp, err := h.c.Get(ctx, &%s.%s{%s: h.proto%s}, opts...)", opImp.Name, upperFirst(getInput.GetName()), upperFirst(inNameField.GetName()), opNameGetter)
 		p("  if err != nil {")
@@ -185,11 +187,13 @@ func (g *generator) customOperationType() error {
 	return nil
 }
 
+// loadCustomOpServices maps the service declared as a google.cloud.operation_service
+// to the service that owns the method(s) declaring it.
 func (g *generator) loadCustomOpServices(servs []*descriptor.ServiceDescriptorProto) {
 	handles := g.aux.customOp.handles
 	for _, serv := range servs {
 		for _, meth := range serv.GetMethod() {
-			if opServ := g.getCustomOpService(meth); opServ != nil {
+			if opServ := g.customOpService(meth); opServ != nil {
 				g.customOpServices[serv] = opServ
 				if !containsService(handles, opServ) {
 					handles = append(handles, opServ)
@@ -201,7 +205,9 @@ func (g *generator) loadCustomOpServices(servs []*descriptor.ServiceDescriptorPr
 	g.aux.customOp.handles = handles
 }
 
-func (g *generator) getCustomOpService(m *descriptor.MethodDescriptorProto) *descriptor.ServiceDescriptorProto {
+// customOpService loads the ServiceDescriptorProto for the google.cloud.operation_service
+// named on the given method.
+func (g *generator) customOpService(m *descriptor.MethodDescriptorProto) *descriptor.ServiceDescriptorProto {
 	opServName := proto.GetExtension(m.GetOptions(), extendedops.E_OperationService).(string)
 	if opServName == "" {
 		return nil
@@ -213,6 +219,8 @@ func (g *generator) getCustomOpService(m *descriptor.MethodDescriptorProto) *des
 	return g.descInfo.Serv[fqn]
 }
 
+// customOpStatusCheck constructs a return statement that checks if the operation's Status
+// field indicates it is done.
 func (g *generator) customOpStatusCheck(st *descriptor.FieldDescriptorProto) string {
 	ret := fmt.Sprintf("return o.Proto()%s", fieldGetter(st.GetName()))
 	if st.GetType() == descriptor.FieldDescriptorProto_TYPE_ENUM {
@@ -223,6 +231,8 @@ func (g *generator) customOpStatusCheck(st *descriptor.FieldDescriptorProto) str
 	return ret
 }
 
+// customOpStatusEnumDone constructs the Go name of the operation's status enum
+// DONE value.
 func (g *generator) customOpStatusEnumDone() string {
 	op := g.aux.customOp.message
 
@@ -232,7 +242,7 @@ func (g *generator) customOpStatusEnumDone() string {
 
 	// Ignore the nil case here, it would failed earlier if the
 	// status field was not present.
-	statusField := getOpField(op, extendedops.OperationResponseMapping_STATUS)
+	statusField := operationField(op, extendedops.OperationResponseMapping_STATUS)
 	statusEnum := g.descInfo.Type[statusField.GetTypeName()]
 
 	enum := fmt.Sprintf("%s_DONE", g.nestedName(g.descInfo.ParentElement[statusEnum]))
@@ -242,9 +252,9 @@ func (g *generator) customOpStatusEnumDone() string {
 	return s
 }
 
-// getOpField is a helper for loading the target google.cloud.operation_field annotation value
+// operationField is a helper for loading the target google.cloud.operation_field annotation value
 // if present on a field in the given message.
-func getOpField(m *descriptor.DescriptorProto, target extendedops.OperationResponseMapping) *descriptor.FieldDescriptorProto {
+func operationField(m *descriptor.DescriptorProto, target extendedops.OperationResponseMapping) *descriptor.FieldDescriptorProto {
 	for _, f := range m.GetField() {
 		mapping := proto.GetExtension(f.GetOptions(), extendedops.E_OperationField).(extendedops.OperationResponseMapping)
 		if mapping == target {
@@ -254,7 +264,9 @@ func getOpField(m *descriptor.DescriptorProto, target extendedops.OperationRespo
 	return nil
 }
 
-func getOpResponseField(m *descriptor.DescriptorProto, target string) *descriptor.FieldDescriptorProto {
+// operationResponseField is a helper for finding the message field that declares the target field name
+// in the google.cloud.operation_response_field annotation.
+func operationResponseField(m *descriptor.DescriptorProto, target string) *descriptor.FieldDescriptorProto {
 	for _, f := range m.GetField() {
 		mapping := proto.GetExtension(f.GetOptions(), extendedops.E_OperationResponseField).(string)
 		if mapping == target {
@@ -264,6 +276,8 @@ func getOpResponseField(m *descriptor.DescriptorProto, target string) *descripto
 	return nil
 }
 
+// handleName is a helper for constructing a operation handle name from the
+// operation service name and Go package name.
 func handleName(s, pkg string) string {
 	s = pbinfo.ReduceServName(s, pkg)
 	return lowerFirst(s + "Handle")

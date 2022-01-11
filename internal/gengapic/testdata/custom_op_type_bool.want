@@ -28,6 +28,7 @@ type fooOperationsHandle struct {
 	proto *foopb.Operation
 }
 
+// Poll retrieves the latest data for the long-running operation.
 func (h *fooOperationsHandle) Poll(ctx context.Context, opts ...gax.CallOption) error {
 	resp, err := h.c.Get(ctx, &foopb.GetFooOperationRequest{Operation: h.proto.GetName()}, opts...)
 	if err != nil {
