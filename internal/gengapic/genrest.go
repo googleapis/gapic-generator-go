@@ -134,8 +134,7 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("")
 	if hasCustomOp {
 		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
-		p("o := append(opts, option.WithHTTPClient(httpClient))")
-		p("opC, err := New%sRESTClient(ctx, o...)", opServName)
+		p("opC, err := New%sRESTClient(ctx, option.WithHTTPClient(httpClient))", opServName)
 		p("if err != nil {")
 		p("  return nil, err")
 		p("}")
