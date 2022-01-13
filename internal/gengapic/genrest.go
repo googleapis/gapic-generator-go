@@ -134,12 +134,14 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("")
 	if hasCustomOp {
 		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
-		p("opC, err := New%sRESTClient(ctx, opts...)", opServName)
+		p("o := append(opts, option.WithHTTPClient(httpClient))")
+		p("opC, err := New%sRESTClient(ctx, o...)", opServName)
 		p("if err != nil {")
 		p("  return nil, err")
 		p("}")
 		p("c.operationClient = opC")
 		p("")
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
 	}
 	// TODO(dovs): make rest default call options
 	// TODO(dovs): set the LRO client
