@@ -77,7 +77,11 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 	}
 	c.setGoogleClientInfo()
 
-	opC, err := NewFooOperationRESTClient(ctx, option.WithHTTPClient(httpClient))
+	o := []option.ClientOption{
+		option.WithHTTPClient(httpClient),
+		option.WithEndpoint(endpoint),
+	}
+	opC, err := NewFooOperationRESTClient(ctx, o...)
 	if err != nil {
 		return nil, err
 	}
