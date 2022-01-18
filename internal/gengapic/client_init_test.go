@@ -27,6 +27,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
+	"google.golang.org/genproto/googleapis/cloud/extendedops"
 	code "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -348,6 +349,14 @@ func TestClientInit(t *testing.T) {
 			Deprecated: proto.Bool(true),
 		},
 	}
+
+	opS := &descriptor.ServiceDescriptorProto{
+		Name:   proto.String("FooOperationService"),
+		Method: []*descriptor.MethodDescriptorProto{},
+	}
+
+	customOpOpts := &descriptor.MethodOptions{}
+	proto.SetExtension(customOpOpts, extendedops.E_OperationService, opS.GetName())
 	servCustomOp := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
@@ -355,7 +364,7 @@ func TestClientInit(t *testing.T) {
 				Name:       proto.String("Zip"),
 				InputType:  proto.String(".mypackage.Bar"),
 				OutputType: proto.String(".mypackage.Operation"),
-				Options:    &descriptor.MethodOptions{},
+				Options:    customOpOpts,
 			},
 		},
 	}
@@ -368,12 +377,13 @@ func TestClientInit(t *testing.T) {
 	}
 
 	for _, tst := range []struct {
-		tstName   string
-		servName  string
-		mixins    mixins
-		serv      *descriptor.ServiceDescriptorProto
-		parameter *string
-		imports   map[pbinfo.ImportSpec]bool
+		tstName      string
+		servName     string
+		mixins       mixins
+		serv         *descriptor.ServiceDescriptorProto
+		customOpServ *descriptor.ServiceDescriptorProto
+		parameter    *string
+		imports      map[pbinfo.ImportSpec]bool
 	}{
 		{
 			tstName: "foo_client_init",
@@ -477,10 +487,11 @@ func TestClientInit(t *testing.T) {
 			},
 		},
 		{
-			tstName:   "custom_op_init",
-			servName:  "",
-			serv:      servCustomOp,
-			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest,diregapic"),
+			tstName:      "custom_op_init",
+			servName:     "",
+			serv:         servCustomOp,
+			customOpServ: opS,
+			parameter:    proto.String("go-gapic-package=path;mypackage,transport=rest,diregapic"),
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                      true,
 				{Path: "fmt"}:                          true,
@@ -500,7 +511,7 @@ func TestClientInit(t *testing.T) {
 			Options: &descriptor.FileOptions{
 				GoPackage: proto.String("github.com/googleapis/mypackage/v1"),
 			},
-			Service: []*descriptor.ServiceDescriptorProto{tst.serv},
+			Service: []*descriptor.ServiceDescriptorProto{tst.serv, tst.customOpServ},
 			MessageType: []*descriptor.DescriptorProto{
 				{
 					Name: proto.String("Bar"),
@@ -531,6 +542,11 @@ func TestClientInit(t *testing.T) {
 		}
 		g.aux.customOp = &customOp{
 			message: cop,
+		}
+		if tst.customOpServ != nil {
+			g.customOpServices = map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
+				tst.serv: tst.customOpServ,
+			}
 		}
 
 		g.reset()

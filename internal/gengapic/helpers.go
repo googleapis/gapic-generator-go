@@ -133,6 +133,18 @@ func containsTransport(t []transport, tr transport) bool {
 	return false
 }
 
+// containsService determines if a set of services contains a specific service,
+// by simple name.
+func containsService(s []*descriptor.ServiceDescriptorProto, srv *descriptor.ServiceDescriptorProto) bool {
+	for _, x := range s {
+		if x.GetName() == srv.GetName() {
+			return true
+		}
+	}
+
+	return false
+}
+
 // isRequired returns if a field is annotated as REQUIRED or not.
 func isRequired(field *descriptor.FieldDescriptorProto) bool {
 	if field.GetOptions() == nil {

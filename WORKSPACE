@@ -22,12 +22,6 @@ http_archive(
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-
-go_rules_dependencies()
-
-go_register_toolchains(version = "1.15.8")
-
 http_archive(
     name = "bazel_gazelle",
     sha256 = "de69a09dc70417580aabf20a28619bb3ef60d038470c7cf8442fafcf627c21cb",
@@ -37,8 +31,26 @@ http_archive(
     ],
 )
 
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
 # gazelle:repo bazel_gazelle
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+# TODO(noahdietz): We should remove this eventually, it will complicate bazel dep updates.
+# This is necesary to include extendedops and routing annotations because rules_go doesn't
+# provde a recent enough version.
+go_repository(
+    name = "org_golang_google_genproto",
+    importpath = "google.golang.org/genproto",
+    sum = "h1:I0YcKz0I7OAhddo7ya8kMnvprhcWM045PmkBdMO9zN0=",
+    version = "v0.0.0-20211208223120-3a66f561d7aa",
+)
+
+go_rules_dependencies()
+
+go_register_toolchains(
+    version = "1.15.8",
+)
 
 gazelle_dependencies()
 

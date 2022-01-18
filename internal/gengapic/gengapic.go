@@ -75,7 +75,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	protoPkg := g.descInfo.ParentFile[genServs[0]].GetPackage()
 
 	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.diregapic && ok {
-		g.aux.customOp = &customOp{op.(*descriptor.DescriptorProto), false}
+		g.aux.customOp = &customOp{op.(*descriptor.DescriptorProto), []*descriptor.ServiceDescriptorProto{}}
+		g.loadCustomOpServices(genServs)
 	}
 
 	// Use the proto package from the parent file of the first Service seen.
@@ -128,6 +129,14 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			Name:    proto.String(filepath.Join(g.opts.outDir, "gapic_metadata.json")),
 			Content: proto.String(g.pt.String()),
 		})
+	}
+
+	if g.aux.customOp != nil {
+		g.reset()
+		if err := g.customOperationType(); err != nil {
+			return &g.resp, err
+		}
+		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
 	}
 
 	return &g.resp, nil
@@ -196,12 +205,6 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	})
 	for _, iter := range iters {
 		g.pagingIter(iter)
-	}
-	if g.aux.customOp != nil && !g.aux.customOp.generated {
-		if err := g.customOperationType(); err != nil {
-			return err
-		}
-		g.aux.customOp.generated = true
 	}
 
 	return nil

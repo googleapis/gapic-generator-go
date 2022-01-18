@@ -1,0 +1,45 @@
+// Operation represents a long-running operation for this API.
+type Operation struct {
+	operationHandle
+}
+
+// Done reports whether the long-running operation has completed.
+func (o *Operation) Done() bool {
+	return o.Proto().GetStatus()
+}
+
+// Name returns the name of the long-running operation.
+// The name is assigned by the server and is unique within the service from which the operation is created.
+func (o *Operation) Name() string {
+	return o.Proto().GetName()
+}
+
+type operationHandle interface {
+	// Poll retrieves the operation.
+	Poll(ctx context.Context, opts ...gax.CallOption) error
+
+	// Proto returns the long-running operation message.
+	Proto() *foopb.Operation
+}
+
+// Implements the operationHandle interface for FooOperationsService.
+type fooOperationsHandle struct {
+	c *FooOperationsClient
+	proto *foopb.Operation
+}
+
+// Poll retrieves the latest data for the long-running operation.
+func (h *fooOperationsHandle) Poll(ctx context.Context, opts ...gax.CallOption) error {
+	resp, err := h.c.Get(ctx, &foopb.GetFooOperationRequest{Operation: h.proto.GetName()}, opts...)
+	if err != nil {
+		return err
+	}
+	h.proto = resp
+	return nil
+}
+
+// Proto returns the raw type this wraps.
+func (h *fooOperationsHandle) Proto() *foopb.Operation {
+	return h.proto
+}
+

@@ -25,6 +25,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/cloud/extendedops"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/runtime/protoiface"
@@ -461,8 +462,16 @@ func TestGenRestMethod(t *testing.T) {
 	}
 	pagedFooResFQN := fmt.Sprintf(".%s.PagedFooResponse", pkg)
 
+	nameOpts := &descriptor.FieldOptions{}
+	proto.SetExtension(nameOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_NAME)
+	nameField := &descriptor.FieldDescriptorProto{
+		Name:    proto.String("name"),
+		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Options: nameOpts,
+	}
 	op := &descriptor.DescriptorProto{
-		Name: proto.String("Operation"),
+		Name:  proto.String("Operation"),
+		Field: []*descriptor.FieldDescriptorProto{nameField},
 	}
 	opfqn := fmt.Sprintf(".%s.Operation", pkg)
 
@@ -472,6 +481,7 @@ func TestGenRestMethod(t *testing.T) {
 			Post: "/v1/foo",
 		},
 	})
+	proto.SetExtension(opRPCOpt, extendedops.E_OperationService, "FooOperationService")
 
 	opRPC := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("CustomOp"),
@@ -526,13 +536,16 @@ func TestGenRestMethod(t *testing.T) {
 	s := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 	}
+	opS := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("FooOperationService"),
+	}
 
 	f := &descriptor.FileDescriptorProto{
 		Package: proto.String(pkg),
 		Options: &descriptor.FileOptions{
 			GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
 		},
-		Service: []*descriptor.ServiceDescriptorProto{s},
+		Service: []*descriptor.ServiceDescriptorProto{s, opS},
 	}
 
 	g := &generator{
@@ -543,9 +556,14 @@ func TestGenRestMethod(t *testing.T) {
 			iters: map[string]*iterType{},
 		},
 		opts: &options{},
+		customOpServices: map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
+			s: opS,
+		},
 		descInfo: pbinfo.Info{
 			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
 				op:          f,
+				opS:         f,
+				opRPC:       f,
 				foo:         f,
 				s:           f,
 				pagedFooReq: f,
@@ -556,6 +574,7 @@ func TestGenRestMethod(t *testing.T) {
 				emptyRPC:   s,
 				unaryRPC:   s,
 				pagingRPC:  s,
+				nameField:  op,
 				sizeField:  foo,
 				otherField: foo,
 			},
