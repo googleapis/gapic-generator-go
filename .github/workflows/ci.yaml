@@ -140,11 +140,13 @@ jobs:
         apidiff -incompatible pkg.latest cloud.google.com/go/compute/apiv1 > diff.txt && cat diff.txt && ! [ -s diff.txt ]
   bazel-build:
     runs-on: ubuntu-latest
+    env:
+      USE_BAZEL_VERSION: v5.0.0
     container: gcr.io/gapic-images/googleapis:latest
     # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
     steps:
     - uses: actions/checkout@v2
     - name: Run bazel build
-      run: bazel build '//...'
+      run: bazelisk build '//...'
     - name: Run bazel test
-      run: bazel test '//...'
+      run: bazelisk test '//...'
