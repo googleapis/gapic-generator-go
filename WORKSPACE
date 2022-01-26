@@ -15,11 +15,19 @@ protobuf_deps()
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "7c10271940c6bce577d51a075ae77728964db285dac0a46614a7934dc34303e6",
+    sha256 = "d6b2513456fe2229811da7eb67a444be7785f5323c6708b38d851d2b51e54d83",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.30.0/rules_go-v0.30.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.30.0/rules_go-v0.30.0.zip",
     ],
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_rules_dependencies()
+
+go_register_toolchains(
+    version = "1.16.5",
 )
 
 http_archive(
@@ -31,26 +39,8 @@ http_archive(
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-
 # gazelle:repo bazel_gazelle
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
-
-# TODO(noahdietz): We should remove this eventually, it will complicate bazel dep updates.
-# This is necesary to include extendedops and routing annotations because rules_go doesn't
-# provde a recent enough version.
-go_repository(
-    name = "org_golang_google_genproto",
-    importpath = "google.golang.org/genproto",
-    sum = "h1:I0YcKz0I7OAhddo7ya8kMnvprhcWM045PmkBdMO9zN0=",
-    version = "v0.0.0-20211208223120-3a66f561d7aa",
-)
-
-go_rules_dependencies()
-
-go_register_toolchains(
-    version = "1.15.8",
-)
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
 gazelle_dependencies()
 
