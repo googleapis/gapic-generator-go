@@ -176,6 +176,28 @@ func (g *generator) customOperationType() error {
 		p("}")
 		p("")
 
+		// Wait
+		p("// Wait blocks until the operation is complete, polling regularly")
+		p("// after an intial period of backing off between attempts.")
+		p("func (h *%s) Wait(ctx context.Context, opts ...gax.CallOption) error {", n)
+		p("	 bo := gax.Backoff{")
+		p("    Initial: 1 * time.Second,")
+		p("    Max:     time.Minute,")
+		p("	 }")
+		p("	 for {")
+		p("    if err := h.Poll(ctx, opts...); err != nil {")
+		p("      return err")
+		p("    }")
+		p("    if h.Proto().Done() {")
+		p("      return nil")
+		p("    }")
+		p("    if err := gax.Sleep(ctx, bo.Pause()); err != nil {")
+		p("      return err")
+		p("    }")
+		p("  }")
+		p("}")
+		p("")
+
 		// Proto
 		p("// Proto returns the raw type this wraps.")
 		p("func (h *%s) Proto() %s {", n, ptyp)

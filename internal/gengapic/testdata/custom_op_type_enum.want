@@ -38,6 +38,26 @@ func (h *fooOperationsHandle) Poll(ctx context.Context, opts ...gax.CallOption) 
 	return nil
 }
 
+// Wait blocks until the operation is complete, polling regularly
+// after an intial period of backing off between attempts.
+func (h *fooOperationsHandle) Wait(ctx context.Context, opts ...gax.CallOption) error {
+	bo := gax.Backoff{
+		Initial: 1 * time.Second,
+		Max:     time.Minute,
+	}
+	for {
+		if err := h.Poll(ctx, opts...); err != nil {
+			return err
+		}
+		if h.Proto().Done() {
+			return nil
+		}
+		if err := gax.Sleep(ctx, bo.Pause()); err != nil {
+			return err
+		}
+	}
+}
+
 // Proto returns the raw type this wraps.
 func (h *fooOperationsHandle) Proto() *foopb.Operation {
 	return h.proto
