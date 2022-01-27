@@ -19,7 +19,7 @@ func (o *Operation) Name() string {
 func (o *Operation) Wait(ctx context.Context, opts ...gax.CallOption) error {
 	bo := gax.Backoff{
 		Initial: 1 * time.Second,
-		Max:     time.Minute,
+		Max:     1 * time.Minute,
 	}
 	for {
 		if err := o.Poll(ctx, opts...); err != nil {
