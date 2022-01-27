@@ -34,16 +34,18 @@ import (
 const (
 	emptyValue = "google.protobuf.Empty"
 	// protoc puts a dot in front of name, signaling that the name is fully qualified.
-	emptyType           = "." + emptyValue
-	lroType             = ".google.longrunning.Operation"
-	alpha               = "alpha"
-	beta                = "beta"
-	disableDeadlinesVar = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
-	fieldTypeBool       = descriptor.FieldDescriptorProto_TYPE_BOOL
-	fieldTypeString     = descriptor.FieldDescriptorProto_TYPE_STRING
-	fieldTypeBytes      = descriptor.FieldDescriptorProto_TYPE_BYTES
-	fieldTypeMessage    = descriptor.FieldDescriptorProto_TYPE_MESSAGE
-	fieldLabelRepeated  = descriptor.FieldDescriptorProto_LABEL_REPEATED
+	emptyType               = "." + emptyValue
+	lroType                 = ".google.longrunning.Operation"
+	alpha                   = "alpha"
+	beta                    = "beta"
+	disableDeadlinesVar     = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
+	fieldTypeBool           = descriptor.FieldDescriptorProto_TYPE_BOOL
+	fieldTypeString         = descriptor.FieldDescriptorProto_TYPE_STRING
+	fieldTypeBytes          = descriptor.FieldDescriptorProto_TYPE_BYTES
+	fieldTypeMessage        = descriptor.FieldDescriptorProto_TYPE_MESSAGE
+	fieldLabelRepeated      = descriptor.FieldDescriptorProto_LABEL_REPEATED
+	defaultPollInitialDelay = "time.Second" // 1 second
+	defaultPollMaxDelay     = "time.Minute" // 1 minute
 )
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)

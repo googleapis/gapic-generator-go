@@ -179,11 +179,11 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// See documentation of Poll for error-handling information.")
 		if opInfo.GetResponseType() == emptyValue {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) error {", lroType)
-			p("  return op.lro.WaitWithInterval(ctx, nil, time.Minute, opts...)")
+			p("  return op.lro.WaitWithInterval(ctx, nil, %s, opts...)", defaultPollMaxDelay)
 		} else {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
 			p("  var resp %s", respType)
-			p("  if err := op.lro.WaitWithInterval(ctx, &resp, time.Minute, opts...); err != nil {")
+			p("  if err := op.lro.WaitWithInterval(ctx, &resp, %s, opts...); err != nil {", defaultPollMaxDelay)
 			p("    return nil, err")
 			p("  }")
 			p("  return &resp, nil")
