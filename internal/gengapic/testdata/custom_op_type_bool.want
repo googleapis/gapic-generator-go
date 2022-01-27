@@ -14,6 +14,26 @@ func (o *Operation) Name() string {
 	return o.Proto().GetName()
 }
 
+// Wait blocks until the operation is complete, polling regularly
+// after an intial period of backing off between attempts.
+func (o *Operation) Wait(ctx context.Context, opts ...gax.CallOption) error {
+	bo := gax.Backoff{
+		Initial: 1 * time.Second,
+		Max:     time.Minute,
+	}
+	for {
+		if err := o.Poll(ctx, opts...); err != nil {
+			return err
+		}
+		if o.Done() {
+			return nil
+		}
+		if err := gax.Sleep(ctx, bo.Pause()); err != nil {
+			return err
+		}
+	}
+}
+
 type operationHandle interface {
 	// Poll retrieves the operation.
 	Poll(ctx context.Context, opts ...gax.CallOption) error
@@ -36,26 +56,6 @@ func (h *fooOperationsHandle) Poll(ctx context.Context, opts ...gax.CallOption) 
 	}
 	h.proto = resp
 	return nil
-}
-
-// Wait blocks until the operation is complete, polling regularly
-// after an intial period of backing off between attempts.
-func (h *fooOperationsHandle) Wait(ctx context.Context, opts ...gax.CallOption) error {
-	bo := gax.Backoff{
-		Initial: 1 * time.Second,
-		Max:     time.Minute,
-	}
-	for {
-		if err := h.Poll(ctx, opts...); err != nil {
-			return err
-		}
-		if h.Proto().Done() {
-			return nil
-		}
-		if err := gax.Sleep(ctx, bo.Pause()); err != nil {
-			return err
-		}
-	}
 }
 
 // Proto returns the raw type this wraps.
