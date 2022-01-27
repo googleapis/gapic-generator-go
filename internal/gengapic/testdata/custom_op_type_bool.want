@@ -18,8 +18,8 @@ func (o *Operation) Name() string {
 // after an intial period of backing off between attempts.
 func (o *Operation) Wait(ctx context.Context, opts ...gax.CallOption) error {
 	bo := gax.Backoff{
-		Initial: 1 * time.Second,
-		Max:     1 * time.Minute,
+		Initial: time.Second,
+		Max:     time.Minute,
 	}
 	for {
 		if err := o.Poll(ctx, opts...); err != nil {
