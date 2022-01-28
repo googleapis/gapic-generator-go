@@ -68,12 +68,10 @@ func (g *generator) customOpPointerType() (string, error) {
 // customOpInit builds a string containing the Go code for initializing the
 // operation wrapper type with the Go identifier for a variable that is the
 // proto-defined operation type.
-func (g *generator) customOpInit(p, r, o string, req *descriptor.DescriptorProto, s *descriptor.ServiceDescriptorProto) {
+func (g *generator) customOpInit(rspVar, reqVar, opVar string, req *descriptor.DescriptorProto, s *descriptor.ServiceDescriptorProto) {
 	h := handleName(s.GetName(), g.opts.pkgName)
 	opName := g.aux.customOp.message.GetName()
-	pt := func(f string, v ...interface{}) {
-		g.pt.Printf(f, v...)
-	}
+	pt := g.pt.Printf
 
 	// Collect all of the fields marked with google.cloud.operation_request_field
 	// and map the getter method to the polling request's field name, while also
@@ -90,15 +88,15 @@ func (g *generator) customOpInit(p, r, o string, req *descriptor.DescriptorProto
 		param = lowerFirst(snakeToCamel(param))
 		if params := g.aux.customOp.pollingParams[s]; strContains(params, param) {
 			keys = append(keys, param)
-			paramToGetter[param] = fmt.Sprintf("%s%s", r, fieldGetter(f.GetName()))
+			paramToGetter[param] = fmt.Sprintf("%s%s", reqVar, fieldGetter(f.GetName()))
 		}
 	}
 	sort.Strings(keys)
 
-	pt("%s := &%s{", o, opName)
+	pt("%s := &%s{", opVar, opName)
 	pt("  &%s{", h)
 	pt("    c: c.operationClient,")
-	pt("    proto: %s,", p)
+	pt("    proto: %s,", rspVar)
 	for _, param := range keys {
 		pt("    %s: %s,", param, paramToGetter[param])
 	}
@@ -364,15 +362,15 @@ func operationPollingMethod(s *descriptor.ServiceDescriptorProto) *descriptor.Me
 // are also marked as required on the polling request message. Specifically, this weeds out the parent_id field
 // of the GlobalOrganizationOperations polling params.
 func (g *generator) pollingRequestParameters(m *descriptor.MethodDescriptorProto, opServ *descriptor.ServiceDescriptorProto) []string {
+	var params []string
 	poll := operationPollingMethod(opServ)
 	if poll == nil {
-		return nil
+		return params
 	}
 	pollReqName := poll.GetInputType()
 
 	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
 
-	params := []string{}
 	for _, f := range inType.GetField() {
 
 		mapping, ok := operationRequestField(f)
