@@ -884,10 +884,9 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("}")
 	ret := "return resp, nil"
 	if isCustomOp {
-		s := g.customOpService(m)
-		handleName := handleName(s.GetName(), g.opts.pkgName)
-		p("op := %s", g.customOpInit(handleName, "resp"))
-		ret = "return op, nil"
+		opVar := "op"
+		g.customOpInit("resp", "req", opVar, inType.(*descriptor.DescriptorProto), g.customOpService(m))
+		ret = fmt.Sprintf("return %s, nil", opVar)
 	}
 	p(ret)
 	p("}")

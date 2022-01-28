@@ -46,6 +46,11 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 	if e != nil {
 		return nil, e
 	}
-	op := &Operation{&handle{c: c.operationClient, proto: resp}}
+	op := &Operation{
+		&handle{
+			c: c.operationClient,
+			proto: resp,
+		},
+	}
 	return op, nil
 }

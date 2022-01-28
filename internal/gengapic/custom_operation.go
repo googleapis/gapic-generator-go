@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -25,8 +26,9 @@ import (
 
 // customOp represents a custom operation type for long running operations.
 type customOp struct {
-	message *descriptor.DescriptorProto
-	handles []*descriptor.ServiceDescriptorProto
+	message       *descriptor.DescriptorProto
+	handles       []*descriptor.ServiceDescriptorProto
+	pollingParams map[*descriptor.ServiceDescriptorProto][]string
 }
 
 // isCustomOp determines if the given method should return a custom operation wrapper.
@@ -66,12 +68,42 @@ func (g *generator) customOpPointerType() (string, error) {
 // customOpInit builds a string containing the Go code for initializing the
 // operation wrapper type with the Go identifier for a variable that is the
 // proto-defined operation type.
-func (g *generator) customOpInit(h, p string) string {
+func (g *generator) customOpInit(p, r, o string, req *descriptor.DescriptorProto, s *descriptor.ServiceDescriptorProto) {
+	h := handleName(s.GetName(), g.opts.pkgName)
 	opName := g.aux.customOp.message.GetName()
+	pt := func(f string, v ...interface{}) {
+		g.pt.Printf(f, v...)
+	}
 
-	s := fmt.Sprintf("&%s{&%s{c: c.operationClient, proto: %s}}", opName, h, p)
+	// Collect all of the fields marked with google.cloud.operation_request_field
+	// and map the getter method to the polling request's field name, while also
+	// collecting these field name keys for sorted access.
+	keys := []string{}
+	paramToGetter := map[string]string{}
+	for _, f := range req.GetField() {
+		param, ok := operationRequestField(f)
+		if !ok {
+			continue
+		}
+		// Only include those operation_request_fields that are also tracked as
+		// polling params for the operation service.
+		param = lowerFirst(snakeToCamel(param))
+		if params := g.aux.customOp.pollingParams[s]; strContains(params, param) {
+			keys = append(keys, param)
+			paramToGetter[param] = fmt.Sprintf("%s%s", r, fieldGetter(f.GetName()))
+		}
+	}
+	sort.Strings(keys)
 
-	return s
+	pt("%s := &%s{", o, opName)
+	pt("  &%s{", h)
+	pt("    c: c.operationClient,")
+	pt("    proto: %s,", p)
+	for _, param := range keys {
+		pt("    %s: %s,", param, paramToGetter[param])
+	}
+	pt("  },")
+	pt("}")
 }
 
 // customOperationType generates the custom operation wrapper type and operation
@@ -164,32 +196,35 @@ func (g *generator) customOperationType() error {
 	g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
 
 	for _, handle := range op.handles {
+		pollingParams := op.pollingParams[handle]
 		s := pbinfo.ReduceServName(handle.GetName(), opImp.Name)
-		n := lowerFirst(s + "Handle")
+		n := handleName(handle.GetName(), opImp.Name)
 
 		// Look up polling method and its input.
-		var get *descriptor.MethodDescriptorProto
-		for _, m := range handle.GetMethod() {
-			if m.GetName() == "Get" {
-				get = m
-				break
-			}
-		}
-		getInput := g.descInfo.Type[get.GetInputType()]
-		inNameField := operationResponseField(getInput.(*descriptor.DescriptorProto), opNameField.GetName())
+		poll := operationPollingMethod(handle)
+		pollReq := g.descInfo.Type[poll.GetInputType()].(*descriptor.DescriptorProto)
+		pollNameField := operationResponseField(pollReq, opNameField.GetName())
 
 		// type
 		p("// Implements the %s interface for %s.", handleInt, handle.GetName())
 		p("type %s struct {", n)
 		p("  c *%sClient", s)
 		p("  proto %s", ptyp)
+		for _, param := range pollingParams {
+			p("  %s string", param)
+		}
 		p("}")
 		p("")
 
 		// Poll
 		p("// Poll retrieves the latest data for the long-running operation.")
 		p("func (h *%s) Poll(ctx context.Context, opts ...gax.CallOption) error {", n)
-		p("  resp, err := h.c.Get(ctx, &%s.%s{%s: h.proto%s}, opts...)", opImp.Name, upperFirst(getInput.GetName()), upperFirst(inNameField.GetName()), opNameGetter)
+		p("  resp, err := h.c.Get(ctx, &%s.%s{", opImp.Name, upperFirst(pollReq.GetName()))
+		p("    %s: h.proto%s,", snakeToCamel(pollNameField.GetName()), opNameGetter)
+		for _, f := range pollingParams {
+			p("    %s: h.%s,", upperFirst(f), f)
+		}
+		p("  }, opts...)")
 		p("  if err != nil {")
 		p("    return err")
 		p("  }")
@@ -210,21 +245,26 @@ func (g *generator) customOperationType() error {
 }
 
 // loadCustomOpServices maps the service declared as a google.cloud.operation_service
-// to the service that owns the method(s) declaring it.
+// to the service that owns the method(s) declaring it, as well as collects the set of
+// operation services for handle generation, and maps the polling request parameters to
+// that same operation service descriptor.
 func (g *generator) loadCustomOpServices(servs []*descriptor.ServiceDescriptorProto) {
 	handles := g.aux.customOp.handles
+	pollingParams := map[*descriptor.ServiceDescriptorProto][]string{}
 	for _, serv := range servs {
 		for _, meth := range serv.GetMethod() {
 			if opServ := g.customOpService(meth); opServ != nil {
 				g.customOpServices[serv] = opServ
 				if !containsService(handles, opServ) {
 					handles = append(handles, opServ)
+					pollingParams[opServ] = g.pollingRequestParameters(meth, opServ)
 				}
 				break
 			}
 		}
 	}
 	g.aux.customOp.handles = handles
+	g.aux.customOp.pollingParams = pollingParams
 }
 
 // customOpService loads the ServiceDescriptorProto for the google.cloud.operation_service
@@ -296,6 +336,57 @@ func operationResponseField(m *descriptor.DescriptorProto, target string) *descr
 		}
 	}
 	return nil
+}
+
+// operationRequestField is a helper for extracting the operation_request_field annotation from a field.
+func operationRequestField(f *descriptor.FieldDescriptorProto) (string, bool) {
+	mapping := proto.GetExtension(f.GetOptions(), extendedops.E_OperationRequestField).(string)
+	if mapping != "" {
+		return mapping, true
+	}
+
+	return "", false
+}
+
+// operationPollingMethod is a helper for finding the operation service RPC annotated with operation_polling_method.
+func operationPollingMethod(s *descriptor.ServiceDescriptorProto) *descriptor.MethodDescriptorProto {
+	for _, m := range s.GetMethod() {
+		if proto.GetExtension(m.GetOptions(), extendedops.E_OperationPollingMethod).(bool) {
+			return m
+		}
+	}
+
+	return nil
+}
+
+// pollingRequestParamters collects the polling request parameters for an operation service's polling method
+// based on which are annotated in an initiating RPC's request message with operation_request_field and that
+// are also marked as required on the polling request message. Specifically, this weeds out the parent_id field
+// of the GlobalOrganizationOperations polling params.
+func (g *generator) pollingRequestParameters(m *descriptor.MethodDescriptorProto, opServ *descriptor.ServiceDescriptorProto) []string {
+	poll := operationPollingMethod(opServ)
+	if poll == nil {
+		return nil
+	}
+	pollReqName := poll.GetInputType()
+
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+
+	params := []string{}
+	for _, f := range inType.GetField() {
+
+		mapping, ok := operationRequestField(f)
+		if !ok {
+			continue
+		}
+		pollField := g.lookupField(pollReqName, mapping)
+		if pollField != nil && isRequired(pollField) {
+			params = append(params, lowerFirst(snakeToCamel(mapping)))
+		}
+	}
+	sort.Strings(params)
+
+	return params
 }
 
 // handleName is a helper for constructing a operation handle name from the

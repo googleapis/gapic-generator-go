@@ -1,0 +1,8 @@
+op := &Operation{
+	&fooOperationHandle{
+		c: c.operationClient,
+		proto: foo,
+		project: req.GetRequestProject(),
+		zone: req.GetRequestZone(),
+	},
+}
