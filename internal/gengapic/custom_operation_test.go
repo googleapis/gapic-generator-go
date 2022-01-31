@@ -89,18 +89,35 @@ func TestCustomOpInit(t *testing.T) {
 	op := &descriptor.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
+	projFieldOpts := &descriptor.FieldOptions{}
+	proto.SetExtension(projFieldOpts, extendedops.E_OperationRequestField, "project")
+	projField := &descriptor.FieldDescriptorProto{
+		Name:    proto.String("request_project"),
+		Options: projFieldOpts,
+	}
+	zoneFieldOpts := &descriptor.FieldOptions{}
+	proto.SetExtension(zoneFieldOpts, extendedops.E_OperationRequestField, "zone")
+	zoneField := &descriptor.FieldDescriptorProto{
+		Name:    proto.String("request_zone"),
+		Options: zoneFieldOpts,
+	}
+	req := &descriptor.DescriptorProto{
+		Field: []*descriptor.FieldDescriptorProto{projField, zoneField},
+	}
+	opServ := &descriptor.ServiceDescriptorProto{Name: proto.String("FooOperationService")}
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
 				message: op,
+				pollingParams: map[*descriptor.ServiceDescriptorProto][]string{
+					opServ: {"project", "zone"},
+				},
 			},
 		},
+		opts: &options{pkgName: "bar"},
 	}
-	got := g.customOpInit("fooOperationHandle", "foo")
-	want := "&Operation{&fooOperationHandle{c: c.operationClient, proto: foo}}"
-	if diff := cmp.Diff(got, want); diff != "" {
-		t.Errorf("got(-),want(+):\n%s", diff)
-	}
+	g.customOpInit("foo", "req", "op", req, opServ)
+	txtdiff.Diff(t, "custom_op_init_helper", g.pt.String(), filepath.Join("testdata", "custom_op_init_helper.want"))
 }
 
 func TestCustomOperationType(t *testing.T) {
@@ -150,6 +167,8 @@ func TestCustomOperationType(t *testing.T) {
 		Options: inNameOpts,
 	}
 
+	getOpts := &descriptor.MethodOptions{}
+	proto.SetExtension(getOpts, extendedops.E_OperationPollingMethod, true)
 	getInput := &descriptor.DescriptorProto{
 		Name:  proto.String("GetFooOperationRequest"),
 		Field: []*descriptor.FieldDescriptorProto{inNameField},
@@ -161,6 +180,7 @@ func TestCustomOperationType(t *testing.T) {
 			{
 				Name:      proto.String("Get"),
 				InputType: proto.String(".google.cloud.foo.v1.GetFooOperationRequest"),
+				Options:   getOpts,
 			},
 		},
 	}
@@ -177,6 +197,9 @@ func TestCustomOperationType(t *testing.T) {
 			customOp: &customOp{
 				message: op,
 				handles: []*descriptor.ServiceDescriptorProto{fooOpServ},
+				pollingParams: map[*descriptor.ServiceDescriptorProto][]string{
+					fooOpServ: {"project", "zone"},
+				},
 			},
 		},
 		descInfo: pbinfo.Info{

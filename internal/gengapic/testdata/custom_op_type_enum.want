@@ -46,11 +46,17 @@ type operationHandle interface {
 type fooOperationsHandle struct {
 	c *FooOperationsClient
 	proto *foopb.Operation
+	project string
+	zone string
 }
 
 // Poll retrieves the latest data for the long-running operation.
 func (h *fooOperationsHandle) Poll(ctx context.Context, opts ...gax.CallOption) error {
-	resp, err := h.c.Get(ctx, &foopb.GetFooOperationRequest{Operation: h.proto.GetName()}, opts...)
+	resp, err := h.c.Get(ctx, &foopb.GetFooOperationRequest{
+		Operation: h.proto.GetName(),
+		Project: h.project,
+		Zone: h.zone,
+	}, opts...)
 	if err != nil {
 		return err
 	}

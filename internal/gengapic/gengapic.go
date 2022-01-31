@@ -77,7 +77,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	protoPkg := g.descInfo.ParentFile[genServs[0]].GetPackage()
 
 	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.diregapic && ok {
-		g.aux.customOp = &customOp{op.(*descriptor.DescriptorProto), []*descriptor.ServiceDescriptorProto{}}
+		g.aux.customOp = &customOp{
+			message:       op.(*descriptor.DescriptorProto),
+			handles:       []*descriptor.ServiceDescriptorProto{},
+			pollingParams: map[*descriptor.ServiceDescriptorProto][]string{}}
 		g.loadCustomOpServices(genServs)
 	}
 

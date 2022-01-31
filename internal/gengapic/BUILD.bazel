@@ -78,6 +78,7 @@ go_test(
         "@go_googleapis//google/rpc:code_go_proto",
         "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_genproto//googleapis/cloud/extendedops",
         "@org_golang_google_genproto//googleapis/gapic/metadata",
         "@org_golang_google_protobuf//encoding/protojson",
         "@org_golang_google_protobuf//proto",
