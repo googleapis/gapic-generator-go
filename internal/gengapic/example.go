@@ -105,6 +105,8 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 		return err
 	}
 
+	httpInfo := getHTTPInfo(m)
+
 	g.imports[inSpec] = true
 	// Pick the first transport for simplicity. We don't need examples
 	// of each method for both transports when they have the same surface.
@@ -129,7 +131,7 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 	}
 	if pf != nil {
 		g.examplePagingCall(m)
-	} else if g.isLRO(m) {
+	} else if g.isLRO(m) || g.isCustomOp(m, httpInfo) {
 		g.exampleLROCall(m)
 	} else if *m.OutputType == emptyType {
 		g.exampleEmptyCall(m)
@@ -149,7 +151,7 @@ func (g *generator) exampleLROCall(m *descriptor.MethodDescriptorProto) {
 	// if response_type is google.protobuf.Empty, don't generate a "resp" var
 	eLRO := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
 	opInfo := eLRO.(*longrunning.OperationInfo)
-	if opInfo.GetResponseType() == emptyValue {
+	if opInfo.GetResponseType() == emptyValue || opInfo == nil {
 		// no new variables when this is used
 		// therefore don't attempt to delcare it
 		retVars = "err ="

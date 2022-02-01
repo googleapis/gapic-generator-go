@@ -36,8 +36,9 @@ func (g *generator) isCustomOp(m *descriptor.MethodDescriptorProto, info *httpIn
 	return g.opts.diregapic && // Generator in DIREGAPIC mode.
 		g.aux.customOp != nil && // API Defines a custom operation.
 		m.GetOutputType() == g.customOpProtoName() && // Method returns the custom operation.
-		info.verb != "get" && // Method is not a GET (polling methods).
-		m.GetName() != "Wait" // Method is not a Wait (uses POST).
+		m.GetName() != "Wait" && // Method is not a Wait (uses POST).
+		info != nil && // Must have google.api.http.
+		info.verb != "get" // Method is not a GET (polling methods).
 }
 
 // customOpProtoName builds the fully-qualified proto name for the custom
