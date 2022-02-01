@@ -7,6 +7,7 @@ on:
       - go.sum
       - showcase/go.mod
       - showcase/go.sum
+  workflow_dispatch: {} # Allow manual triggering
 jobs:
   update-bazel-deps:
     if: github.ref == 'refs/heads/main'
