@@ -13,6 +13,8 @@ jobs:
     outputs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
+    env:
+      USE_BAZEL_VERSION: 5.0.0
     container: gcr.io/gapic-images/googleapis:latest
     # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
     steps:
@@ -20,9 +22,9 @@ jobs:
     - name: Run gazelle update-repos
       id: update
       run: |
-        bazel run //:gazelle -- update-repos -from_file=go.mod -prune -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
+        bazelisk run //:gazelle -- update-repos -from_file=go.mod -prune -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
         sed -i "s/    \"go_repository\",//g" repositories.bzl
-        bazel run //:gazelle -- update-repos -from_file=showcase/go.mod -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
+        bazelisk run //:gazelle -- update-repos -from_file=showcase/go.mod -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
         sed -i "s/    \"go_repository\",//g" repositories.bzl
         set +e
         git diff --exit-code repositories.bzl
