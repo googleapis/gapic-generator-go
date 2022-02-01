@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
@@ -30,13 +31,14 @@ import (
 
 func TestExample(t *testing.T) {
 	var g generator
-	g.opts = &options{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.mixins = mixins{
+	g.aux = &auxTypes{}
+	mix := mixins{
 		"google.longrunning.Operations":   operationsMethods(),
 		"google.cloud.location.Locations": locationMethods(),
 		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
+	g.mixins = mix
 	g.serviceConfig = &serviceconfig.Service{
 		Apis: []*apipb.Api{
 			{Name: "foo.bar.Baz"},
@@ -84,10 +86,15 @@ func TestExample(t *testing.T) {
 		},
 	}
 
+	cop := &descriptor.DescriptorProto{
+		Name: proto.String("Operation"),
+	}
+
 	file := &descriptor.FileDescriptorProto{
 		Options: &descriptor.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
+		Package: proto.String("my.pkg"),
 	}
 
 	emptyLRO := &longrunning.OperationInfo{
@@ -102,11 +109,18 @@ func TestExample(t *testing.T) {
 	respLROOpts := &descriptor.MethodOptions{}
 	proto.SetExtension(respLROOpts, longrunning.E_OperationInfo, respLRO)
 
+	customOpOpts := &descriptor.MethodOptions{}
+	proto.SetExtension(customOpOpts, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/customOp",
+		},
+	})
+
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
-		inputType, outputType, pageInputType, pageOutputType,
+		inputType, outputType, pageInputType, pageOutputType, cop,
 	} {
-		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
+		g.descInfo.Type[".my.pkg."+typ.GetName()] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 
@@ -127,6 +141,7 @@ func TestExample(t *testing.T) {
 				Name:       proto.String("GetBigThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
 				OutputType: proto.String(".google.longrunning.Operation"),
+				Options:    respLROOpts,
 			},
 			{
 				Name:       proto.String("GetManyThings"),
@@ -152,17 +167,26 @@ func TestExample(t *testing.T) {
 				OutputType: proto.String(".google.longrunning.Operation"),
 				Options:    respLROOpts,
 			},
+			{
+				Name:       proto.String("CustomOp"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(".my.pkg.Operation"),
+				Options:    customOpOpts,
+			},
 		},
 	}
 	for _, tst := range []struct {
-		tstName, pkgName string
-		transports       []transport
-		imports          map[pbinfo.ImportSpec]bool
+		tstName string
+		imports map[pbinfo.ImportSpec]bool
+		options options
+		op      *customOp
 	}{
 		{
-			tstName:    "empty_example",
-			pkgName:    "Foo",
-			transports: []transport{grpc, rest},
+			tstName: "empty_example",
+			options: options{
+				pkgName:    "Foo",
+				transports: []transport{grpc, rest},
+			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
 				{Path: "google.golang.org/api/iterator"}: true,
@@ -174,9 +198,11 @@ func TestExample(t *testing.T) {
 			},
 		},
 		{
-			tstName:    "empty_example_grpc",
-			pkgName:    "Foo",
-			transports: []transport{grpc},
+			tstName: "empty_example_grpc",
+			options: options{
+				pkgName:    "Foo",
+				transports: []transport{grpc},
+			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
 				{Path: "google.golang.org/api/iterator"}: true,
@@ -188,9 +214,11 @@ func TestExample(t *testing.T) {
 			},
 		},
 		{
-			tstName:    "foo_example",
-			pkgName:    "Bar",
-			transports: []transport{grpc, rest},
+			tstName: "foo_example",
+			options: options{
+				pkgName:    "Bar",
+				transports: []transport{grpc, rest},
+			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
 				{Path: "google.golang.org/api/iterator"}: true,
@@ -202,9 +230,11 @@ func TestExample(t *testing.T) {
 			},
 		},
 		{
-			tstName:    "foo_example_rest",
-			pkgName:    "Bar",
-			transports: []transport{rest},
+			tstName: "foo_example_rest",
+			options: options{
+				pkgName:    "Bar",
+				transports: []transport{rest},
+			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
 				{Path: "google.golang.org/api/iterator"}: true,
@@ -214,11 +244,30 @@ func TestExample(t *testing.T) {
 				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
 				{Name: "mypackagepb", Path: "mypackage"}:                                           true,
 			},
+		},
+		{
+			tstName: "custom_op_example",
+			options: options{
+				pkgName:    "Bar",
+				transports: []transport{rest},
+				diregapic:  true,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                        true,
+				{Path: "google.golang.org/api/iterator"}: true,
+				{Path: "io"}:                             true,
+				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+			op: &customOp{message: cop},
 		},
 	} {
 		g.reset()
-		g.opts.pkgName = tst.pkgName
-		g.opts.transports = tst.transports
+		g.opts = &tst.options
+		g.mixins = mix
+		if tst.options.diregapic {
+			g.mixins = nil
+		}
+		g.aux.customOp = tst.op
 		g.genExampleFile(serv)
 		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
 			t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)

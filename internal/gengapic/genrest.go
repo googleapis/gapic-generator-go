@@ -194,8 +194,8 @@ type httpInfo struct {
 
 func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
 	pathParams := map[string]*descriptor.FieldDescriptorProto{}
-	info, err := getHTTPInfo(m)
-	if info == nil || err != nil {
+	info := getHTTPInfo(m)
+	if info == nil {
 		return pathParams
 	}
 
@@ -218,8 +218,8 @@ func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*
 
 func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
 	queryParams := map[string]*descriptor.FieldDescriptorProto{}
-	info, err := getHTTPInfo(m)
-	if info == nil || err != nil {
+	info := getHTTPInfo(m)
+	if info == nil {
 		return queryParams
 	}
 	if info.body == "*" {
@@ -395,10 +395,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 }
 
 func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error {
-	info, err := getHTTPInfo(m)
-	if err != nil {
-		return err
-	}
+	info := getHTTPInfo(m)
 	if info == nil {
 		return errors.E(nil, "method has no http info: %s", m.GetName())
 	}
@@ -427,9 +424,9 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 	return nil
 }
 
-func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
+func getHTTPInfo(m *descriptor.MethodDescriptorProto) *httpInfo {
 	if m == nil || m.GetOptions() == nil {
-		return nil, nil
+		return nil
 	}
 
 	eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
@@ -455,7 +452,7 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) (*httpInfo, error) {
 		info.url = httpRule.GetDelete()
 	}
 
-	return &info, nil
+	return &info
 }
 
 // genRESTMethod generates a single method from a client. m must be a method declared in serv.
@@ -561,7 +558,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	if err != nil {
 		return err
 	}
-	info, err := getHTTPInfo(m)
+	info := getHTTPInfo(m)
 	if err != nil {
 		return err
 	}
@@ -692,10 +689,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 }
 
 func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	info, err := getHTTPInfo(m)
-	if err != nil {
-		return err
-	}
+	info := getHTTPInfo(m)
 	if info == nil {
 		return errors.E(nil, "method has no http info: %s", m.GetName())
 	}
@@ -771,10 +765,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 }
 
 func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	info, err := getHTTPInfo(m)
-	if err != nil {
-		return err
-	}
+	info := getHTTPInfo(m)
 	if info == nil {
 		return errors.E(nil, "method has no http info: %s", m.GetName())
 	}

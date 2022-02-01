@@ -484,10 +484,7 @@ func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, err
 	if err != nil {
 		return "", err
 	}
-	info, err := getHTTPInfo(m)
-	if err != nil {
-		return "", err
-	}
+	info := getHTTPInfo(m)
 
 	// Regular return type.
 	retTyp := fmt.Sprintf("*%s.%s", outSpec.Name, outType.GetName())

@@ -1,0 +1,207 @@
+func ExampleNewFooRESTClient() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	// TODO: Use client.
+	_ = c
+}
+
+func ExampleFooClient_GetEmptyThing() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
+	}
+	err = c.GetEmptyThing(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+}
+
+func ExampleFooClient_GetOneThing() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
+	}
+	resp, err := c.GetOneThing(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// TODO: Use resp.
+	_ = resp
+}
+
+func ExampleFooClient_GetBigThing() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
+	}
+	op, err := c.GetBigThing(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	resp, err := op.Wait(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// TODO: Use resp.
+	_ = resp
+}
+
+func ExampleFooClient_GetManyThings() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &mypackagepb.PageInputType{
+		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#PageInputType.
+	}
+	it := c.GetManyThings(ctx, req)
+	for {
+		resp, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// TODO: Handle error.
+		}
+		// TODO: Use resp.
+		_ = resp
+	}
+}
+
+func ExampleFooClient_BidiThings() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+	stream, err := c.BidiThings(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	go func() {
+		reqs := []*mypackagepb.InputType{
+			// TODO: Create requests.
+		}
+		for _, req := range reqs {
+			if err := stream.Send(req); err != nil {
+				// TODO: Handle error.
+			}
+		}
+		stream.CloseSend()
+	}()
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			// TODO: handle error.
+		}
+		// TODO: Use resp.
+		_ = resp
+	}
+}
+
+func ExampleFooClient_EmptyLRO() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
+	}
+	op, err := c.EmptyLRO(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	err = op.Wait(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+}
+
+func ExampleFooClient_RespLRO() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
+	}
+	op, err := c.RespLRO(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	resp, err := op.Wait(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// TODO: Use resp.
+	_ = resp
+}
+
+func ExampleFooClient_CustomOp() {
+	ctx := context.Background()
+	c, err := Bar.NewFooRESTClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &mypackagepb.InputType{
+		// TODO: Fill request struct fields.
+		// See https://pkg.go.dev/mypackage#InputType.
+	}
+	op, err := c.CustomOp(ctx, req)
+	if err != nil {
+		// TODO: Handle error.
+	}
+
+	err = op.Wait(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+}
+
