@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -161,4 +162,49 @@ func isRequired(field *descriptor.FieldDescriptorProto) bool {
 	}
 
 	return false
+}
+
+// This takes in a path template from a routing annotation and converts it into a regex string.
+// The named capture is the named segment portion for the header itself.
+func convertPathTemplateToRegex(pattern string) string {
+	// If path template doesn't exist, then use a wildcard.
+	if len(pattern) < 1 {
+		return "(.*)"
+	}
+	// Replace name of header to named capture.
+	regexPattern := strings.ReplaceAll(pattern, "{", "(?P<")
+	regexPattern = strings.ReplaceAll(regexPattern, "}", ")")
+	// If not named, then entire segment is a wildcard.
+	if !strings.Contains(pattern, "=") || !strings.Contains(pattern, "/") {
+		regexPattern = strings.ReplaceAll(regexPattern, "*", "")
+		regexPattern = strings.ReplaceAll(regexPattern, "=", "")
+		regexPattern = strings.ReplaceAll(regexPattern, ")", ">.*)")
+		return regexPattern
+	}
+	// Replace segment wildcards with regex equivalent
+	regexPattern = strings.ReplaceAll(regexPattern, "/**", "(?:/.*)?")
+	regexPattern = strings.ReplaceAll(regexPattern, "/*", "/[^/]+")
+	regexPattern = strings.ReplaceAll(regexPattern, "=**", ">.*")
+	regexPattern = strings.ReplaceAll(regexPattern, "=*", ">[^/]+")
+	regexPattern = strings.ReplaceAll(regexPattern, "=", ">")
+	regexPattern = strings.ReplaceAll(regexPattern, "**", ".*")
+	return regexPattern
+}
+
+// This intakes a path template and returns the name of the header to be returned.
+func getHeaderName(pattern string) string {
+	curlyBraceRegex := regexp.MustCompile("\\{([^}]+)\\}")
+	// Path template should only contain one name (e.g. at most one `=`) or
+	// a collectionId, and should be contained within curly braces.
+	if strings.Count(pattern, "=") > 1 || !curlyBraceRegex.MatchString(pattern) {
+		return ""
+	} else if strings.Count(pattern, "=") < 1 {
+		// If there is no equal sign, then the path template is a collectionId which is its own name.
+		// and both the named segment and path template are wildcards.
+		return curlyBraceRegex.FindStringSubmatch(pattern)[1]
+	}
+	helperSegment := curlyBraceRegex.FindStringSubmatch(pattern)[1]
+	getBeforeAfterEqualsSign := regexp.MustCompile("(?P<before>[^=]*)=(?P<after>.*)")
+	matches := getBeforeAfterEqualsSign.FindStringSubmatch(helperSegment)
+	return matches[1]
 }

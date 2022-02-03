@@ -243,12 +243,49 @@ func (g *generator) deadline(s, m string) {
 	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 }
 
-func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
+func (g *generator) getFormattedValue(m *descriptor.MethodDescriptorProto, field string, accessor string) (string, error) {
+	f := g.lookupField(m.GetInputType(), field)
+	value := ""
+	// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
+	switch f.GetType() {
+	case descriptor.FieldDescriptorProto_TYPE_STRING:
+		value = fmt.Sprintf("url.QueryEscape(%s)", accessor)
+	case descriptor.FieldDescriptorProto_TYPE_DOUBLE:
+		// Double and float are handled the same way.
+		fallthrough
+	case descriptor.FieldDescriptorProto_TYPE_FLOAT:
+		// Format the floating point value with mode 'g' to allow for
+		// exponent formatting when necessary, and decimal when adequate.
+		// QueryEscape the resulting string in case there is a '+' in the
+		// exponent.
+		// See golang.org/pkg/fmt for more information on formatting.
+		value = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
+	case descriptor.FieldDescriptorProto_TYPE_ENUM:
+		en := g.descInfo.Type[f.GetTypeName()]
+
+		n, imp, err := g.descInfo.NameSpec(en)
+		if err != nil {
+			return "", err
+		}
+		g.imports[imp] = true
+
+		// protobuf Go generates a mapping from number to string
+		// representation of an enum, in UPPER_SNAKE_CASE form. The map
+		// is named with the enum name and the _name suffix. If it is a
+		// nested enum, the name is prefixed with the parent message name.
+		// For example, Severity_name or Error_Severity_name.
+		value = fmt.Sprintf("%s.%s_name[int32(%s)]", imp.Name, n, accessor)
+	default:
+		value = accessor
+	}
+	return value, nil
+}
+
+func (g *generator) insertRegularRequestHeaders(m *descriptor.MethodDescriptorProto) error {
 	headers, err := parseRequestHeaders(m)
 	if err != nil {
 		return err
 	}
-
 	if len(headers) > 0 {
 		seen := map[string]bool{}
 		var formats, values strings.Builder
@@ -259,62 +296,84 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 				continue
 			}
 			seen[field] = true
-
 			accessor := fmt.Sprintf("req%s", fieldGetter(field))
-			f := g.lookupField(m.GetInputType(), field)
-
-			// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
-			switch f.GetType() {
-			case descriptor.FieldDescriptorProto_TYPE_STRING:
-				accessor = fmt.Sprintf("url.QueryEscape(%s)", accessor)
-			case descriptor.FieldDescriptorProto_TYPE_DOUBLE:
-				// Double and float are handled the same way.
-				fallthrough
-			case descriptor.FieldDescriptorProto_TYPE_FLOAT:
-				// Format the floating point value with mode 'g' to allow for
-				// exponent formatting when necessary, and decimal when adequate.
-				// QueryEscape the resulting string in case there is a '+' in the
-				// exponent.
-				// See golang.org/pkg/fmt for more information on formatting.
-				accessor = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
-			case descriptor.FieldDescriptorProto_TYPE_ENUM:
-				en := g.descInfo.Type[f.GetTypeName()]
-
-				n, imp, err := g.descInfo.NameSpec(en)
-				if err != nil {
-					return err
-				}
-				g.imports[imp] = true
-
-				// protobuf Go generates a mapping from number to string
-				// representation of an enum, in UPPER_SNAKE_CASE form. The map
-				// is named with the enum name and the _name suffix. If it is a
-				// nested enum, the name is prefixed with the parent message name.
-				// For example, Severity_name or Error_Severity_name.
-				accessor = fmt.Sprintf("%s.%s_name[int32(%s)]", imp.Name, n, accessor)
+			accessor, err = g.getFormattedValue(m, field, accessor)
+			if err != nil {
+				return err
 			}
-
-			// URL encode key & values separately per aip.dev/4222.
-			// Encode the key ahead of time to reduce clutter
-			// and because it will likely never be necessary
 			fmt.Fprintf(&values, " %q, %s,", url.QueryEscape(field), accessor)
 			formats.WriteString("%s=%v&")
 		}
 		// Trim the trailing comma and ampersand symbols.
 		f := formats.String()[:formats.Len()-1]
 		v := values.String()[:values.Len()-1]
-
 		g.printf("md := metadata.Pairs(\"x-goog-request-params\", fmt.Sprintf(%q,%s))", f, v)
-		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
+	}
+	return nil
+}
 
-		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
+func (g *generator) insertDynamicRequestHeaders(m *descriptor.MethodDescriptorProto) error {
+	headers, err := parseDynamicRequestHeaders(m)
+	if err != nil {
+		return err
+	}
+	if len(headers) > 0 {
+		g.printf("routingHeaders := \"\"")
+		g.printf("routingHeadersMap := make(map[string]string)")
+		for i, h := range headers {
+			field := h[1]
+			headerName := h[2]
+			g.printf("routingRegexp%v := regexp.MustCompile(\"%s\")", i, h[0])
+			accessor := fmt.Sprintf("req%s", fieldGetter(field))
+			regexHelper := fmt.Sprintf("routingRegexp%v.FindStringSubmatch(%s)[1]", i, accessor)
+			g.printf("headerName%v := \"%s\"", i, headerName)
+			g.printf("headerValue%v := \"\"", i)
 
-		return nil
+			regexHelper, err = g.getFormattedValue(m, field, regexHelper)
+			if err != nil {
+				return err
+			}
+			g.printf("if routingRegexp%v.MatchString(%s){headerValue%v = %s}", i, accessor, i, regexHelper)
+			// This enables overwriting of headerNames such that the last annotation to match will be the value sent.
+			g.printf("if len(headerValue%v) > 0{routingHeadersMap[headerName%v] = headerValue%v}", i, i, i)
+		}
+		g.printf("for headerName, headerValue := range routingHeadersMap {routingHeaders = routingHeaders + fmt.Sprintf(\"%%s=%%s&\", headerName, headerValue)}")
+		// Trim the trailing ampersand symbol.
+		g.printf("if len(routingHeaders) > 0{routingHeaders = routingHeaders[:len(routingHeaders)-1]}")
+		g.printf("md := metadata.Pairs(\"x-goog-request-params\", routingHeaders)")
+		g.imports[pbinfo.ImportSpec{Path: "regexp"}] = true
+
+	}
+	return nil
+}
+
+func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
+	headers, err := parseRequestHeaders(m)
+	if err != nil {
+		return err
+	}
+	//If dynamic routing annotation exists, it supercedes and replaces other request headers
+	if dynamicRequestHeadersExist(m) {
+		headers, err = parseDynamicRequestHeaders(m)
+		if err != nil {
+			return err
+		}
 	}
 
+	if len(headers) > 0 && !dynamicRequestHeadersExist(m) {
+		g.insertRegularRequestHeaders(m)
+		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
+		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
+		return nil
+	} else if len(headers) > 0 && dynamicRequestHeadersExist(m) {
+		g.insertDynamicRequestHeaders(m)
+		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
+		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
+		return nil
+	}
 	g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata)")
-
 	return nil
 }
 
@@ -527,6 +586,41 @@ func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error
 		}
 
 		matches = append(matches, headerParamRegexp.FindAllStringSubmatch(pattern, -1)...)
+	}
+
+	return matches, nil
+}
+
+// Determine whether routing annotation exists
+func dynamicRequestHeadersExist(m *descriptor.MethodDescriptorProto) bool {
+	dynamicHeaders := proto.HasExtension(m.GetOptions(), annotations.E_Routing)
+	if m == nil || m.GetOptions() == nil {
+		return false
+	}
+	return dynamicHeaders
+}
+
+// Parse routing annotations to be used as request headers
+func parseDynamicRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
+	var matches [][]string
+
+	reqHeaders := proto.GetExtension(m.GetOptions(), annotations.E_Routing)
+	if m == nil || m.GetOptions() == nil {
+		return nil, nil
+	}
+
+	routingRule := reqHeaders.(*annotations.RoutingRule)
+	routingParameter := routingRule.GetRoutingParameters()
+
+	for _, param := range routingParameter {
+		pathTemplateRegex := convertPathTemplateToRegex(param.GetPathTemplate())
+		fieldReq := param.Field
+		headerName := getHeaderName(param.GetPathTemplate())
+		if len(headerName) < 1 {
+			headerName = fieldReq
+		}
+		paramSlice := []string{pathTemplateRegex, fieldReq, headerName}
+		matches = append(matches, paramSlice)
 	}
 
 	return matches, nil

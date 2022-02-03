@@ -37,7 +37,7 @@ func init() {
 	registerIgnoreGoroutine("google.golang.org/grpc.(*addrConn).connect")
 }
 
-const showcaseSemver = "0.15.0"
+const showcaseSemver = "0.19.0"
 
 func TestMain(m *testing.M) {
 	flag.Parse()

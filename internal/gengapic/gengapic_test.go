@@ -254,6 +254,40 @@ func TestGenMethod(t *testing.T) {
 	}
 	proto.SetExtension(opts, annotations.E_Http, ext)
 
+	optsGetAnotherThing := &descriptor.MethodOptions{}
+	extGetAnotherThing := &annotations.RoutingRule{
+		RoutingParameters: []*annotations.RoutingParameter{
+			{
+				Field: "other",
+			},
+			{
+				Field:        "other",
+				PathTemplate: "{name=projects/*}/foos",
+			},
+			{
+				Field:        "another",
+				PathTemplate: "{foo_name=projects/*}/bars/*/**",
+			},
+			{
+				Field:        "another",
+				PathTemplate: "{foo_name=projects/*/foos/*}/bars/*/**",
+			},
+			{
+				Field:        "field_name.nested",
+				PathTemplate: "{nested_name=**}",
+			},
+			{
+				Field:        "field_name.nested",
+				PathTemplate: "{part_of_nested=projects/*}/bars",
+			},
+		},
+	}
+	proto.SetExtension(optsGetAnotherThing, annotations.E_Routing, extGetAnotherThing)
+
+	optsGetManyOtherThings := &descriptor.MethodOptions{}
+	extGetManyOtherThings := &annotations.RoutingRule{}
+	proto.SetExtension(optsGetManyOtherThings, annotations.E_Routing, extGetManyOtherThings)
+
 	file := &descriptor.FileDescriptorProto{
 		Package: proto.String("my.pkg"),
 		Options: &descriptor.FileOptions{
@@ -411,6 +445,36 @@ methods:
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+		},
+		// Test for dynamic routing header annotations.
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:       proto.String("GetAnotherThing"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(".my.pkg.OutputType"),
+				Options:    optsGetAnotherThing,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}:                            true,
+				{Path: "net/url"}:                        true,
+				{Path: "regexp"}:                         true,
+				{Path: "time"}:                           true,
+				{Name: "mypackagepb", Path: "mypackage"}: true,
+			},
+		},
+		// Test for empty dynamic routing annotation, so no headers should be sent.
+		{
+			m: &descriptor.MethodDescriptorProto{
+				Name:       proto.String("GetManyOtherThings"),
+				InputType:  proto.String(".my.pkg.PageInputType"),
+				OutputType: proto.String(".my.pkg.PageOutputType"),
+				Options:    optsGetManyOtherThings,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/api/iterator"}:   true,
+				{Path: "google.golang.org/protobuf/proto"}: true,
+				{Name: "mypackagepb", Path: "mypackage"}:   true,
 			},
 		},
 	} {

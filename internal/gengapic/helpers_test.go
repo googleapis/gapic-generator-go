@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	//"reflect"
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -189,6 +190,86 @@ func TestIsRequired(t *testing.T) {
 	} {
 		if got := isRequired(&descriptor.FieldDescriptorProto{Options: tst.opts}); got != tst.want {
 			t.Errorf("isRequired(%q) = got %v, want %v", tst.opts, got, tst.want)
+		}
+	}
+}
+
+func TestConvertPathTemplateToRegex(t *testing.T) {
+	for _, tst := range []struct {
+		in   string
+		want string
+	}{
+		{
+			in:   "",
+			want: "(.*)",
+		},
+		{
+			in:   "{foo}",
+			want: "(?P<foo>.*)",
+		},
+		{
+			in:   "{foo=*}",
+			want: "(?P<foo>.*)",
+		},
+		{
+			in:   "{foo=**}",
+			want: "(?P<foo>.*)",
+		},
+		{
+			in:   "{foo=projects/*}/bars",
+			want: "(?P<foo>projects/[^/]+)/bars",
+		},
+		{
+			in:   "{database=projects/*/databases/*}/documents/*/**",
+			want: "(?P<database>projects/[^/]+/databases/[^/]+)/documents/[^/]+(?:/.*)?",
+		},
+		{
+			in:   "projects/*/foos/*/{bar_name=bars/*}/**",
+			want: "projects/[^/]+/foos/[^/]+/(?P<bar_name>bars/[^/]+)(?:/.*)?",
+		},
+	} {
+		if got := convertPathTemplateToRegex(tst.in); got != tst.want {
+			t.Errorf("convertPathTemplateToRegex(%v): got %v, want %v", tst.in, got, tst.want)
+		}
+	}
+}
+
+func TestGetHeaderName(t *testing.T) {
+	for _, tst := range []struct {
+		in   string
+		want string
+	}{
+		{
+			in:   "{foo}",
+			want: "foo",
+		},
+		{
+			in:   "foo",
+			want: "",
+		},
+		{
+			in:   "{foo=bar}",
+			want: "foo",
+		},
+		{
+			in:   "{foo=*}",
+			want: "foo",
+		},
+		{
+			in:   "test/{database=projects/*/databases/*}/documents/*/**",
+			want: "database",
+		},
+		{
+			in:   "{new_name_match=projects/*/instances/*/tables/*}",
+			want: "new_name_match",
+		},
+		{
+			in:   "profiles/{routing_id=*}",
+			want: "routing_id",
+		},
+	} {
+		if got := getHeaderName(tst.in); got != tst.want {
+			t.Errorf("getHeaderName(%v): got %v, want %v", tst.in, got, tst.want)
 		}
 	}
 }
