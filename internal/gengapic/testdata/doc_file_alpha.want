@@ -80,6 +80,7 @@ import (
 	"strings"
 	"unicode"
 
+	"cloud.google.com/go/path/internal"
 	"golang.org/x/xerrors"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/metadata"
@@ -90,7 +91,7 @@ import (
 type clientHookParams struct{}
 type clientHook func(context.Context, clientHookParams) ([]option.ClientOption, error)
 
-const versionClient = "UNKNOWN"
+var versionClient = internal.Version
 
 func insertMetadata(ctx context.Context, mds ...metadata.MD) context.Context {
 	out, _ := metadata.FromOutgoingContext(ctx)

@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -105,6 +106,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("//")
 	p("// For information about setting deadlines, reusing contexts, and more")
 	p("// please visit https://pkg.go.dev/cloud.google.com/go.")
+	//TODO(codyoss): use the pkgPath opt
 	p("package %s // import %q", g.opts.pkgName, g.opts.pkgPath)
 	p("")
 
@@ -119,6 +121,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("%s%q", "\t", "strings")
 	p("%s%q", "\t", "unicode")
 	p("")
+	p("%s%q", "\t", resolveModuleInternalPkg(g.opts.pkgPath))
 	if hasREST {
 		p("%s%q", "\t", "golang.org/x/xerrors")
 	}
@@ -133,7 +136,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("type clientHook func(context.Context, clientHookParams) ([]option.ClientOption, error)")
 	p("")
 
-	p("const versionClient = %q", "UNKNOWN")
+	p("var versionClient = internal.Version")
 	p("")
 
 	p("func insertMetadata(ctx context.Context, mds ...metadata.MD) context.Context {")
@@ -270,4 +273,10 @@ func wrapString(str string, max int) []string {
 	lines = append(lines, line)
 
 	return lines
+}
+
+func resolveModuleInternalPkg(pkgPath string) string {
+	pkgSuffix := strings.TrimPrefix(pkgPath, "cloud.google.com/go/")
+	pkg := strings.Split(pkgSuffix, "/")[0]
+	return fmt.Sprintf("cloud.google.com/go/%s/internal", pkg)
 }
