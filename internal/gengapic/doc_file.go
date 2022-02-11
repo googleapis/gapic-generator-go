@@ -106,7 +106,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("//")
 	p("// For information about setting deadlines, reusing contexts, and more")
 	p("// please visit https://pkg.go.dev/cloud.google.com/go.")
-	//TODO(codyoss): use the pkgPath opt
 	p("package %s // import %q", g.opts.pkgName, g.opts.pkgPath)
 	p("")
 
