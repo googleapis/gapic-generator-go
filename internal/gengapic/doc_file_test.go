@@ -147,3 +147,12 @@ func TestDocFileEmptyService(t *testing.T) {
 		g.reset()
 	}
 }
+
+func TestResolveModuleInternalPkg(t *testing.T) {
+	in := "cloud.google.com/go/foo/apiv1"
+	want := "cloud.google.com/go/foo/internal"
+	got := resolveModuleInternalPkg("cloud.google.com/go/foo/apiv1")
+	if got != want {
+		t.Fatalf("resolveModuleInternalPkg(%q) = %q, want %q", in, got, want)
+	}
+}
