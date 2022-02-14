@@ -168,7 +168,7 @@ func isRequired(field *descriptor.FieldDescriptorProto) bool {
 // The named capture is the named segment portion for the header itself.
 func convertPathTemplateToRegex(pattern string) string {
 	// If path template doesn't exist, then use a wildcard.
-	if len(pattern) < 1 {
+	if pattern == "" {
 		return "(.*)"
 	}
 	// Replace name of header to named capture.
@@ -198,13 +198,15 @@ func getHeaderName(pattern string) string {
 	// a collectionId, and should be contained within curly braces.
 	if strings.Count(pattern, "=") > 1 || !curlyBraceRegex.MatchString(pattern) {
 		return ""
-	} else if strings.Count(pattern, "=") < 1 {
-		// If there is no equal sign, then the path template is a collectionId which is its own name.
-		// and both the named segment and path template are wildcards.
-		return curlyBraceRegex.FindStringSubmatch(pattern)[1]
 	}
-	helperSegment := curlyBraceRegex.FindStringSubmatch(pattern)[1]
-	getBeforeAfterEqualsSign := regexp.MustCompile("(?P<before>[^=]*)=(?P<after>.*)")
-	matches := getBeforeAfterEqualsSign.FindStringSubmatch(helperSegment)
+	// curlyBraceSegment returns the named capture within the path template that is within the curly braces.
+	curlyBraceSegment := curlyBraceRegex.FindStringSubmatch(pattern)[1]
+	// If there is no equal sign, then the path template is a collectionId which is its own name.
+	// and both the named segment and path template are wildcards.
+	if strings.Count(pattern, "=") < 1 {
+		return curlyBraceSegment
+	}
+	getBeforeEqualsSign := regexp.MustCompile("(?P<before>[^=]*)=.*")
+	matches := getBeforeEqualsSign.FindStringSubmatch(curlyBraceSegment)
 	return matches[1]
 }

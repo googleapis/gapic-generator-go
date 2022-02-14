@@ -15,7 +15,6 @@
 package gengapic
 
 import (
-	//"reflect"
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"

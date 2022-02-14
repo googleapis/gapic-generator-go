@@ -281,8 +281,8 @@ func (g *generator) getFormattedValue(m *descriptor.MethodDescriptorProto, field
 	return value, nil
 }
 
-func (g *generator) insertRegularRequestHeaders(m *descriptor.MethodDescriptorProto) error {
-	headers, err := parseRequestHeaders(m)
+func (g *generator) insertImplicitRequestHeaders(m *descriptor.MethodDescriptorProto) error {
+	headers, err := parseImplicitRequestHeaders(m)
 	if err != nil {
 		return err
 	}
@@ -318,41 +318,56 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptor.MethodDescriptorPr
 		return err
 	}
 	if len(headers) > 0 {
-		g.printf("routingHeaders := \"\"")
+		g.printf(`routingHeaders := ""`)
 		g.printf("routingHeadersMap := make(map[string]string)")
 		for i, h := range headers {
+			namedCaptureRegex := h[0]
 			field := h[1]
 			headerName := h[2]
-			g.printf("routingRegexp%v := regexp.MustCompile(\"%s\")", i, h[0])
 			accessor := fmt.Sprintf("req%s", fieldGetter(field))
-			regexHelper := fmt.Sprintf("routingRegexp%v.FindStringSubmatch(%s)[1]", i, accessor)
-			g.printf("headerName%v := \"%s\"", i, headerName)
-			g.printf("headerValue%v := \"\"", i)
-
+			regexHelper := fmt.Sprintf("reg.FindStringSubmatch(%s)[1]", accessor)
 			regexHelper, err = g.getFormattedValue(m, field, regexHelper)
 			if err != nil {
 				return err
 			}
-			g.printf("if routingRegexp%v.MatchString(%s){headerValue%v = %s}", i, accessor, i, regexHelper)
-			// This enables overwriting of headerNames such that the last annotation to match will be the value sent.
-			g.printf("if len(headerValue%v) > 0{routingHeadersMap[headerName%v] = headerValue%v}", i, i, i)
+			g.printf("if reg := regexp.MustCompile(\"%s\");", namedCaptureRegex)
+			g.printf("reg.MatchString(%s) {", accessor)
+			g.printf("routingHeadersMap[\"%s\"] = %s", headerName, regexHelper)
+			// If there are multiple rules for the same header name, the last rule that matches wins.
+			if i+1 < len(headers) && headers[i+1][2] == headers[i][2] {
+				namedCaptureRegex := headers[i+1][0]
+				field := headers[i+1][1]
+				accessor := fmt.Sprintf("req%s", fieldGetter(field))
+				regexHelper := fmt.Sprintf("reg.FindStringSubmatch(%s)[1]", accessor)
+				regexHelper, err = g.getFormattedValue(m, field, regexHelper)
+				if err != nil {
+					return err
+				}
+				g.printf("} else if reg = regexp.MustCompile(\"%s\");", namedCaptureRegex)
+				g.printf("reg.MatchString(%s) {", accessor)
+				g.printf("routingHeadersMap[\"%s\"] = %s", headerName, regexHelper)
+				g.printf("}")
+			} else {
+				g.printf("}")
+			}
 		}
-		g.printf("for headerName, headerValue := range routingHeadersMap {routingHeaders = routingHeaders + fmt.Sprintf(\"%%s=%%s&\", headerName, headerValue)}")
-		// Trim the trailing ampersand symbol.
-		g.printf("if len(routingHeaders) > 0{routingHeaders = routingHeaders[:len(routingHeaders)-1]}")
+		g.printf("for headerName, headerValue := range routingHeadersMap {")
+		g.printf("routingHeaders = routingHeaders + fmt.Sprintf(\"%%s=%%s&\", headerName, headerValue)")
+		g.printf("}")
+		g.printf(`routingHeaders = strings.TrimSuffix(routingHeaders, "&")`)
+		g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
 		g.printf("md := metadata.Pairs(\"x-goog-request-params\", routingHeaders)")
 		g.imports[pbinfo.ImportSpec{Path: "regexp"}] = true
-
 	}
 	return nil
 }
 
 func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
-	headers, err := parseRequestHeaders(m)
+	headers, err := parseImplicitRequestHeaders(m)
 	if err != nil {
 		return err
 	}
-	//If dynamic routing annotation exists, it supercedes and replaces other request headers
+	// If dynamic routing annotation exists, it supercedes and replaces other request headers.
 	if dynamicRequestHeadersExist(m) {
 		headers, err = parseDynamicRequestHeaders(m)
 		if err != nil {
@@ -360,14 +375,13 @@ func (g *generator) insertMetadata(m *descriptor.MethodDescriptorProto) error {
 		}
 	}
 
-	if len(headers) > 0 && !dynamicRequestHeadersExist(m) {
-		g.insertRegularRequestHeaders(m)
-		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
-		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
-		return nil
-	} else if len(headers) > 0 && dynamicRequestHeadersExist(m) {
-		g.insertDynamicRequestHeaders(m)
+	if len(headers) > 0 {
+		insertHeaders := g.insertImplicitRequestHeaders
+		if dynamicRequestHeadersExist(m) {
+			insertHeaders = g.insertDynamicRequestHeaders
+		}
+		insertHeaders(m)
+		g.printf("")
 		g.printf("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
@@ -557,7 +571,7 @@ func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, err
 	return retTyp, nil
 }
 
-func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
+func parseImplicitRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error) {
 	var matches [][]string
 
 	eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
@@ -593,11 +607,8 @@ func parseRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string, error
 
 // Determine whether routing annotation exists
 func dynamicRequestHeadersExist(m *descriptor.MethodDescriptorProto) bool {
-	dynamicHeaders := proto.HasExtension(m.GetOptions(), annotations.E_Routing)
-	if m == nil || m.GetOptions() == nil {
-		return false
-	}
-	return dynamicHeaders
+	dynamicHeadersExt := proto.HasExtension(m.GetOptions(), annotations.E_Routing)
+	return dynamicHeadersExt
 }
 
 // Parse routing annotations to be used as request headers
@@ -605,10 +616,6 @@ func parseDynamicRequestHeaders(m *descriptor.MethodDescriptorProto) ([][]string
 	var matches [][]string
 
 	reqHeaders := proto.GetExtension(m.GetOptions(), annotations.E_Routing)
-	if m == nil || m.GetOptions() == nil {
-		return nil, nil
-	}
-
 	routingRule := reqHeaders.(*annotations.RoutingRule)
 	routingParameter := routingRule.GetRoutingParameters()
 
