@@ -132,7 +132,7 @@ jobs:
           -gapic=cloud.google.com/go/compute/apiv1 \
           -gocloud-dir=$CLOUD_GO \
           -googleapis-dir=$GOOGLEAPIS
-        cd $CLOUD_GO/compute && go install google.golang.org/genproto@latest && go get ./apiv1
+        cd $CLOUD_GO/compute && go install google.golang.org/genproto/googleapis/cloud/compute/v1@latest && go get ./apiv1
     - name: Compare regenerated code to baseline
       if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
       run: |
