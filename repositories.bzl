@@ -333,13 +333,13 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:K6RDEckDVWvDI9JAJYCmNdQXq6neHJOYx3V6jnqNEec=",
         version = "v0.0.0-20210720184732-4bb14d4b1be1",
     )
-
     go_repository(
         name = "com_github_google_renameio",
         importpath = "github.com/google/renameio",
         sum = "h1:GOZbcHa3HfsPKPlmyPyN2KEohoMXOhdMbHrvbpl2QaA=",
         version = "v0.1.0",
     )
+
     go_repository(
         name = "com_github_google_uuid",
         importpath = "github.com/google/uuid",
@@ -363,13 +363,6 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/googleapis/grpc-fallback-go",
         sum = "h1:tEDqZnKGKQpYrmEuu3VVBTw3pijHJsKz/Lu2U0L9AV0=",
         version = "v0.1.4",
-    )
-
-    go_repository(
-        name = "com_github_gordonklaus_ineffassign",
-        importpath = "github.com/gordonklaus/ineffassign",
-        sum = "h1:vc7Dmrk4JwS0ZPS6WZvWlwDflgDTA26jItmbSj83nug=",
-        version = "v0.0.0-20200309095847-7953dde2c7bf",
     )
     go_repository(
         name = "com_github_gorilla_mux",
@@ -523,8 +516,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This should be retained by gazelle.
         build_file_proto_mode = "disable",
         importpath = "github.com/jhump/protoreflect",
-        sum = "h1:8ogeubpKh2TiulA0apmGlW5YAH4U1Vi4TINIP+gpNfQ=",
-        version = "v1.10.3",
+        sum = "h1:bvACHUD1Ua/3VxY4aAMpItKMhhwbimlKFJKsLsVgDjU=",
+        version = "v1.11.0",
     )
     go_repository(
         name = "com_github_json_iterator_go",
@@ -550,7 +543,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:e8esj/e4R+SAOwFwN+n3zr0nYeCyeweozKfO23MvHzY=",
         version = "v1.5.0",
     )
-
     go_repository(
         name = "com_github_kisielk_gotool",
         importpath = "github.com/kisielk/gotool",
@@ -575,7 +567,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:T+h1c/A9Gawja4Y9mFVWj2vyii2bbUNDw3kt9VxK2EY=",
         version = "v0.0.0-20140226030751-b84e30acd515",
     )
-
     go_repository(
         name = "com_github_kr_pretty",
         importpath = "github.com/kr/pretty",
@@ -672,13 +663,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:F9x/1yl3T2AeKLr2AMdilSD8+f9bvMnNN8VS5iDtovc=",
         version = "v0.0.0-20161129095857-cc309e4a2223",
     )
-
-    go_repository(
-        name = "com_github_nishanths_predeclared",
-        importpath = "github.com/nishanths/predeclared",
-        sum = "h1:3f0nxAmdj/VoCGN/ijdMy7bj6SBagaqYg1B0hu8clMA=",
-        version = "v0.0.0-20200524104333-86fad755b4d3",
-    )
     go_repository(
         name = "com_github_oneofone_xxhash",
         importpath = "github.com/OneOfOne/xxhash",
@@ -754,7 +738,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:Ppwyp6VYCF1nvBTXL3trRso7mXMlRrw9ooo375wvi2s=",
         version = "v1.2.0",
     )
-
     go_repository(
         name = "com_github_rogpeppe_go_internal",
         importpath = "github.com/rogpeppe/go-internal",
@@ -865,13 +848,13 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:G3dpKMzFDjgEh2q1Z7zUUtKa8ViPtH+ocF0bE0g00O8=",
         version = "v0.0.0-20150427012821-b75d8614f926",
     )
-
     go_repository(
         name = "com_github_yuin_goldmark",
         importpath = "github.com/yuin/goldmark",
         sum = "h1:dPmz1Snjq0kmkz159iL7S6WzdahUTHnHB5M56WFVifs=",
         version = "v1.3.5",
     )
+
     go_repository(
         name = "com_gitlab_golang_commonmark_html",
         importpath = "gitlab.com/golang-commonmark/html",
@@ -1115,13 +1098,13 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:4+4C/Iv2U4fMZBiMCc98MG1In4gJY5YRhtpDNeDeHWs=",
         version = "v0.0.0-20190719004257-d2bd2a29d028",
     )
-
     go_repository(
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
         sum = "h1:UG21uOlmZabA4fW5i7ZX6bjw1xELEGg/ZLgZq9auk/Q=",
         version = "v0.5.0",
     )
+
     go_repository(
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
