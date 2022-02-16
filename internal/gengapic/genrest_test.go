@@ -533,6 +533,15 @@ func TestGenRestMethod(t *testing.T) {
 		Options:    pagingRPCOpt,
 	}
 
+	serverStreamRPC := &descriptor.MethodDescriptorProto{
+		Name:            proto.String("ServerStreamRPC"),
+		InputType:       proto.String(foofqn),
+		OutputType:      proto.String(foofqn),
+		ServerStreaming: proto.Bool(true),
+		// Reuse the unary RPC options because it's basically the same.
+		Options: unaryRPCOpt,
+	}
+
 	s := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 	}
@@ -570,13 +579,14 @@ func TestGenRestMethod(t *testing.T) {
 				pagedFooRes: f,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
-				opRPC:      s,
-				emptyRPC:   s,
-				unaryRPC:   s,
-				pagingRPC:  s,
-				nameField:  op,
-				sizeField:  foo,
-				otherField: foo,
+				opRPC:           s,
+				emptyRPC:        s,
+				unaryRPC:        s,
+				pagingRPC:       s,
+				serverStreamRPC: s,
+				nameField:       op,
+				sizeField:       foo,
+				otherField:      foo,
 			},
 			Type: map[string]pbinfo.ProtoType{
 				opfqn:          op,
@@ -634,6 +644,19 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Path: "google.golang.org/api/iterator"}:                         true,
 				{Path: "google.golang.org/protobuf/proto"}:                       true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+			},
+		},
+		{
+			name:    "server_stream_rpc",
+			method:  serverStreamRPC,
+			options: &options{},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "bytes"}:   true,
+				{Path: "context"}: true,
+				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Path: "google.golang.org/grpc/metadata"}:                        true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},

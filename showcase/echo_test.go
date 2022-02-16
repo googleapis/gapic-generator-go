@@ -148,24 +148,27 @@ func TestExpand(t *testing.T) {
 	defer check(t)
 	content := "The rain in Spain stays mainly on the plain!"
 	req := &showcasepb.ExpandRequest{Content: content}
-	s, err := echo.Expand(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	resps := []string{}
-	for {
-		resp, err := s.Recv()
-		if err == io.EOF {
-			break
-		}
+
+	for typ, client := range map[string]*showcase.EchoClient{"grpc": echo, "rest": echoREST} {
+		s, err := client.Expand(context.Background(), req)
 		if err != nil {
 			t.Fatal(err)
 		}
-		resps = append(resps, resp.GetContent())
-	}
-	got := strings.Join(resps, " ")
-	if content != got {
-		t.Errorf("Expand() = %q, want %q", got, content)
+		resps := []string{}
+		for {
+			resp, err := s.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			resps = append(resps, resp.GetContent())
+		}
+		got := strings.Join(resps, " ")
+		if content != got {
+			t.Errorf("%s Expand() = %q, want %q", typ, got, content)
+		}
 	}
 }
 
