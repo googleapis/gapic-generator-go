@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.25.1](https://github.com/googleapis/gapic-generator-go/compare/v0.25.0...v0.25.1) (2022-02-16)
+
+
+### Bug Fixes
+
+* **gengapic:** switch regapic use of xerrors to fmt for wrapping ([#902](https://github.com/googleapis/gapic-generator-go/issues/902)) ([3b5db4d](https://github.com/googleapis/gapic-generator-go/commit/3b5db4d28709b60be9eed520f007919a7ff21852))
+
 ## [0.25.0](https://github.com/googleapis/gapic-generator-go/compare/v0.24.0...v0.25.0) (2022-02-01)
 
 
