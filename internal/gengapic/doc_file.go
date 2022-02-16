@@ -111,6 +111,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("import (")
 	p("%s%q", "\t", "context")
 	if hasREST {
+		p("%s%q", "\t", "fmt")
 		p("%s%q", "\t", "net/http")
 	}
 	p("%s%q", "\t", "os")
@@ -119,9 +120,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("%s%q", "\t", "strings")
 	p("%s%q", "\t", "unicode")
 	p("")
-	if hasREST {
-		p("%s%q", "\t", "golang.org/x/xerrors")
-	}
 	p("%s%q", "\t", "google.golang.org/api/option")
 	p("%s%q", "\t", "google.golang.org/grpc/metadata")
 	p(")")
@@ -215,7 +213,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		p("// of receiving an unknown enum value.")
 		p("func maybeUnknownEnum(err error) error {")
 		p(`  if strings.Contains(err.Error(), "invalid value for enum type") {`)
-		p(`    err = xerrors.Errorf("received an unknown enum value; a later version of the library may support it: %%w", err)`)
+		p(`    err = fmt.Errorf("received an unknown enum value; a later version of the library may support it: %%w", err)`)
 		p("  }")
 		p("  return err")
 		p("}")
