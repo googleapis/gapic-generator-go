@@ -6,35 +6,29 @@ func (c *fooGRPCClient) GetAnotherThing(ctx context.Context, req *mypackagepb.In
 	}
 	routingHeaders := ""
 	routingHeadersMap := make(map[string]string)
-	if reg := regexp.MustCompile("(.*)");
-	reg.MatchString(req.GetOther()) {
+	if reg := regexp.MustCompile("(.*)"); reg.MatchString(req.GetOther()) {
 		routingHeadersMap["other"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
 	}
-	if reg := regexp.MustCompile("(?P<name>projects/[^/]+)/foos");
-	reg.MatchString(req.GetOther()) {
+	if reg := regexp.MustCompile("(?P<name>projects/[^/]+)/foos"); reg.MatchString(req.GetOther()) {
 		routingHeadersMap["name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
 	}
-	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+)/bars/[^/]+(?:/.*)?");
-	reg.MatchString(req.GetAnother()) {
-		routingHeadersMap["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
-	} else if reg = regexp.MustCompile("(?P<foo_name>projects/[^/]+/foos/[^/]+)/bars/[^/]+(?:/.*)?");
-	reg.MatchString(req.GetAnother()) {
+	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) {
 		routingHeadersMap["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
-	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+/foos/[^/]+)/bars/[^/]+(?:/.*)?");
-	reg.MatchString(req.GetAnother()) {
+	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+/foos/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) {
 		routingHeadersMap["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
-	if reg := regexp.MustCompile("(?P<nested_name>.*)");
-	reg.MatchString(req.GetFieldName().GetNested()) {
+	if reg := regexp.MustCompile("(?P<foo_name>.*)"); reg.MatchString(req.GetAnother()) {
+		routingHeadersMap["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
+	}
+	if reg := regexp.MustCompile("(?P<nested_name>.*)"); reg.MatchString(req.GetFieldName().GetNested()) {
 		routingHeadersMap["nested_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])
 	}
-	if reg := regexp.MustCompile("(?P<part_of_nested>projects/[^/]+)/bars");
-	reg.MatchString(req.GetFieldName().GetNested()) {
+	if reg := regexp.MustCompile("(?P<part_of_nested>projects/[^/]+)/bars"); reg.MatchString(req.GetFieldName().GetNested()) {
 		routingHeadersMap["part_of_nested"] = url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])
 	}
 	for headerName, headerValue := range routingHeadersMap {
-		routingHeaders = routingHeaders + fmt.Sprintf("%s=%s&", headerName, headerValue)
+		routingHeaders = fmt.Sprintf("%s%s=%s&", routingHeaders, headerName, headerValue)
 	}
 	routingHeaders = strings.TrimSuffix(routingHeaders, "&")
 	md := metadata.Pairs("x-goog-request-params", routingHeaders)

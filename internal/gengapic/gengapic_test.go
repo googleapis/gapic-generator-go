@@ -273,6 +273,10 @@ func TestGenMethod(t *testing.T) {
 				PathTemplate: "{foo_name=projects/*/foos/*}/bars/*/**",
 			},
 			{
+				Field:        "another",
+				PathTemplate: "{foo_name=**}",
+			},
+			{
 				Field:        "field_name.nested",
 				PathTemplate: "{nested_name=**}",
 			},
