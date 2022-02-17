@@ -20,6 +20,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -97,59 +99,46 @@ func TestEcho_error(t *testing.T) {
 
 }
 
-// Test dynamic routing header generation.
+// Test dynamic routing header generation. We cannot guarantee the order that headers are sent, so we check that the header sent contains the correct elements as opposed to checking
+// the header itself.
 func TestEchoHeader(t *testing.T) {
-	defer check(t)
-	content := "hello world!"
-	reqs := []*showcasepb.EchoRequest{&showcasepb.EchoRequest{
-		Response: &showcasepb.EchoRequest_Content{
-			Content: content,
+	//defer check(t)
+	for _, tst := range []struct {
+		req  *showcasepb.EchoRequest
+		want []string
+	}{
+		{
+			req:  &showcasepb.EchoRequest{OtherHeader: "projects/123/instances/456"},
+			want: []string{"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123"},
 		},
-		OtherHeader: "projects/123/instances/456",
-	},
-		&showcasepb.EchoRequest{
-			Response: &showcasepb.EchoRequest_Content{
-				Content: content,
+		{
+			req:  &showcasepb.EchoRequest{OtherHeader: "instances/456"},
+			want: []string{"baz=instances%2F456"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{Header: "potato"},
+			want: []string{"header=potato", "routing_id=potato"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{Header: "projects/123/instances/456"},
+			want: []string{"header=projects%2F123%2Finstances%2F456", "routing_id=projects%2F123%2Finstances%2F456", "super_id=projects%2F123", "table_name=projects%2F123%2Finstances%2F456", "instance_id=instances%2F456"},
+		},
+		{
+			req: &showcasepb.EchoRequest{
+				Header:      "regions/123/zones/456",
+				OtherHeader: "projects/123/instances/456",
 			},
-			OtherHeader: "instances/456",
+			want: []string{"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123", "table_name=regions%2F123%2Fzones%2F456", "header=regions%2F123%2Fzones%2F456", "routing_id=regions%2F123%2Fzones%2F456"},
 		},
-		&showcasepb.EchoRequest{
-			Response: &showcasepb.EchoRequest_Content{
-				Content: content,
-			},
-			Header: "potato",
-		},
-		&showcasepb.EchoRequest{
-			Response: &showcasepb.EchoRequest_Content{
-				Content: content,
-			},
-			Header: "projects/123/instances/456",
-		},
-		&showcasepb.EchoRequest{
-			Response: &showcasepb.EchoRequest_Content{
-				Content: content,
-			},
-			Header:      "regions/123/zones/456",
-			OtherHeader: "projects/123/instances/456",
-		},
-	}
-
-	// We cannot guarantee the order that headers are sent, so we check that the header sent contains the correct elements as opposed to checking
-	// the header itself.
-	expectedHeader := [][]string{{"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123"}, {"baz=instances%2F456"}, {"header=potato", "routing_id=potato"}, {"header=projects%2F123%2Finstances%2F456", "routing_id=projects%2F123%2Finstances%2F456", "super_id=projects%2F123", "table_name=projects%2F123%2Finstances%2F456", "instance_id=instances%2F456"}, {"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123", "table_name=regions%2F123%2Fzones%2F456", "header=regions%2F123%2Fzones%2F456", "routing_id=regions%2F123%2Fzones%2F456"}}
-	mdForHeaders := metadata.New(map[string]string{})
-	for i := range reqs {
-		resp, err := echo.Echo(context.Background(), reqs[i], gax.WithGRPCOptions(grpc.Header(&mdForHeaders)))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp.GetContent() != reqs[i].GetContent() {
-			t.Errorf("Echo() = %q, want %q", resp.GetContent(), content)
-		}
-		for j := range expectedHeader[i] {
-			if !strings.Contains(strings.Join(mdForHeaders.Get("x-goog-request-params"), ""), expectedHeader[i][j]) {
-				t.Errorf("Echo() header = %q, want %q", mdForHeaders.Get("x-goog-request-params"), strings.Join(expectedHeader[i], "&"))
-			}
+	} {
+		mdForHeaders := metadata.New(map[string]string{})
+		echo.Echo(context.Background(), tst.req, gax.WithGRPCOptions(grpc.Header(&mdForHeaders)))
+		got := mdForHeaders.Get("x-goog-request-params")
+		got = strings.Split(got[0], "&")
+		sort.Strings(got)
+		sort.Strings(tst.want)
+		if !reflect.DeepEqual(got, tst.want) {
+			t.Errorf("Echo() header = %q, want %q", got, tst.want)
 		}
 	}
 }

@@ -6,25 +6,25 @@ func (c *fooGRPCClient) GetAnotherThing(ctx context.Context, req *mypackagepb.In
 	}
 	routingHeaders := ""
 	routingHeadersMap := make(map[string]string)
-	if reg := regexp.MustCompile("(.*)"); reg.MatchString(req.GetOther()) {
+	if reg := regexp.MustCompile("(.*)"); reg.MatchString(req.GetOther()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])) > 0 {
 		routingHeadersMap["other"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
 	}
-	if reg := regexp.MustCompile("(?P<name>projects/[^/]+)/foos"); reg.MatchString(req.GetOther()) {
+	if reg := regexp.MustCompile("(?P<name>projects/[^/]+)/foos"); reg.MatchString(req.GetOther()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])) > 0 {
 		routingHeadersMap["name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
 	}
-	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) {
+	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])) > 0 {
 		routingHeadersMap["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
-	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+/foos/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) {
+	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+/foos/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])) > 0 {
 		routingHeadersMap["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
-	if reg := regexp.MustCompile("(?P<foo_name>.*)"); reg.MatchString(req.GetAnother()) {
+	if reg := regexp.MustCompile("(?P<foo_name>.*)"); reg.MatchString(req.GetAnother()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])) > 0 {
 		routingHeadersMap["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
-	if reg := regexp.MustCompile("(?P<nested_name>.*)"); reg.MatchString(req.GetFieldName().GetNested()) {
+	if reg := regexp.MustCompile("(?P<nested_name>.*)"); reg.MatchString(req.GetFieldName().GetNested()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])) > 0 {
 		routingHeadersMap["nested_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])
 	}
-	if reg := regexp.MustCompile("(?P<part_of_nested>projects/[^/]+)/bars"); reg.MatchString(req.GetFieldName().GetNested()) {
+	if reg := regexp.MustCompile("(?P<part_of_nested>projects/[^/]+)/bars"); reg.MatchString(req.GetFieldName().GetNested()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])) > 0 {
 		routingHeadersMap["part_of_nested"] = url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])
 	}
 	for headerName, headerValue := range routingHeadersMap {

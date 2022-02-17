@@ -330,7 +330,8 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptor.MethodDescriptorPr
 			if err != nil {
 				return err
 			}
-			g.printf("if reg := regexp.MustCompile(%q); reg.MatchString(%s) {", namedCaptureRegex, accessor)
+			// There could be an edge case where the request field is empty and the path template is a wildcard. In that case, we still don't want to send an empty header name.
+			g.printf("if reg := regexp.MustCompile(%q); reg.MatchString(%s) && len(%s) > 0 {", namedCaptureRegex, accessor, regexHelper)
 			g.printf("  routingHeadersMap[%q] = %s", headerName, regexHelper)
 			g.printf("}")
 		}
