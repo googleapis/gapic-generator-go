@@ -20,6 +20,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -27,13 +29,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
+	gax "github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	locationpb "google.golang.org/genproto/googleapis/cloud/location"
 	iampb "google.golang.org/genproto/googleapis/iam/v1"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
+	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	metadata "google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -92,6 +97,50 @@ func TestEcho_error(t *testing.T) {
 
 	}
 
+}
+
+// Test dynamic routing header generation. We cannot guarantee the order that headers are sent, so we check that the header sent contains the correct elements as opposed to checking
+// the header itself.
+func TestEchoHeader(t *testing.T) {
+	//defer check(t)
+	for _, tst := range []struct {
+		req  *showcasepb.EchoRequest
+		want []string
+	}{
+		{
+			req:  &showcasepb.EchoRequest{OtherHeader: "projects/123/instances/456"},
+			want: []string{"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{OtherHeader: "instances/456"},
+			want: []string{"baz=instances%2F456"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{Header: "potato"},
+			want: []string{"header=potato", "routing_id=potato"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{Header: "projects/123/instances/456"},
+			want: []string{"header=projects%2F123%2Finstances%2F456", "routing_id=projects%2F123%2Finstances%2F456", "super_id=projects%2F123", "table_name=projects%2F123%2Finstances%2F456", "instance_id=instances%2F456"},
+		},
+		{
+			req: &showcasepb.EchoRequest{
+				Header:      "regions/123/zones/456",
+				OtherHeader: "projects/123/instances/456",
+			},
+			want: []string{"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123", "table_name=regions%2F123%2Fzones%2F456", "header=regions%2F123%2Fzones%2F456", "routing_id=regions%2F123%2Fzones%2F456"},
+		},
+	} {
+		mdForHeaders := metadata.New(map[string]string{})
+		echo.Echo(context.Background(), tst.req, gax.WithGRPCOptions(grpc.Header(&mdForHeaders)))
+		got := mdForHeaders.Get("x-goog-request-params")
+		got = strings.Split(got[0], "&")
+		sort.Strings(got)
+		sort.Strings(tst.want)
+		if !reflect.DeepEqual(got, tst.want) {
+			t.Errorf("Echo() header = %q, want %q", got, tst.want)
+		}
+	}
 }
 
 // Chat, Collect, and Expand are streaming methods and don't have interesting REST semantics

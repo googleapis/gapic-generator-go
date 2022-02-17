@@ -30,7 +30,7 @@ mkdir -p "$OUT/showcase"
 # make test proto directories
 mkdir -p $SHOW_PROTOS
 
-SHOWCASE_VERSION=0.9.0
+SHOWCASE_VERSION=0.19.0
 
 # download gapic-showcase proto descriptor set
 curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOWCASE_VERSION/gapic-showcase-$SHOWCASE_VERSION.desc

@@ -1,23 +1,21 @@
-func (c *fooGRPCClient) GetManyThingsOptional(ctx context.Context, req *mypackagepb.PageInputTypeOptional, opts ...gax.CallOption) *StringIterator {
-	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v&%s=%v&%s=%v&%s=%v&%s=%v&%s=%v", "field_name.nested", url.QueryEscape(req.GetFieldName().GetNested()), "other", url.QueryEscape(req.GetOther()), "another", url.QueryEscape(req.GetAnother()), "biz", url.QueryEscape(fmt.Sprintf("%g", req.GetBiz())), "top_level_enum", mypackagepb.TopLevelEnum_name[int32(req.GetTopLevelEnum())], "nested_enum", mypackagepb.InputType_NestedEnum_name[int32(req.GetNestedEnum())]))
-
-	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
-	opts = append((*c.CallOptions).GetManyThingsOptional[0:len((*c.CallOptions).GetManyThingsOptional):len((*c.CallOptions).GetManyThingsOptional)], opts...)
+func (c *fooGRPCClient) GetManyOtherThings(ctx context.Context, req *mypackagepb.PageInputType, opts ...gax.CallOption) *StringIterator {
+	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	opts = append((*c.CallOptions).GetManyOtherThings[0:len((*c.CallOptions).GetManyOtherThings):len((*c.CallOptions).GetManyOtherThings)], opts...)
 	it := &StringIterator{}
-	req = proto.Clone(req).(*mypackagepb.PageInputTypeOptional)
+	req = proto.Clone(req).(*mypackagepb.PageInputType)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]string, string, error) {
 		resp := &mypackagepb.PageOutputType{}
 		if pageToken != "" {
-			req.PageToken = proto.String(pageToken)
+			req.PageToken = pageToken
 		}
 		if pageSize > math.MaxInt32 {
-			req.PageSize = proto.Int32(math.MaxInt32)
+			req.PageSize = math.MaxInt32
 		} else if pageSize != 0 {
-			req.PageSize = proto.Int32(int32(pageSize))
+			req.PageSize = int32(pageSize)
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			var err error
-			resp, err = c.fooClient.GetManyThingsOptional(ctx, req, settings.GRPC...)
+			resp, err = c.fooClient.GetManyOtherThings(ctx, req, settings.GRPC...)
 			return err
 		}, opts...)
 		if err != nil {
