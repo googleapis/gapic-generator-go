@@ -908,8 +908,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_google_cloud_go_compute",
         importpath = "cloud.google.com/go/compute",
-        sum = "h1:EKki8sSdvDU0OO9mAXGwPXOTOgPz2l08R0/IutDH11I=",
-        version = "v1.2.0",
+        sum = "h1:mPL/MzDDYHsh5tHRS9mhmhWlcgClCrCa6ApQCU6wnHI=",
+        version = "v1.3.0",
     )
     go_repository(
         name = "com_google_cloud_go_datastore",
@@ -1031,8 +1031,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:yHW5s2SFyDapr/43kYtIQmoaaFVW4baLMLwqV4auj2A=",
-        version = "v0.69.0",
+        sum = "h1:67zQnAE0T2rB0A3CwLSas0K+SbVzSxP+zTLkQLexeiw=",
+        version = "v0.70.0",
     )
 
     go_repository(
