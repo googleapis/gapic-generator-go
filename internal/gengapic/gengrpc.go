@@ -393,7 +393,7 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("// use by Google-written clients.")
 	p("func (c *%s) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
 	p(`  kv := append([]string{"gl-go", versionGo()}, keyval...)`)
-	p(`  kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)`)
+	p(`  kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)`)
 	p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
 	p("}")
 	p("")
