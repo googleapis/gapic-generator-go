@@ -131,7 +131,14 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("type clientHook func(context.Context, clientHookParams) ([]option.ClientOption, error)")
 	p("")
 
-	p("const versionClient = %q", "UNKNOWN")
+	p("var versionClient string")
+	p("")
+	p("func getVersionClient() string {")
+	p(`  if versionClient == "" {`)
+	p(`    return "UNKNOWN"`)
+	p("  }")
+	p("  return versionClient")
+	p("}")
 	p("")
 
 	p("func insertMetadata(ctx context.Context, mds ...metadata.MD) context.Context {")
