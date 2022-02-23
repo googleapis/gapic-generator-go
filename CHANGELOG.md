@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.0](https://github.com/googleapis/gapic-generator-go/compare/v0.25.1...v0.26.0) (2022-02-23)
+
+
+### Features
+
+* add dynamic routing header generation ([#887](https://github.com/googleapis/gapic-generator-go/issues/887)) ([e2520c7](https://github.com/googleapis/gapic-generator-go/commit/e2520c7f61228de7939fe8da673eda2b427539f4))
+* make versionClient a var ([#912](https://github.com/googleapis/gapic-generator-go/issues/912)) ([7fe9fa5](https://github.com/googleapis/gapic-generator-go/commit/7fe9fa530f81a50b03971f7b3e44782d607106db))
+
 ### [0.25.1](https://github.com/googleapis/gapic-generator-go/compare/v0.25.0...v0.25.1) (2022-02-16)
 
 
