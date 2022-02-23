@@ -135,7 +135,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("")
 	p("func getVersionClient() string {")
 	p(`  if versionClient == "" {`)
-	p("    return %q", "UNKNOWN")
+	p(`    return "UNKNOWN"`)
 	p("  }")
 	p("  return versionClient")
 	p("}")
