@@ -55,6 +55,7 @@ jobs:
         tar xvzf repos.tgz
         rm repos.tgz
     - uses: googleapis/code-suggester@v2
+      id: code_suggester
       env:
         ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}  
       with:
@@ -65,8 +66,17 @@ jobs:
         title: 'chore(bazel): update Bazel Go deps'
         message: 'chore(bazel): update Bazel Go deps'
         primary: 'main'
-        labels: |
-          automerge
         branch: update-bazel-deps
         git_dir: '.'
         force: true
+    - name: Add automerge label to pull request
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.addLabels({
+            issue_number: ${{ steps.code_suggester.outputs.pull }},
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['automerge']
+          })
+
