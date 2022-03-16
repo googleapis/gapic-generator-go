@@ -527,7 +527,6 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
-	// TODO(dovs): add tests generating methods with(out) a request body.
 	if info.body != "" {
 		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
@@ -577,11 +576,8 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	p("  }")
 	p("  return nil")
 	p("}, opts...)")
-	p("if e != nil {")
-	p("  return nil, e")
-	p("}")
 	p("")
-	p("return streamClient, nil")
+	p("return streamClient, e")
 	p("}")
 	p("")
 
@@ -589,6 +585,8 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
 	// server-stream wrapper client
+	p("// %s is the stream client used to consume the server stream created by", streamClient)
+	p("// the REST implementation of %s.", m.GetName())
 	p("type %s struct {", streamClient)
 	p("  ctx context.Context")
 	p("  md metadata.MD")

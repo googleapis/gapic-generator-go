@@ -35,13 +35,12 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 		}
 		return nil
 	}, opts...)
-	if e != nil {
-		return nil, e
-	}
 
-	return streamClient, nil
+	return streamClient, e
 }
 
+// serverStreamRPCRESTClient is the stream client used to consume the server stream created by
+// the REST implementation of ServerStreamRPC.
 type serverStreamRPCRESTClient struct {
 	ctx context.Context
 	md metadata.MD
