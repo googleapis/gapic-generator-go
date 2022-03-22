@@ -617,7 +617,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	p("")
 	p("func (c *%s) CloseSend() error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p("  return nil")
+	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
 	p("}")
 	p("")
 	p("func (c *%s) Context() context.Context {", streamClient)
@@ -626,16 +626,17 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	p("")
 	p("func (c *%s) SendMsg(m interface{}) error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p("  return nil")
+	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
 	p("}")
 	p("")
 	p("func (c *%s) RecvMsg(m interface{}) error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p("  return nil")
+	p(`  return fmt.Errorf("this method is not implemented, use Recv")`)
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 
 	return nil

@@ -654,6 +654,7 @@ func TestGenRestMethod(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}:   true,
 				{Path: "context"}: true,
+				{Path: "fmt"}:     true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Path: "google.golang.org/grpc/metadata"}:                        true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
