@@ -489,9 +489,10 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 }
 
 func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
-	// Streaming calls are not currently supported for REST clients,
-	// but the interface signature must be preserved.
-	// Unimplemented REST methods will always error.
+	info := getHTTPInfo(m)
+	if info == nil {
+		return errors.E(nil, "method has no http info: %s", m.GetName())
+	}
 
 	inType := g.descInfo.Type[m.GetInputType()]
 
@@ -501,6 +502,14 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	}
 	g.imports[inSpec] = true
 
+	outType := g.descInfo.Type[m.GetOutputType()]
+
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+	g.imports[outSpec] = true
+
 	servSpec, err := g.descInfo.ImportSpec(s)
 	if err != nil {
 		return err
@@ -509,11 +518,126 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
+	streamClient := fmt.Sprintf("%sRESTClient", lowerFirst(m.GetName()))
+
+	// rest-client method
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	p(`  return nil, fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
+	body := "nil"
+	verb := strings.ToUpper(info.verb)
+
+	// Marshal body for HTTP methods that take a body.
+	if info.body != "" {
+		if verb == http.MethodGet || verb == http.MethodDelete {
+			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
+		}
+		p("m := protojson.MarshalOptions{AllowPartial: true}")
+		requestObject := "req"
+		if info.body != "*" {
+			requestObject = "body"
+			p("body := req%s", fieldGetter(info.body))
+		}
+		p("jsonReq, err := m.Marshal(%s)", requestObject)
+		p("if err != nil {")
+		p("  return nil, err")
+		p("}")
+		p("")
+
+		body = "bytes.NewReader(jsonReq)"
+		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+	}
+
+	g.generateURLString(m)
+	g.generateQueryString(m)
+	p("// Build HTTP headers from client and context metadata.")
+	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+	p("var streamClient *%s", streamClient)
+	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
+	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
+	p("  if err != nil {")
+	p("      return err")
+	p("  }")
+	p("  httpReq = httpReq.WithContext(ctx)")
+	p("  httpReq.Header = headers")
+	p("")
+	p("  httpRsp, err := c.httpClient.Do(httpReq)")
+	p("  if err != nil{")
+	p("   return err")
+	p("  }")
+	p("")
+	p("  if err = googleapi.CheckResponse(httpRsp); err != nil {")
+	p("    return err")
+	p("  }")
+	p("")
+	p("  streamClient = &%s{", streamClient)
+	p("    ctx: ctx,")
+	p("    md: metadata.MD(httpRsp.Header),")
+	p("    stream: gax.NewProtoJSONStreamReader(httpRsp.Body, (&%s.%s{}).ProtoReflect().Type()),", outSpec.Name, outType.GetName())
+	p("  }")
+	p("  return nil")
+	p("}, opts...)")
+	p("")
+	p("return streamClient, e")
 	p("}")
 	p("")
+
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+
+	// server-stream wrapper client
+	p("// %s is the stream client used to consume the server stream created by", streamClient)
+	p("// the REST implementation of %s.", m.GetName())
+	p("type %s struct {", streamClient)
+	p("  ctx context.Context")
+	p("  md metadata.MD")
+	p("  stream *gax.ProtoJSONStream")
+	p("}")
+	p("")
+	p("func (c *%s) Recv() (*%s.%s, error) {", streamClient, outSpec.Name, outType.GetName())
+	p("  if err := c.ctx.Err(); err != nil {")
+	p("    defer c.stream.Close()")
+	p("    return nil, err")
+	p("  }")
+	p("  msg, err := c.stream.Recv()")
+	p("  if err != nil {")
+	p("    defer c.stream.Close()")
+	p("    return nil, err")
+	p("  }")
+	p("  res := msg.(*%s.%s)", outSpec.Name, outType.GetName())
+	p("  return res, nil")
+	p("}")
+	p("")
+	p("func (c *%s) Header() (metadata.MD, error) {", streamClient)
+	p("  return c.md, nil")
+	p("}")
+	p("")
+	p("func (c *%s) Trailer() metadata.MD {", streamClient)
+	p("  return c.md")
+	p("}")
+	p("")
+	p("func (c *%s) CloseSend() error {", streamClient)
+	p("  // This is a no-op to fulfill the interface.")
+	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
+	p("}")
+	p("")
+	p("func (c *%s) Context() context.Context {", streamClient)
+	p("  return c.ctx")
+	p("}")
+	p("")
+	p("func (c *%s) SendMsg(m interface{}) error {", streamClient)
+	p("  // This is a no-op to fulfill the interface.")
+	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
+	p("}")
+	p("")
+	p("func (c *%s) RecvMsg(m interface{}) error {", streamClient)
+	p("  // This is a no-op to fulfill the interface.")
+	p(`  return fmt.Errorf("this method is not implemented, use Recv")`)
+	p("}")
+	p("")
+
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 
 	return nil
 }

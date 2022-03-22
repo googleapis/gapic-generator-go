@@ -216,6 +216,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	}
 
 	if hasREST {
+		// UnknownEnum error check helper.
 		p("// maybeUnknownEnum wraps the given proto-JSON parsing error if it is the result")
 		p("// of receiving an unknown enum value.")
 		p("func maybeUnknownEnum(err error) error {")
@@ -225,6 +226,8 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		p("  return err")
 		p("}")
 		p("")
+
+		// buildHeaders from context and other metadata helper.
 		p("// buildHeaders extracts metadata from the outgoing context, joins it with any other")
 		p("// given metadata, and converts them into a http.Header. ")
 		p("func buildHeaders(ctx context.Context, mds ...metadata.MD) http.Header {")
@@ -234,6 +237,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		p("  md := metadata.Join(mds...)")
 		p("  return http.Header(md)")
 		p("}")
+		p("")
 	}
 }
 
