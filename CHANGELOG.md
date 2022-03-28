@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/googleapis/gapic-generator-go/compare/v0.26.0...v0.27.0) (2022-03-28)
+
+
+### Features
+
+* **gengapic:** regapic server-streaming ([#933](https://github.com/googleapis/gapic-generator-go/issues/933)) ([a6c0c81](https://github.com/googleapis/gapic-generator-go/commit/a6c0c818b67975c14ebab052c7bf37d45548baff))
+
 ## [0.26.0](https://github.com/googleapis/gapic-generator-go/compare/v0.25.1...v0.26.0) (2022-02-23)
 
 
