@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.27.1](https://github.com/googleapis/gapic-generator-go/compare/v0.27.0...v0.27.1) (2022-03-30)
+
+
+### Bug Fixes
+
+* **bazel:** add repo_mapping to all go_repository deps ([#947](https://github.com/googleapis/gapic-generator-go/issues/947)) ([7484ab5](https://github.com/googleapis/gapic-generator-go/commit/7484ab54f607900891130571b708b7e4aab77fd0))
+
 ## [0.27.0](https://github.com/googleapis/gapic-generator-go/compare/v0.26.0...v0.27.0) (2022-03-28)
 
 
