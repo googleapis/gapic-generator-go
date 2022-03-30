@@ -1223,4 +1223,5 @@ def go_repository(name, importpath, sum, version, build_file_proto_mode = "", bu
         version = version,
         build_file_proto_mode = build_file_proto_mode,
         build_extra_args = build_extra_args,
+        repo_mapping = {"@go_googleapis": "@com_google_googleapis"},
     )
