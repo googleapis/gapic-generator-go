@@ -12,7 +12,10 @@ func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFooReques
 		} else if pageSize != 0 {
 			req.PageSize = int32(pageSize)
 		}
-		baseUrl, _ := url.Parse(c.endpoint)
+		baseUrl, err := url.Parse(c.endpoint)
+		if err != nil {
+			return nil, "", err
+		}
 		baseUrl.Path += fmt.Sprintf("/v1/foo")
 
 		params := url.Values{}
