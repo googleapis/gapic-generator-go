@@ -394,22 +394,19 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("")
 }
 
-func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error {
-	info := getHTTPInfo(m)
-	if info == nil {
-		return errors.E(nil, "method has no http info: %s", m.GetName())
-	}
-
+func (g *generator) generateURLString(info *httpInfo) {
 	p := g.printf
 
 	fmtStr := info.url
-	// TODO(dovs): handle more complex path urls involving = and *,
+	// TODO(noahdietz): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
 	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
 	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
-	// TODO(dovs): handle error
-	p("baseUrl, _ := url.Parse(c.endpoint)")
+	p("baseUrl, err := url.Parse(c.endpoint)")
+	p("if err != nil {")
+	p("  return nil, err")
+	p("}")
 
 	tokens := []string{fmt.Sprintf(`"%s"`, fmtStr)}
 	// Can't just reuse pathParams because the order matters
@@ -421,7 +418,6 @@ func (g *generator) generateURLString(m *descriptor.MethodDescriptorProto) error
 	}
 	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
-	return nil
 }
 
 func getHTTPInfo(m *descriptor.MethodDescriptorProto) *httpInfo {
@@ -547,7 +543,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(m)
+	g.generateURLString(info)
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -730,7 +726,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 		p("")
 	}
 
-	g.generateURLString(m)
+	g.generateURLString(info)
 	g.generateQueryString(m)
 	p("  // Build HTTP headers from client and context metadata.")
 	p(`  headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -859,7 +855,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
-	g.generateURLString(m)
+	g.generateURLString(info)
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -950,7 +946,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	}
 
 	// TOOD(dovs) reenable
-	g.generateURLString(m)
+	g.generateURLString(info)
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
