@@ -5,7 +5,10 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 		return nil, err
 	}
 
-	baseUrl, _ := url.Parse(c.endpoint)
+	baseUrl, err := url.Parse(c.endpoint)
+	if err != nil {
+		return nil, err
+	}
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
 	// Build HTTP headers from client and context metadata.

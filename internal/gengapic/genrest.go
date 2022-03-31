@@ -855,7 +855,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(m)
+	g.generateURLString(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
