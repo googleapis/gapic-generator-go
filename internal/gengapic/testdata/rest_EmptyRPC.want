@@ -1,7 +1,7 @@
 func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...gax.CallOption) error {
 	baseUrl, err := url.Parse(c.endpoint)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 

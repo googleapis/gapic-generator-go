@@ -14,7 +14,7 @@ func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFooReques
 		}
 		baseUrl, err := url.Parse(c.endpoint)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		baseUrl.Path += fmt.Sprintf("/v1/foo")
 

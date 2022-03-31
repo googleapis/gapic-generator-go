@@ -394,7 +394,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("")
 }
 
-func (g *generator) generateURLString(info *httpInfo) {
+func (g *generator) generateURLString(info *httpInfo, ret string) {
 	p := g.printf
 
 	fmtStr := info.url
@@ -405,7 +405,7 @@ func (g *generator) generateURLString(info *httpInfo) {
 
 	p("baseUrl, err := url.Parse(c.endpoint)")
 	p("if err != nil {")
-	p("  return nil, err")
+	p("  %s", ret)
 	p("}")
 
 	tokens := []string{fmt.Sprintf(`"%s"`, fmtStr)}
@@ -543,7 +543,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(info)
+	g.generateURLString(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -726,7 +726,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 		p("")
 	}
 
-	g.generateURLString(info)
+	g.generateURLString(info, `return nil, "", err`)
 	g.generateQueryString(m)
 	p("  // Build HTTP headers from client and context metadata.")
 	p(`  headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -855,7 +855,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
-	g.generateURLString(info)
+	g.generateURLString(info, "return err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -945,8 +945,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	// TOOD(dovs) reenable
-	g.generateURLString(info)
+	g.generateURLString(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
