@@ -49,10 +49,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 
 	g.deadline(sFQN, m.GetName())
 
-	err = g.insertMetadata(m)
-	if err != nil {
-		return err
-	}
+	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
 
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
