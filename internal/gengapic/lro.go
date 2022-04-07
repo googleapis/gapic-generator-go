@@ -178,6 +178,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
 				p("    pollOpts: []gax.CallOption{gax.WithURL(override)}")
 				p("  }")
+				p("}")
 				p("")
 			}
 		}
