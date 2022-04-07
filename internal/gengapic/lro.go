@@ -20,6 +20,7 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
 )
@@ -81,6 +82,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	mFQN := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
 	lroType := lroTypeName(m.GetName())
 	p := g.printf
+	hasREST := containsTransport(g.opts.transports, rest)
 
 	eLRO := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
 	opInfo := eLRO.(*longrunning.OperationInfo)
@@ -142,6 +144,9 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// %s manages a long-running operation from %s.", lroType, m.GetName())
 		p("type %s struct {", lroType)
 		p("  lro *longrunning.Operation")
+		if hasREST {
+			p("  pollOpts []gax.CallOption")
+		}
 		p("}")
 		p("")
 	}
@@ -152,20 +157,29 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 			p("// %[1]s returns a new %[1]s from a given name.", lroType)
 			p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
 
-			var receiver string
 			switch t {
 			case grpc:
-				receiver = lowcaseGRPCClientName(servName)
+				receiver := lowcaseGRPCClientName(servName)
+				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, lroType)
+				p("  return &%s{", lroType)
+				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
+				p("  }")
+				p("}")
+				p("")
 			case rest:
-				receiver = lowcaseRestClientName(servName)
+				receiver := lowcaseRestClientName(servName)
+				get := func(h *annotations.HttpRule) string { return h.GetGet() }
+				override := g.lookupHTTPOverride("google.longrunning.Operations.GetOperation", get)
+				override = patternRegex.ReplaceAllStringFunc(override, func(s string) string { return "%v" })
+				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, lroType)
+				p("  override, _ := url.Parse(c.endpoint)")
+				p("  override.Path += fmt.Sprintf(%q, name)", override)
+				p("  return &%s{", lroType)
+				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
+				p("    pollOpts: []gax.CallOption{gax.WithURL(override)}")
+				p("  }")
+				p("")
 			}
-
-			p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, lroType)
-			p("  return &%s{", lroType)
-			p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
-			p("  }")
-			p("}")
-			p("")
 		}
 		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
 	}
@@ -207,9 +221,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// If Poll succeeds and the operation has not completed, the returned response and error are both nil.")
 		if opInfo.GetResponseType() == emptyValue {
 			p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) error {", lroType)
+			if hasREST {
+				p("opts = append(op.pollOpts, opts...)")
+			}
 			p("  return op.lro.Poll(ctx, nil, opts...)")
 		} else {
 			p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
+			if hasREST {
+				p("opts = append(op.pollOpts, opts...)")
+			}
 			p("  var resp %s", respType)
 			p("  if err := op.lro.Poll(ctx, &resp, opts...); err != nil {")
 			p("    return nil, err")

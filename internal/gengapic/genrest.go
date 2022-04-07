@@ -28,6 +28,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var patternRegex = regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
+
 func lowcaseRestClientName(servName string) string {
 	if servName == "" {
 		return "restClient"
@@ -414,29 +416,36 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("")
 }
 
-func (g *generator) generateURLString(info *httpInfo, ret string) {
+func (g *generator) generateBaseURL(info *httpInfo, ret string) {
+	g.generateURLVar(info, "baseUrl", "req", ret, true)
+}
+
+func (g *generator) generateURLVar(info *httpInfo, v, prto, ret string, handleErr bool) {
 	p := g.printf
 
 	fmtStr := info.url
 	// TODO(noahdietz): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
-	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
-	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
+	fmtStr = patternRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
-	p("baseUrl, err := url.Parse(c.endpoint)")
-	p("if err != nil {")
-	p("  %s", ret)
-	p("}")
+	if handleErr {
+		p("%s, err := url.Parse(c.endpoint)", v)
+		p("if err != nil {")
+		p("  %s", ret)
+		p("}")
+	} else {
+		p("%s, _ := url.Parse(c.endpoint)", v)
+	}
 
-	tokens := []string{fmt.Sprintf(`"%s"`, fmtStr)}
+	tokens := []string{fmt.Sprintf("%q", fmtStr)}
 	// Can't just reuse pathParams because the order matters
-	for _, path := range re.FindAllStringSubmatch(info.url, -1) {
+	for _, path := range patternRegex.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
-		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
+		tokens = append(tokens, fmt.Sprintf("%s%s", prto, fieldGetter(path[1])))
 	}
-	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
+	p("%s.Path += fmt.Sprintf(%s)", v, strings.Join(tokens, ", "))
 	p("")
 }
 
@@ -563,7 +572,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(info, "return nil, err")
+	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -746,7 +755,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 		p("")
 	}
 
-	g.generateURLString(info, `return nil, "", err`)
+	g.generateBaseURL(info, `return nil, "", err`)
 	g.generateQueryString(m)
 	p("  // Build HTTP headers from client and context metadata.")
 	p(`  headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -855,13 +864,16 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(info, "return nil, err")
+	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
+	p("  if settings.URL != nil {")
+	p("    baseUrl = settings.URL")
+	p("  }")
 	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
 	p("  if err != nil {")
 	p("      return err")
@@ -893,8 +905,12 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("if e != nil {")
 	p("  return nil, e")
 	p("}")
+	get := func(h *annotations.HttpRule) string { return h.GetGet() }
+	override := g.lookupHTTPOverride("google.longrunning.Operations.GetOperation", get)
+	g.generateURLVar(&httpInfo{url: override}, "override", "resp", "", false)
 	p("return &%s{", opWrapperType)
 	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
+	p("  pollOpts: []gax.CallOption{gax.WithURL(override)},")
 	p("}, nil")
 	p("}")
 	p("")
@@ -954,7 +970,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
-	g.generateURLString(info, "return err")
+	g.generateBaseURL(info, "return err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -1044,7 +1060,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(info, "return nil, err")
+	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)

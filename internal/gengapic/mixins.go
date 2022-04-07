@@ -233,3 +233,15 @@ func (g *generator) includeMixinInputFile(file string) bool {
 	}
 	return true
 }
+
+// lookUpGetOperationOverride looks up the google.api.http rule defined in the
+// service config for the given RPC.
+func (g *generator) lookupHTTPOverride(fqn string, f func(h *annotations.HttpRule) string) string {
+	for _, rule := range g.serviceConfig.GetHttp().GetRules() {
+		if rule.GetSelector() == fqn {
+			return f(rule)
+		}
+	}
+
+	return ""
+}
