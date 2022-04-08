@@ -102,7 +102,7 @@ func TestEcho_error(t *testing.T) {
 // Test dynamic routing header generation. We cannot guarantee the order that headers are sent, so we check that the header sent contains the correct elements as opposed to checking
 // the header itself.
 func TestEchoHeader(t *testing.T) {
-	//defer check(t)
+	defer check(t)
 	for _, tst := range []struct {
 		req  *showcasepb.EchoRequest
 		want []string
@@ -141,6 +141,72 @@ func TestEchoHeader(t *testing.T) {
 			t.Errorf("Echo() header = %q, want %q", got, tst.want)
 		}
 	}
+}
+
+func TestEchoHeaderREST(t *testing.T) {
+	defer check(t)
+	for _, tst := range []struct {
+		req  *showcasepb.EchoRequest
+		want []string
+	}{
+		{
+			req:  &showcasepb.EchoRequest{OtherHeader: "projects/123/instances/456"},
+			want: []string{"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{OtherHeader: "instances/456"},
+			want: []string{"baz=instances%2F456"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{Header: "potato"},
+			want: []string{"header=potato", "routing_id=potato"},
+		},
+		{
+			req:  &showcasepb.EchoRequest{Header: "projects/123/instances/456"},
+			want: []string{"header=projects%2F123%2Finstances%2F456", "routing_id=projects%2F123%2Finstances%2F456", "super_id=projects%2F123", "table_name=projects%2F123%2Finstances%2F456", "instance_id=instances%2F456"},
+		},
+		{
+			req: &showcasepb.EchoRequest{
+				Header:      "regions/123/zones/456",
+				OtherHeader: "projects/123/instances/456",
+			},
+			want: []string{"baz=projects%2F123%2Finstances%2F456", "qux=projects%2F123", "table_name=regions%2F123%2Fzones%2F456", "header=regions%2F123%2Fzones%2F456", "routing_id=regions%2F123%2Fzones%2F456"},
+		},
+	} {
+		// Wrap the default RoundTripper with our own that asserts on the response
+		// headers expected by the test.
+		wrapped := &http.Client{}
+		wrapped.Transport = headerChecker{rt: wrapped.Transport, want: tst.want, t: t}
+		echoWrapped, err := showcase.NewEchoRESTClient(context.Background(),
+			option.WithEndpoint("http://localhost:7469"),
+			option.WithoutAuthentication())
+		if err != nil {
+			t.Fatal(err)
+		}
+		echoWrapped.Echo(context.Background(), tst.req)
+		echoWrapped.Close()
+	}
+}
+
+type headerChecker struct {
+	rt   http.RoundTripper
+	want []string
+	t    *testing.T
+}
+
+func (hc headerChecker) RoundTrip(r *http.Request) (*http.Response, error) {
+	resp, err := hc.rt.RoundTrip(r)
+
+	header := resp.Header
+	got := header["x-goog-request-params"]
+	got = strings.Split(got[0], "&")
+	sort.Strings(got)
+	sort.Strings(hc.want)
+	if diff := cmp.Diff(got, hc.want); diff != "" {
+		hc.t.Errorf("got(-),want(+):\n%s", diff)
+	}
+
+	return resp, err
 }
 
 // Chat, Collect, and Expand are streaming methods and don't have interesting REST semantics

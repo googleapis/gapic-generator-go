@@ -31,7 +31,7 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	g.insertMetadata(nil)
+	g.insertRequestHeaders(nil, grpc)
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 
 	g.appendCallOpts(m)
@@ -71,10 +71,7 @@ func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescr
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 
-	err = g.insertMetadata(m)
-	if err != nil {
-		return err
-	}
+	g.insertRequestHeaders(m, grpc)
 
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")

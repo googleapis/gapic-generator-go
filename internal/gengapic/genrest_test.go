@@ -496,7 +496,7 @@ func TestGenRestMethod(t *testing.T) {
 	emptyRPCOpt := &descriptor.MethodOptions{}
 	proto.SetExtension(emptyRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Delete{
-			Delete: "/v1/foo",
+			Delete: "/v1/foo/{other=*}",
 		},
 	})
 
@@ -513,6 +513,11 @@ func TestGenRestMethod(t *testing.T) {
 			Post: "/v1/foo",
 		},
 		Body: "*",
+	})
+	proto.SetExtension(unaryRPCOpt, annotations.E_Routing, &annotations.RoutingRule{
+		RoutingParameters: []*annotations.RoutingParameter{
+			{Field: "other"},
+		},
 	})
 
 	unaryRPC := &descriptor.MethodDescriptorProto{
@@ -647,7 +652,9 @@ func TestGenRestMethod(t *testing.T) {
 			method:  emptyRPC,
 			options: &options{},
 			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}: true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Path: "net/url"}:                                                true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
@@ -657,8 +664,12 @@ func TestGenRestMethod(t *testing.T) {
 			options: &options{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
-				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
-				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Path: "fmt"}:   true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "google.golang.org/api/googleapi"}:               true,
+				{Path: "net/url"}: true,
+				{Path: "regexp"}:  true,
+				{Path: "strings"}: true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
@@ -684,6 +695,9 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "context"}: true,
 				{Path: "fmt"}:     true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
+				{Path: "net/url"}:                                                true,
+				{Path: "regexp"}:                                                 true,
+				{Path: "strings"}:                                                true,
 				{Path: "google.golang.org/grpc/metadata"}:                        true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,

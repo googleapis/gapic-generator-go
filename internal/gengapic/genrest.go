@@ -567,7 +567,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
-	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+	g.insertRequestHeaders(m, rest)
 	p("var streamClient *%s", streamClient)
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
@@ -965,7 +965,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	g.generateBaseURL(info, "return err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
-	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+	g.insertRequestHeaders(m, rest)
 	p("return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
 	p("  if err != nil {")
@@ -1055,7 +1055,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
-	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+	g.insertRequestHeaders(m, rest)
 	if !isHTTPBodyMessage {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	}

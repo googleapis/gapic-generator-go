@@ -823,11 +823,7 @@ func Test_parseImplicitRequestHeaders(t *testing.T) {
 			setHTTPOption(m.Options, tst.pattern)
 		}
 
-		got, err := parseImplicitRequestHeaders(m)
-		if err != nil {
-			t.Error(err)
-			continue
-		}
+		got := parseImplicitRequestHeaders(m)
 
 		if diff := cmp.Diff(got, tst.want); diff != "" {
 			t.Errorf("parseImplicitRequestHeaders(%s) = got(-), want(+):\n%s", tst.name, diff)
