@@ -16,8 +16,8 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	resp := &longrunningpb.Operation{}
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
-		if settings.URL != nil {
-			baseUrl = settings.URL
+		if settings.Path != nil {
+			baseUrl.Path = settings.Path
 		}
 		httpReq, err := http.NewRequest("POST", baseUrl.String(), bytes.NewReader(jsonReq))
 		if err != nil {
@@ -50,12 +50,11 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 	if e != nil {
 		return nil, e
 	}
-	override, _ := url.Parse(c.endpoint)
-	override.Path += fmt.Sprintf("/v1beta1/%v", resp.GetName())
 
+	override := fmt.Sprintf("/v1beta1/%s", resp.GetName())
 	return &LongrunningRPCOperation{
 		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
-		pollOpts: []gax.CallOption{gax.WithURL(override)},
+		pollOpts: []gax.CallOption{gax.WithPath(override)},
 	}, nil
 }
 
@@ -68,11 +67,10 @@ type LongrunningRPCOperation struct {
 // LongrunningRPCOperation returns a new LongrunningRPCOperation from a given name.
 // The name must be that of a previously created LongrunningRPCOperation, possibly from a different process.
 func (c *fooRESTClient) LongrunningRPCOperation(name string) *LongrunningRPCOperation {
-	override, _ := url.Parse(c.endpoint)
-	override.Path += fmt.Sprintf("/v1beta1/%v", name)
+	override := fmt.Sprintf("/v1beta1/%s", name)
 	return &LongrunningRPCOperation{
 		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
-		pollOpts: []gax.CallOption{gax.WithURL(override)}
+		pollOpts: []gax.CallOption{gax.WithPath(override)}
 	}
 }
 

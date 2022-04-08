@@ -20,7 +20,6 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
 )
@@ -168,15 +167,12 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 				p("")
 			case rest:
 				receiver := lowcaseRestClientName(servName)
-				get := func(h *annotations.HttpRule) string { return h.GetGet() }
-				override := g.lookupHTTPOverride("google.longrunning.Operations.GetOperation", get)
-				override = patternRegex.ReplaceAllStringFunc(override, func(s string) string { return "%v" })
+				override := g.getOperationPathOverride()
 				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, lroType)
-				p("  override, _ := url.Parse(c.endpoint)")
-				p("  override.Path += fmt.Sprintf(%q, name)", override)
+				p("  override := fmt.Sprintf(%q, name)", override)
 				p("  return &%s{", lroType)
 				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
-				p("    pollOpts: []gax.CallOption{gax.WithURL(override)}")
+				p("    pollOpts: []gax.CallOption{gax.WithPath(override)}")
 				p("  }")
 				p("}")
 				p("")

@@ -417,10 +417,6 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 }
 
 func (g *generator) generateBaseURL(info *httpInfo, ret string) {
-	g.generateURLVar(info, "baseUrl", "req", ret, true)
-}
-
-func (g *generator) generateURLVar(info *httpInfo, v, prto, ret string, handleErr bool) {
 	p := g.printf
 
 	fmtStr := info.url
@@ -428,14 +424,10 @@ func (g *generator) generateURLVar(info *httpInfo, v, prto, ret string, handleEr
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
 	fmtStr = patternRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
-	if handleErr {
-		p("%s, err := url.Parse(c.endpoint)", v)
-		p("if err != nil {")
-		p("  %s", ret)
-		p("}")
-	} else {
-		p("%s, _ := url.Parse(c.endpoint)", v)
-	}
+	p("baseUrl, err := url.Parse(c.endpoint)")
+	p("if err != nil {")
+	p("  %s", ret)
+	p("}")
 
 	tokens := []string{fmt.Sprintf("%q", fmtStr)}
 	// Can't just reuse pathParams because the order matters
@@ -443,9 +435,9 @@ func (g *generator) generateURLVar(info *httpInfo, v, prto, ret string, handleEr
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
-		tokens = append(tokens, fmt.Sprintf("%s%s", prto, fieldGetter(path[1])))
+		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
 	}
-	p("%s.Path += fmt.Sprintf(%s)", v, strings.Join(tokens, ", "))
+	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 }
 
@@ -871,8 +863,8 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
-	p("  if settings.URL != nil {")
-	p("    baseUrl = settings.URL")
+	p("  if settings.Path != nil {")
+	p("    baseUrl.Path = settings.Path")
 	p("  }")
 	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
 	p("  if err != nil {")
@@ -905,12 +897,12 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("if e != nil {")
 	p("  return nil, e")
 	p("}")
-	get := func(h *annotations.HttpRule) string { return h.GetGet() }
-	override := g.lookupHTTPOverride("google.longrunning.Operations.GetOperation", get)
-	g.generateURLVar(&httpInfo{url: override}, "override", "resp", "", false)
+	p("")
+	override := g.getOperationPathOverride()
+	p("override := fmt.Sprintf(%q, resp.GetName())", override)
 	p("return &%s{", opWrapperType)
 	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
-	p("  pollOpts: []gax.CallOption{gax.WithURL(override)},")
+	p("  pollOpts: []gax.CallOption{gax.WithPath(override)},")
 	p("}, nil")
 	p("}")
 	p("")
