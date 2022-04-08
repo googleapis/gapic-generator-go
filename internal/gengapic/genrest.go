@@ -859,7 +859,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
-	p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+	g.insertRequestHeaders(m, rest)
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
