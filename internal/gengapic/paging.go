@@ -290,10 +290,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
 
-	err = g.insertMetadata(m)
-	if err != nil {
-		return err
-	}
+	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
 	pageSizeFieldName := snakeToCamel(pageSize.GetName())
 	p("it := &%s{}", pt.iterTypeName)

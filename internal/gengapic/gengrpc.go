@@ -105,10 +105,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 
 	g.deadline(sFQN, m.GetName())
 
-	err = g.insertMetadata(m)
-	if err != nil {
-		return err
-	}
+	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
 
 	p("var resp *%s.%s", outSpec.Name, outType.GetName())
@@ -150,10 +147,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptor.MethodDesc
 
 	g.deadline(sFQN, m.GetName())
 
-	err = g.insertMetadata(m)
-	if err != nil {
-		return err
-	}
+	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
