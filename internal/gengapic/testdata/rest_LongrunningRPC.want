@@ -16,7 +16,7 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	resp := &longrunningpb.Operation{}
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
-		if settings.Path != nil {
+		if settings.Path != "" {
 			baseUrl.Path = settings.Path
 		}
 		httpReq, err := http.NewRequest("POST", baseUrl.String(), bytes.NewReader(jsonReq))
@@ -70,7 +70,7 @@ func (c *fooRESTClient) LongrunningRPCOperation(name string) *LongrunningRPCOper
 	override := fmt.Sprintf("/v1beta1/%s", name)
 	return &LongrunningRPCOperation{
 		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
-		pollOpts: []gax.CallOption{gax.WithPath(override)}
+		pollOpts: []gax.CallOption{gax.WithPath(override)},
 	}
 }
 
@@ -78,6 +78,7 @@ func (c *fooRESTClient) LongrunningRPCOperation(name string) *LongrunningRPCOper
 //
 // See documentation of Poll for error-handling information.
 func (op *LongrunningRPCOperation) Wait(ctx context.Context, opts ...gax.CallOption) (*foopb.Foo, error) {
+	opts = append(op.pollOpts, opts...)
 	var resp foopb.Foo
 	if err := op.lro.WaitWithInterval(ctx, &resp, time.Minute, opts...); err != nil {
 		return nil, err

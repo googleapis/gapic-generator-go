@@ -169,7 +169,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 				p("  override := fmt.Sprintf(%q, name)", override)
 				p("  return &%s{", lroType)
 				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
-				p("    pollOpts: []gax.CallOption{gax.WithPath(override)}")
+				p("    pollOpts: []gax.CallOption{gax.WithPath(override)},")
 				p("  }")
 				p("}")
 				p("")
@@ -185,9 +185,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// See documentation of Poll for error-handling information.")
 		if opInfo.GetResponseType() == emptyValue {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) error {", lroType)
+			if hasREST {
+				p("opts = append(op.pollOpts, opts...)")
+			}
 			p("  return op.lro.WaitWithInterval(ctx, nil, %s, opts...)", defaultPollMaxDelay)
 		} else {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
+			if hasREST {
+				p("opts = append(op.pollOpts, opts...)")
+			}
 			p("  var resp %s", respType)
 			p("  if err := op.lro.WaitWithInterval(ctx, &resp, %s, opts...); err != nil {", defaultPollMaxDelay)
 			p("    return nil, err")

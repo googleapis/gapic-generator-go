@@ -863,7 +863,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
-	p("  if settings.Path != nil {")
+	p(`  if settings.Path != "" {`)
 	p("    baseUrl.Path = settings.Path")
 	p("  }")
 	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
