@@ -16,10 +16,12 @@ package gengapic
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
@@ -29,9 +31,9 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
-	"gopkg.in/yaml.v2"
 )
 
 type generator struct {
@@ -99,17 +101,22 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	files := req.GetProtoFile()
 
 	if opts.serviceConfigPath != "" {
-		f, err := os.Open(opts.serviceConfigPath)
+		y, err := ioutil.ReadFile(opts.serviceConfigPath)
 		if err != nil {
-			return errors.E(nil, "error opening service config: %v", err)
+			return errors.E(nil, "error reading service config: %v", err)
 		}
-		defer f.Close()
 
-		g.serviceConfig = &serviceconfig.Service{}
-		err = yaml.NewDecoder(f).Decode(g.serviceConfig)
+		j, err := yaml.YAMLToJSON(y)
 		if err != nil {
-			return errors.E(nil, "error decoding service config: %v", err)
+			return errors.E(nil, "error converting YAML to JSON: %v", err)
 		}
+
+		cfg := &serviceconfig.Service{}
+		unm := protojson.UnmarshalOptions{DiscardUnknown: true}
+		if err := unm.Unmarshal(j, cfg); err != nil {
+			return errors.E(nil, "error unmarshaling service config: %v", err)
+		}
+		g.serviceConfig = cfg
 
 		// An API Service Config will always have a `name` so if it is not populated,
 		// it's an invalid config.
