@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.28.0](https://github.com/googleapis/gapic-generator-go/compare/v0.27.1...v0.28.0) (2022-04-13)
+
+
+### Features
+
+* **gengapic:** regapic implicit/explicit header injection ([#953](https://github.com/googleapis/gapic-generator-go/issues/953)) ([0dec6eb](https://github.com/googleapis/gapic-generator-go/commit/0dec6ebd79d779e223869eaf3a30674e77523fe2))
+
+
+### Bug Fixes
+
+* **gengapic:** regapic handle url.Parse error ([#951](https://github.com/googleapis/gapic-generator-go/issues/951)) ([098262f](https://github.com/googleapis/gapic-generator-go/commit/098262f98dd00eb109a8439e668fcda6084eee13))
+* **gengapic:** REGAPIC support gax.CallSettings.Path override ([#957](https://github.com/googleapis/gapic-generator-go/issues/957)) ([ae6a2e1](https://github.com/googleapis/gapic-generator-go/commit/ae6a2e13f849d4b59d93a1b9d8d188d7ea008407))
+
 ### [0.27.1](https://github.com/googleapis/gapic-generator-go/compare/v0.27.0...v0.27.1) (2022-03-30)
 
 
