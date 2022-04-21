@@ -141,7 +141,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("type %s struct {", lroType)
 		p("  lro *longrunning.Operation")
 		if hasREST {
-			p("  pollOpts []gax.CallOption")
+			p("  pollPath string")
 		}
 		p("}")
 		p("")
@@ -169,7 +169,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 				p("  override := fmt.Sprintf(%q, name)", override)
 				p("  return &%s{", lroType)
 				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
-				p("    pollOpts: []gax.CallOption{gax.WithPath(override)},")
+				p("    pollPath: override,")
 				p("  }")
 				p("}")
 				p("")
@@ -186,13 +186,13 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		if opInfo.GetResponseType() == emptyValue {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) error {", lroType)
 			if hasREST {
-				p("opts = append(op.pollOpts, opts...)")
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
 			}
 			p("  return op.lro.WaitWithInterval(ctx, nil, %s, opts...)", defaultPollMaxDelay)
 		} else {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
 			if hasREST {
-				p("opts = append(op.pollOpts, opts...)")
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
 			}
 			p("  var resp %s", respType)
 			p("  if err := op.lro.WaitWithInterval(ctx, &resp, %s, opts...); err != nil {", defaultPollMaxDelay)
@@ -222,13 +222,13 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		if opInfo.GetResponseType() == emptyValue {
 			p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) error {", lroType)
 			if hasREST {
-				p("opts = append(op.pollOpts, opts...)")
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
 			}
 			p("  return op.lro.Poll(ctx, nil, opts...)")
 		} else {
 			p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
 			if hasREST {
-				p("opts = append(op.pollOpts, opts...)")
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
 			}
 			p("  var resp %s", respType)
 			p("  if err := op.lro.Poll(ctx, &resp, opts...); err != nil {")

@@ -908,7 +908,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("override := fmt.Sprintf(%q, resp.GetName())", override)
 	p("return &%s{", opWrapperType)
 	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
-	p("  pollOpts: []gax.CallOption{gax.WithPath(override)},")
+	p("  pollPath: override,")
 	p("}, nil")
 	p("}")
 	p("")

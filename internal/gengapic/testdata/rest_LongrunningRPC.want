@@ -54,14 +54,14 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 	override := fmt.Sprintf("/v1beta1/%s", resp.GetName())
 	return &LongrunningRPCOperation{
 		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
-		pollOpts: []gax.CallOption{gax.WithPath(override)},
+		pollPath: override,
 	}, nil
 }
 
 // LongrunningRPCOperation manages a long-running operation from LongrunningRPC.
 type LongrunningRPCOperation struct {
 	lro *longrunning.Operation
-	pollOpts []gax.CallOption
+	pollPath string
 }
 
 // LongrunningRPCOperation returns a new LongrunningRPCOperation from a given name.
@@ -70,7 +70,7 @@ func (c *fooRESTClient) LongrunningRPCOperation(name string) *LongrunningRPCOper
 	override := fmt.Sprintf("/v1beta1/%s", name)
 	return &LongrunningRPCOperation{
 		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
-		pollOpts: []gax.CallOption{gax.WithPath(override)},
+		pollPath: override,
 	}
 }
 
@@ -78,7 +78,7 @@ func (c *fooRESTClient) LongrunningRPCOperation(name string) *LongrunningRPCOper
 //
 // See documentation of Poll for error-handling information.
 func (op *LongrunningRPCOperation) Wait(ctx context.Context, opts ...gax.CallOption) (*foopb.Foo, error) {
-	opts = append(op.pollOpts, opts...)
+	opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)
 	var resp foopb.Foo
 	if err := op.lro.WaitWithInterval(ctx, &resp, time.Minute, opts...); err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (op *LongrunningRPCOperation) Wait(ctx context.Context, opts ...gax.CallOpt
 // op.Done will return true, and the response of the operation is returned.
 // If Poll succeeds and the operation has not completed, the returned response and error are both nil.
 func (op *LongrunningRPCOperation) Poll(ctx context.Context, opts ...gax.CallOption) (*foopb.Foo, error) {
-	opts = append(op.pollOpts, opts...)
+	opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)
 	var resp foopb.Foo
 	if err := op.lro.Poll(ctx, &resp, opts...); err != nil {
 		return nil, err
