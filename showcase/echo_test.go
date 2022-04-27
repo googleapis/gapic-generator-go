@@ -291,7 +291,6 @@ func TestChat(t *testing.T) {
 	}
 }
 
-// TODO(dovs): add REST testing
 func TestWait(t *testing.T) {
 	defer check(t)
 	content := "hello world!"
@@ -303,16 +302,18 @@ func TestWait(t *testing.T) {
 			Success: &showcasepb.WaitResponse{Content: content},
 		},
 	}
-	op, err := echo.Wait(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	resp, err := op.Wait(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.GetContent() != content {
-		t.Errorf("Wait() = %q, want %q", resp.GetContent(), content)
+	for typ, client := range map[string]*showcase.EchoClient{"grpc": echo, "rest": echoREST} {
+		op, err := client.Wait(context.Background(), req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp, err := op.Wait(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.GetContent() != content {
+			t.Errorf("%s Wait() = %q, want %q", typ, resp.GetContent(), content)
+		}
 	}
 }
 

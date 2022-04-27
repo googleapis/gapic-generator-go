@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -25,7 +26,9 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/genproto/googleapis/cloud/extendedops"
+	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/runtime/protoiface"
@@ -547,6 +550,26 @@ func TestGenRestMethod(t *testing.T) {
 		Options: unaryRPCOpt,
 	}
 
+	lroRPCOpt := &descriptor.MethodOptions{}
+	proto.SetExtension(lroRPCOpt, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/v1/foo",
+		},
+		Body: "*",
+	})
+	proto.SetExtension(lroRPCOpt, longrunning.E_OperationInfo, &longrunning.OperationInfo{
+		// Need to trim the leading "." as the annotation value shouldn't have it.
+		ResponseType: foofqn[1:],
+		MetadataType: foofqn[1:],
+	})
+	lroDesc := protodesc.ToDescriptorProto((&longrunning.Operation{}).ProtoReflect().Descriptor())
+	lroRPC := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("LongrunningRPC"),
+		InputType:  proto.String(foofqn),
+		OutputType: proto.String(lroType),
+		Options:    lroRPCOpt,
+	}
+
 	s := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 	}
@@ -568,6 +591,7 @@ func TestGenRestMethod(t *testing.T) {
 				message: op,
 			},
 			iters: map[string]*iterType{},
+			lros:  map[*descriptor.MethodDescriptorProto]bool{},
 		},
 		opts: &options{},
 		customOpServices: map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
@@ -578,10 +602,12 @@ func TestGenRestMethod(t *testing.T) {
 				op:          f,
 				opS:         f,
 				opRPC:       f,
+				lroRPC:      f,
 				foo:         f,
 				s:           f,
 				pagedFooReq: f,
 				pagedFooRes: f,
+				lroDesc:     protodesc.ToFileDescriptorProto(longrunning.File_google_longrunning_operations_proto),
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
 				opRPC:           s,
@@ -589,6 +615,7 @@ func TestGenRestMethod(t *testing.T) {
 				unaryRPC:        s,
 				pagingRPC:       s,
 				serverStreamRPC: s,
+				lroRPC:          s,
 				nameField:       op,
 				sizeField:       foo,
 				otherField:      foo,
@@ -599,6 +626,7 @@ func TestGenRestMethod(t *testing.T) {
 				emptyType:      protodesc.ToDescriptorProto((&emptypb.Empty{}).ProtoReflect().Descriptor()),
 				pagedFooReqFQN: pagedFooReq,
 				pagedFooResFQN: pagedFooRes,
+				lroType:        lroDesc,
 			},
 		},
 	}
@@ -675,13 +703,53 @@ func TestGenRestMethod(t *testing.T) {
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
+		{
+			name:    "lro_rpc",
+			method:  lroRPC,
+			options: &options{transports: []transport{rest}},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "bytes"}: true,
+				{Path: "cloud.google.com/go/longrunning"}:               true,
+				{Path: "google.golang.org/api/googleapi"}:               true,
+				{Path: "google.golang.org/grpc/metadata"}:               true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "time"}: true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}:                   true,
+				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
+			},
+		},
 	} {
 		s.Method = []*descriptor.MethodDescriptorProto{tst.method}
 		g.opts = tst.options
 		g.imports = make(map[pbinfo.ImportSpec]bool)
+		g.serviceConfig = &serviceconfig.Service{
+			Http: &annotations.Http{
+				Rules: []*annotations.HttpRule{
+					{
+						Selector: "google.longrunning.Operations.GetOperation",
+						Pattern: &annotations.HttpRule_Get{
+							Get: "/v1beta1/{name=projects/*/locations/*/operations/*}",
+						},
+					},
+				},
+			},
+		}
 
 		if err := g.genRESTMethod("Foo", s, tst.method); err != nil {
 			t.Fatal(err)
+		}
+
+		var genLros []*descriptor.MethodDescriptorProto
+		for m := range g.aux.lros {
+			genLros = append(genLros, m)
+		}
+		sort.Slice(genLros, func(i, j int) bool {
+			return genLros[i].GetName() < genLros[j].GetName()
+		})
+		for _, m := range genLros {
+			if err := g.lroType("Foo", s, m); err != nil {
+				t.Error(err)
+			}
 		}
 
 		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
@@ -690,5 +758,6 @@ func TestGenRestMethod(t *testing.T) {
 
 		txtdiff.Diff(t, fmt.Sprintf("%s_%s", t.Name(), tst.name), g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
 		g.reset()
+		g.aux.lros = make(map[*descriptor.MethodDescriptorProto]bool)
 	}
 }

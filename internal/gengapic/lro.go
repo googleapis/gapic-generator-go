@@ -78,6 +78,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	mFQN := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
 	lroType := lroTypeName(m.GetName())
 	p := g.printf
+	hasREST := containsTransport(g.opts.transports, rest)
 
 	eLRO := proto.GetExtension(m.Options, longrunning.E_OperationInfo)
 	opInfo := eLRO.(*longrunning.OperationInfo)
@@ -139,34 +140,42 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// %s manages a long-running operation from %s.", lroType, m.GetName())
 		p("type %s struct {", lroType)
 		p("  lro *longrunning.Operation")
+		if hasREST {
+			p("  pollPath string")
+		}
 		p("}")
 		p("")
 	}
 
 	// LRO from name
 	{
-		lowGRPC := lowcaseGRPCClientName(servName)
-		lowREST := lowcaseRestClientName(servName)
 		for _, t := range g.opts.transports {
 			p("// %[1]s returns a new %[1]s from a given name.", lroType)
 			p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
+
 			switch t {
 			case grpc:
-				p("func (c *%s) %[2]s(name string) *%[2]s {", lowGRPC, lroType)
+				receiver := lowcaseGRPCClientName(servName)
+				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, lroType)
 				p("  return &%s{", lroType)
 				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
 				p("  }")
-				// TODO(noahdietz): move this outside of the for-loop when REST starts using it.
-				g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+				p("}")
+				p("")
 			case rest:
-				p("func (c *%s) %[2]s(name string) *%[2]s {", lowREST, lroType)
-				// TODO(dovs): return a non-empty and useful object
-				p("  return &%s{}", lroType)
+				receiver := lowcaseRestClientName(servName)
+				override := g.getOperationPathOverride()
+				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, lroType)
+				p("  override := fmt.Sprintf(%q, name)", override)
+				p("  return &%s{", lroType)
+				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
+				p("    pollPath: override,")
+				p("  }")
+				p("}")
+				p("")
 			}
-			p("}")
-
-			p("")
 		}
+		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
 	}
 
 	// Wait
@@ -176,9 +185,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// See documentation of Poll for error-handling information.")
 		if opInfo.GetResponseType() == emptyValue {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) error {", lroType)
+			if hasREST {
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
+			}
 			p("  return op.lro.WaitWithInterval(ctx, nil, %s, opts...)", defaultPollMaxDelay)
 		} else {
 			p("func (op *%s) Wait(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
+			if hasREST {
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
+			}
 			p("  var resp %s", respType)
 			p("  if err := op.lro.WaitWithInterval(ctx, &resp, %s, opts...); err != nil {", defaultPollMaxDelay)
 			p("    return nil, err")
@@ -206,9 +221,15 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		p("// If Poll succeeds and the operation has not completed, the returned response and error are both nil.")
 		if opInfo.GetResponseType() == emptyValue {
 			p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) error {", lroType)
+			if hasREST {
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
+			}
 			p("  return op.lro.Poll(ctx, nil, opts...)")
 		} else {
 			p("func (op *%s) Poll(ctx context.Context, opts ...gax.CallOption) (*%s, error) {", lroType, respType)
+			if hasREST {
+				p("opts = append([]gax.CallOption{gax.WithPath(op.pollPath)}, opts...)")
+			}
 			p("  var resp %s", respType)
 			p("  if err := op.lro.Poll(ctx, &resp, opts...); err != nil {")
 			p("    return nil, err")

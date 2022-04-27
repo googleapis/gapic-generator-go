@@ -28,6 +28,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var httpPatternVarRegex = regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
+
 func lowcaseRestClientName(servName string) string {
 	if servName == "" {
 		return "restClient"
@@ -48,6 +50,14 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("  // The http client.")
 	p("  httpClient *http.Client")
 	p("")
+	if hasRPCForLRO {
+		p("// LROClient is used internally to handle long-running operations.")
+		p("// It is exposed so that its CallOptions can be modified if required.")
+		p("// Users should not Close this client.")
+		p("LROClient **lroauto.OperationsClient")
+		p("")
+		g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
+	}
 	if opServ, ok := g.customOpServices[serv]; ok {
 		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
 		p("// operationClient is used to call the operation-specific management service.")
@@ -132,6 +142,18 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("    }")
 	p("    c.setGoogleClientInfo()")
 	p("")
+	if hasRPCForLRO {
+		p("lroOpts := []option.ClientOption{")
+		p("  option.WithHTTPClient(httpClient),")
+		p("  option.WithEndpoint(endpoint),")
+		p("}")
+		p("opClient, err := lroauto.NewOperationsRESTClient(ctx, lroOpts...)")
+		p("if err != nil {")
+		p("    return nil, err")
+		p("}")
+		p("c.LROClient = &opClient")
+		p("")
+	}
 	if hasCustomOp {
 		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
 		p("o := []option.ClientOption{")
@@ -394,23 +416,22 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p("")
 }
 
-func (g *generator) generateURLString(info *httpInfo, ret string) {
+func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 	p := g.printf
 
 	fmtStr := info.url
 	// TODO(noahdietz): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
-	re := regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
-	fmtStr = re.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
+	fmtStr = httpPatternVarRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
 	p("baseUrl, err := url.Parse(c.endpoint)")
 	p("if err != nil {")
 	p("  %s", ret)
 	p("}")
 
-	tokens := []string{fmt.Sprintf(`"%s"`, fmtStr)}
+	tokens := []string{fmt.Sprintf("%q", fmtStr)}
 	// Can't just reuse pathParams because the order matters
-	for _, path := range re.FindAllStringSubmatch(info.url, -1) {
+	for _, path := range httpPatternVarRegex.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
@@ -543,7 +564,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(info, "return nil, err")
+	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
@@ -729,7 +750,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 		p("")
 	}
 
-	g.generateURLString(info, `return nil, "", err`)
+	g.generateBaseURL(info, `return nil, "", err`)
 	g.generateQueryString(m)
 	p("  // Build HTTP headers from client and context metadata.")
 	p(`  headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
@@ -787,29 +808,115 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 }
 
 func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+	info := getHTTPInfo(m)
+	if info == nil {
+		return errors.E(nil, "method has no http info: %s", m.GetName())
+	}
+
 	lowcaseServName := lowcaseRestClientName(servName)
 	p := g.printf
 	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
-	// outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
+	outType := g.descInfo.Type[m.GetOutputType()]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
 		return err
 	}
+	// This is always the longrunningp.Operation/google.longrunning.Operation.
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+	g.imports[outSpec] = true
 
-	// outSpec, err := g.descInfo.ImportSpec(outType)
-	// if err != nil {
-	// 	return err
-	// }
-
-	lroType := lroTypeName(m.GetName())
+	opWrapperType := lroTypeName(m.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
-	p(`    return nil, fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), opWrapperType)
+
+	// TODO(noahdietz): handle cancellation, metadata, osv.
+	// TODO(noahdietz): handle http headers
+	// TODO(noahdietz): handle deadlines?
+	// TODO(noahdietz): handle calloptions
+
+	body := "nil"
+	verb := strings.ToUpper(info.verb)
+
+	// Marshal body for HTTP methods that take a body.
+	if info.body != "" {
+		if verb == http.MethodGet || verb == http.MethodDelete {
+			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
+		}
+		p("m := protojson.MarshalOptions{AllowPartial: true}")
+		requestObject := "req"
+		if info.body != "*" {
+			requestObject = "body"
+			p("body := req%s", fieldGetter(info.body))
+		}
+		p("jsonReq, err := m.Marshal(%s)", requestObject)
+		p("if err != nil {")
+		p("  return nil, err")
+		p("}")
+		p("")
+
+		body = "bytes.NewReader(jsonReq)"
+		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+	}
+
+	g.generateBaseURL(info, "return nil, err")
+	g.generateQueryString(m)
+	p("// Build HTTP headers from client and context metadata.")
+	g.insertRequestHeaders(m, rest)
+	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
+	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
+	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
+	p(`  if settings.Path != "" {`)
+	p("    baseUrl.Path = settings.Path")
+	p("  }")
+	p(`  httpReq, err := http.NewRequest("%s", baseUrl.String(), %s)`, verb, body)
+	p("  if err != nil {")
+	p("      return err")
+	p("  }")
+	p("  httpReq = httpReq.WithContext(ctx)")
+	p("  httpReq.Header = headers")
+	p("")
+	p("  httpRsp, err := c.httpClient.Do(httpReq)")
+	p("  if err != nil{")
+	p("   return err")
+	p("  }")
+	p("  defer httpRsp.Body.Close()")
+	p("")
+	p("  if err = googleapi.CheckResponse(httpRsp); err != nil {")
+	p("    return err")
+	p("  }")
+	p("")
+	p("  buf, err := ioutil.ReadAll(httpRsp.Body)")
+	p("  if err != nil {")
+	p("    return err")
+	p("  }")
+	p("")
+	p("  if err := unm.Unmarshal(buf, resp); err != nil {")
+	p("    return maybeUnknownEnum(err)")
+	p("  }")
+	p("")
+	p("  return nil")
+	p("}, opts...)")
+	p("if e != nil {")
+	p("  return nil, e")
+	p("}")
+	p("")
+	override := g.getOperationPathOverride()
+	p("override := fmt.Sprintf(%q, resp.GetName())", override)
+	p("return &%s{", opWrapperType)
+	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
+	p("  pollPath: override,")
+	p("}, nil")
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
 	return nil
 }
@@ -861,7 +968,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
-	g.generateURLString(info, "return err")
+	g.generateBaseURL(info, "return err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
@@ -954,7 +1061,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateURLString(info, "return nil, err")
+	g.generateBaseURL(info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
