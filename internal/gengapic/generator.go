@@ -112,8 +112,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		}
 
 		cfg := &serviceconfig.Service{}
-		unm := protojson.UnmarshalOptions{DiscardUnknown: true}
-		if err := unm.Unmarshal(j, cfg); err != nil {
+		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(j, cfg); err != nil {
 			return errors.E(nil, "error unmarshaling service config: %v", err)
 		}
 		g.serviceConfig = cfg

@@ -249,6 +249,6 @@ func (g *generator) lookupHTTPOverride(fqn string, f func(h *annotations.HttpRul
 func (g *generator) getOperationPathOverride() string {
 	get := func(h *annotations.HttpRule) string { return h.GetGet() }
 	override := g.lookupHTTPOverride("google.longrunning.Operations.GetOperation", get)
-	override = patternRegex.ReplaceAllStringFunc(override, func(s string) string { return "%s" })
+	override = httpPatternVarRegex.ReplaceAllStringFunc(override, func(s string) string { return "%s" })
 	return override
 }

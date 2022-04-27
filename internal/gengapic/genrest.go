@@ -28,7 +28,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var patternRegex = regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
+var httpPatternVarRegex = regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
 
 func lowcaseRestClientName(servName string) string {
 	if servName == "" {
@@ -422,7 +422,7 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 	fmtStr := info.url
 	// TODO(noahdietz): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
-	fmtStr = patternRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
+	fmtStr = httpPatternVarRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
 	p("baseUrl, err := url.Parse(c.endpoint)")
 	p("if err != nil {")
@@ -431,7 +431,7 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 
 	tokens := []string{fmt.Sprintf("%q", fmtStr)}
 	// Can't just reuse pathParams because the order matters
-	for _, path := range patternRegex.FindAllStringSubmatch(info.url, -1) {
+	for _, path := range httpPatternVarRegex.FindAllStringSubmatch(info.url, -1) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
