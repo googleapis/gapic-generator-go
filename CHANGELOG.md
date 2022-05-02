@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/googleapis/gapic-generator-go/compare/v0.28.0...v0.29.0) (2022-05-02)
+
+
+### Features
+
+* **gengapic:** regapic lro support ([#942](https://github.com/googleapis/gapic-generator-go/issues/942)) ([adb77e9](https://github.com/googleapis/gapic-generator-go/commit/adb77e9477e21709d7a0b2fc08350ec9d5129c11))
+
 ## [0.28.0](https://github.com/googleapis/gapic-generator-go/compare/v0.27.1...v0.28.0) (2022-04-13)
 
 
