@@ -63,3 +63,38 @@ func defaultBarCallOptions() *BarCallOptions {
 	}
 }
 
+func defaultBarRESTCallOptions() *BarCallOptions {
+	return &BarCallOptions{
+		Smack: []gax.CallOption{
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnHTTPCodes(gax.Backoff{
+					Initial:    10 * time.Millisecond,
+					Max:        7000 * time.Millisecond,
+					Multiplier: 1.10,
+				},
+				http.StatusInternalServerError)
+			}),
+		},
+		ListLocations: []gax.CallOption{
+		},
+		GetLocation: []gax.CallOption{
+		},
+		SetIamPolicy: []gax.CallOption{
+		},
+		GetIamPolicy: []gax.CallOption{
+		},
+		TestIamPermissions: []gax.CallOption{
+		},
+		ListOperations: []gax.CallOption{
+		},
+		GetOperation: []gax.CallOption{
+		},
+		DeleteOperation: []gax.CallOption{
+		},
+		CancelOperation: []gax.CallOption{
+		},
+		WaitOperation: []gax.CallOption{
+		},
+	}
+}
+

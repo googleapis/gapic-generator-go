@@ -55,8 +55,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 			}
 			g.grpcCallOptions(serv, servName)
 		case rest:
-			// TODO(dovs)
-			continue
+			g.restCallOptions(serv, servName)
 		default:
 			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
 				v, grpc, rest)

@@ -68,6 +68,7 @@ func TestClientOpt(t *testing.T) {
 						BackoffMultiplier: 1.3,
 						RetryableStatusCodes: []code.Code{
 							code.Code_UNKNOWN,
+							code.Code_UNAVAILABLE,
 						},
 					},
 				},
@@ -124,7 +125,7 @@ func TestClientOpt(t *testing.T) {
 				{Name: "google.longrunning.Operations"},
 			},
 		},
-		opts:     &options{transports: []transport{grpc}},
+		opts:     &options{transports: []transport{grpc, rest}},
 		grpcConf: grpcConf,
 	}
 

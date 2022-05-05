@@ -137,6 +137,9 @@ type restClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogMetadata metadata.MD
+
+	// Points back to the CallOptions field of the containing Client
+	CallOptions **CallOptions
 }
 
 // NewRESTClient creates a new foo rest client.
@@ -149,13 +152,15 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		return nil, err
 	}
 
+	callOpts := defaultRESTCallOptions()
 	c := &restClient{
 		endpoint: endpoint,
 		httpClient: httpClient,
+		CallOptions: &callOpts,
 	}
 	c.setGoogleClientInfo()
 
-	return &Client{internalClient: c, CallOptions: &CallOptions{}}, nil
+	return &Client{internalClient: c, CallOptions: callOpts}, nil
 }
 
 // setGoogleClientInfo sets the name and version of the application in

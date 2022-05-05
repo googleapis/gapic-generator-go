@@ -35,6 +35,7 @@ func defaultFooCallOptions() *FooCallOptions {
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnCodes([]codes.Code{
 					codes.Unknown,
+					codes.Unavailable,
 				}, gax.Backoff{
 					Initial:    100 * time.Millisecond,
 					Max:        60000 * time.Millisecond,
@@ -66,6 +67,62 @@ func defaultFooCallOptions() *FooCallOptions {
 					Max:        7000 * time.Millisecond,
 					Multiplier: 1.10,
 				})
+			}),
+		},
+		ListLocations: []gax.CallOption{
+		},
+		GetLocation: []gax.CallOption{
+		},
+		SetIamPolicy: []gax.CallOption{
+		},
+		GetIamPolicy: []gax.CallOption{
+		},
+		TestIamPermissions: []gax.CallOption{
+		},
+		ListOperations: []gax.CallOption{
+		},
+		GetOperation: []gax.CallOption{
+		},
+		DeleteOperation: []gax.CallOption{
+		},
+		CancelOperation: []gax.CallOption{
+		},
+		WaitOperation: []gax.CallOption{
+		},
+	}
+}
+
+func defaultFooRESTCallOptions() *FooCallOptions {
+	return &FooCallOptions{
+		Zip: []gax.CallOption{
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnHTTPCodes(gax.Backoff{
+					Initial:    100 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				},
+				http.StatusInternalServerError,
+				http.StatusServiceUnavailable)
+			}),
+		},
+		Zap: []gax.CallOption{
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnHTTPCodes(gax.Backoff{
+					Initial:    10 * time.Millisecond,
+					Max:        7000 * time.Millisecond,
+					Multiplier: 1.10,
+				},
+				http.StatusInternalServerError)
+			}),
+		},
+		Smack: []gax.CallOption{
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnHTTPCodes(gax.Backoff{
+					Initial:    10 * time.Millisecond,
+					Max:        7000 * time.Millisecond,
+					Multiplier: 1.10,
+				},
+				http.StatusInternalServerError)
 			}),
 		},
 		ListLocations: []gax.CallOption{
