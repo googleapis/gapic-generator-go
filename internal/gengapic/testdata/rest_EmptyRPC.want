@@ -6,9 +6,6 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	baseUrl.Path += fmt.Sprintf("/v1/foo/%v", req.GetOther())
 
 	params := url.Values{}
-	if req != nil && req.Other != nil {
-		params.Add("other", fmt.Sprintf("%v", req.GetOther()))
-	}
 	params.Add("size", fmt.Sprintf("%v", req.GetSize()))
 
 	baseUrl.RawQuery = params.Encode()
