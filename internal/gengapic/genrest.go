@@ -227,7 +227,7 @@ func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
-		param := p[1]
+		param := strings.Split(p[1], "=")[0]
 		field := g.lookupField(m.GetInputType(), param)
 		if field == nil {
 			continue
