@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.29.1](https://github.com/googleapis/gapic-generator-go/compare/v0.29.0...v0.29.1) (2022-05-09)
+
+
+### Bug Fixes
+
+* **gengapic:** REGAPIC fix path param parsing to remove duped query param ([#981](https://github.com/googleapis/gapic-generator-go/issues/981)) ([d326973](https://github.com/googleapis/gapic-generator-go/commit/d326973a847c21dce4cb14fca45c8ec4e501e785))
+
 ## [0.29.0](https://github.com/googleapis/gapic-generator-go/compare/v0.28.0...v0.29.0) (2022-05-02)
 
 
