@@ -20,6 +20,7 @@ import (
 	"os"
 	"testing"
 
+	_ "cloud.google.com/go"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
@@ -37,7 +38,7 @@ func init() {
 	registerIgnoreGoroutine("google.golang.org/grpc.(*addrConn).connect")
 }
 
-const showcaseSemver = "0.19.4"
+const showcaseSemver = "0.20.0"
 
 func TestMain(m *testing.M) {
 	flag.Parse()
