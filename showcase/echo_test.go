@@ -86,12 +86,12 @@ func TestEcho_error(t *testing.T) {
 				t.Errorf("%s Echo() errors with %d, want %d", typ, status.Code(), val)
 			}
 		} else {
-			const ERR_CODE int = http.StatusInternalServerError
+			want := 499
 			gerr := &googleapi.Error{}
 			if !errors.As(err, &gerr) {
 				t.Errorf("%s Echo() returned unexpected error type: %v", typ, err)
-			} else if gerr.Code != ERR_CODE {
-				t.Errorf("%s Echo() errors with %d, want %d", typ, gerr.Code, ERR_CODE)
+			} else if gerr.Code != want {
+				t.Errorf("%s Echo() errors with %d, want %d", typ, gerr.Code, want)
 			}
 		}
 
