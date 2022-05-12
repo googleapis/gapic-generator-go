@@ -1184,7 +1184,7 @@ func (g *generator) restCallOptions(serv *descriptor.ServiceDescriptorProto, ser
 		sFQN := g.fqn(g.descInfo.ParentElement[m])
 		mn := m.GetName()
 		p("%s: []gax.CallOption{", mn)
-		if rp, ok := c.RetryPolicy(sFQN, mn); ok && rp != nil {
+		if rp, ok := c.RetryPolicy(sFQN, mn); ok && rp != nil && len(rp.GetRetryableStatusCodes()) > 0 {
 			p("gax.WithRetry(func() gax.Retryer {")
 			p("  return gax.OnHTTPCodes(gax.Backoff{")
 			// this ignores max_attempts
