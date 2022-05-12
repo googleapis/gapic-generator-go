@@ -548,7 +548,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
-		p("m := protojson.MarshalOptions{AllowPartial: true}")
+		p("m := protojson.MarshalOptions{AllowPartial: true, UseEnumNumbers: true}")
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"
@@ -733,7 +733,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 
 	maybeReqBytes := "nil"
 	if info.body != "" {
-		p("m := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: false}")
+		p("m := protojson.MarshalOptions{AllowPartial: true, UseEnumNumbers: true}")
 		maybeReqBytes = "bytes.NewReader(jsonReq)"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
@@ -846,7 +846,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
-		p("m := protojson.MarshalOptions{AllowPartial: true}")
+		p("m := protojson.MarshalOptions{AllowPartial: true, UseEnumNumbers: true}")
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"
@@ -952,7 +952,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
-		p("m := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: false}")
+		p("m := protojson.MarshalOptions{AllowPartial: true, UseEnumNumbers: true}")
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"
@@ -1045,7 +1045,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		if verb == http.MethodGet || verb == http.MethodDelete {
 			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
 		}
-		p("m := protojson.MarshalOptions{AllowPartial: true}")
+		p("m := protojson.MarshalOptions{AllowPartial: true, UseEnumNumbers: true}")
 		requestObject := "req"
 		if info.body != "*" {
 			requestObject = "body"

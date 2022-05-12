@@ -1,5 +1,5 @@
 func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...gax.CallOption) (*foopb.Foo, error) {
-	m := protojson.MarshalOptions{AllowPartial: true}
+	m := protojson.MarshalOptions{AllowPartial: true, UseEnumNumbers: true}
 	jsonReq, err := m.Marshal(req)
 	if err != nil {
 		return nil, err
