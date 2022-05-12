@@ -16,6 +16,7 @@ package showcase
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -28,6 +29,7 @@ import (
 )
 
 var sequenceClient *showcase.SequenceClient
+var sequenceRESTClient *showcase.SequenceClient
 
 func Test_Sequence_Empty(t *testing.T) {
 	defer check(t)
@@ -119,66 +121,80 @@ func Test_Sequence_Retry(t *testing.T) {
 		},
 	}
 
-	seq, err := sequenceClient.CreateSequence(context.Background(), &showcasepb.CreateSequenceRequest{
-		Sequence: &showcasepb.Sequence{Responses: responses},
-	})
-	if err != nil {
-		t.Errorf("CreateSequence(retry): unexpected err %+v", err)
-	}
+	for typ, client := range map[string]*showcase.SequenceClient{"grpc": sequenceClient, "rest": sequenceRESTClient} {
+		seq, err := client.CreateSequence(context.Background(), &showcasepb.CreateSequenceRequest{
+			Sequence: &showcasepb.Sequence{Responses: responses},
+		})
+		if err != nil {
+			t.Errorf("CreateSequence(retry): unexpected err %+v", err)
+		}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
-	err = sequenceClient.AttemptSequence(ctx, &showcasepb.AttemptSequenceRequest{Name: seq.GetName()}, gax.WithRetry(func() gax.Retryer {
-		return gax.OnCodes([]codes.Code{
-			codes.Unavailable,
-		}, gax.Backoff{
+		var retryOpt gax.CallOption
+		bo := gax.Backoff{
 			Initial:    100 * time.Millisecond,
 			Max:        3000 * time.Millisecond,
 			Multiplier: 2.00,
-		})
-	}))
-	if err != nil {
-		t.Errorf("%s: unexpected AttemptSequence error %v", t.Name(), err)
-	}
-
-	r := seq.GetName() + "/sequenceReport"
-	report, err := sequenceClient.GetSequenceReport(context.Background(), &showcasepb.GetSequenceReportRequest{Name: r})
-	if err != nil {
-		t.Errorf("GetSequenceReport(retry): unexpected err %+v", err)
-	}
-
-	attempts := report.GetAttempts()
-	if len(attempts) != len(responses) {
-		t.Errorf("%s: expected number of attempts to be %d but was %d", t.Name(), len(responses), len(attempts))
-	}
-
-	d, _ := ctx.Deadline()
-	for n, a := range attempts {
-		if got, want := a.GetAttemptNumber(), int32(n); got != want {
-			t.Errorf("%s: want attempt #%d but got attempt #%d", t.Name(), want, got)
+		}
+		if typ == "grpc" {
+			retryOpt = gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+				}, bo)
+			})
+		} else {
+			retryOpt = gax.WithRetry(func() gax.Retryer {
+				return gax.OnHTTPCodes(bo, http.StatusServiceUnavailable)
+			})
+		}
+		err = client.AttemptSequence(ctx, &showcasepb.AttemptSequenceRequest{Name: seq.GetName()}, retryOpt)
+		if err != nil {
+			t.Errorf("%s: unexpected AttemptSequence error %v", t.Name(), err)
 		}
 
-		// Ensure that the server-perceived attempt deadline is the same or only
-		// slightly before the client-specified deadline - there seems to be
-		// flaky nanosecond differences.
-		if diff := d.Sub(a.GetAttemptDeadline().AsTime()); diff > time.Millisecond {
-			t.Errorf("%s: difference between server and client deadline was more than 1ms: %v", t.Name(), diff.Milliseconds())
+		r := seq.GetName() + "/sequenceReport"
+		report, err := client.GetSequenceReport(context.Background(), &showcasepb.GetSequenceReportRequest{Name: r})
+		if err != nil {
+			t.Errorf("GetSequenceReport(retry): unexpected err %+v", err)
 		}
 
-		if got, want := a.GetStatus().GetCode(), responses[n].GetStatus().GetCode(); got != want {
-			t.Errorf("%s: want response %v but got %v", t.Name(), want, got)
+		attempts := report.GetAttempts()
+		if len(attempts) != len(responses) {
+			t.Errorf("%s: expected number of attempts to be %d but was %d", t.Name(), len(responses), len(attempts))
 		}
 
-		if n > 0 {
-			cur, prev := a.GetAttemptDelay().AsDuration(), attempts[n-1].GetAttemptDelay().AsDuration()
+		d, _ := ctx.Deadline()
+		for n, a := range attempts {
+			if got, want := a.GetAttemptNumber(), int32(n); got != want {
+				t.Errorf("%s: want attempt #%d but got attempt #%d", t.Name(), want, got)
+			}
 
-			// gax.Backoff uses full jitter, so delay is not garaunteed to be monotonically increasing.
-			// Thus, we can only check that it is not the same between attempts.
+			// Ensure that the server-perceived attempt deadline is the same or only
+			// slightly before the client-specified deadline - there seems to be
+			// flaky nanosecond differences.
 			//
-			// TODO(noahdietz) investigate gax.Backoff jitter for signs of predictability in pseudo-random numbers.
-			if cur.Milliseconds() == prev.Milliseconds() {
-				t.Errorf("%s: want attempt(%d) delay: %v to differ from previous(%d): %v", t.Name(), n, cur, prev, n-1)
+			// TODO(noahdietz): I think there is a bug in showcase REST server because the context deadline
+			// isn't being conveyed to the handler via the request.
+			if diff := d.Sub(a.GetAttemptDeadline().AsTime()); typ == "grpc" && diff > time.Millisecond {
+				t.Errorf("%s: difference between server and client deadline was more than 1ms: %v", t.Name(), diff.Milliseconds())
+			}
+
+			if got, want := a.GetStatus().GetCode(), responses[n].GetStatus().GetCode(); got != want {
+				t.Errorf("%s: want response %v but got %v", t.Name(), want, got)
+			}
+
+			if n > 0 {
+				cur, prev := a.GetAttemptDelay().AsDuration(), attempts[n-1].GetAttemptDelay().AsDuration()
+
+				// gax.Backoff uses full jitter, so delay is not garaunteed to be monotonically increasing.
+				// Thus, we can only check that it is not the same between attempts.
+				//
+				// TODO(noahdietz) investigate gax.Backoff jitter for signs of predictability in pseudo-random numbers.
+				if cur.Milliseconds() == prev.Milliseconds() {
+					t.Errorf("%s: want attempt(%d) delay: %v to differ from previous(%d): %v", t.Name(), n, cur, prev, n-1)
+				}
 			}
 		}
 	}
