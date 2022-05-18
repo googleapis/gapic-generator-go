@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.29.2](https://github.com/googleapis/gapic-generator-go/compare/v0.29.1...v0.29.2) (2022-05-18)
+
+
+### Bug Fixes
+
+* **gengapic:** REGAPIC encode enums as numbers ([#994](https://github.com/googleapis/gapic-generator-go/issues/994)) ([1a04703](https://github.com/googleapis/gapic-generator-go/commit/1a04703d600be9a1a79f6998876b80e46d5b023b))
+
 ### [0.29.1](https://github.com/googleapis/gapic-generator-go/compare/v0.29.0...v0.29.1) (2022-05-09)
 
 
