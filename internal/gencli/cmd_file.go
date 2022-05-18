@@ -352,7 +352,8 @@ var {{$methodCmdVar}} = &cobra.Command{
 			return err
 		}
 
-		result, err := resp.Wait(ctx)
+		{{ if .IsLRORespEmpty }}err = resp.Wait(ctx)
+		{{else}}result, err := resp.Wait(ctx)
 		if err != nil {
 			return err
 		}
@@ -360,7 +361,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		if Verbose {
 			fmt.Print("Output: ")
 		}
-		printMessage(result)
+		printMessage(result){{ end }}
 		{{ end }}
 		{{ end }}
 		return err
@@ -375,7 +376,7 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 		op := {{ $serviceClient }}.{{ .Method }}Operation({{ $pollingOperationVar }})
 
 		if {{ $followVar }} {
-			resp, err := op.Wait(ctx)
+			{{ if .IsLRORespEmpty }}return op.Wait(ctx){{ else }}resp, err := op.Wait(ctx)
 			if err != nil {
 				return err
 			}
@@ -384,9 +385,15 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 				fmt.Print("Output: ")
 			}
 			printMessage(resp)
-			return err
+			return err{{ end }}
 		}
 
+		{{ if .IsLRORespEmpty }}
+		err = op.Poll(ctx)
+		if err != nil {
+			return err
+		}
+		{{ else }}
 		resp, err := op.Poll(ctx)
 		if err != nil {
 			return err
@@ -398,8 +405,13 @@ var {{ $pollingCmdVar }} = &cobra.Command{
 			printMessage(resp)
 			return
 		}
+		{{ end }}
 
-		fmt.Println(fmt.Sprintf("Operation %s not done", op.Name()))
+		if op.Done() {
+			fmt.Println(fmt.Sprintf("Operation %s is done", op.Name()))
+		} else {
+			fmt.Println(fmt.Sprintf("Operation %s not done", op.Name()))
+		}
 
 		return err
 	},
