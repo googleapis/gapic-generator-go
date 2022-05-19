@@ -23,12 +23,35 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/protobuf/proto"
 )
 
 var httpPatternVarRegex = regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
+
+// Derived from internal source: go/http-canonical-mapping.
+var gRPCToHTTP map[code.Code]string = map[code.Code]string{
+	code.Code_OK:                  "http.StatusOK",
+	code.Code_CANCELLED:           "499", // There isn't a Go constant ClientClosedConnection
+	code.Code_UNKNOWN:             "http.StatusInternalServerError",
+	code.Code_INVALID_ARGUMENT:    "http.StatusBadRequest",
+	code.Code_DEADLINE_EXCEEDED:   "http.StatusGatewayTimeout",
+	code.Code_NOT_FOUND:           "http.StatusNotFound",
+	code.Code_ALREADY_EXISTS:      "http.StatusConflict",
+	code.Code_PERMISSION_DENIED:   "http.StatusForbidden",
+	code.Code_UNAUTHENTICATED:     "http.StatusUnauthorized",
+	code.Code_RESOURCE_EXHAUSTED:  "http.StatusTooManyRequests",
+	code.Code_FAILED_PRECONDITION: "http.StatusBadRequest",
+	code.Code_ABORTED:             "http.StatusConflict",
+	code.Code_OUT_OF_RANGE:        "http.StatusBadRequest",
+	code.Code_UNIMPLEMENTED:       "http.StatusNotImplemented",
+	code.Code_INTERNAL:            "http.StatusInternalServerError",
+	code.Code_UNAVAILABLE:         "http.StatusServiceUnavailable",
+	code.Code_DATA_LOSS:           "http.StatusInternalServerError",
+}
 
 func lowcaseRestClientName(servName string) string {
 	if servName == "" {
@@ -66,6 +89,9 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	}
 	p("	 // The x-goog-* metadata to be sent with each request.")
 	p("	 xGoogMetadata metadata.MD")
+	p("")
+	p("  // Points back to the CallOptions field of the containing %sClient", servName)
+	p("  CallOptions **%sCallOptions", servName)
 	p("}")
 	p("")
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
@@ -136,9 +162,11 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("        return nil, err")
 	p("    }")
 	p("")
+	p("    callOpts := default%sRESTCallOptions()", servName)
 	p("    c := &%s{", lowcaseServName)
 	p("        endpoint: endpoint,")
 	p("        httpClient: httpClient,")
+	p("        CallOptions: &callOpts,")
 	p("    }")
 	p("    c.setGoogleClientInfo()")
 	p("")
@@ -168,9 +196,9 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 		p("")
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
 	}
-	// TODO(dovs): make rest default call options
+
 	// TODO(dovs): set the LRO client
-	p("    return &%[1]sClient{internalClient: c, CallOptions: &%[1]sCallOptions{}}, nil", servName)
+	p("    return &%[1]sClient{internalClient: c, CallOptions: callOpts}, nil", servName)
 	p("}")
 	p("")
 
@@ -1065,6 +1093,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
+	g.appendCallOpts(m)
 	if !isHTTPBodyMessage {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	}
@@ -1138,4 +1167,49 @@ func (g *generator) protoJSONMarshaler() {
 		marshalOpts = "AllowPartial: true"
 	}
 	g.pt.Printf("m := protojson.MarshalOptions{%s}", marshalOpts)
+}
+
+func (g *generator) restCallOptions(serv *descriptor.ServiceDescriptorProto, servName string) {
+	p := g.printf
+
+	// defaultCallOptions
+	c := g.grpcConf
+
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+
+	// read retry params from gRPC ServiceConfig
+	p("func default%[1]sRESTCallOptions() *%[1]sCallOptions {", servName)
+	p("  return &%sCallOptions{", servName)
+	for _, m := range methods {
+		sFQN := g.fqn(g.descInfo.ParentElement[m])
+		mn := m.GetName()
+		p("%s: []gax.CallOption{", mn)
+		if rp, ok := c.RetryPolicy(sFQN, mn); ok && rp != nil && len(rp.GetRetryableStatusCodes()) > 0 {
+			p("gax.WithRetry(func() gax.Retryer {")
+			p("  return gax.OnHTTPCodes(gax.Backoff{")
+			// this ignores max_attempts
+			p("    Initial:    %d * time.Millisecond,", conf.ToMillis(rp.GetInitialBackoff()))
+			p("    Max:        %d * time.Millisecond,", conf.ToMillis(rp.GetMaxBackoff()))
+			p("    Multiplier: %.2f,", rp.GetBackoffMultiplier())
+			p("	 },")
+
+			rc := rp.GetRetryableStatusCodes()
+			for ndx, c := range rc {
+				s := fmt.Sprintf("%s,", gRPCToHTTP[c])
+				if ndx == len(rc)-1 {
+					s = strings.ReplaceAll(s, ",", ")")
+				}
+
+				p(s)
+			}
+			p("}),")
+
+			// include imports necessary for retry configuration
+			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
+		}
+		p("},")
+	}
+	p("  }")
+	p("}")
+	p("")
 }

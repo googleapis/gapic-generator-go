@@ -24,6 +24,7 @@ func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	md := metadata.Pairs("x-goog-request-params", routingHeaders)
 
 	headers := buildHeaders(ctx, c.xGoogMetadata, md, metadata.Pairs("Content-Type", "application/json"))
+	opts = append((*c.CallOptions).UnaryRPC[0:len((*c.CallOptions).UnaryRPC):len((*c.CallOptions).UnaryRPC)], opts...)
 	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	resp := &foopb.Foo{}
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {

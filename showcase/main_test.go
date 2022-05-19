@@ -40,6 +40,11 @@ func init() {
 
 const showcaseSemver = "0.20.0"
 
+var restClientOpts = []option.ClientOption{
+	option.WithEndpoint("http://localhost:7469"),
+	option.WithoutAuthentication(),
+}
+
 func TestMain(m *testing.M) {
 	flag.Parse()
 
@@ -57,8 +62,7 @@ func TestMain(m *testing.M) {
 	}
 	defer echo.Close()
 
-	// The custom endpoint bypasses https.
-	echoREST, err = showcase.NewEchoRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithoutAuthentication())
+	echoREST, err = showcase.NewEchoRESTClient(ctx, restClientOpts...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,8 +80,13 @@ func TestMain(m *testing.M) {
 	}
 	defer sequenceClient.Close()
 
-	// The custom endpoint bypasses https.
-	complianceClient, err = showcase.NewComplianceRESTClient(ctx, option.WithEndpoint("http://localhost:7469"), option.WithoutAuthentication())
+	sequenceRESTClient, err = showcase.NewSequenceRESTClient(ctx, restClientOpts...)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sequenceRESTClient.Close()
+
+	complianceClient, err = showcase.NewComplianceRESTClient(ctx, restClientOpts...)
 
 	if err != nil {
 		log.Fatal(err)
