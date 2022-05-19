@@ -54,7 +54,7 @@ jobs:
       run: |
         tar xvzf repos.tgz
         rm repos.tgz
-    - uses: googleapis/code-suggester@v2
+    - uses: googleapis/code-suggester@v3
       id: code_suggester
       env:
         ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}  

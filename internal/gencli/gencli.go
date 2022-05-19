@@ -30,9 +30,11 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/longrunning"
 )
 
 const (
+	emptyValue = "google.protobuf.Empty"
 	// EmptyProtoType is the type name for the Empty message type
 	EmptyProtoType = "google.protobuf.Empty"
 	// LROProtoType is the type name for the LRO message type
@@ -62,6 +64,7 @@ type Command struct {
 	HasPageSize       bool
 	HasPageToken      bool
 	IsLRO             bool
+	IsLRORespEmpty    bool
 	HasEnums          bool
 	HasOptional       bool
 	SubCommands       []*Command
@@ -212,6 +215,17 @@ func (g *gcli) genCommands() {
 			if out := mthd.GetOutputType().GetFullyQualifiedName(); out == LROProtoType {
 				cmd.IsLRO = true
 				cmd.OutputMessageType = out
+
+				operationInfo, err := proto.GetExtension(mthd.GetMethodOptions(), longrunning.E_OperationInfo)
+				if err == proto.ErrMissingExtension {
+					return
+				} else if err != nil {
+					errStr := fmt.Sprintf("Error parsing the %s operation_info: %v", mthd.GetName(), err)
+					g.response.Error = &errStr
+					return
+				}
+				opInfo := operationInfo.(*longrunning.OperationInfo)
+				cmd.IsLRORespEmpty = opInfo == nil || opInfo.GetResponseType() == emptyValue
 
 				// add fmt for verbose printing
 				putImport(cmd.Imports, &pbinfo.ImportSpec{
