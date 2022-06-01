@@ -144,6 +144,7 @@ def go_gapic_library(
 
   actual_deps = deps + [
     "@com_github_googleapis_gax_go_v2//:go_default_library",
+    "@org_golang_google_api//googleapi:go_default_library",
     "@org_golang_google_api//option:go_default_library",
     "@org_golang_google_api//option/internaloption:go_default_library",
     "@org_golang_google_api//iterator:go_default_library",
