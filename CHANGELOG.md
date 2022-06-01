@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.30.0](https://github.com/googleapis/gapic-generator-go/compare/v0.29.2...v0.30.0) (2022-06-01)
+
+
+### Features
+
+* **gengapic:** REGAPIC retry support ([#993](https://github.com/googleapis/gapic-generator-go/issues/993)) ([4021354](https://github.com/googleapis/gapic-generator-go/commit/4021354b355672c15c937040af9708a41067408d))
+
+
+### Bug Fixes
+
+* **bazel:** add missing regapic dep to go_library ([#1016](https://github.com/googleapis/gapic-generator-go/issues/1016)) ([ba270da](https://github.com/googleapis/gapic-generator-go/commit/ba270da6d0e8753b71e549d9a4c172a70aa8d7df))
+
 ### [0.29.2](https://github.com/googleapis/gapic-generator-go/compare/v0.29.1...v0.29.2) (2022-05-18)
 
 
