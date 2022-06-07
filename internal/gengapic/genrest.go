@@ -383,9 +383,6 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p := g.printf
 	queryParams := g.queryParams(m)
-	if len(queryParams) == 0 {
-		return
-	}
 
 	// We want to iterate over fields in a deterministic order
 	// to prevent spurious deltas when regenerating gapics.
@@ -396,6 +393,8 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	sort.Strings(fields)
 
 	p("params := url.Values{}")
+	p(`params.Add("$alt", "json;enum-encoding=int")`)
+
 	for _, path := range fields {
 		field := queryParams[path]
 		required := isRequired(field)

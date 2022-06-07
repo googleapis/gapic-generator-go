@@ -11,6 +11,11 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 	}
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
+	params := url.Values{}
+	params.Add("$alt", "json;enum-encoding=int")
+
+	baseUrl.RawQuery = params.Encode()
+
 	// Build HTTP headers from client and context metadata.
 	routingHeaders := ""
 	routingHeadersMap := make(map[string]string)
