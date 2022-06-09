@@ -38,8 +38,6 @@ func init() {
 	registerIgnoreGoroutine("google.golang.org/grpc.(*addrConn).connect")
 }
 
-const showcaseSemver = "0.20.0"
-
 var restClientOpts = []option.ClientOption{
 	option.WithEndpoint("http://localhost:7469"),
 	option.WithoutAuthentication(),
