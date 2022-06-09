@@ -123,10 +123,9 @@ func getComplianceSuite() (*genprotopb.ComplianceSuite, error) {
 
 // getComplianceSuiteFile returns the path to the compliance_suite.json file at the current
 // directory, if a file with that name is found there, or in the Showcase module's path
-// optherwise. If such a filename cannot be found in either place, this returns an error.
+// otherwise. If such a filename cannot be found in either place, this returns an error.
 func getComplianceSuiteFile() (string, error) {
 	const fileName = "compliance_suite.json"
-	pathInShowcase := path.Join("github.com", "googleapis", "gapic-showcase@v"+showcaseSemver, "server", "services", fileName)
 
 	// Return the file in the current directory, if it exists there.
 	currentDir, err := os.Getwd()
@@ -145,8 +144,19 @@ func getComplianceSuiteFile() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("could not determine GOMODCACHE: %s", err)
 	}
+	modCache := strings.TrimSpace(string(output))
 
-	filePath = path.Join(strings.TrimSpace(string(output)), pathInShowcase)
+	// Look up version of gapic-showcase in the go.mod.
+	versionCmd := exec.Command("go", "list", "-m", "-f", "'{{ .Version }}'", "github.com/googleapis/gapic-showcase")
+	versionOut, err := versionCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("could not determine version of gapic-showcase dependency: %s", err)
+	}
+	version := strings.TrimSpace(string(versionOut))
+	version = strings.TrimFunc(version, func(r rune) bool { return r == '\'' })
+
+	pathInShowcase := path.Join("github.com", "googleapis", "gapic-showcase@"+version, "server", "services", fileName)
+	filePath = path.Join(modCache, pathInShowcase)
 	if _, err := os.Stat(filePath); err != nil {
 		return "", fmt.Errorf("could not determine location of %q; %s", fileName, err)
 	}
