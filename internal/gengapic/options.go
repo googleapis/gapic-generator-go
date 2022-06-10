@@ -43,6 +43,7 @@ type options struct {
 	transports        []transport
 	metadata          bool
 	diregapic         bool
+	pkgOverrides      map[string]string
 }
 
 // parseOptions takes a string and parses it into a struct defining
@@ -53,6 +54,7 @@ type options struct {
 // * api-service-config (filepath)
 // * grpc-service-config (filepath)
 // * module (name)
+// * Mfile=import (e.g. Mgoogle/storage/v2/storage.proto=cloud.google.com/go/storage/internal/apiv2/stubs)
 // * release-level (one of 'alpha', 'beta', or empty)
 // * transport ('+' separated list of transport backends to generate)
 // * metadata (enable GAPIC metadata generation)
@@ -139,6 +141,16 @@ func parseOptions(parameter *string) (*options, error) {
 			sort.Slice(opts.transports, func(i, j int) bool {
 				return opts.transports[i] < opts.transports[j]
 			})
+		default:
+			// go_package override for the protobuf/grpc stubs.
+			// Mgoogle/storage/v2/storage.proto=cloud.google.com/go/storage/internal/apiv2/stubs
+			if key[0] == 'M' {
+				file := key[1:]
+				if opts.pkgOverrides == nil {
+					opts.pkgOverrides = make(map[string]string)
+				}
+				opts.pkgOverrides[file] = val
+			}
 		}
 	}
 

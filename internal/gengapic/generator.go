@@ -141,6 +141,9 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	g.opts = opts
 
 	g.descInfo = pbinfo.Of(files)
+	if len(g.opts.pkgOverrides) > 0 {
+		g.descInfo.PkgOverrides = g.opts.pkgOverrides
+	}
 
 	for _, f := range files {
 		for _, loc := range f.GetSourceCodeInfo().GetLocation() {
