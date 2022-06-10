@@ -31,14 +31,27 @@ func TestNameSpec(t *testing.T) {
 		Name:       proto.String("Message"),
 		NestedType: []*descriptor.DescriptorProto{subMsg},
 	}
+	anotherMsg := &descriptor.DescriptorProto{
+		Name: proto.String("AnotherMessage"),
+	}
 	file := &descriptor.FileDescriptorProto{
 		Options: &descriptor.FileOptions{
 			GoPackage: proto.String("path.to/pb/foo;foo"),
 		},
 		MessageType: []*descriptor.DescriptorProto{msg},
 	}
+	anotherFile := &descriptor.FileDescriptorProto{
+		Name: proto.String("bar.proto"),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("path.to/pb/bar;bar"),
+		},
+		MessageType: []*descriptor.DescriptorProto{anotherMsg},
+	}
 
-	info := Of([]*descriptor.FileDescriptorProto{file})
+	info := Of([]*descriptor.FileDescriptorProto{file, anotherFile})
+	info.PkgOverrides = map[string]string{
+		anotherFile.GetName(): "path.to/pb/foo;foo",
+	}
 
 	for _, tst := range []struct {
 		e    ProtoType
@@ -46,6 +59,7 @@ func TestNameSpec(t *testing.T) {
 	}{
 		{msg, "Message"},
 		{subMsg, "Message_SubMessage"},
+		{anotherMsg, "AnotherMessage"},
 	} {
 		name, imp, err := info.NameSpec(tst.e)
 		if err != nil {

@@ -54,6 +54,10 @@ type Info struct {
 
 	// Maps service names to their descriptors.
 	Serv map[string]*descriptor.ServiceDescriptorProto
+
+	// PkgOverrides is file-to-import mapping used to override the
+	// go_package option in the given proto file.
+	PkgOverrides map[string]string
 }
 
 // Of creates Info from given protobuf files.
@@ -63,6 +67,7 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 		ParentElement: map[ProtoType]ProtoType{},
 		Type:          map[string]ProtoType{},
 		Serv:          map[string]*descriptor.ServiceDescriptorProto{},
+		PkgOverrides:  map[string]string{},
 	}
 
 	for _, f := range files {
@@ -160,6 +165,9 @@ func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
 	}
 
 	pkg := fdesc.GetOptions().GetGoPackage()
+	if pkgOverride, ok := in.PkgOverrides[fdesc.GetName()]; ok {
+		pkg = pkgOverride
+	}
 	if pkg == "" {
 		return "", ImportSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", eTxt, fdesc.GetName())
 	}

@@ -76,6 +76,17 @@ func TestParseOptions(t *testing.T) {
 			expectErr: false,
 		},
 		{
+			param: "Mgoogle/example/library/v1/library.proto=new/import/path;pkg,go-gapic-package=path/to/out;pkg",
+			expectedOpts: &options{
+				pkgOverrides: map[string]string{"google/example/library/v1/library.proto": "new/import/path;pkg"},
+				transports:   []transport{grpc},
+				pkgPath:      "path/to/out",
+				pkgName:      "pkg",
+				outDir:       "path/to/out",
+			},
+			expectErr: false,
+		},
+		{
 			param:     "transport=tcp,go-gapic-package=path;pkg",
 			expectErr: true,
 		},
