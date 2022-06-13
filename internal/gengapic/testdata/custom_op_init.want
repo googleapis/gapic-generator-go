@@ -1,4 +1,4 @@
-// internalClient is an interface that defines the methods availaible from Awesome Foo API.
+// internalClient is an interface that defines the methods available from Awesome Foo API.
 type internalClient interface {
 	Close() error
 	setGoogleClientInfo(...string)

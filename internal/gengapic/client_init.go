@@ -68,7 +68,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
-	p("// internal%sClient is an interface that defines the methods availaible from %s.", servName, g.apiName)
+	p("// internal%sClient is an interface that defines the methods available from %s.", servName, g.apiName)
 	p("type internal%sClient interface {", servName)
 	p("Close() error")
 	p("setGoogleClientInfo(...string)")
