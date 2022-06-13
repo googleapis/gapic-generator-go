@@ -5,7 +5,7 @@ go 1.13
 require (
 	cloud.google.com/go v0.102.0
 	github.com/google/go-cmp v0.5.8
-	github.com/googleapis/gapic-showcase v0.21.0
+	github.com/googleapis/gapic-showcase v0.22.0
 	github.com/googleapis/gax-go/v2 v2.4.0
 	google.golang.org/api v0.83.0
 	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
