@@ -91,7 +91,7 @@ def go_gapic_library(
   service_yaml = None,
   gapic_yaml = None,
   metadata = False,
-  transport = ["grpc"],
+  transport = "grpc",
   diregapic = False,
   **kwargs):
 
@@ -103,13 +103,9 @@ def go_gapic_library(
   if service_yaml:
     file_args[service_yaml] = "api-service-config"
 
-  t = transport[0]
-  if len(transport) > 1:
-    t = "+".join(transport)
-
   plugin_args = [
     "go-gapic-package={}".format(importpath),
-    "transport={}".format(t)
+    "transport={}".format(transport)
   ]
 
   if release_level:
