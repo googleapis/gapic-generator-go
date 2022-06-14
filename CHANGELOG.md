@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.31.0](https://github.com/googleapis/gapic-generator-go/compare/v0.30.0...v0.31.0) (2022-06-14)
+
+
+### Features
+
+* **genpapic:** support protobuf-go go_package mapping option ([#1029](https://github.com/googleapis/gapic-generator-go/issues/1029)) ([f40c830](https://github.com/googleapis/gapic-generator-go/commit/f40c8300f39be4584ff195f1cbc0488bebd563ae))
+
+
+### Bug Fixes
+
+* change go_gapic_library rule  transport argument type from array to string ([#1038](https://github.com/googleapis/gapic-generator-go/issues/1038)) ([a0ee493](https://github.com/googleapis/gapic-generator-go/commit/a0ee493d046cc32a61f742c38befdbd0bdf10547))
+
 ## [0.30.0](https://github.com/googleapis/gapic-generator-go/compare/v0.29.2...v0.30.0) (2022-06-01)
 
 
