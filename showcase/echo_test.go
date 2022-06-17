@@ -296,7 +296,7 @@ func TestWait(t *testing.T) {
 	content := "hello world!"
 	req := &showcasepb.WaitRequest{
 		End: &showcasepb.WaitRequest_Ttl{
-			Ttl: &durationpb.Duration{Nanos: 100},
+			Ttl: &durationpb.Duration{Seconds: 2},
 		},
 		Response: &showcasepb.WaitRequest_Success{
 			Success: &showcasepb.WaitResponse{Content: content},
