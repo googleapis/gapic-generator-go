@@ -6,7 +6,6 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
 	params := url.Values{}
-	params.Add("$alt", "json;enum-encoding=int")
 	if req != nil && req.Other != nil {
 		params.Add("other", fmt.Sprintf("%v", req.GetOther()))
 	}

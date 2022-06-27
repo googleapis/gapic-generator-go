@@ -392,8 +392,12 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	}
 	sort.Strings(fields)
 
-	p("params := url.Values{}")
-	p(`params.Add("$alt", "json;enum-encoding=int")`)
+	if g.opts.restNumericEnum || len(fields) > 0 {
+		p("params := url.Values{}")
+	}
+	if g.opts.restNumericEnum {
+		p(`params.Add("$alt", "json;enum-encoding=int")`)
+	}
 
 	for _, path := range fields {
 		field := queryParams[path]
