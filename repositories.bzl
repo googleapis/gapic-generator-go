@@ -367,8 +367,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_google_uuid",
         importpath = "github.com/google/uuid",
-        sum = "h1:EVhdT+1Kseyi1/pUmXKaFxYsDNy9RQYkMWRH68J/W7Y=",
-        version = "v1.1.2",
+        sum = "h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=",
+        version = "v1.3.0",
     )
     go_repository(
         name = "com_github_googleapis_enterprise_certificate_proxy",
@@ -1117,8 +1117,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:8rJoHuRxx+vCmZtAO/3k1dRLvYNVyTJtZ5oaFZvhgvc=",
-        version = "v0.85.0",
+        sum = "h1:ZAnyOHQFIuWso1BodVfSaRyffD74T9ERGFa3k1fNk/U=",
+        version = "v0.86.0",
     )
 
     go_repository(
@@ -1194,14 +1194,14 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
-        sum = "h1:Yqz/iviulwKwAREEeUd3nbBFn0XuyJqkoft2IlrvOhc=",
-        version = "v0.0.0-20220617184016-355a448f1bc9",
+        sum = "h1:TsQ7F31D3bUCLeqPT0u+yjp1guoArKaNKmCr22PYgTQ=",
+        version = "v0.0.0-20220624214902-1bab6f366d9e",
     )
     go_repository(
         name = "org_golang_x_oauth2",
         importpath = "golang.org/x/oauth2",
-        sum = "h1:8tDJ3aechhddbdPAxpycgXHJRMLpk/Ab+aa4OgdN5/g=",
-        version = "v0.0.0-20220608161450-d0670ef3b1eb",
+        sum = "h1:+jnHzr9VPj32ykQVai5DNahi9+NSp7yYuCsl5eAQtL0=",
+        version = "v0.0.0-20220622183110-fd043fe589d2",
     )
     go_repository(
         name = "org_golang_x_sync",
@@ -1212,8 +1212,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:aFV+BgZ4svzjfabn8ERpuB4JI4N6/rdy1iusx77G3oU=",
-        version = "v0.0.0-20220615213510-4f61da869c0c",
+        sum = "h1:rHZQSjJdAI4Xf5Qzeh2bBc5YJIkPFVM6oDtMFYmgws0=",
+        version = "v0.0.0-20220624220833-87e55d714810",
     )
     go_repository(
         name = "org_golang_x_term",
