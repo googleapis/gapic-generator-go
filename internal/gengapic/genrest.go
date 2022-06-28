@@ -1045,8 +1045,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	if err != nil {
 		return err
 	}
-	outFqn := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[outType].GetPackage(), outType.GetName())
-	isHTTPBodyMessage := outFqn == "google.api.HttpBody"
+	outFqn := fmt.Sprintf(".%s.%s", g.descInfo.ParentFile[outType].GetPackage(), outType.GetName())
+	isHTTPBodyMessage := outFqn == httpBodyType
 
 	// Ignore error because the only possible error would be from looking up
 	// the ImportSpec for the OutputType, which has already happened above.
@@ -1133,9 +1133,10 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		p("if err := unm.Unmarshal(buf, resp); err != nil {")
 		p("  return maybeUnknownEnum(err)")
 		p("}")
-		p("")
-		p("return nil")
 	}
+
+	p("")
+	p("  return nil")
 	p("}, opts...)")
 	p("if e != nil {")
 	p("  return nil, e")

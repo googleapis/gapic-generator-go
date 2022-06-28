@@ -74,6 +74,7 @@ go_test(
         "@com_github_google_go_cmp//cmp",
         "@go_googleapis//gapic/metadata:metadata_go_proto",
         "@go_googleapis//google/api:annotations_go_proto",
+        "@go_googleapis//google/api:httpbody_go_proto",
         "@go_googleapis//google/api:serviceconfig_go_proto",
         "@go_googleapis//google/cloud:extended_operations_go_proto",
         "@go_googleapis//google/longrunning:longrunning_go_proto",

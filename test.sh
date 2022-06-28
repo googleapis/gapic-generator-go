@@ -48,6 +48,9 @@ generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/texttospeech/apiv1
 echo "Generating Cloud Storage v2"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/storage/internal/apiv2;storage,transport=grpc' $GOOGLEAPIS/google/storage/v2/*.proto
 
+echo "Generating Cloud Retail v2"
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/retail/apiv2;retail,transport=rest' $GOOGLEAPIS/google/cloud/retail/v2/*.proto
+
 echo "Generation complete"
 
 echo "Running gofmt to check for syntax errors"

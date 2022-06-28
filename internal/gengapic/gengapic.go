@@ -36,6 +36,7 @@ const (
 	// protoc puts a dot in front of name, signaling that the name is fully qualified.
 	emptyType               = "." + emptyValue
 	lroType                 = ".google.longrunning.Operation"
+	httpBodyType            = ".google.api.HttpBody"
 	alpha                   = "alpha"
 	beta                    = "beta"
 	disableDeadlinesVar     = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
