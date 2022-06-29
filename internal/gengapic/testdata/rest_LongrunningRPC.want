@@ -11,9 +11,6 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 	}
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
-
-	baseUrl.RawQuery = params.Encode()
-
 	// Build HTTP headers from client and context metadata.
 	headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))
 	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}

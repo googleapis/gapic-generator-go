@@ -442,9 +442,12 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		p("    %s", paramAdd)
 		p("}")
 	}
-	p("")
-	p("baseUrl.RawQuery = params.Encode()")
-	p("")
+
+	if g.opts.restNumericEnum || len(fields) > 0 {
+		p("")
+		p("baseUrl.RawQuery = params.Encode()")
+		p("")
+	}
 }
 
 func (g *generator) generateBaseURL(info *httpInfo, ret string) {
