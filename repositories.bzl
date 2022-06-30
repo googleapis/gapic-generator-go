@@ -964,8 +964,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
         build_extra_args = ["-exclude=longrunning/autogen/info.go"],
         importpath = "cloud.google.com/go",
-        sum = "h1:vpK6iQWv/2uUeFJth4/cBHsQAGjn1iIE6AAlxipRaA0=",
-        version = "v0.102.1",
+        sum = "h1:YXtxp9ymmZjlGzxV7VrYQ8aaQuAgcqxSy6YhDX4I458=",
+        version = "v0.103.0",
     )
     go_repository(
         name = "com_google_cloud_go_bigquery",
@@ -1006,8 +1006,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_google_cloud_go_storage",
         importpath = "cloud.google.com/go/storage",
-        sum = "h1:F6IlQJZrZM++apn9V5/VfS3gbTUYg98PS3EMQAzqtfg=",
-        version = "v1.22.1",
+        sum = "h1:wWRIaDURQA8xxHguFCshYepGlrWIrbBnAmc7wfg07qY=",
+        version = "v1.23.0",
     )
     go_repository(
         name = "com_shuralyov_dmitri_gpu_mtl",
@@ -1131,8 +1131,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:3L4edWcjDHPWGcMl1N0YH1NSoasyvfEcZCe2rUbxHfs=",
-        version = "v0.0.0-20220627200112-0a929928cb33",
+        sum = "h1:W70HjnmXFJm+8RNjOpIDYW2nKsSi/af0VvIZUtYkwuU=",
+        version = "v0.0.0-20220628213854-d9e0b6570c03",
     )
     go_repository(
         name = "org_golang_google_grpc",
