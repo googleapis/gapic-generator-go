@@ -19,7 +19,7 @@ load(
     gazelle_go_repository = "go_repository",
 )
 
-_rules_gapic_version = "0.5.4"
+_rules_gapic_version = "0.14.1"
 
 def com_googleapis_gapic_generator_go_repositories():
     go_repository(
