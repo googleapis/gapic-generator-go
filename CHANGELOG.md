@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.1](https://github.com/googleapis/gapic-generator-go/compare/v0.31.0...v0.31.1) (2022-07-14)
+
+
+### Bug Fixes
+
+* **gengapic:** fix unused imports ([#1071](https://github.com/googleapis/gapic-generator-go/issues/1071)) ([cabfdf3](https://github.com/googleapis/gapic-generator-go/commit/cabfdf323669599512b88ac195ee9b126fbc34d3))
+* **gengapic:** regapic fix missing return statement ([#1054](https://github.com/googleapis/gapic-generator-go/issues/1054)) ([7d08d1b](https://github.com/googleapis/gapic-generator-go/commit/7d08d1bddb9cd15fc6cd30f60fc6f352b1c00eeb))
+
 ## [0.31.0](https://github.com/googleapis/gapic-generator-go/compare/v0.30.0...v0.31.0) (2022-06-14)
 
 
