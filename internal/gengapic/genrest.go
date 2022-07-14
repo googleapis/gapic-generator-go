@@ -506,7 +506,7 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) *httpInfo {
 func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	if g.isLRO(m) {
 		g.aux.lros[m] = true
-		return g.lroRESTCall(servName, m)
+		return g.lroRESTCall(serv, servName, m)
 	}
 
 	if m.GetOutputType() == emptyType {
@@ -840,7 +840,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	return nil
 }
 
-func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) lroRESTCall(serv *descriptor.ServiceDescriptorProto, servName string, m *descriptor.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
 		return errors.E(nil, "method has no http info: %s", m.GetName())
@@ -937,7 +937,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("  return nil, e")
 	p("}")
 	p("")
-	override := g.getOperationPathOverride()
+	override := g.getOperationPathOverride(g.descInfo.ParentFile[serv].GetPackage())
 	p("override := fmt.Sprintf(%q, resp.GetName())", override)
 	p("return &%s{", opWrapperType)
 	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
