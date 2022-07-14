@@ -97,7 +97,6 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
 
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
@@ -402,6 +401,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		singularPrimitive := field.GetType() != fieldTypeMessage &&
 			field.GetType() != fieldTypeBytes &&
 			field.GetLabel() != fieldLabelRepeated
+		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		paramAdd := fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", lowerFirst(snakeToCamel(path)), "%v", accessor)
 
 		// Only required, singular, primitive field types should be added regardless.
@@ -465,6 +465,7 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 		// See the docs for FindStringSubmatch for further details.
 		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
 	}
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 }
@@ -945,6 +946,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("}")
 	p("")
 
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true

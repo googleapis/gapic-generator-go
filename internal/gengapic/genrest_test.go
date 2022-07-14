@@ -677,9 +677,10 @@ func TestGenRestMethod(t *testing.T) {
 			options: &options{diregapic: true},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
-				{Path: "io/ioutil"}:                       true,
-				{Path: "net/url"}:                         true,
-				{Path: "google.golang.org/api/googleapi"}: true,
+				{Path: "io/ioutil"}: true,
+				{Path: "net/url"}:   true,
+				{Path: "fmt"}:       true,
+				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
@@ -717,7 +718,8 @@ func TestGenRestMethod(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "math"}:    true,
 				{Path: "net/url"}: true,
-				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "fmt"}: true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Path: "google.golang.org/api/iterator"}:                         true,
 				{Path: "google.golang.org/protobuf/proto"}:                       true,
@@ -758,7 +760,8 @@ func TestGenRestMethod(t *testing.T) {
 			options: &options{transports: []transport{rest}},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
-				{Path: "cloud.google.com/go/longrunning"}:                        true,
+				{Path: "cloud.google.com/go/longrunning"}: true,
+				{Path: "fmt"}: true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Path: "google.golang.org/grpc/metadata"}:                        true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
