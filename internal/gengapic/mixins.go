@@ -254,6 +254,9 @@ func (g *generator) lookupHTTPOverride(fqn string, f func(h *annotations.HttpRul
 	return ""
 }
 
+// getOperationPathOverride looks up the google.api.http rule for LRO GetOperation
+// and returns the path override. If no value is present, it synthesizes a path
+// using the proto package client version, for example, "/v1/{name=operations/**}".
 func (g *generator) getOperationPathOverride(protoPkg string) string {
 	get := func(h *annotations.HttpRule) string { return h.GetGet() }
 	override := g.lookupHTTPOverride("google.longrunning.Operations.GetOperation", get)
