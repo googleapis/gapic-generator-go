@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.2](https://github.com/googleapis/gapic-generator-go/compare/v0.31.1...v0.31.2) (2022-07-18)
+
+
+### Bug Fixes
+
+* **gengapic:** regapic GetOperation path fallback logic ([#1072](https://github.com/googleapis/gapic-generator-go/issues/1072)) ([71ff189](https://github.com/googleapis/gapic-generator-go/commit/71ff189c2ec0bc4fd24944faa59a67fe5a388cc0))
+
 ## [0.31.1](https://github.com/googleapis/gapic-generator-go/compare/v0.31.0...v0.31.1) (2022-07-14)
 
 
