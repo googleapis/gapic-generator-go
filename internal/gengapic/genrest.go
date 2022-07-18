@@ -937,7 +937,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("  return nil, e")
 	p("}")
 	p("")
-	override := g.getOperationPathOverride()
+	override := g.getOperationPathOverride(g.descInfo.ParentFile[m].GetPackage())
 	p("override := fmt.Sprintf(%q, resp.GetName())", override)
 	p("return &%s{", opWrapperType)
 	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")

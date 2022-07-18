@@ -261,6 +261,52 @@ func TestHasLROMixin(t *testing.T) {
 	}
 }
 
+func TestGetOperationPathOverride(t *testing.T) {
+	for _, tc := range []struct {
+		pkg, want string
+		http      *annotations.Http
+	}{
+		{
+			pkg:  "google.example.library.v1beta2",
+			want: "/v1beta2/%s",
+		},
+		{
+			pkg:  "google.example.library.v1",
+			want: "/v1/%s",
+		},
+		{
+			pkg:  "google.example.library.v3alpha1p1",
+			want: "/v3alpha1p1/%s",
+		},
+		{
+			pkg:  "google.example.library.v2",
+			want: "/v2/%s",
+			http: &annotations.Http{
+				Rules: []*annotations.HttpRule{
+					&annotations.HttpRule{
+						Selector: "google.longrunning.Operations.GetOperation",
+						Pattern: &annotations.HttpRule_Get{
+							Get: "/v2/{operation=projects/*/locations/*/operations/*}",
+						},
+					},
+				},
+			},
+		},
+	} {
+		initMixinFiles()
+		g := generator{
+			comments: make(map[protoiface.MessageV1]string),
+			mixins:   make(mixins),
+			serviceConfig: &serviceconfig.Service{
+				Http: tc.http,
+			},
+		}
+		if got := g.getOperationPathOverride(tc.pkg); !cmp.Equal(got, tc.want) {
+			t.Errorf("TestGetOperationPathOverrideMissing wanted %v but got %v", tc.want, got)
+		}
+	}
+}
+
 // locationMethods is just used for testing.
 func locationMethods() []*descriptor.MethodDescriptorProto {
 	return mixinFiles["google.cloud.location.Locations"][0].GetService()[0].GetMethod()

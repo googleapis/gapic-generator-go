@@ -122,6 +122,17 @@ func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
 	return false
 }
 
+// getMethod returns the MethodDescriptorProto for the given service RPC and simple method name.
+func getMethod(service *descriptor.ServiceDescriptorProto, method string) *descriptor.MethodDescriptorProto {
+	for _, m := range service.GetMethod() {
+		if m.GetName() == method {
+			return m
+		}
+	}
+
+	return nil
+}
+
 // containsTransport determines if a set of transports contains a specific
 // transport.
 func containsTransport(t []transport, tr transport) bool {
