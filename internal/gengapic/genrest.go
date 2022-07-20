@@ -390,7 +390,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	sort.Strings(fields)
 
 	if g.opts.restNumericEnum || len(fields) > 0 {
-    g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 		p("params := url.Values{}")
 	}
 	if g.opts.restNumericEnum {
