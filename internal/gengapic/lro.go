@@ -75,7 +75,8 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 }
 
 func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
-	mFQN := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
+	protoPkg := g.descInfo.ParentFile[serv].GetPackage()
+	mFQN := fmt.Sprintf("%s.%s.%s", protoPkg, serv.GetName(), m.GetName())
 	lroType := lroTypeName(m.GetName())
 	p := g.printf
 	hasREST := containsTransport(g.opts.transports, rest)
@@ -94,7 +95,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		// TODO(ndietz) this won't work with nested message types in the same package;
 		// migrating to protoreflect will help remove from semantic meaning in the names.
 		if strings.IndexByte(fullName, '.') < 0 {
-			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
+			fullName = protoPkg + "." + fullName
 		}
 
 		// When we build a map[name]Type in pbinfo, we prefix names with '.' to signify that they are fully qualified.
@@ -121,7 +122,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 		// TODO(ndietz) this won't work with nested message types in the same package;
 		// migrating to protoreflect will help remove from semantic meaning in the names.
 		if strings.IndexByte(fullName, '.') < 0 {
-			fullName = g.descInfo.ParentFile[serv].GetPackage() + "." + fullName
+			fullName = protoPkg + "." + fullName
 		}
 		fullName = "." + fullName
 
@@ -164,7 +165,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 				p("")
 			case rest:
 				receiver := lowcaseRestClientName(servName)
-				override := g.getOperationPathOverride()
+				override := g.getOperationPathOverride(protoPkg)
 				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, lroType)
 				p("  override := fmt.Sprintf(%q, name)", override)
 				p("  return &%s{", lroType)

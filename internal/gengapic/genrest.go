@@ -97,9 +97,6 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
 
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
@@ -393,12 +390,12 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	sort.Strings(fields)
 
 	if g.opts.restNumericEnum || len(fields) > 0 {
+    g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 		p("params := url.Values{}")
 	}
 	if g.opts.restNumericEnum {
 		p(`params.Add("$alt", "json;enum-encoding=int")`)
 	}
-
 	for _, path := range fields {
 		field := queryParams[path]
 		required := isRequired(field)
@@ -406,6 +403,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		singularPrimitive := field.GetType() != fieldTypeMessage &&
 			field.GetType() != fieldTypeBytes &&
 			field.GetLabel() != fieldLabelRepeated
+		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		paramAdd := fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", lowerFirst(snakeToCamel(path)), "%v", accessor)
 
 		// Only required, singular, primitive field types should be added regardless.
@@ -458,6 +456,7 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
 	fmtStr = httpPatternVarRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
 
+	g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 	p("baseUrl, err := url.Parse(c.endpoint)")
 	p("if err != nil {")
 	p("  %s", ret)
@@ -471,6 +470,7 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 		// See the docs for FindStringSubmatch for further details.
 		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
 	}
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 }
@@ -717,6 +717,9 @@ func (g *generator) noRequestStreamRESTCall(servName string, s *descriptor.Servi
 	p("}")
 	p("")
 
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+
 	return nil
 }
 
@@ -832,6 +835,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
@@ -938,7 +942,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("  return nil, e")
 	p("}")
 	p("")
-	override := g.getOperationPathOverride()
+	override := g.getOperationPathOverride(g.descInfo.ParentFile[m].GetPackage())
 	p("override := fmt.Sprintf(%q, resp.GetName())", override)
 	p("return &%s{", opWrapperType)
 	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
@@ -947,6 +951,8 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("}")
 	p("")
 
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -1156,6 +1162,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p(ret)
 	p("}")
 
+	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[inSpec] = true

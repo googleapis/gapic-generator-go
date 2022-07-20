@@ -19,7 +19,7 @@ load(
     gazelle_go_repository = "go_repository",
 )
 
-_rules_gapic_version = "0.5.4"
+_rules_gapic_version = "0.14.1"
 
 def com_googleapis_gapic_generator_go_repositories():
     go_repository(
@@ -964,8 +964,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
         build_extra_args = ["-exclude=longrunning/autogen/info.go"],
         importpath = "cloud.google.com/go",
-        sum = "h1:vpK6iQWv/2uUeFJth4/cBHsQAGjn1iIE6AAlxipRaA0=",
-        version = "v0.102.1",
+        sum = "h1:YXtxp9ymmZjlGzxV7VrYQ8aaQuAgcqxSy6YhDX4I458=",
+        version = "v0.103.0",
     )
     go_repository(
         name = "com_google_cloud_go_bigquery",
@@ -1006,8 +1006,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_google_cloud_go_storage",
         importpath = "cloud.google.com/go/storage",
-        sum = "h1:F6IlQJZrZM++apn9V5/VfS3gbTUYg98PS3EMQAzqtfg=",
-        version = "v1.22.1",
+        sum = "h1:wWRIaDURQA8xxHguFCshYepGlrWIrbBnAmc7wfg07qY=",
+        version = "v1.23.0",
     )
     go_repository(
         name = "com_shuralyov_dmitri_gpu_mtl",
@@ -1117,8 +1117,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:ZAnyOHQFIuWso1BodVfSaRyffD74T9ERGFa3k1fNk/U=",
-        version = "v0.86.0",
+        sum = "h1:MPwxQRqpyskYhr2iNyfsQ8R06eeyhe7UEuR30p136ZQ=",
+        version = "v0.88.0",
     )
 
     go_repository(
@@ -1131,14 +1131,14 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:3L4edWcjDHPWGcMl1N0YH1NSoasyvfEcZCe2rUbxHfs=",
-        version = "v0.0.0-20220627200112-0a929928cb33",
+        sum = "h1:xDUAhRezFnKF6wopxkOfdWYvz2XCiRQzndyDdpwFgbc=",
+        version = "v0.0.0-20220718134204-073382fd740c",
     )
     go_repository(
         name = "org_golang_google_grpc",
         importpath = "google.golang.org/grpc",
-        sum = "h1:9n77onPX5F3qfFCqjy9dhn8PbNQsIKeVU04J9G7umt8=",
-        version = "v1.47.0",
+        sum = "h1:rQOsyJ/8+ufEDJd/Gdsz7HG220Mh9HAhFHRGnIjda0w=",
+        version = "v1.48.0",
     )
     go_repository(
         name = "org_golang_google_grpc_cmd_protoc_gen_go_grpc",

@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -28,6 +29,17 @@ import (
 )
 
 func init() {
+	initMixinFiles()
+}
+
+var apiVersionRegexp = regexp.MustCompile(`v\d+[a-z]*\d*[a-z]*\d*`)
+
+var mixinFiles map[string][]*descriptor.FileDescriptorProto
+
+type mixins map[string][]*descriptor.MethodDescriptorProto
+
+// initMixinFiles allows test code to re-initialize the mixinFiles global.
+func initMixinFiles() {
 	mixinFiles = map[string][]*descriptor.FileDescriptorProto{
 		"google.cloud.location.Locations": {
 			protodesc.ToFileDescriptorProto(location.File_google_cloud_location_locations_proto),
@@ -42,10 +54,6 @@ func init() {
 		},
 	}
 }
-
-var mixinFiles map[string][]*descriptor.FileDescriptorProto
-
-type mixins map[string][]*descriptor.MethodDescriptorProto
 
 // collectMixins collects the configured mixin APIs from the Service config and
 // gathers the appropriately configured mixin methods to generate for each.
@@ -246,9 +254,24 @@ func (g *generator) lookupHTTPOverride(fqn string, f func(h *annotations.HttpRul
 	return ""
 }
 
-func (g *generator) getOperationPathOverride() string {
+// getOperationPathOverride looks up the google.api.http rule for LRO GetOperation
+// and returns the path override. If no value is present, it synthesizes a path
+// using the proto package client version, for example, "/v1/{name=operations/**}".
+func (g *generator) getOperationPathOverride(protoPkg string) string {
 	get := func(h *annotations.HttpRule) string { return h.GetGet() }
 	override := g.lookupHTTPOverride("google.longrunning.Operations.GetOperation", get)
+	if override == "" {
+		// extract httpInfo from "hot loaded" Operations.GetOperation MethodDescriptor
+		// Should be "/v1/{name=operations/**}"
+		file := mixinFiles["google.longrunning.Operations"][0]
+		mdp := getMethod(file.GetService()[0], "GetOperation")
+		getOperationPath := getHTTPInfo(mdp).url
+
+		// extract client version from proto package with global regex
+		// replace version base path in GetOperation path with proto package version segment
+		version := apiVersionRegexp.FindStringSubmatch(protoPkg)
+		override = apiVersionRegexp.ReplaceAllStringFunc(getOperationPath, func(s string) string { return version[0] })
+	}
 	override = httpPatternVarRegex.ReplaceAllStringFunc(override, func(s string) string { return "%s" })
 	return override
 }
