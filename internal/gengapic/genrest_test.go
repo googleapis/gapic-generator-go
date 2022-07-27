@@ -698,7 +698,7 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:    "unary_rpc",
 			method:  unaryRPC,
-			options: &options{},
+			options: &options{restNumericEnum: true},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,

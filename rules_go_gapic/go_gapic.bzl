@@ -93,6 +93,7 @@ def go_gapic_library(
   metadata = False,
   transport = "grpc",
   diregapic = False,
+  rest_numeric_enums = False,
   **kwargs):
 
   file_args = {}
@@ -116,6 +117,9 @@ def go_gapic_library(
 
   if diregapic:
     plugin_args.append("diregapic")
+
+  if rest_numeric_enums:
+    plugin_args.append("rest-numeric-enums")
 
   srcjar_name = name+"_srcjar"
   raw_srcjar_name = srcjar_name+"_raw"

@@ -93,6 +93,14 @@ The configuration supported by the plugin option includes:
   * `api-service-config`: the path the service YAML file.
     * This is used for service-level client documentation.
 
+  * `transport`: the desired transport(s) to generate, delimited by `+` e.g. `grpc+rest`.
+    * Acceptable values are `grpc` and `rest`.
+    * Defaults to `grpc`.
+
+  * `rest-numeric-enums`: enables requesting response enums be encoded as numbers.
+    * Not enabled by default.
+    * Only effective when `rest` is included as a `transport` to be generated.
+
 Bazel
 -----
 
@@ -147,6 +155,15 @@ following attributes:
     * _Note: This option will eventually be deprecated._
 
   * `metadata`: if `True`, [GapicMetadata](https://github.com/googleapis/googleapis/blob/master/gapic/metadata/gapic_metadata.proto) will be generated in JSON form. The default is `False`.
+
+  * `transport`: the desired transport(s) to generate, delimited by `+` e.g. `grpc+rest`.
+    * Acceptable values are `grpc` and `rest`.
+    * Defaults to `grpc`.
+
+  * `rest_numeric_enums`: if `True`, enables generation of system parameter requesting
+  response enums be encoded as numbers.
+    * Default is `False`.
+    * Only effective when `rest` is included as a `transport` to be generated.
 
 Docker Wrapper
 --------------

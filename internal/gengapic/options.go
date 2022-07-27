@@ -43,6 +43,7 @@ type options struct {
 	transports        []transport
 	metadata          bool
 	diregapic         bool
+	restNumericEnum   bool
 	pkgOverrides      map[string]string
 }
 
@@ -86,6 +87,9 @@ func parseOptions(parameter *string) (*options, error) {
 			continue
 		case "diregapic":
 			opts.diregapic = true
+			continue
+		case "rest-numeric-enums":
+			opts.restNumericEnum = true
 			continue
 		}
 

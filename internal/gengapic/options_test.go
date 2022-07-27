@@ -87,6 +87,17 @@ func TestParseOptions(t *testing.T) {
 			expectErr: false,
 		},
 		{
+			param: "transport=rest,rest-numeric-enums,go-gapic-package=path;pkg",
+			expectedOpts: &options{
+				transports:      []transport{rest},
+				pkgPath:         "path",
+				pkgName:         "pkg",
+				outDir:          "path",
+				restNumericEnum: true,
+			},
+			expectErr: false,
+		},
+		{
 			param:     "transport=tcp,go-gapic-package=path;pkg",
 			expectErr: true,
 		},
@@ -131,7 +142,7 @@ func TestParseOptions(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(opts, tst.expectedOpts) {
-			t.Errorf("parseOptions(%s) = %v, expected %v", tst.param, opts, tst.expectedOpts)
+			t.Errorf("parseOptions(%s) = %+v, expected %+v", tst.param, opts, tst.expectedOpts)
 			continue
 		}
 	}

@@ -380,9 +380,6 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	p := g.printf
 	queryParams := g.queryParams(m)
-	if len(queryParams) == 0 {
-		return
-	}
 
 	// We want to iterate over fields in a deterministic order
 	// to prevent spurious deltas when regenerating gapics.
@@ -392,8 +389,13 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 	}
 	sort.Strings(fields)
 
-	g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
-	p("params := url.Values{}")
+	if g.opts.restNumericEnum || len(fields) > 0 {
+		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
+		p("params := url.Values{}")
+	}
+	if g.opts.restNumericEnum {
+		p(`params.Add("$alt", "json;enum-encoding=int")`)
+	}
 	for _, path := range fields {
 		field := queryParams[path]
 		required := isRequired(field)
@@ -438,9 +440,12 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		p("    %s", paramAdd)
 		p("}")
 	}
-	p("")
-	p("baseUrl.RawQuery = params.Encode()")
-	p("")
+
+	if g.opts.restNumericEnum || len(fields) > 0 {
+		p("")
+		p("baseUrl.RawQuery = params.Encode()")
+		p("")
+	}
 }
 
 func (g *generator) generateBaseURL(info *httpInfo, ret string) {
