@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -143,7 +144,8 @@ func TestDocFileEmptyService(t *testing.T) {
 	} {
 		g.opts.relLvl = tst.relLvl
 		g.genDocFile(43, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"}, serv)
-		txtdiff.Diff(t, "doc_file", g.pt.String(), tst.want)
+		name := fmt.Sprintf("doc_file: %s", tst.want)
+		txtdiff.Diff(t, name, g.pt.String(), tst.want)
 		g.reset()
 	}
 }

@@ -70,9 +70,10 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("//")
 	p("// To get started with this package, create a client.")
 	// Code block for client creation
+	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
 	tmpClient := g.pt
 	g.pt = printer.P{}
-	g.exampleInitClient(g.opts.pkgName, pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName))
+	g.exampleInitClient(g.opts.pkgName, servName)
 	snipClient := g.pt.String()
 	g.pt = tmpClient
 	g.codesnippet(snipClient)
@@ -89,7 +90,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		// Code block for client using the first method of the service
 		tmpMethod := g.pt
 		g.pt = printer.P{}
-		g.exampleMethodBody(g.opts.pkgName, pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName), serv.GetMethod()[0])
+		g.exampleMethodBody(g.opts.pkgName, servName, serv.GetMethod()[0])
 		snipMethod := g.pt.String()
 		g.pt = tmpMethod
 		g.codesnippet(snipMethod)
@@ -97,7 +98,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 
 	p("// Use of Context")
 	p("//")
-	p("// The ctx passed to NewClient is used for authentication requests and")
+	p("// The ctx passed to New%sClient is used for authentication requests and", servName)
 	p("// for creating the underlying connection, but is not used for subsequent calls.")
 	p("// Individual methods on the client use the ctx given to them.")
 	p("//")
