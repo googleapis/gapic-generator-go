@@ -82,11 +82,6 @@ func TestMDPlain(t *testing.T) {
 			want: "link to a search engine (at https://www.google.com) with request type Search, bizbuz.",
 		},
 	} {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Errorf("%s resulted in a panic: %v", tst.in, r)
-			}
-		}()
 		got := mdPlain(tst.in)
 		if got != tst.want {
 			t.Errorf("MDPlain(%q)=%q, want %q", tst.in, got, tst.want)
