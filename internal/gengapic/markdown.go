@@ -26,7 +26,7 @@ import (
 	"gitlab.com/golang-commonmark/markdown"
 )
 
-var linkParser = regexp.MustCompile(`<a href=["'](.+)["']`)
+var linkParser = regexp.MustCompile(`<a\s+href=["'](.+)["']`)
 var referenceParser = regexp.MustCompile(`\[([a-zA-Z1-9._]+)\]\[[a-zA-Z1-9._]*\]`)
 
 func mdPlain(s string) string {

@@ -74,6 +74,10 @@ func TestMDPlain(t *testing.T) {
 			want: "html with a softbreak (at /link/to/some#thing) \n test",
 		},
 		{
+			in:   "html <a \n  href=\"/link/to/some#thing\">\n with a linebreak in tag</a> <br> test",
+			want: "html with a linebreak in tag (at /link/to/some#thing) \n test",
+		},
+		{
 			in:   "link to [a search engine](https://www.google.com) with request type [Search][foo.bar_baz.v1.Search], [biz][][buz][baz].",
 			want: "link to a search engine (at https://www.google.com) with request type Search, bizbuz.",
 		},
