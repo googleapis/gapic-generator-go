@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.32.0](https://github.com/googleapis/gapic-generator-go/compare/v0.31.2...v0.32.0) (2022-08-16)
+
+
+### Features
+
+* **gengapic:** rest-numeric-enums option enables enum-encoding sys param ([#1022](https://github.com/googleapis/gapic-generator-go/issues/1022)) ([6bbbf6f](https://github.com/googleapis/gapic-generator-go/commit/6bbbf6f7a37bc29861df9864926570c5046c6874))
+
+
+### Bug Fixes
+
+* **gengapic:** fix linkParser regexp to support multi-line link tags ([#1098](https://github.com/googleapis/gapic-generator-go/issues/1098)) ([863675e](https://github.com/googleapis/gapic-generator-go/commit/863675e499c933b35c14217cb85786d6c91086a2)), closes [#1097](https://github.com/googleapis/gapic-generator-go/issues/1097)
+* **gengapic:** fix service-specific constructor name in doc_file.go ([#1099](https://github.com/googleapis/gapic-generator-go/issues/1099)) ([4f80726](https://github.com/googleapis/gapic-generator-go/commit/4f80726aa9f0f0357d5ebcffc7a8670657d35a3d)), closes [#1077](https://github.com/googleapis/gapic-generator-go/issues/1077)
+
 ## [0.31.2](https://github.com/googleapis/gapic-generator-go/compare/v0.31.1...v0.31.2) (2022-07-18)
 
 
