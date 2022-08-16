@@ -229,7 +229,7 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 	p("// Connection returns a connection to the API service.")
 	p("//")
-	p("// Deprecated.")
+	p("// Deprecated: This method always returns nil.")
 	p("func (c *%s) Connection() *grpc.ClientConn {", lowcaseServName)
 	p("    return nil")
 	p("}")

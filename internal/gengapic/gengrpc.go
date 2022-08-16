@@ -375,7 +375,8 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	// Connection method
 	p("// Connection returns a connection to the API service.")
 	p("//")
-	p("// Deprecated.")
+	p("// Deprecated: Connections are now pooled so this method does not always")
+	p("// return the same resource.")
 	p("func (c *%s) Connection() *grpc.ClientConn {", lowcaseServName)
 	p("  return c.connPool.Conn()")
 	p("}")
