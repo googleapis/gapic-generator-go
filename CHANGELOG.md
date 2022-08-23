@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.1](https://github.com/googleapis/gapic-generator-go/compare/v0.32.0...v0.32.1) (2022-08-23)
+
+
+### Bug Fixes
+
+* update deprecation warning on Connection methods ([#1111](https://github.com/googleapis/gapic-generator-go/issues/1111)) ([f9a2c53](https://github.com/googleapis/gapic-generator-go/commit/f9a2c53cb954d6d4f27bdcbf1b643d3ae10622af)), closes [#1110](https://github.com/googleapis/gapic-generator-go/issues/1110)
+
 ## [0.32.0](https://github.com/googleapis/gapic-generator-go/compare/v0.31.2...v0.32.0) (2022-08-16)
 
 
