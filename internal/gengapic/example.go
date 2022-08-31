@@ -64,6 +64,11 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	p := g.printf
 
 	p("ctx := context.Background()")
+	p("// This snippet has been automatically generated and should be regarded as a code template only.")
+	p("// It will require modifications to work:")
+	p("// - It may require correct/in-range values for request initialization.")
+	p("// - It may require specifying regional endpoints when creating the service client as shown in:")
+	p("//   https://pkg.go.dev/cloud.google.com/go#hdr-Client_Options")
 	p("c, err := %s.New%sClient(ctx)", pkgName, servName)
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
