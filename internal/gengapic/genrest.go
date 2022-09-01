@@ -436,15 +436,6 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			b.WriteString("}\n")
 			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", lowerFirst(snakeToCamel(path)), field.GetJsonName()))
 			paramAdd = b.String()
-
-			// Ignore errors here, because we should always have the protobuf well known types available to us.
-			// If something is wrong, static analysis will catch it.
-			if desc, ok := g.descInfo.Type[field.GetTypeName()]; ok {
-				imp, err := g.descInfo.ImportSpec(desc)
-				if err == nil {
-					g.imports[imp] = true
-				}
-			}
 		}
 
 		// Only required, singular, primitive field types should be added regardless.

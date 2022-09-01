@@ -34,7 +34,6 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 // Note: the fields parameter contains the names of _all_ the request message's fields,
@@ -493,13 +492,11 @@ func TestGenRestMethod(t *testing.T) {
 		TypeName: proto.String(foofqn),
 	}
 
-	maskDesc := protodesc.ToDescriptorProto((&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor())
-	maskFqn := ".google.protobuf.FieldMask"
 	maskField := &descriptor.FieldDescriptorProto{
 		Name:     proto.String("update_mask"),
 		JsonName: proto.String("updateMask"),
 		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
-		TypeName: proto.String(maskFqn),
+		TypeName: proto.String(".google.protobuf.FieldMask"),
 	}
 
 	updateReq := &descriptor.DescriptorProto{
@@ -697,7 +694,6 @@ func TestGenRestMethod(t *testing.T) {
 				pagedFooRes:  f,
 				lroDesc:      protodesc.ToFileDescriptorProto(longrunning.File_google_longrunning_operations_proto),
 				httpBodyDesc: protodesc.ToFileDescriptorProto(httpbody.File_google_api_httpbody_proto),
-				maskDesc:     protodesc.ToFileDescriptorProto(fieldmaskpb.File_google_protobuf_field_mask_proto),
 				updateReq:    f,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
@@ -724,7 +720,6 @@ func TestGenRestMethod(t *testing.T) {
 				lroType:        lroDesc,
 				httpBodyType:   httpBodyDesc,
 				updateReqFqn:   updateReq,
-				maskFqn:        maskDesc,
 			},
 		},
 	}
@@ -864,8 +859,7 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "io/ioutil"}:                       true,
 				{Path: "google.golang.org/api/googleapi"}: true,
 				{Path: "net/url"}:                         true,
-				{Name: "fieldmaskpb", Path: "google.golang.org/protobuf/types/known/fieldmaskpb"}: true,
-				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}:                  true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
 	} {
