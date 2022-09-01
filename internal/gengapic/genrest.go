@@ -53,6 +53,12 @@ var gRPCToHTTP map[code.Code]string = map[code.Code]string{
 	code.Code_DATA_LOSS:           "http.StatusInternalServerError",
 }
 
+var wellKnownTypes = []string{
+	".google.protobuf.FieldMask",
+	".google.protobuf.Timestamp",
+	".google.protobuf.Duration",
+}
+
 func lowcaseRestClientName(servName string) string {
 	if servName == "" {
 		return "restClient"
@@ -365,7 +371,7 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 		m *descriptor.DescriptorProto,
 	) {
 		for _, field := range m.GetField() {
-			if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			if field.GetType() == fieldTypeMessage && !strContains(wellKnownTypes, field.GetTypeName()) {
 				handleMsg(field, stack)
 			} else {
 				handleLeaf(field, stack)
@@ -406,6 +412,30 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		paramAdd := fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", lowerFirst(snakeToCamel(path)), "%v", accessor)
 
+		// Handle well known protobuf types with special JSON encodings.
+		if strContains(wellKnownTypes, field.GetTypeName()) {
+			b := strings.Builder{}
+			b.WriteString(fmt.Sprintf("%s, err := protojson.Marshal(req%s)\n", field.GetJsonName(), accessor))
+			b.WriteString("if err != nil {\n")
+			if m.GetOutputType() == emptyType {
+				b.WriteString(fmt.Sprintf("  return err\n"))
+			} else {
+				b.WriteString(fmt.Sprintf("  return nil, err\n"))
+			}
+			b.WriteString("}\n")
+			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", lowerFirst(snakeToCamel(path)), field.GetJsonName()))
+			paramAdd = b.String()
+
+			// Ignore errors here, because we should always have the protobuf well known types available to us.
+			// If something is wrong, static analysis will catch it.
+			if desc, ok := g.descInfo.Type[field.GetTypeName()]; ok {
+				imp, err := g.descInfo.ImportSpec(desc)
+				if err == nil {
+					g.imports[imp] = true
+				}
+			}
+		}
+
 		// Only required, singular, primitive field types should be added regardless.
 		if required && singularPrimitive {
 			// Use string format specifier here in order to allow %v to be a raw string.
@@ -437,7 +467,11 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 				p(`if req%s != 0 {`, accessor)
 			}
 		}
-		p("    %s", paramAdd)
+
+		// Split on newline so that multi-line param adders will be formatted properly.
+		for _, s := range strings.Split(paramAdd, "\n") {
+			p("    %s", s)
+		}
 		p("}")
 	}
 
