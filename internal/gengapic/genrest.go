@@ -420,9 +420,8 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		singularPrimitive := field.GetType() != fieldTypeMessage &&
 			field.GetType() != fieldTypeBytes &&
 			field.GetLabel() != fieldLabelRepeated
-		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-		paramAdd := fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", lowerFirst(snakeToCamel(path)), "%v", accessor)
 
+		var paramAdd string
 		// Handle well known protobuf types with special JSON encodings.
 		if strContains(wellKnownTypes, field.GetTypeName()) {
 			b := strings.Builder{}
@@ -436,6 +435,9 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			b.WriteString("}\n")
 			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", lowerFirst(snakeToCamel(path)), field.GetJsonName()))
 			paramAdd = b.String()
+		} else {
+			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", lowerFirst(snakeToCamel(path)), "%v", accessor)
+			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		}
 
 		// Only required, singular, primitive field types should be added regardless.
