@@ -337,6 +337,18 @@ func TestLeafFields(t *testing.T) {
 		},
 	}
 
+	wellKnownMsg := &descriptor.DescriptorProto{
+		Name: proto.String("Update"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{
+				Name:     proto.String("update_mask"),
+				Number:   proto.Int32(int32(0)),
+				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".google.protobuf.FieldMask"),
+			},
+		},
+	}
+
 	file := &descriptor.FileDescriptorProto{
 		Package: proto.String("animalia.mollusca"),
 		Options: &descriptor.FileOptions{
@@ -349,6 +361,7 @@ func TestLeafFields(t *testing.T) {
 			complexMsg,
 			recursiveMsg,
 			overarchingMsg,
+			wellKnownMsg,
 		},
 	}
 	req := plugin.CodeGeneratorRequest{
@@ -404,6 +417,13 @@ func TestLeafFields(t *testing.T) {
 			msg:  overarchingMsg,
 			expected: map[string]*descriptor.FieldDescriptorProto{
 				"mass_kg": overarchingMsg.GetField()[1],
+			},
+		},
+		{
+			name: "well_known_message_test",
+			msg:  wellKnownMsg,
+			expected: map[string]*descriptor.FieldDescriptorProto{
+				"update_mask": wellKnownMsg.GetField()[0],
 			},
 		},
 	} {
@@ -465,6 +485,25 @@ func TestGenRestMethod(t *testing.T) {
 		Field: []*descriptor.FieldDescriptorProto{foosField, nextPageTokenField},
 	}
 	pagedFooResFQN := fmt.Sprintf(".%s.PagedFooResponse", pkg)
+
+	fooField := &descriptor.FieldDescriptorProto{
+		Name:     proto.String("foo"),
+		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		TypeName: proto.String(foofqn),
+	}
+
+	maskField := &descriptor.FieldDescriptorProto{
+		Name:     proto.String("update_mask"),
+		JsonName: proto.String("updateMask"),
+		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		TypeName: proto.String(".google.protobuf.FieldMask"),
+	}
+
+	updateReq := &descriptor.DescriptorProto{
+		Name:  proto.String("UpdateRequest"),
+		Field: []*descriptor.FieldDescriptorProto{fooField, maskField},
+	}
+	updateReqFqn := fmt.Sprintf(".%s.UpdateRequest", pkg)
 
 	nameOpts := &descriptor.FieldOptions{}
 	proto.SetExtension(nameOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_NAME)
@@ -600,6 +639,21 @@ func TestGenRestMethod(t *testing.T) {
 		Options:    httpBodyRPCOpt,
 	}
 
+	updateRPCOpt := &descriptor.MethodOptions{}
+	proto.SetExtension(updateRPCOpt, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Post{
+			Post: "/v1/foo",
+		},
+		Body: "foo",
+	})
+
+	updateRPC := &descriptor.MethodDescriptorProto{
+		Name:       proto.String("UpdateRPC"),
+		InputType:  proto.String(updateReqFqn),
+		OutputType: proto.String(foofqn),
+		Options:    updateRPCOpt,
+	}
+
 	s := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 	}
@@ -633,12 +687,14 @@ func TestGenRestMethod(t *testing.T) {
 				opS:          f,
 				opRPC:        f,
 				lroRPC:       f,
+				updateRPC:    f,
 				foo:          f,
 				s:            f,
 				pagedFooReq:  f,
 				pagedFooRes:  f,
 				lroDesc:      protodesc.ToFileDescriptorProto(longrunning.File_google_longrunning_operations_proto),
 				httpBodyDesc: protodesc.ToFileDescriptorProto(httpbody.File_google_api_httpbody_proto),
+				updateReq:    f,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
 				opRPC:           s,
@@ -649,9 +705,11 @@ func TestGenRestMethod(t *testing.T) {
 				clientStreamRPC: s,
 				lroRPC:          s,
 				httpBodyRPC:     s,
+				updateRPC:       s,
 				nameField:       op,
 				sizeField:       foo,
 				otherField:      foo,
+				maskField:       updateReq,
 			},
 			Type: map[string]pbinfo.ProtoType{
 				opfqn:          op,
@@ -661,6 +719,7 @@ func TestGenRestMethod(t *testing.T) {
 				pagedFooResFQN: pagedFooRes,
 				lroType:        lroDesc,
 				httpBodyType:   httpBodyDesc,
+				updateReqFqn:   updateReq,
 			},
 		},
 	}
@@ -787,6 +846,20 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "strings"}:                         true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}:                 true,
 				{Name: "httpbodypb", Path: "google.golang.org/genproto/googleapis/api/httpbody"}: true,
+			},
+		},
+		{
+			name:    "update_rpc",
+			method:  updateRPC,
+			options: &options{restNumericEnum: true},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "bytes"}: true,
+				{Path: "fmt"}:   true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "io/ioutil"}:                       true,
+				{Path: "google.golang.org/api/googleapi"}: true,
+				{Path: "net/url"}:                         true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
 	} {

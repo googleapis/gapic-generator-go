@@ -72,6 +72,12 @@ func TestMain(m *testing.M) {
 	}
 	defer identity.Close()
 
+	identityREST, err = showcase.NewIdentityRESTClient(ctx, restClientOpts...)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer identityREST.Close()
+
 	sequenceClient, err = showcase.NewSequenceClient(ctx, opt)
 	if err != nil {
 		log.Fatal(err)
