@@ -44,8 +44,11 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-var echo *showcase.EchoClient
-var echoREST *showcase.EchoClient
+// Clients are initialized in main_test.go.
+var (
+	echo     *showcase.EchoClient
+	echoREST *showcase.EchoClient
+)
 
 func TestEcho(t *testing.T) {
 	defer check(t)

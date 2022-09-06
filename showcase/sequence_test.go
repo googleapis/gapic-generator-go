@@ -28,8 +28,11 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-var sequenceClient *showcase.SequenceClient
-var sequenceRESTClient *showcase.SequenceClient
+// Clients are initialized in main_test.go.
+var (
+	sequenceClient     *showcase.SequenceClient
+	sequenceRESTClient *showcase.SequenceClient
+)
 
 func Test_Sequence_Empty(t *testing.T) {
 	defer check(t)

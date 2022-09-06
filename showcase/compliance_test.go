@@ -32,6 +32,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// Client is initialized in main_test.go.
 var complianceClient *showcase.ComplianceClient
 
 // method is the function type that implements any of the Compliance.RepeatData* RPCs, which all have the same signature.

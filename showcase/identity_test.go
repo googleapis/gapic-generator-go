@@ -26,8 +26,11 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
-var identity *showcase.IdentityClient
-var identityREST *showcase.IdentityClient
+// Clients are initialized in main_test.go.
+var (
+	identity     *showcase.IdentityClient
+	identityREST *showcase.IdentityClient
+)
 
 func TestUserCRUD(t *testing.T) {
 	defer check(t)
