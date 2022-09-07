@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.33.0](https://github.com/googleapis/gapic-generator-go/compare/v0.32.1...v0.33.0) (2022-09-06)
+
+
+### Features
+
+* **gengapic:** Add in-line snippet comment to example.go ([#1120](https://github.com/googleapis/gapic-generator-go/issues/1120)) ([88372c5](https://github.com/googleapis/gapic-generator-go/commit/88372c545bf8ac3a51fc26f6986e8c850d89da06))
+
+
+### Bug Fixes
+
+* Regapic support for proto wkt in query params ([#1124](https://github.com/googleapis/gapic-generator-go/issues/1124)) ([f000c98](https://github.com/googleapis/gapic-generator-go/commit/f000c98586db39e3ab7597b0b1a995e81ea14f6b))
+
 ## [0.32.1](https://github.com/googleapis/gapic-generator-go/compare/v0.32.0...v0.32.1) (2022-08-23)
 
 
