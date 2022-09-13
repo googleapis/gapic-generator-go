@@ -428,9 +428,11 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			b.WriteString(fmt.Sprintf("%s, err := protojson.Marshal(req%s)\n", field.GetJsonName(), accessor))
 			b.WriteString("if err != nil {\n")
 			if m.GetOutputType() == emptyType {
-				b.WriteString(fmt.Sprintf("  return err\n"))
+				b.WriteString("  return err\n")
+			} else if g.isPaginated(m) {
+				b.WriteString(`return nil, "", err`)
 			} else {
-				b.WriteString(fmt.Sprintf("  return nil, err\n"))
+				b.WriteString("  return nil, err\n")
 			}
 			b.WriteString("}\n")
 			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", lowerFirst(snakeToCamel(path)), field.GetJsonName()))

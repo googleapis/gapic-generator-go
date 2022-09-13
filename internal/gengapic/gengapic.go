@@ -540,6 +540,15 @@ func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
 	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
 }
 
+func (g *generator) isPaginated(m *descriptor.MethodDescriptorProto) bool {
+	pf, _, err := g.getPagingFields(m)
+	if err != nil {
+		return false
+	}
+
+	return pf != nil
+}
+
 func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, error) {
 	outType := g.descInfo.Type[m.GetOutputType()]
 	outSpec, err := g.descInfo.ImportSpec(outType)
