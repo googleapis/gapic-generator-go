@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.1](https://github.com/googleapis/gapic-generator-go/compare/v0.33.0...v0.33.1) (2022-09-13)
+
+
+### Bug Fixes
+
+* Handle wkt in paged requests ([#1132](https://github.com/googleapis/gapic-generator-go/issues/1132)) ([0c23c8d](https://github.com/googleapis/gapic-generator-go/commit/0c23c8d52b0d8eadc56966fd8d70a7c090375b10))
+
 ## [0.33.0](https://github.com/googleapis/gapic-generator-go/compare/v0.32.1...v0.33.0) (2022-09-06)
 
 
