@@ -320,15 +320,15 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 // where a "leaf" field is a non-message whose top message ancestor is 'm'.
 // e.g. for a message like the following
 //
-// message Mollusc {
-//     message Squid {
-//         message Mantle {
-//             int32 mass_kg = 1;
-//         }
-//         Mantle mantle = 1;
-//     }
-//     Squid squid = 1;
-// }
+//	message Mollusc {
+//	    message Squid {
+//	        message Mantle {
+//	            int32 mass_kg = 1;
+//	        }
+//	        Mantle mantle = 1;
+//	    }
+//	    Squid squid = 1;
+//	}
 //
 // The one entry would be
 // "squid.mantle.mass_kg": *descriptor.FieldDescriptorProto...
@@ -430,7 +430,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			if m.GetOutputType() == emptyType {
 				b.WriteString("  return err\n")
 			} else if g.isPaginated(m) {
-				b.WriteString(`return nil, "", err`)
+				b.WriteString(`  return nil, "", err\n`)
 			} else {
 				b.WriteString("  return nil, err\n")
 			}
