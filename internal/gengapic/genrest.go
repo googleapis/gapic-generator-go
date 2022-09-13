@@ -430,7 +430,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 			if m.GetOutputType() == emptyType {
 				b.WriteString("  return err\n")
 			} else if g.isPaginated(m) {
-				b.WriteString(`  return nil, "", err\n`)
+				b.WriteString("  return nil, \"\", err\n")
 			} else {
 				b.WriteString("  return nil, err\n")
 			}
