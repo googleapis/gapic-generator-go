@@ -390,8 +390,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_googleapis_gax_go_v2",
         importpath = "github.com/googleapis/gax-go/v2",
-        sum = "h1:kBRZU0PSuI7PspsSb/ChWoVResUcwNVIdpB049pKTiw=",
-        version = "v2.5.1",
+        sum = "h1:SXk3ABtQYDT/OH8jAyvEOQ58mgawq5C4o/4/89qN2ZU=",
+        version = "v2.6.0",
     )
     go_repository(
         name = "com_github_googleapis_go_type_adapters",
