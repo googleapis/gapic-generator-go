@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.2](https://github.com/googleapis/gapic-generator-go/compare/v0.33.1...v0.33.2) (2022-10-21)
+
+
+### Bug Fixes
+
+* **gengapic:** Separate repeated prim qp values ([#1161](https://github.com/googleapis/gapic-generator-go/issues/1161)) ([f2edb34](https://github.com/googleapis/gapic-generator-go/commit/f2edb34ab8d8b581e1f9d3b73681973497893982))
+
 ## [0.33.1](https://github.com/googleapis/gapic-generator-go/compare/v0.33.0...v0.33.1) (2022-09-13)
 
 
