@@ -499,9 +499,16 @@ func TestGenRestMethod(t *testing.T) {
 		TypeName: proto.String(".google.protobuf.FieldMask"),
 	}
 
+	repeatedPrimField := &descriptor.FieldDescriptorProto{
+		Name:     proto.String("primitives"),
+		Type:     descriptor.FieldDescriptorProto_TYPE_STRING.Enum().Enum(),
+		TypeName: proto.String(foofqn),
+		Label:    descriptor.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+	}
+
 	updateReq := &descriptor.DescriptorProto{
 		Name:  proto.String("UpdateRequest"),
-		Field: []*descriptor.FieldDescriptorProto{fooField, maskField},
+		Field: []*descriptor.FieldDescriptorProto{fooField, maskField, repeatedPrimField},
 	}
 	updateReqFqn := fmt.Sprintf(".%s.UpdateRequest", pkg)
 
