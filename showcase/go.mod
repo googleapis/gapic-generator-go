@@ -3,7 +3,7 @@ module showcase
 go 1.19
 
 require (
-	cloud.google.com/go v0.104.0
+	cloud.google.com/go v0.105.0
 	github.com/google/go-cmp v0.5.9
 	github.com/googleapis/gapic-showcase v0.25.0
 	github.com/googleapis/gax-go/v2 v2.6.0
@@ -15,6 +15,7 @@ require (
 
 require (
 	cloud.google.com/go/compute v1.10.0 // indirect
+	cloud.google.com/go/longrunning v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
