@@ -1043,6 +1043,12 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:aoLIYaA1fX3ywihqpBk2APQKOo20nXsp1GEZQbx5Jk4=",
         version = "v1.10.0",
     )
+    go_repository(
+        name = "com_google_cloud_go_compute_metadata",
+        importpath = "cloud.google.com/go/compute/metadata",
+        sum = "h1:/sxEbyrm6cw+XOUw1YxBHlatV71z4vpnmO7z2IZ0h3I=",
+        version = "v0.1.1",
+    )
 
     go_repository(
         name = "com_google_cloud_go_containeranalysis",
