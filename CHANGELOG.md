@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.3](https://github.com/googleapis/gapic-generator-go/compare/v0.33.2...v0.33.3) (2022-10-27)
+
+
+### Bug Fixes
+
+* **bazel:** Manually add compute/metadata dependency ([#1172](https://github.com/googleapis/gapic-generator-go/issues/1172)) ([516cb00](https://github.com/googleapis/gapic-generator-go/commit/516cb00707c396f6ae168814ecf3ff21de38c8ea))
+
 ## [0.33.2](https://github.com/googleapis/gapic-generator-go/compare/v0.33.1...v0.33.2) (2022-10-21)
 
 
