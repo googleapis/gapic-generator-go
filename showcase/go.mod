@@ -8,14 +8,14 @@ require (
 	github.com/googleapis/gapic-showcase v0.25.0
 	github.com/googleapis/gax-go/v2 v2.6.0
 	google.golang.org/api v0.101.0
-	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e
+	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 )
 
 require (
 	cloud.google.com/go/compute v1.10.0 // indirect
-	cloud.google.com/go/longrunning v0.1.0 // indirect
+	cloud.google.com/go/longrunning v0.1.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
