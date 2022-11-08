@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.4](https://github.com/googleapis/gapic-generator-go/compare/v0.33.3...v0.33.4) (2022-11-08)
+
+
+### Bug Fixes
+
+* **gengapic:** Document client/bidi streaming unsupported in REST ([#1181](https://github.com/googleapis/gapic-generator-go/issues/1181)) ([f9a9191](https://github.com/googleapis/gapic-generator-go/commit/f9a9191e1116df5127fa31ddd3655594c0071602))
+
 ## [0.33.3](https://github.com/googleapis/gapic-generator-go/compare/v0.33.2...v0.33.3) (2022-10-27)
 
 
