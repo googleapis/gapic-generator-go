@@ -479,6 +479,9 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 		return
 	}
 
+	if containsTransport(g.opts.transports, rest) && m.GetClientStreaming() {
+		com = fmt.Sprintf("%s\n\nThis method is not supported for the REST transport.", com)
+	}
 	// If the method is marked as deprecated and there is no comment, then add default deprecation comment.
 	// If the method has a comment but it does not include a deprecation notice, then append a default deprecation notice.
 	// If the method includes a deprecation notice at the beginning of the comment, prepend a comment stating the method is deprecated and use the included deprecation notice.
