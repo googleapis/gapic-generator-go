@@ -643,6 +643,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 
 		body = "bytes.NewReader(jsonReq)"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
 	g.generateBaseURL(info, "return nil, err")
@@ -683,7 +684,6 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
 	// server-stream wrapper client
 	p("// %s is the stream client used to consume the server stream created by", streamClient)
@@ -1146,6 +1146,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 
 		body = "bytes.NewReader(jsonReq)"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+
 	}
 
 	g.generateBaseURL(info, "return nil, err")
@@ -1155,6 +1157,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.appendCallOpts(m)
 	if !isHTTPBodyMessage {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+
 	}
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -1211,7 +1215,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 	return nil
