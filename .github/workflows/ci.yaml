@@ -125,6 +125,7 @@ jobs:
       run: |
         export CLOUD_GO=$(pwd)
         cd internal/gapicgen
+        go mod tidy
         go run cloud.google.com/go/internal/gapicgen/cmd/genbot \
           -local \
           -regen-only \
@@ -132,7 +133,7 @@ jobs:
           -gapic=cloud.google.com/go/compute/apiv1 \
           -gocloud-dir=$CLOUD_GO \
           -googleapis-dir=$GOOGLEAPIS
-        cd $CLOUD_GO/compute && go get -u ./apiv1
+        cd $CLOUD_GO/compute && go get -u ./apiv1 && go mod tidy
     - name: Compare regenerated code to baseline
       if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
       run: |
