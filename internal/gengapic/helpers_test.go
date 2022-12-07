@@ -272,3 +272,26 @@ func TestGetHeaderName(t *testing.T) {
 		}
 	}
 }
+
+func TestHasRESTMethod(t *testing.T) {
+	for _, tst := range []struct {
+		name string
+		want bool
+	}{
+		{"has_rest_method", true},
+		{"does_not_have_rest_method", false},
+	} {
+		opts := &descriptor.MethodOptions{}
+		if tst.want {
+			proto.SetExtension(opts, annotations.E_Http, &annotations.HttpRule{Pattern: &annotations.HttpRule_Get{Get: "/foo"}})
+		}
+		s := &descriptor.ServiceDescriptorProto{
+			Method: []*descriptor.MethodDescriptorProto{
+				{Options: opts},
+			},
+		}
+		if got := hasRESTMethod(s); got != tst.want {
+			t.Fatalf("%s: expected %v, got %v", tst.name, tst.want, got)
+		}
+	}
+}
