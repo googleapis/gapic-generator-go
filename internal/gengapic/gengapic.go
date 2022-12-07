@@ -101,6 +101,13 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		g.reset()
+		// If the service has no REST-able RPCs, then a REGAPIC should not be
+		// generated for it, even if REST is an enabled transport.
+		transports := g.opts.transports
+		hasREST := hasRESTMethod(s)
+		if !hasREST {
+			g.opts.transports = []transport{grpc}
+		}
 		if err := g.gen(s); err != nil {
 			return &g.resp, err
 		}
@@ -112,6 +119,12 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		}
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test")
+
+		// Replace original set of transports for the next service that may have
+		// REST-able RPCs.
+		if !hasREST {
+			g.opts.transports = transports
+		}
 	}
 
 	g.reset()

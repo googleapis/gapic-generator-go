@@ -51,6 +51,9 @@ generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/storage/internal/a
 echo "Generating Cloud Retail v2"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/retail/apiv2;retail,transport=rest' $GOOGLEAPIS/google/cloud/retail/v2/*.proto
 
+echo "Generating Apigee Connect v1 - Dual Transport, partial REGAPIC"
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/apigeeconnect/apiv1;apigeeconnect,transport=grpc+rest' $GOOGLEAPIS/google/cloud/apigeeconnect/v1/*.proto
+
 echo "Generation complete"
 
 echo "Running gofmt to check for syntax errors"
