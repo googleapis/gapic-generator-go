@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.5](https://github.com/googleapis/gapic-generator-go/compare/v0.33.4...v0.33.5) (2022-12-07)
+
+
+### Bug Fixes
+
+* **gengapic:** Extraneous protojson import ([#1196](https://github.com/googleapis/gapic-generator-go/issues/1196)) ([023fed2](https://github.com/googleapis/gapic-generator-go/commit/023fed2baa2898fec0e0658963ae549eb2077971))
+* **gengapic:** Only gen REST client for RESTable services ([#1199](https://github.com/googleapis/gapic-generator-go/issues/1199)) ([0f063f1](https://github.com/googleapis/gapic-generator-go/commit/0f063f13c3453bf0832ae44d847e69915781ee2f))
+
 ## [0.33.4](https://github.com/googleapis/gapic-generator-go/compare/v0.33.3...v0.33.4) (2022-11-08)
 
 
