@@ -965,8 +965,6 @@ def com_googleapis_gapic_generator_go_repositories():
     )
     go_repository(
         name = "com_google_cloud_go",
-        # This is part of a fix for https://github.com/googleapis/gapic-generator-go/issues/387.
-        build_extra_args = ["-exclude=longrunning/autogen/info.go"],
         importpath = "cloud.google.com/go",
         sum = "h1:AWaMWuZb2oFeiV91OfNHZbmwUhMVuXEaLPm9sqDAOl8=",
         version = "v0.106.0",
@@ -1361,8 +1359,10 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_google_cloud_go_longrunning",
         importpath = "cloud.google.com/go/longrunning",
-        sum = "h1:NjljC+FYPV3uh5/OwWT6pVU+doBqMg2x/rZlE+CamDs=",
-        version = "v0.3.0",
+        # This must remain at this version until the googleapis bazel workspace
+        # is updated to handle the new pb directories.
+        sum = "h1:y50CXG4j0+qvEukslYFBCrzaXX0qpFbBzc3PchSu/LE=",
+        version = "v0.1.1",
     )
     go_repository(
         name = "com_google_cloud_go_managedidentities",
