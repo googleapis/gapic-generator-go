@@ -72,6 +72,7 @@ func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescr
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 
 	g.insertRequestHeaders(m, grpc)
+	g.appendCallOpts(m)
 
 	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
