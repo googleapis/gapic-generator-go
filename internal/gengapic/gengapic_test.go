@@ -564,8 +564,9 @@ func TestMethodDoc(t *testing.T) {
 	}
 
 	for _, tst := range []struct {
-		in, want   string
-		deprecated bool
+		in, want                    string
+		clientStreaming, deprecated bool
+		opts                        options
 	}{
 		{
 			in:   "",
@@ -595,11 +596,19 @@ func TestMethodDoc(t *testing.T) {
 			want:       "// MyMethod is deprecated.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
 			deprecated: true,
 		},
+		{
+			in:              "Does client streaming stuff.\n It also does other stuffs.",
+			want:            "// MyMethod does client streaming stuff.\n// It also does other stuffs.\n//\n// This method is not supported for the REST transport.\n",
+			clientStreaming: true,
+			opts:            options{transports: []transport{rest}},
+		},
 	} {
+		g.opts = &tst.opts
 		g.comments[m] = tst.in
 		m.Options = &descriptor.MethodOptions{
 			Deprecated: proto.Bool(tst.deprecated),
 		}
+		m.ClientStreaming = proto.Bool(tst.clientStreaming)
 		g.pt.Reset()
 		g.methodDoc(m)
 		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {

@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.33.5](https://github.com/googleapis/gapic-generator-go/compare/v0.33.4...v0.33.5) (2022-12-07)
+
+
+### Bug Fixes
+
+* **gengapic:** Extraneous protojson import ([#1196](https://github.com/googleapis/gapic-generator-go/issues/1196)) ([023fed2](https://github.com/googleapis/gapic-generator-go/commit/023fed2baa2898fec0e0658963ae549eb2077971))
+* **gengapic:** Only gen REST client for RESTable services ([#1199](https://github.com/googleapis/gapic-generator-go/issues/1199)) ([0f063f1](https://github.com/googleapis/gapic-generator-go/commit/0f063f13c3453bf0832ae44d847e69915781ee2f))
+
+## [0.33.4](https://github.com/googleapis/gapic-generator-go/compare/v0.33.3...v0.33.4) (2022-11-08)
+
+
+### Bug Fixes
+
+* **gengapic:** Document client/bidi streaming unsupported in REST ([#1181](https://github.com/googleapis/gapic-generator-go/issues/1181)) ([f9a9191](https://github.com/googleapis/gapic-generator-go/commit/f9a9191e1116df5127fa31ddd3655594c0071602))
+
+## [0.33.3](https://github.com/googleapis/gapic-generator-go/compare/v0.33.2...v0.33.3) (2022-10-27)
+
+
+### Bug Fixes
+
+* **bazel:** Manually add compute/metadata dependency ([#1172](https://github.com/googleapis/gapic-generator-go/issues/1172)) ([516cb00](https://github.com/googleapis/gapic-generator-go/commit/516cb00707c396f6ae168814ecf3ff21de38c8ea))
+
+## [0.33.2](https://github.com/googleapis/gapic-generator-go/compare/v0.33.1...v0.33.2) (2022-10-21)
+
+
+### Bug Fixes
+
+* **gengapic:** Separate repeated prim qp values ([#1161](https://github.com/googleapis/gapic-generator-go/issues/1161)) ([f2edb34](https://github.com/googleapis/gapic-generator-go/commit/f2edb34ab8d8b581e1f9d3b73681973497893982))
+
 ## [0.33.1](https://github.com/googleapis/gapic-generator-go/compare/v0.33.0...v0.33.1) (2022-09-13)
 
 

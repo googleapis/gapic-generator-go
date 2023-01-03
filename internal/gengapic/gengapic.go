@@ -101,6 +101,13 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		g.reset()
+		// If the service has no REST-able RPCs, then a REGAPIC should not be
+		// generated for it, even if REST is an enabled transport.
+		transports := g.opts.transports
+		hasREST := hasRESTMethod(s)
+		if !hasREST {
+			g.opts.transports = []transport{grpc}
+		}
 		if err := g.gen(s); err != nil {
 			return &g.resp, err
 		}
@@ -112,6 +119,12 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		}
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test")
+
+		// Replace original set of transports for the next service that may have
+		// REST-able RPCs.
+		if !hasREST {
+			g.opts.transports = transports
+		}
 	}
 
 	g.reset()
@@ -479,6 +492,9 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 		return
 	}
 
+	if containsTransport(g.opts.transports, rest) && m.GetClientStreaming() {
+		com = fmt.Sprintf("%s\n\nThis method is not supported for the REST transport.", com)
+	}
 	// If the method is marked as deprecated and there is no comment, then add default deprecation comment.
 	// If the method has a comment but it does not include a deprecation notice, then append a default deprecation notice.
 	// If the method includes a deprecation notice at the beginning of the comment, prepend a comment stating the method is deprecated and use the included deprecation notice.

@@ -122,6 +122,19 @@ func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
 	return false
 }
 
+// hasRESTMethod reports if there is at least one RPC on the Service that
+// has a gRPC-HTTP transcoding, or REST, annotation on it.
+func hasRESTMethod(service *descriptor.ServiceDescriptorProto) bool {
+	for _, m := range service.GetMethod() {
+		eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
+		if h := eHTTP.(*annotations.HttpRule); h.GetPattern() != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 // getMethod returns the MethodDescriptorProto for the given service RPC and simple method name.
 func getMethod(service *descriptor.ServiceDescriptorProto, method string) *descriptor.MethodDescriptorProto {
 	for _, m := range service.GetMethod() {

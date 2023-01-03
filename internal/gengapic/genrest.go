@@ -420,6 +420,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		singularPrimitive := field.GetType() != fieldTypeMessage &&
 			field.GetType() != fieldTypeBytes &&
 			field.GetLabel() != fieldLabelRepeated
+		key := lowerFirst(snakeToCamel(path))
 
 		var paramAdd string
 		// Handle well known protobuf types with special JSON encodings.
@@ -435,10 +436,10 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 				b.WriteString("  return nil, err\n")
 			}
 			b.WriteString("}\n")
-			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", lowerFirst(snakeToCamel(path)), field.GetJsonName()))
+			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", key, field.GetJsonName()))
 			paramAdd = b.String()
 		} else {
-			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", lowerFirst(snakeToCamel(path)), "%v", accessor)
+			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", key, "%v", accessor)
 			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		}
 
@@ -450,8 +451,14 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 		}
 
 		if field.GetLabel() == fieldLabelRepeated {
-			// It's a slice, so check for nil
-			p("if req%s != nil {", accessor)
+			// It's a slice, so check for len > 0, nil slice returns 0.
+			p("if items := req%s; len(items) > 0 {", accessor)
+			b := strings.Builder{}
+			b.WriteString("for _, item := range items {\n")
+			b.WriteString(fmt.Sprintf("  params.Add(%q, fmt.Sprintf(%q, item))\n", key, "%v"))
+			b.WriteString("}")
+			paramAdd = b.String()
+
 		} else if field.GetProto3Optional() {
 			// Split right before the raw access
 			toks := strings.Split(path, ".")
@@ -636,6 +643,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 
 		body = "bytes.NewReader(jsonReq)"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
 	g.generateBaseURL(info, "return nil, err")
@@ -676,7 +684,6 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
 	// server-stream wrapper client
 	p("// %s is the stream client used to consume the server stream created by", streamClient)
@@ -1139,6 +1146,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 
 		body = "bytes.NewReader(jsonReq)"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+
 	}
 
 	g.generateBaseURL(info, "return nil, err")
@@ -1148,6 +1157,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	g.appendCallOpts(m)
 	if !isHTTPBodyMessage {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
+
 	}
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -1204,7 +1215,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 
 	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 	return nil
