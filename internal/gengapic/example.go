@@ -22,6 +22,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) error {
@@ -29,13 +30,22 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) erro
 	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
 
 	g.exampleClientFactory(pkgName, servName)
-
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 
 	for _, m := range methods {
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (g *generator) genSnippetFile(serv *descriptor.ServiceDescriptorProto, method *descriptorpb.MethodDescriptorProto) error {
+	pkgName := g.opts.pkgName
+	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+
+	if err := g.snippetMethod(pkgName, servName, method); err != nil {
+		return err
 	}
 	return nil
 }
@@ -85,6 +95,22 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	p := g.printf
 
 	p("func Example%sClient_%s() {", servName, m.GetName())
+	g.exampleMethodBody(pkgName, servName, m)
+
+	p("}")
+	p("")
+	return nil
+}
+
+func (g *generator) snippetMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
+	if m.GetClientStreaming() != m.GetServerStreaming() {
+		// TODO(pongad): implement this correctly.
+		return nil
+	}
+
+	p := g.printf
+
+	p("func Main() {")
 	g.exampleMethodBody(pkgName, servName, m)
 
 	p("}")

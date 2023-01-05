@@ -185,9 +185,12 @@ func (g *generator) printf(s string, a ...interface{}) {
 	g.pt.Printf(s, a...)
 }
 
-func (g *generator) commit(fileName, pkgName string) {
+func (g *generator) commit(fileName, pkgName string, regionTag string) {
 	var header strings.Builder
 	fmt.Fprintf(&header, license.Apache, time.Now().Year())
+	if regionTag != "" {
+		fmt.Fprintf(&header, "// [START %s]\n\n", regionTag)
+	}
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []pbinfo.ImportSpec
@@ -233,6 +236,10 @@ func (g *generator) commit(fileName, pkgName string) {
 			body = body[:i+2]
 			break
 		}
+	}
+
+	if regionTag != "" {
+		body += fmt.Sprintf("\n// [END %s]\n", regionTag)
 	}
 
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{

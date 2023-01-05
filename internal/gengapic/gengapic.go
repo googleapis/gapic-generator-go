@@ -100,8 +100,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
-		outFile := pbinfo.ReduceServName(s.GetName(), "")
-		outFile = camelToSnake(outFile)
+		clientName := pbinfo.ReduceServName(s.GetName(), "")
+		outFile := camelToSnake(clientName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		g.reset()
@@ -115,14 +115,27 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if err := g.gen(s); err != nil {
 			return &g.resp, err
 		}
-		g.commit(outFile+"_client.go", g.opts.pkgName)
+		g.commit(outFile+"_client.go", g.opts.pkgName, "")
 
 		g.reset()
 		if err := g.genExampleFile(s); err != nil {
 			return &g.resp, errors.E(err, "example: %s", s.GetName())
 		}
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test")
+		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test", "")
+
+		g.opts.snippets = true
+		if g.opts.snippets {
+			methods := append(s.GetMethod(), g.getMixinMethods()...)
+			for _, m := range methods {
+				g.reset()
+				if err := g.genSnippetFile(s, m); err != nil {
+					return &g.resp, errors.E(err, "example: %s", s.GetName())
+				}
+				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
+				g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", clientName+"Client", m.GetName(), "main.go"), "main", "TODO: region_tag")
+			}
+		}
 
 		// Replace original set of transports for the next service that may have
 		// REST-able RPCs.
@@ -159,7 +172,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if err := g.customOperationType(); err != nil {
 			return &g.resp, err
 		}
-		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
+		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName, "")
 	}
 
 	return &g.resp, nil
