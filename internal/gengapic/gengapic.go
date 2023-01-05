@@ -100,8 +100,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
-		clientName := pbinfo.ReduceServName(s.GetName(), "")
-		outFile := camelToSnake(clientName)
+		servName := pbinfo.ReduceServName(s.GetName(), "")
+		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		g.reset()
@@ -133,7 +133,11 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 					return &g.resp, errors.E(err, "example: %s", s.GetName())
 				}
 				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-				g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", clientName+"Client", m.GetName(), "main.go"), "main", "TODO: region_tag")
+				protoParts := strings.Split(protoPkg, ".")
+				shortname := protoParts[len(protoParts)-2]
+				apiVersion := protoParts[len(protoParts)-1]
+				regionTag := fmt.Sprintf("%s_%s_generated_%s_%s_sync", shortname, apiVersion, s.GetName(), m.GetName())
+				g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", servName+"Client", m.GetName(), "main.go"), "main", regionTag)
 			}
 		}
 
