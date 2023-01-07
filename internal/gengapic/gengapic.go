@@ -179,6 +179,15 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName, "")
 	}
 
+	if g.opts.snippets {
+		g.reset()
+		// TODO: build snippet metadata content.
+		g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+			Name:    proto.String(filepath.Join(g.opts.outDir, "internal", "snippets", fmt.Sprintf("snippet_metadata.%s.json", protoPkg))),
+			Content: proto.String(g.pt.String()),
+		})
+	}
+
 	return &g.resp, nil
 }
 
