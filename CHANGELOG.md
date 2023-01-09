@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.6](https://github.com/googleapis/gapic-generator-go/compare/v0.33.5...v0.33.6) (2023-01-09)
+
+
+### Bug Fixes
+
+* **gengapic:** Inject gRPC server stream call opts ([#1202](https://github.com/googleapis/gapic-generator-go/issues/1202)) ([1b93213](https://github.com/googleapis/gapic-generator-go/commit/1b93213c0eb80c6de85ff6de6009b31c473ad3ab))
+* **gengapic:** Move top-level package doc links to top ([#1175](https://github.com/googleapis/gapic-generator-go/issues/1175)) ([8cf6194](https://github.com/googleapis/gapic-generator-go/commit/8cf619464bcb316adc7c1d93bab51425981d9f55)), closes [#1140](https://github.com/googleapis/gapic-generator-go/issues/1140)
+
 ## [0.33.5](https://github.com/googleapis/gapic-generator-go/compare/v0.33.4...v0.33.5) (2022-12-07)
 
 
