@@ -29,6 +29,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
+	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -67,6 +68,9 @@ type generator struct {
 	// GapicMetadata for recording proto-to-code mappings in a
 	// gapic_metadata.json file.
 	metadata *metadatapb.GapicMetadata
+
+	// Model for capturing snippet details in a snippet_metadata.*.json file.
+	snippetMetadata *snippets.ApiInfo
 
 	mixins mixins
 
