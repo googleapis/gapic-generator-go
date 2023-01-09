@@ -125,6 +125,13 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 
+	if g.opts.snippets {
+		snippetServ := g.snippetMetadata.ProtoServices[servName+"Client"]
+		snippetMethod := snippetServ.Methods[m.GetName()]
+		snippetMethod.Doc = "TODO unary"
+		snippetMethod.Result = fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
+	}
+
 	return nil
 }
 
