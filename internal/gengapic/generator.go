@@ -70,7 +70,7 @@ type generator struct {
 	metadata *metadatapb.GapicMetadata
 
 	// Model for capturing snippet details in a snippet_metadata.*.json file.
-	snippetMetadata *snippets.ApiInfo
+	snippetMetadata *snippets.SnippetMetadata
 
 	mixins mixins
 

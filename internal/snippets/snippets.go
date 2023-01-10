@@ -22,103 +22,158 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/snippets/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-type ApiInfo struct {
-	// ProtoPkg is the proto namespace for the API package.
-	ProtoPkg string
-	// LibPkg is the gapic import path.
-	LibPkg string
-	// ProtoServices is a map of gapic client short names to service structs.
-	ProtoServices map[string]*Service
-	// Version is the Go module version for the gapic client.
-	Version string
-	// ShortName for the service.
-	ShortName string
+// headerLen is the length of the Apache license header including trailing newlines.
+var headerLen = len(strings.Split(license.Apache, "\n"))
+
+// SnippetMetadata is a model for capturing snippet details and writing them to
+// a snippet_metadata.*.json file.
+type SnippetMetadata struct {
+	// protoPkg is the proto namespace for the API package.
+	protoPkg string
+	// libPkg is the gapic import path.
+	libPkg string
+	// protoServices is a map of gapic service short names to service structs.
+	protoServices map[string]*service
+	// version is the Go module version for the gapic client.
+	version string
+	// shortName for the service.
+	shortName string
 }
 
-// RegionTags gets the region tags keyed by client name and method name.
-func (ai *ApiInfo) RegionTags() map[string]map[string]string {
-	regionTags := map[string]map[string]string{}
-	for svcName, svc := range ai.ProtoServices {
-		regionTags[svcName] = map[string]string{}
-		for mName, m := range svc.Methods {
-			regionTags[svcName][mName] = m.RegionTag
-		}
+// NewMetadata initializes the model that will collect snippet metadata.
+func NewMetadata(protoPkg, libPkg, shortName string) *SnippetMetadata {
+	return &SnippetMetadata{
+		protoPkg:      protoPkg,
+		libPkg:        libPkg,
+		shortName:     shortName,
+		version:       "TODO version",
+		protoServices: make(map[string]*service),
 	}
-	return regionTags
 }
 
-// RegionTags gets the region tags keyed by client name and method name.
-func (ai *ApiInfo) toSnippetMetadata() *metadata.Index {
+// service short name (e.g. "AutoscalingPolicyService")
+func (ai *SnippetMetadata) AddService(serviceName string) error {
+	if ai.protoServices[serviceName] != nil {
+		return fmt.Errorf("snippets: service %s already added to metadata", serviceName)
+	}
+	s := &service{
+		protoName: serviceName,
+		methods:   make(map[string]*method),
+	}
+	ai.protoServices[serviceName] = s
+	return nil
+}
+
+// service short name (e.g. "AutoscalingPolicyService")
+func (ai *SnippetMetadata) AddMethod(serviceName, methodName, regionTag string) error {
+	if ai.protoServices[serviceName] == nil {
+		return fmt.Errorf("snippets: service not found: %s", serviceName)
+	}
+	if ai.protoServices[serviceName].methods[methodName] != nil {
+		return fmt.Errorf("snippets: method %s already added to service %s", methodName, serviceName)
+	}
+	m := &method{
+		doc:            "TODO",
+		regionTag:      regionTag,
+		regionTagStart: headerLen,
+		result:         "TODO",
+	}
+	ai.protoServices[serviceName].methods[methodName] = m
+	return nil
+}
+
+// service short name (e.g. "AutoscalingPolicyService"), doc method comment, result type
+func (ai *SnippetMetadata) UpdateMethod(serviceName, methodName, doc, result string) error {
+	if ai.protoServices[serviceName] == nil {
+		return fmt.Errorf("snippets: service not found: %s", serviceName)
+	}
+	m := ai.protoServices[serviceName].methods[methodName]
+	if m == nil {
+		return fmt.Errorf("snippets: method %s not found in service %s", methodName, serviceName)
+	}
+	if doc != "" {
+		m.doc = doc
+	}
+	if result != "" {
+		m.result = result
+	}
+	return nil
+}
+
+// toSnippetMetadata creates a metadata.Index from the SnippetMetadata.
+func (ai *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 	index := &metadata.Index{
 		ClientLibrary: &metadata.ClientLibrary{
-			Name:     ai.LibPkg,
-			Version:  ai.Version,
+			Name:     ai.libPkg,
+			Version:  ai.version,
 			Language: metadata.Language_GO,
 			Apis: []*metadata.Api{
 				{
-					Id:      ai.ProtoPkg,
+					Id:      ai.protoPkg,
 					Version: ai.protoVersion(),
 				},
 			},
 		},
 	}
 
-	// Sorting keys to stabilize output
+	// Sort keys to stabilize output
 	var svcKeys []string
-	for k := range ai.ProtoServices {
+	for k := range ai.protoServices {
 		svcKeys = append(svcKeys, k)
 	}
 	sort.StringSlice(svcKeys).Sort()
-	for _, clientShortName := range svcKeys {
-		service := ai.ProtoServices[clientShortName]
+	for _, serviceShortName := range svcKeys {
+		clientShortName := serviceShortName + "Client"
+		service := ai.protoServices[serviceShortName]
 		var methodKeys []string
-		for k := range service.Methods {
+		for k := range service.methods {
 			methodKeys = append(methodKeys, k)
 		}
 		sort.StringSlice(methodKeys).Sort()
 		for _, methodShortName := range methodKeys {
-			method := service.Methods[methodShortName]
+			method := service.methods[methodShortName]
 			snip := &metadata.Snippet{
-				RegionTag:   method.RegionTag,
-				Title:       fmt.Sprintf("%s %s Sample", ai.ShortName, methodShortName),
-				Description: strings.TrimSpace(method.Doc),
+				RegionTag:   method.regionTag,
+				Title:       fmt.Sprintf("%s %s Sample", ai.shortName, methodShortName),
+				Description: strings.TrimSpace(method.doc),
 				File:        fmt.Sprintf("%s/%s/main.go", clientShortName, methodShortName),
 				Language:    metadata.Language_GO,
 				Canonical:   false,
 				Origin:      *metadata.Snippet_API_DEFINITION.Enum(),
 				ClientMethod: &metadata.ClientMethod{
 					ShortName:  methodShortName,
-					FullName:   fmt.Sprintf("%s.%s.%s", ai.ProtoPkg, clientShortName, methodShortName),
+					FullName:   fmt.Sprintf("%s.%s.%s", ai.protoPkg, clientShortName, methodShortName),
 					Async:      false,
-					ResultType: method.Result,
+					ResultType: method.result,
 					Client: &metadata.ServiceClient{
 						ShortName: clientShortName,
-						FullName:  fmt.Sprintf("%s.%s", ai.ProtoPkg, clientShortName),
+						FullName:  fmt.Sprintf("%s.%s", ai.protoPkg, clientShortName),
 					},
 					Method: &metadata.Method{
 						ShortName: methodShortName,
-						FullName:  fmt.Sprintf("%s.%s.%s", ai.ProtoPkg, service.ProtoName, methodShortName),
+						FullName:  fmt.Sprintf("%s.%s.%s", ai.protoPkg, service.protoName, methodShortName),
 						Service: &metadata.Service{
-							ShortName: service.ProtoName,
-							FullName:  fmt.Sprintf("%s.%s", ai.ProtoPkg, service.ProtoName),
+							ShortName: service.protoName,
+							FullName:  fmt.Sprintf("%s.%s", ai.protoPkg, service.protoName),
 						},
 					},
 				},
 			}
 			segment := &metadata.Snippet_Segment{
-				Start: int32(method.RegionTagStart + 1),
-				End:   int32(method.RegionTagEnd - 1),
+				Start: int32(method.regionTagStart + 1),
+				End:   int32(method.regionTagEnd - 1),
 				Type:  metadata.Snippet_Segment_FULL,
 			}
 			snip.Segments = append(snip.Segments, segment)
-			for _, param := range method.Params {
+			for _, param := range method.params {
 				methParam := &metadata.ClientMethod_Parameter{
-					Type: param.PType,
-					Name: param.Name,
+					Type: param.pType,
+					Name: param.name,
 				}
 				snip.ClientMethod.Parameters = append(snip.ClientMethod.Parameters, methParam)
 			}
@@ -128,14 +183,14 @@ func (ai *ApiInfo) toSnippetMetadata() *metadata.Index {
 	return index
 }
 
-func (ai *ApiInfo) protoVersion() string {
-	ss := strings.Split(ai.ProtoPkg, ".")
+func (ai *SnippetMetadata) protoVersion() string {
+	ss := strings.Split(ai.protoPkg, ".")
 	return ss[len(ss)-1]
 }
 
 var spaceSanitizerRegex = regexp.MustCompile(`:\s*`)
 
-func (ai *ApiInfo) ToMetadataJSON() ([]byte, error) {
+func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 	m := ai.toSnippetMetadata()
 	b, err := protojson.MarshalOptions{Multiline: true}.Marshal(m)
 	if err != nil {
@@ -146,34 +201,35 @@ func (ai *ApiInfo) ToMetadataJSON() ([]byte, error) {
 	return spaceSanitizerRegex.ReplaceAll(b, []byte(": ")), nil
 }
 
-// service associates a proto service from gapic metadata with gapic client and its methods
-type Service struct {
-	// protoName is the name of the proto service.
-	ProtoName string
+// service associates a proto service from gapic metadata with gapic client and its methods.
+type service struct {
+	// protoName is the service short name.
+	protoName string
 	// methods is a map of gapic method short names to method structs.
-	Methods map[string]*Method
+	methods map[string]*method
 }
 
-// Method associates elements of gapic client methods (docs, params and return types)
+// method associates elements of gapic client methods (docs, params and return types)
 // with snippet file details such as the region tag string and line numbers.
-type Method struct {
-	// Doc is the documention for the methods.
-	Doc string
-	// RegionTag is the region tag that will be used for the generated snippet.
-	RegionTag string
-	// RegionTagStart is the line number of the START region tag in the snippet file.
-	RegionTagStart int
-	// RegionTagEnd is the line number of the END region tag in the snippet file.
-	RegionTagEnd int
-	// Params are the input parameters for the gapic method.
-	Params []*param
-	// Result is the return value for the method.
-	Result string
+type method struct {
+	// doc is the documention for the methods.
+	doc string
+	// regionTag is the region tag that will be used for the generated snippet.
+	regionTag string
+	// regionTagStart is the line number of the START region tag in the snippet file.
+	regionTagStart int
+	// regionTagEnd is the line number of the END region tag in the snippet file.
+	regionTagEnd int
+	// params are the input parameters for the gapic method.
+	params []*param
+	// result is the return value for the method.
+	result string
 }
 
+// param contains the details of a method parameter.
 type param struct {
-	// Name of the parameter.
-	Name string
-	// PType is the Go type for the parameter.
-	PType string
+	// name of the parameter.
+	name string
+	// pType is the Go type for the parameter.
+	pType string
 }
