@@ -99,9 +99,9 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 	p := g.printf
 
 	lowcaseServName := lowcaseGRPCClientName(servName)
-
-	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s.%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), outSpec.Name, outType.GetName())
+	resultType := fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), resultType)
 
 	g.deadline(sFQN, m.GetName())
 
@@ -126,10 +126,9 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 	g.imports[outSpec] = true
 
 	if g.opts.snippets {
-		snippetServ := g.snippetMetadata.ProtoServices[servName+"Client"]
-		snippetMethod := snippetServ.Methods[m.GetName()]
-		snippetMethod.Doc = "TODO unary"
-		snippetMethod.Result = fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
+		if err := g.snippetMetadata.UpdateMethod(servName, m.GetName(), "TODO unary", resultType); err != nil {
+			return err
+		}
 	}
 
 	return nil
