@@ -70,7 +70,7 @@ func (ai *SnippetMetadata) AddService(serviceName string) error {
 }
 
 // service short name (e.g. "AutoscalingPolicyService")
-func (ai *SnippetMetadata) AddMethod(serviceName, methodName, regionTag string) error {
+func (ai *SnippetMetadata) AddMethod(serviceName, methodName, regionTag string, regionTagEnd int) error {
 	if ai.protoServices[serviceName] == nil {
 		return fmt.Errorf("snippets: service not found: %s", serviceName)
 	}
@@ -78,31 +78,88 @@ func (ai *SnippetMetadata) AddMethod(serviceName, methodName, regionTag string) 
 		return fmt.Errorf("snippets: method %s already added to service %s", methodName, serviceName)
 	}
 	m := &method{
-		doc:            "TODO",
 		regionTag:      regionTag,
 		regionTagStart: headerLen,
-		result:         "TODO",
+		regionTagEnd:   regionTagEnd,
 	}
 	ai.protoServices[serviceName].methods[methodName] = m
 	return nil
 }
 
-// service short name (e.g. "AutoscalingPolicyService"), doc method comment, result type
-func (ai *SnippetMetadata) UpdateMethod(serviceName, methodName, doc, result string) error {
+// service short name (e.g. "AutoscalingPolicyService"), doc method comment
+func (ai *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) error {
+	m, err := ai.method(serviceName, methodName)
+	if err != nil {
+		return err
+	}
+	m.doc = doc
+	return nil
+}
+
+// service short name (e.g. "AutoscalingPolicyService"), result type
+func (ai *SnippetMetadata) UpdateMethodResult(serviceName, methodName, result string) error {
+	m, err := ai.method(serviceName, methodName)
+	if err != nil {
+		return err
+	}
+	m.result = result
+	return nil
+}
+
+// Adds a slice of 3 params to the method: ctx context.Context, req <requestType>, opts ...gax.CallOption,
+// ctx and opts params are hardcoded since these are currently the same in all client wrapper methods.
+// The req param will be omitted if empty requestType is given.
+func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string) error {
+	m, err := ai.method(serviceName, methodName)
+	if err != nil {
+		return err
+	}
+	if m.params != nil {
+		return fmt.Errorf("snippets: params already added to method: %s.%s", serviceName, methodName)
+	}
+	m.params = []*param{
+		{
+			name:  "ctx",
+			pType: "context.Context",
+		},
+	}
+	if requestType != "" {
+		m.params = append(m.params,
+			&param{
+				name:  "req",
+				pType: requestType,
+			})
+	}
+	m.params = append(m.params,
+		&param{
+			name:  "opts",
+			pType: "...gax.CallOption",
+		})
+	return nil
+}
+
+var spaceSanitizerRegex = regexp.MustCompile(`:\s*`)
+
+func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
+	m := ai.toSnippetMetadata()
+	b, err := protojson.MarshalOptions{Multiline: true}.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	// Hack to standardize output from protojson which is currently non-deterministic
+	// with spacing after json keys.
+	return spaceSanitizerRegex.ReplaceAll(b, []byte(": ")), nil
+}
+
+func (ai *SnippetMetadata) method(serviceName, methodName string) (*method, error) {
 	if ai.protoServices[serviceName] == nil {
-		return fmt.Errorf("snippets: service not found: %s", serviceName)
+		return nil, fmt.Errorf("snippets: service not found: %s", serviceName)
 	}
 	m := ai.protoServices[serviceName].methods[methodName]
 	if m == nil {
-		return fmt.Errorf("snippets: method %s not found in service %s", methodName, serviceName)
+		return nil, fmt.Errorf("snippets: method %s not found in service %s", methodName, serviceName)
 	}
-	if doc != "" {
-		m.doc = doc
-	}
-	if result != "" {
-		m.result = result
-	}
-	return nil
+	return m, nil
 }
 
 // toSnippetMetadata creates a metadata.Index from the SnippetMetadata.
@@ -188,19 +245,6 @@ func (ai *SnippetMetadata) protoVersion() string {
 	return ss[len(ss)-1]
 }
 
-var spaceSanitizerRegex = regexp.MustCompile(`:\s*`)
-
-func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
-	m := ai.toSnippetMetadata()
-	b, err := protojson.MarshalOptions{Multiline: true}.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-	// Hack to standardize output from protojson which is currently non-deterministic
-	// with spacing after json keys.
-	return spaceSanitizerRegex.ReplaceAll(b, []byte(": ")), nil
-}
-
 // service associates a proto service from gapic metadata with gapic client and its methods.
 type service struct {
 	// protoName is the service short name.
@@ -216,7 +260,7 @@ type method struct {
 	doc string
 	// regionTag is the region tag that will be used for the generated snippet.
 	regionTag string
-	// regionTagStart is the line number of the START region tag in the snippet file.
+	// regionTagStart is the number of the line AFTER the START region tag in the snippet file.
 	regionTagStart int
 	// regionTagEnd is the line number of the END region tag in the snippet file.
 	regionTagEnd int

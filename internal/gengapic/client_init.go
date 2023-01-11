@@ -242,21 +242,29 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 	}
 
 	// Generate method documentation just before any method is generated.
-	g.methodDoc(m)
+	g.methodDoc(servName, m)
 
 	if m.GetOutputType() == emptyType {
-		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-			clientTypeName, m.GetName(), inSpec.Name, inType.GetName())
+		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
+		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) error {",
+			clientTypeName, m.GetName(), reqTyp)
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
+
+		if g.opts.snippets {
+			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
 	if g.isLRO(m) {
+		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		lroType := lroTypeName(m.GetName())
-		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (*%s, error) {",
+			clientTypeName, m.GetName(), reqTyp, lroType)
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
@@ -266,21 +274,40 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("  return c.internalClient.%s(name)", lroType)
 		p("}")
 		p("")
+
+		if g.opts.snippets {
+			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
+				return err
+			}
+			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), lroType); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
 	if pf, _, err := g.getPagingFields(m); err != nil {
 		return err
 	} else if pf != nil {
+		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		iter, err := g.iterTypeOf(pf)
 		if err != nil {
 			return err
 		}
-		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), iter.iterTypeName)
+		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) *%s {",
+			clientTypeName, m.GetName(), reqTyp, iter.iterTypeName)
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
+
+		if g.opts.snippets {
+			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
+				return err
+			}
+			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), iter.iterTypeName); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -291,34 +318,66 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 			return err
 		}
 
-		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-			clientTypeName, m.GetName(), servSpec.Name, serv.GetName(), m.GetName())
+		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
+		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s, error) {",
+			clientTypeName, m.GetName(), retTyp)
 		p("    return c.internalClient.%s(ctx, opts...)", m.GetName())
 		p("}")
 		p("")
+
+		if g.opts.snippets {
+			if err := g.snippetMetadata.AddParams(servName, m.GetName(), ""); err != nil {
+				return err
+			}
+			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp); err != nil {
+				return err
+			}
+		}
 		return nil
 	case m.GetServerStreaming():
 		servSpec, err := g.descInfo.ImportSpec(serv)
 		if err != nil {
 			return err
 		}
-		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, serv.GetName(), m.GetName())
+
+		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
+		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
+		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
+			clientTypeName, m.GetName(), reqTyp, retTyp)
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
+
+		if g.opts.snippets {
+			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
+				return err
+			}
+			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp); err != nil {
+				return err
+			}
+		}
 		return nil
 	default:
+		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		retTyp, err := g.returnType(m)
 		if err != nil {
 			return err
 		}
 
-		p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
+			clientTypeName, m.GetName(), reqTyp, retTyp)
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
 		p("}")
 		p("")
+
+		if g.opts.snippets {
+			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
+				return err
+			}
+			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 

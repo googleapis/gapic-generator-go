@@ -321,6 +321,7 @@ func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorPr
 	for _, spec := range pt.elemImports {
 		g.imports[spec] = true
 	}
+
 	return nil
 }
 

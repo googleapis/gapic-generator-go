@@ -500,7 +500,7 @@ type ClientMethod struct {
 	// declaration. Must be empty if the method has no parameters.
 	Parameters []*ClientMethod_Parameter `protobuf:"bytes,4,rep,name=parameters,proto3" json:"parameters,omitempty"`
 	// Fully qualified type name of this method result, if any.
-	ResultType string `protobuf:"bytes,5,opt,name=result_type,json=resultType,proto3" json:"result_type,omitempty"`
+	ResultType string `protobuf:"bytes,5,opt,name=result_type,json=retTyp,proto3" json:"result_type,omitempty"`
 	// The service client this method is declared in.
 	Client *ServiceClient `protobuf:"bytes,6,opt,name=client,proto3" json:"client,omitempty"`
 	// The service method this client method is for.

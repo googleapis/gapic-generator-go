@@ -610,7 +610,7 @@ func TestMethodDoc(t *testing.T) {
 		}
 		m.ClientStreaming = proto.Bool(tst.clientStreaming)
 		g.pt.Reset()
-		g.methodDoc(m)
+		g.methodDoc("", m)
 		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
 			t.Errorf("comment() got(-),want(+):\n%s", diff)
 		}
