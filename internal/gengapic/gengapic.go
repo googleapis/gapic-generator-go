@@ -128,9 +128,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
 				methodName := m.GetName()
 				regionTag := fmt.Sprintf("%s_%s_generated_%s_%s_sync", shortName, apiVersion, s.GetName(), methodName)
-				g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", clientName, methodName, "main.go"), "main", regionTag)
-
-				if err := g.snippetMetadata.AddMethod(servName, methodName, regionTag); err != nil {
+				lines := g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", clientName, methodName, "main.go"), "main", regionTag)
+				if err := g.snippetMetadata.AddMethod(servName, methodName, regionTag, lines-1); err != nil {
 					return &g.resp, err
 				}
 			}
@@ -533,7 +532,7 @@ func containsDeprecated(com string) bool {
 	return false
 }
 
-func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
+func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorProto) {
 	com := g.comments[m]
 
 	// If there's no comment and the method is not deprecated, adding method name is just confusing.
@@ -560,6 +559,10 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 
 	// Prepend the method name to all non-empty comments.
 	com = m.GetName() + " " + lowerFirst(com)
+
+	if g.opts.snippets {
+		g.snippetMetadata.UpdateMethodDoc(servName, m.GetName(), com)
+	}
 
 	g.comment(com)
 }

@@ -14,7 +14,11 @@
 
 package gengapic
 
-import "github.com/golang/protobuf/protoc-gen-go/descriptor"
+import (
+	"fmt"
+
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+)
 
 // Used for both bidi and client streaming.
 func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
@@ -29,10 +33,11 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 	// We DON'T want to export the transport layers.
 	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
+	retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
+	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s, error) {",
+		lowcaseServName, m.GetName(), retTyp)
 	g.insertRequestHeaders(nil, grpc)
-	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
+	p("  var resp %s", retTyp)
 
 	g.appendCallOpts(m)
 
@@ -47,6 +52,7 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 	p("  return resp, nil")
 	p("}")
 	p("")
+
 	return nil
 }
 
@@ -68,13 +74,14 @@ func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescr
 	p := g.printf
 	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
-	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
+	retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
+	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
+		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
 
-	p("  var resp %s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
+	p("  var resp %s", retTyp)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  resp, err = %s", g.grpcStubCall(m))

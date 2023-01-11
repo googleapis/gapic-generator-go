@@ -40,6 +40,7 @@ import (
 type generator struct {
 	pt printer.P
 
+	// Protobuf descriptor properties
 	descInfo pbinfo.Info
 
 	// Maps proto elements to their comments
@@ -189,7 +190,9 @@ func (g *generator) printf(s string, a ...interface{}) {
 	g.pt.Printf(s, a...)
 }
 
-func (g *generator) commit(fileName, pkgName string, regionTag string) {
+// commit adds header, etc to current pt and returns the line length of the
+// final file output.
+func (g *generator) commit(fileName, pkgName string, regionTag string) int {
 	var header strings.Builder
 	fmt.Fprintf(&header, license.Apache, time.Now().Year())
 	if regionTag != "" {
@@ -222,7 +225,7 @@ func (g *generator) commit(fileName, pkgName string, regionTag string) {
 		writeImp(imp)
 	}
 	header.WriteString(")\n\n")
-
+	lineCount := len(strings.Split(header.String(), "\n"))
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    &fileName,
 		Content: proto.String(header.String()),
@@ -249,6 +252,8 @@ func (g *generator) commit(fileName, pkgName string, regionTag string) {
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Content: proto.String(body),
 	})
+
+	return lineCount + len(strings.Split(body, "\n"))
 }
 
 func (g *generator) reset() {
