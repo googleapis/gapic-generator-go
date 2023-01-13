@@ -41,15 +41,19 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) erro
 	return nil
 }
 
-func (g *generator) genSnippetFile(serv *descriptor.ServiceDescriptorProto, method *descriptorpb.MethodDescriptorProto) error {
-	regionTag := g.snippetMetadata.RegionTag(serv.GetName(), method.GetName())
+func (g *generator) genSnippetFile(s *descriptor.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
+	regionTag := g.snippetMetadata.RegionTag(s.GetName(), m.GetName())
 	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
 	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+	servName := pbinfo.ReduceServName(s.GetName(), pkgName)
 
-	if err := g.snippetMethod(pkgName, servName, method); err != nil {
+	p := g.printf
+	p("func Main() {")
+	if err := g.exampleMethodBody(pkgName, servName, m); err != nil {
 		return err
 	}
+	p("}")
+	p("")
 	g.comment(fmt.Sprintf("[END %s]\n", regionTag))
 	return nil
 }
@@ -99,22 +103,6 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	p := g.printf
 
 	p("func Example%sClient_%s() {", servName, m.GetName())
-	g.exampleMethodBody(pkgName, servName, m)
-
-	p("}")
-	p("")
-	return nil
-}
-
-func (g *generator) snippetMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
-	if m.GetClientStreaming() != m.GetServerStreaming() {
-		// TODO(pongad): implement this correctly.
-		return nil
-	}
-
-	p := g.printf
-
-	p("func Main() {")
 	g.exampleMethodBody(pkgName, servName, m)
 
 	p("}")
