@@ -30,6 +30,8 @@ import (
 // headerLen is the length of the Apache license header including trailing newlines.
 var headerLen = len(strings.Split(license.Apache, "\n"))
 
+var spaceSanitizerRegex = regexp.MustCompile(`:\s*`)
+
 // SnippetMetadata is a model for capturing snippet details and writing them to
 // a snippet_metadata.*.json file.
 type SnippetMetadata struct {
@@ -39,19 +41,22 @@ type SnippetMetadata struct {
 	libPkg string
 	// protoServices is a map of gapic service short names to service structs.
 	protoServices map[string]*service
-	// version is the Go module version for the gapic client.
-	version string
-	// shortName for the service.
+	// apiVersion is the gapic service version. (e.g. "v1", "v1beta1")
+	apiVersion string
+	// shortName the first element of API service config DNS-like Name field. (e.g. "bigquerymigration")
 	shortName string
 }
 
 // NewMetadata initializes the model that will collect snippet metadata.
-func NewMetadata(protoPkg, libPkg, shortName string) *SnippetMetadata {
+func NewMetadata(protoPkg, libPkg, serviceConfigName string) *SnippetMetadata {
+	protoParts := strings.Split(protoPkg, ".")
+	apiVersion := protoParts[len(protoParts)-1]
+	shortName := strings.Split(g.serviceConfig.GetName(), ".")[0]
 	return &SnippetMetadata{
 		protoPkg:      protoPkg,
 		libPkg:        libPkg,
 		shortName:     shortName,
-		version:       "TODO version",
+		apiVersion:    apiVersion,
 		protoServices: make(map[string]*service),
 	}
 }
@@ -138,8 +143,6 @@ func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string
 	return nil
 }
 
-var spaceSanitizerRegex = regexp.MustCompile(`:\s*`)
-
 func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 	m := ai.toSnippetMetadata()
 	b, err := protojson.MarshalOptions{Multiline: true}.Marshal(m)
@@ -167,7 +170,7 @@ func (ai *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 	index := &metadata.Index{
 		ClientLibrary: &metadata.ClientLibrary{
 			Name:     ai.libPkg,
-			Version:  ai.version,
+			Version:  "$VERSION", // Placeholder: The Go module version will be set by the generator client.
 			Language: metadata.Language_GO,
 			Apis: []*metadata.Api{
 				{
