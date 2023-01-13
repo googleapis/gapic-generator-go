@@ -81,9 +81,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	protoPkg := g.descInfo.ParentFile[genServs[0]].GetPackage()
-	protoParts := strings.Split(protoPkg, ".")
-	apiVersion := protoParts[len(protoParts)-1]
-	shortName := strings.Split(g.serviceConfig.GetName(), ".")[0]
 
 	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.diregapic && ok {
 		g.aux.customOp = &customOp{
@@ -114,6 +111,21 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
+		if g.opts.snippets {
+			g.snippetMetadata.AddService(servName)
+			methods := append(s.GetMethod(), g.getMixinMethods()...)
+			for _, m := range methods {
+				// For each method, reset the printer in order to write a separate main.go snippet file.
+				g.reset()
+				if err := g.genSnippetFile(s, m); err != nil {
+					return &g.resp, errors.E(err, "snippet: %s", s.GetName())
+				}
+				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
+				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", servName+"Client", m.GetName(), "main.go"), "main")
+				g.snippetMetadata.AddMethod(servName, m.GetName(), lineCount-1)
+			}
+		}
+
 		g.reset()
 		// If the service has no REST-able RPCs, then a REGAPIC should not be
 		// generated for it, even if REST is an enabled transport.
@@ -125,34 +137,14 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if err := g.gen(s); err != nil {
 			return &g.resp, err
 		}
-		g.commit(outFile+"_client.go", g.opts.pkgName, "")
+		g.commit(outFile+"_client.go", g.opts.pkgName)
 
 		g.reset()
 		if err := g.genExampleFile(s); err != nil {
 			return &g.resp, errors.E(err, "example: %s", s.GetName())
 		}
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test", "")
-
-		if g.opts.snippets {
-			if err := g.snippetMetadata.AddService(servName); err != nil {
-				return &g.resp, err
-			}
-			methods := append(s.GetMethod(), g.getMixinMethods()...)
-			for _, m := range methods {
-				// For each method, reset the printer in order to write a separate main.go snippet file.
-				g.reset()
-				if err := g.genSnippetFile(s, m); err != nil {
-					return &g.resp, errors.E(err, "snippet: %s", s.GetName())
-				}
-				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-				regionTag := fmt.Sprintf("%s_%s_generated_%s_%s_sync", shortName, apiVersion, s.GetName(), m.GetName())
-				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", servName+"Client", m.GetName(), "main.go"), "main", regionTag)
-				if err := g.snippetMetadata.AddMethod(servName, m.GetName(), regionTag, lineCount-1); err != nil {
-					return &g.resp, err
-				}
-			}
-		}
+		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test")
 
 		// Replace original set of transports for the next service that may have
 		// REST-able RPCs.
@@ -201,7 +193,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if err := g.customOperationType(); err != nil {
 			return &g.resp, err
 		}
-		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName, "")
+		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
 	}
 
 	return &g.resp, nil
@@ -565,7 +557,7 @@ func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorPro
 	g.comment(com)
 }
 
-func (g *generator) comment(s string) {
+func (g *generator) printComment(s string, p printFunc) {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return
@@ -576,11 +568,19 @@ func (g *generator) comment(s string) {
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {
 		if strings.TrimSpace(l) == "" {
-			g.printf("//")
+			p("//")
 		} else {
-			g.printf("// %s", l)
+			p("// %s", l)
 		}
 	}
+}
+
+func (g *generator) comment(s string) {
+	g.printComment(s, g.printf)
+}
+
+func (g *generator) headerComment(s string) {
+	g.printComment(s, g.headerComments.Printf)
 }
 
 // Similar functionality to 'comment', except specifically used for generating formatted code snippets.

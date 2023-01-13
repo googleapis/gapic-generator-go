@@ -253,9 +253,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		if g.opts.snippets {
-			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
-				return err
-			}
+			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
 		}
 		return nil
 	}
@@ -276,12 +274,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		if g.opts.snippets {
-			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
-				return err
-			}
-			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), lroType); err != nil {
-				return err
-			}
+			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
+			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), lroType)
 		}
 		return nil
 	}
@@ -301,12 +295,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		if g.opts.snippets {
-			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
-				return err
-			}
-			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), iter.iterTypeName); err != nil {
-				return err
-			}
+			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
+			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), iter.iterTypeName)
 		}
 		return nil
 	}
@@ -326,12 +316,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		if g.opts.snippets {
-			if err := g.snippetMetadata.AddParams(servName, m.GetName(), ""); err != nil {
-				return err
-			}
-			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp); err != nil {
-				return err
-			}
+			g.snippetMetadata.AddParams(servName, m.GetName(), "")
+			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)
 		}
 		return nil
 	case m.GetServerStreaming():
@@ -349,12 +335,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		if g.opts.snippets {
-			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
-				return err
-			}
-			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp); err != nil {
-				return err
-			}
+			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
+			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)
 		}
 		return nil
 	default:
@@ -371,12 +353,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		if g.opts.snippets {
-			if err := g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp); err != nil {
-				return err
-			}
-			if err := g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp); err != nil {
-				return err
-			}
+			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
+			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)
 		}
 		return nil
 	}

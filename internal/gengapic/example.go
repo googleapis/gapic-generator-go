@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"strings"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
@@ -41,12 +42,15 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) erro
 }
 
 func (g *generator) genSnippetFile(serv *descriptor.ServiceDescriptorProto, method *descriptorpb.MethodDescriptorProto) error {
+	regionTag := g.snippetMetadata.RegionTag(serv.GetName(), method.GetName())
+	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
 	pkgName := g.opts.pkgName
 	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
 
 	if err := g.snippetMethod(pkgName, servName, method); err != nil {
 		return err
 	}
+	g.comment(fmt.Sprintf("[END %s]\n", regionTag))
 	return nil
 }
 

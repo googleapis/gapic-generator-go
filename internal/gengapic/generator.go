@@ -48,6 +48,9 @@ type generator struct {
 
 	resp plugin.CodeGeneratorResponse
 
+	// Comments to appear after the license header and before the package declaration.
+	headerComments printer.P
+
 	imports map[pbinfo.ImportSpec]bool
 
 	// Human-readable name of the API used in docs
@@ -177,6 +180,8 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	return nil
 }
 
+type printFunc func(s string, a ...interface{})
+
 // printf formatted-prints to sb, using the print syntax from fmt package.
 //
 // It automatically keeps track of indentation caused by curly-braces.
@@ -192,12 +197,10 @@ func (g *generator) printf(s string, a ...interface{}) {
 
 // commit adds header, etc to current pt and returns the line length of the
 // final file output.
-func (g *generator) commit(fileName, pkgName string, regionTag string) int {
+func (g *generator) commit(fileName, pkgName string) int {
 	var header strings.Builder
 	fmt.Fprintf(&header, license.Apache, time.Now().Year())
-	if regionTag != "" {
-		fmt.Fprintf(&header, "// [START %s]\n\n", regionTag)
-	}
+	header.WriteString(g.headerComments.String() + "\n")
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []pbinfo.ImportSpec
@@ -245,10 +248,6 @@ func (g *generator) commit(fileName, pkgName string, regionTag string) int {
 		}
 	}
 
-	if regionTag != "" {
-		body += fmt.Sprintf("\n// [END %s]\n", regionTag)
-	}
-
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Content: proto.String(body),
 	})
@@ -258,6 +257,7 @@ func (g *generator) commit(fileName, pkgName string, regionTag string) int {
 
 func (g *generator) reset() {
 	g.pt.Reset()
+	g.headerComments.Reset()
 	for k := range g.imports {
 		delete(g.imports, k)
 	}

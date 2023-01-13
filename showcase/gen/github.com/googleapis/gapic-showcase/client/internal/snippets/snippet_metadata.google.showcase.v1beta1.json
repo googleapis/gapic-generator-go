@@ -14,11 +14,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_CancelOperation_sync",
       "title": "showcase CancelOperation Sample",
+      "description": "CancelOperation is a utility method from google.longrunning.Operations.",
       "file": "ComplianceClient/CancelOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CancelOperation",
         "fullName": "google.showcase.v1beta1.ComplianceClient.CancelOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.CancelOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -44,11 +59,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_DeleteOperation_sync",
       "title": "showcase DeleteOperation Sample",
+      "description": "DeleteOperation is a utility method from google.longrunning.Operations.",
       "file": "ComplianceClient/DeleteOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteOperation",
         "fullName": "google.showcase.v1beta1.ComplianceClient.DeleteOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.DeleteOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -74,11 +104,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_GetEnum_sync",
       "title": "showcase GetEnum Sample",
+      "description": "GetEnum this method requests an enum value from the server. Depending on the contents of EnumRequest, the enum value returned will be a known enum declared in the\n .proto file, or a made-up enum value the is unknown to the client. To verify that clients can round-trip unknown enum vaues they receive, use the\n response from this RPC as the request to VerifyEnum()\n\n The values of enums sent by the server when a known or unknown value is requested will be the same within a single Showcase server run (this is needed for\n VerifyEnum() to work) but are not guaranteed to be the same across separate Showcase server runs.",
       "file": "ComplianceClient/GetEnum/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetEnum",
         "fullName": "google.showcase.v1beta1.ComplianceClient.GetEnum",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.EnumRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.EnumResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -104,11 +150,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_GetIamPolicy_sync",
       "title": "showcase GetIamPolicy Sample",
+      "description": "GetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "ComplianceClient/GetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetIamPolicy",
         "fullName": "google.showcase.v1beta1.ComplianceClient.GetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.GetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -134,11 +196,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_GetLocation_sync",
       "title": "showcase GetLocation Sample",
+      "description": "GetLocation is a utility method from google.cloud.location.Locations.",
       "file": "ComplianceClient/GetLocation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetLocation",
         "fullName": "google.showcase.v1beta1.ComplianceClient.GetLocation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.GetLocationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*locationpb.Location",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -164,11 +242,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_GetOperation_sync",
       "title": "showcase GetOperation Sample",
+      "description": "GetOperation is a utility method from google.longrunning.Operations.",
       "file": "ComplianceClient/GetOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetOperation",
         "fullName": "google.showcase.v1beta1.ComplianceClient.GetOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.GetOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*longrunningpb.Operation",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -194,11 +288,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_ListLocations_sync",
       "title": "showcase ListLocations Sample",
+      "description": "ListLocations is a utility method from google.cloud.location.Locations.",
       "file": "ComplianceClient/ListLocations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListLocations",
         "fullName": "google.showcase.v1beta1.ComplianceClient.ListLocations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.ListLocationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "LocationIterator",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -224,11 +334,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_ListOperations_sync",
       "title": "showcase ListOperations Sample",
+      "description": "ListOperations is a utility method from google.longrunning.Operations.",
       "file": "ComplianceClient/ListOperations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListOperations",
         "fullName": "google.showcase.v1beta1.ComplianceClient.ListOperations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.ListOperationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "OperationIterator",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -254,11 +380,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBody_sync",
       "title": "showcase RepeatDataBody Sample",
+      "description": "RepeatDataBody this method echoes the ComplianceData request. This method exercises\n sending the entire request object in the REST body.",
       "file": "ComplianceClient/RepeatDataBody/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataBody",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBody",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -284,11 +426,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBodyInfo_sync",
       "title": "showcase RepeatDataBodyInfo Sample",
+      "description": "RepeatDataBodyInfo this method echoes the ComplianceData request. This method exercises\n sending the a message-type field in the REST body. Per AIP-127, only\n top-level, non-repeated fields can be sent this way.",
       "file": "ComplianceClient/RepeatDataBodyInfo/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataBodyInfo",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBodyInfo",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -314,11 +472,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBodyPatch_sync",
       "title": "showcase RepeatDataBodyPatch Sample",
+      "description": "RepeatDataBodyPatch this method echoes the ComplianceData request, using the HTTP PATCH method.",
       "file": "ComplianceClient/RepeatDataBodyPatch/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataBodyPatch",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBodyPatch",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -344,11 +518,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBodyPut_sync",
       "title": "showcase RepeatDataBodyPut Sample",
+      "description": "RepeatDataBodyPut this method echoes the ComplianceData request, using the HTTP PUT method.",
       "file": "ComplianceClient/RepeatDataBodyPut/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataBodyPut",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBodyPut",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -374,11 +564,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataPathResource_sync",
       "title": "showcase RepeatDataPathResource Sample",
+      "description": "RepeatDataPathResource same as RepeatDataSimplePath, but with a path resource.",
       "file": "ComplianceClient/RepeatDataPathResource/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataPathResource",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataPathResource",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -404,11 +610,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataPathTrailingResource_sync",
       "title": "showcase RepeatDataPathTrailingResource Sample",
+      "description": "RepeatDataPathTrailingResource same as RepeatDataSimplePath, but with a trailing resource.",
       "file": "ComplianceClient/RepeatDataPathTrailingResource/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataPathTrailingResource",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataPathTrailingResource",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -434,11 +656,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataQuery_sync",
       "title": "showcase RepeatDataQuery Sample",
+      "description": "RepeatDataQuery this method echoes the ComplianceData request. This method exercises\n sending all request fields as query parameters.",
       "file": "ComplianceClient/RepeatDataQuery/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataQuery",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataQuery",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -464,11 +702,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataSimplePath_sync",
       "title": "showcase RepeatDataSimplePath Sample",
+      "description": "RepeatDataSimplePath this method echoes the ComplianceData request. This method exercises\n sending some parameters as \"simple\" path variables (i.e., of the form\n \"/bar/{foo}\" rather than \"/{foo=bar/*}\"), and the rest as query parameters.",
       "file": "ComplianceClient/RepeatDataSimplePath/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "RepeatDataSimplePath",
         "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataSimplePath",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.RepeatRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.RepeatResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -494,11 +748,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_SetIamPolicy_sync",
       "title": "showcase SetIamPolicy Sample",
+      "description": "SetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "ComplianceClient/SetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SetIamPolicy",
         "fullName": "google.showcase.v1beta1.ComplianceClient.SetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.SetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -524,11 +794,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_TestIamPermissions_sync",
       "title": "showcase TestIamPermissions Sample",
+      "description": "TestIamPermissions is a utility method from google.iam.v1.IAMPolicy.",
       "file": "ComplianceClient/TestIamPermissions/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "TestIamPermissions",
         "fullName": "google.showcase.v1beta1.ComplianceClient.TestIamPermissions",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.TestIamPermissionsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.TestIamPermissionsResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -554,11 +840,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Compliance_VerifyEnum_sync",
       "title": "showcase VerifyEnum Sample",
+      "description": "VerifyEnum this method is used to verify that clients can round-trip enum values, which is particularly important for unknown enum values over REST. VerifyEnum()\n verifies that its request, which is presumably the response that the client previously got to a GetEnum(), contains the correct data. If so, it responds\n with the same EnumResponse; otherwise, the RPC errors.\n\n This works because the values of enums sent by the server when a known or unknown value is requested will be the same within a single Showcase server run,\n although they are not guaranteed to be the same across separate Showcase server runs.",
       "file": "ComplianceClient/VerifyEnum/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "VerifyEnum",
         "fullName": "google.showcase.v1beta1.ComplianceClient.VerifyEnum",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.EnumResponse",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.EnumResponse",
         "client": {
           "shortName": "ComplianceClient",
           "fullName": "google.showcase.v1beta1.ComplianceClient"
@@ -584,11 +886,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_Block_sync",
       "title": "showcase Block Sample",
+      "description": "Block this method will block (wait) for the requested amount of time\n and then return the response or error.\n This method showcases how a client handles delays or retries.",
       "file": "EchoClient/Block/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "Block",
         "fullName": "google.showcase.v1beta1.EchoClient.Block",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.BlockRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.BlockResponse",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -614,11 +932,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_CancelOperation_sync",
       "title": "showcase CancelOperation Sample",
+      "description": "CancelOperation is a utility method from google.longrunning.Operations.",
       "file": "EchoClient/CancelOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CancelOperation",
         "fullName": "google.showcase.v1beta1.EchoClient.CancelOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.CancelOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -644,11 +977,23 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_Chat_sync",
       "title": "showcase Chat Sample",
+      "description": "Chat this method, upon receiving a request on the stream, will pass the same\n content back on the stream. This method showcases bidirectional\n streaming RPCs.\n\n\nThis method is not supported for the REST transport.",
       "file": "EchoClient/Chat/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "Chat",
         "fullName": "google.showcase.v1beta1.EchoClient.Chat",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "genprotopb.Echo_ChatClient",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -674,11 +1019,23 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_Collect_sync",
       "title": "showcase Collect Sample",
+      "description": "Collect this method will collect the words given to it. When the stream is closed\n by the client, this method will return the a concatenation of the strings\n passed to it. This method showcases client-side streaming RPCs.\n\n\nThis method is not supported for the REST transport.",
       "file": "EchoClient/Collect/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "Collect",
         "fullName": "google.showcase.v1beta1.EchoClient.Collect",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "genprotopb.Echo_CollectClient",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -696,7 +1053,7 @@
       "segments": [
         {
           "start": 18,
-          "end": 27,
+          "end": 25,
           "type": "FULL"
         }
       ]
@@ -704,11 +1061,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_DeleteOperation_sync",
       "title": "showcase DeleteOperation Sample",
+      "description": "DeleteOperation is a utility method from google.longrunning.Operations.",
       "file": "EchoClient/DeleteOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteOperation",
         "fullName": "google.showcase.v1beta1.EchoClient.DeleteOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.DeleteOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -734,11 +1106,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_Echo_sync",
       "title": "showcase Echo Sample",
+      "description": "Echo this method simply echoes the request. This method showcases unary RPCs.",
       "file": "EchoClient/Echo/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "Echo",
         "fullName": "google.showcase.v1beta1.EchoClient.Echo",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.EchoRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.EchoResponse",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -764,11 +1152,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_Expand_sync",
       "title": "showcase Expand Sample",
+      "description": "Expand this method splits the given content into words and will pass each word back\n through the stream. This method showcases server-side streaming RPCs.",
       "file": "EchoClient/Expand/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "Expand",
         "fullName": "google.showcase.v1beta1.EchoClient.Expand",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.ExpandRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "genprotopb.Echo_ExpandClient",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -786,7 +1190,7 @@
       "segments": [
         {
           "start": 18,
-          "end": 27,
+          "end": 25,
           "type": "FULL"
         }
       ]
@@ -794,11 +1198,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_GetIamPolicy_sync",
       "title": "showcase GetIamPolicy Sample",
+      "description": "GetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "EchoClient/GetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetIamPolicy",
         "fullName": "google.showcase.v1beta1.EchoClient.GetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.GetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -824,11 +1244,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_GetLocation_sync",
       "title": "showcase GetLocation Sample",
+      "description": "GetLocation is a utility method from google.cloud.location.Locations.",
       "file": "EchoClient/GetLocation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetLocation",
         "fullName": "google.showcase.v1beta1.EchoClient.GetLocation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.GetLocationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*locationpb.Location",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -854,11 +1290,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_GetOperation_sync",
       "title": "showcase GetOperation Sample",
+      "description": "GetOperation is a utility method from google.longrunning.Operations.",
       "file": "EchoClient/GetOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetOperation",
         "fullName": "google.showcase.v1beta1.EchoClient.GetOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.GetOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*longrunningpb.Operation",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -884,11 +1336,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_ListLocations_sync",
       "title": "showcase ListLocations Sample",
+      "description": "ListLocations is a utility method from google.cloud.location.Locations.",
       "file": "EchoClient/ListLocations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListLocations",
         "fullName": "google.showcase.v1beta1.EchoClient.ListLocations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.ListLocationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "LocationIterator",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -914,11 +1382,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_ListOperations_sync",
       "title": "showcase ListOperations Sample",
+      "description": "ListOperations is a utility method from google.longrunning.Operations.",
       "file": "EchoClient/ListOperations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListOperations",
         "fullName": "google.showcase.v1beta1.EchoClient.ListOperations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.ListOperationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "OperationIterator",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -944,11 +1428,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_PagedExpand_sync",
       "title": "showcase PagedExpand Sample",
+      "description": "PagedExpand this is similar to the Expand method but instead of returning a stream of\n expanded words, this method returns a paged list of expanded words.",
       "file": "EchoClient/PagedExpand/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "PagedExpand",
         "fullName": "google.showcase.v1beta1.EchoClient.PagedExpand",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.PagedExpandRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "EchoResponseIterator",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -974,11 +1474,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_PagedExpandLegacy_sync",
       "title": "showcase PagedExpandLegacy Sample",
+      "description": "PagedExpandLegacy this is similar to the PagedExpand except that it uses\n max_results instead of page_size, as some legacy APIs still\n do. New APIs should NOT use this pattern.",
       "file": "EchoClient/PagedExpandLegacy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "PagedExpandLegacy",
         "fullName": "google.showcase.v1beta1.EchoClient.PagedExpandLegacy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.PagedExpandLegacyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "EchoResponseIterator",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -1004,11 +1520,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_PagedExpandLegacyMapped_sync",
       "title": "showcase PagedExpandLegacyMapped Sample",
+      "description": "PagedExpandLegacyMapped this method returns a map containing lists of words that appear in the input, keyed by their\n initial character. The only words returned are the ones included in the current page,\n as determined by page_token and page_size, which both refer to the word indices in the\n input. This paging result consisting of a map of lists is a pattern used by some legacy\n APIs. New APIs should NOT use this pattern.",
       "file": "EchoClient/PagedExpandLegacyMapped/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "PagedExpandLegacyMapped",
         "fullName": "google.showcase.v1beta1.EchoClient.PagedExpandLegacyMapped",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.PagedExpandRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "PagedExpandResponseListPairIterator",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -1034,11 +1566,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_SetIamPolicy_sync",
       "title": "showcase SetIamPolicy Sample",
+      "description": "SetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "EchoClient/SetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SetIamPolicy",
         "fullName": "google.showcase.v1beta1.EchoClient.SetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.SetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -1064,11 +1612,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_TestIamPermissions_sync",
       "title": "showcase TestIamPermissions Sample",
+      "description": "TestIamPermissions is a utility method from google.iam.v1.IAMPolicy.",
       "file": "EchoClient/TestIamPermissions/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "TestIamPermissions",
         "fullName": "google.showcase.v1beta1.EchoClient.TestIamPermissions",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.TestIamPermissionsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.TestIamPermissionsResponse",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -1094,11 +1658,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Echo_Wait_sync",
       "title": "showcase Wait Sample",
+      "description": "Wait this method will wait for the requested amount of time and then return.\n This method showcases how a client handles a request timeout.",
       "file": "EchoClient/Wait/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "Wait",
         "fullName": "google.showcase.v1beta1.EchoClient.Wait",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.WaitRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "WaitOperation",
         "client": {
           "shortName": "EchoClient",
           "fullName": "google.showcase.v1beta1.EchoClient"
@@ -1124,11 +1704,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_CancelOperation_sync",
       "title": "showcase CancelOperation Sample",
+      "description": "CancelOperation is a utility method from google.longrunning.Operations.",
       "file": "IdentityClient/CancelOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CancelOperation",
         "fullName": "google.showcase.v1beta1.IdentityClient.CancelOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.CancelOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1154,11 +1749,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_CreateUser_sync",
       "title": "showcase CreateUser Sample",
+      "description": "CreateUser creates a user.",
       "file": "IdentityClient/CreateUser/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CreateUser",
         "fullName": "google.showcase.v1beta1.IdentityClient.CreateUser",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.CreateUserRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.User",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1184,11 +1795,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_DeleteOperation_sync",
       "title": "showcase DeleteOperation Sample",
+      "description": "DeleteOperation is a utility method from google.longrunning.Operations.",
       "file": "IdentityClient/DeleteOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteOperation",
         "fullName": "google.showcase.v1beta1.IdentityClient.DeleteOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.DeleteOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1214,11 +1840,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_DeleteUser_sync",
       "title": "showcase DeleteUser Sample",
+      "description": "DeleteUser deletes a user, their profile, and all of their authored messages.",
       "file": "IdentityClient/DeleteUser/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteUser",
         "fullName": "google.showcase.v1beta1.IdentityClient.DeleteUser",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.DeleteUserRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1244,11 +1885,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_GetIamPolicy_sync",
       "title": "showcase GetIamPolicy Sample",
+      "description": "GetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "IdentityClient/GetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetIamPolicy",
         "fullName": "google.showcase.v1beta1.IdentityClient.GetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.GetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1274,11 +1931,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_GetLocation_sync",
       "title": "showcase GetLocation Sample",
+      "description": "GetLocation is a utility method from google.cloud.location.Locations.",
       "file": "IdentityClient/GetLocation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetLocation",
         "fullName": "google.showcase.v1beta1.IdentityClient.GetLocation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.GetLocationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*locationpb.Location",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1304,11 +1977,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_GetOperation_sync",
       "title": "showcase GetOperation Sample",
+      "description": "GetOperation is a utility method from google.longrunning.Operations.",
       "file": "IdentityClient/GetOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetOperation",
         "fullName": "google.showcase.v1beta1.IdentityClient.GetOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.GetOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*longrunningpb.Operation",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1334,11 +2023,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_GetUser_sync",
       "title": "showcase GetUser Sample",
+      "description": "GetUser retrieves the User with the given uri.",
       "file": "IdentityClient/GetUser/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetUser",
         "fullName": "google.showcase.v1beta1.IdentityClient.GetUser",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.GetUserRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.User",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1364,11 +2069,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_ListLocations_sync",
       "title": "showcase ListLocations Sample",
+      "description": "ListLocations is a utility method from google.cloud.location.Locations.",
       "file": "IdentityClient/ListLocations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListLocations",
         "fullName": "google.showcase.v1beta1.IdentityClient.ListLocations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.ListLocationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "LocationIterator",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1394,11 +2115,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_ListOperations_sync",
       "title": "showcase ListOperations Sample",
+      "description": "ListOperations is a utility method from google.longrunning.Operations.",
       "file": "IdentityClient/ListOperations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListOperations",
         "fullName": "google.showcase.v1beta1.IdentityClient.ListOperations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.ListOperationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "OperationIterator",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1424,11 +2161,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_ListUsers_sync",
       "title": "showcase ListUsers Sample",
+      "description": "ListUsers lists all users.",
       "file": "IdentityClient/ListUsers/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListUsers",
         "fullName": "google.showcase.v1beta1.IdentityClient.ListUsers",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.ListUsersRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "UserIterator",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1454,11 +2207,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_SetIamPolicy_sync",
       "title": "showcase SetIamPolicy Sample",
+      "description": "SetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "IdentityClient/SetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SetIamPolicy",
         "fullName": "google.showcase.v1beta1.IdentityClient.SetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.SetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1484,11 +2253,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_TestIamPermissions_sync",
       "title": "showcase TestIamPermissions Sample",
+      "description": "TestIamPermissions is a utility method from google.iam.v1.IAMPolicy.",
       "file": "IdentityClient/TestIamPermissions/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "TestIamPermissions",
         "fullName": "google.showcase.v1beta1.IdentityClient.TestIamPermissions",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.TestIamPermissionsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.TestIamPermissionsResponse",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1514,11 +2299,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Identity_UpdateUser_sync",
       "title": "showcase UpdateUser Sample",
+      "description": "UpdateUser updates a user.",
       "file": "IdentityClient/UpdateUser/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "UpdateUser",
         "fullName": "google.showcase.v1beta1.IdentityClient.UpdateUser",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.UpdateUserRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.User",
         "client": {
           "shortName": "IdentityClient",
           "fullName": "google.showcase.v1beta1.IdentityClient"
@@ -1544,11 +2345,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_CancelOperation_sync",
       "title": "showcase CancelOperation Sample",
+      "description": "CancelOperation is a utility method from google.longrunning.Operations.",
       "file": "MessagingClient/CancelOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CancelOperation",
         "fullName": "google.showcase.v1beta1.MessagingClient.CancelOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.CancelOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1574,11 +2390,23 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_Connect_sync",
       "title": "showcase Connect Sample",
+      "description": "Connect this method starts a bidirectional stream that receives all blurbs that\n are being created after the stream has started and sends requests to create\n blurbs. If an invalid blurb is requested to be created, the stream will\n close with an error.\n\n\nThis method is not supported for the REST transport.",
       "file": "MessagingClient/Connect/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "Connect",
         "fullName": "google.showcase.v1beta1.MessagingClient.Connect",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "genprotopb.Messaging_ConnectClient",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1604,11 +2432,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_CreateBlurb_sync",
       "title": "showcase CreateBlurb Sample",
+      "description": "CreateBlurb creates a blurb. If the parent is a room, the blurb is understood to be a\n message in that room. If the parent is a profile, the blurb is understood\n to be a post on the profile.",
       "file": "MessagingClient/CreateBlurb/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CreateBlurb",
         "fullName": "google.showcase.v1beta1.MessagingClient.CreateBlurb",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.CreateBlurbRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Blurb",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1634,11 +2478,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_CreateRoom_sync",
       "title": "showcase CreateRoom Sample",
+      "description": "CreateRoom creates a room.",
       "file": "MessagingClient/CreateRoom/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CreateRoom",
         "fullName": "google.showcase.v1beta1.MessagingClient.CreateRoom",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.CreateRoomRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Room",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1664,11 +2524,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_DeleteBlurb_sync",
       "title": "showcase DeleteBlurb Sample",
+      "description": "DeleteBlurb deletes a blurb.",
       "file": "MessagingClient/DeleteBlurb/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteBlurb",
         "fullName": "google.showcase.v1beta1.MessagingClient.DeleteBlurb",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.DeleteBlurbRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1694,11 +2569,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_DeleteOperation_sync",
       "title": "showcase DeleteOperation Sample",
+      "description": "DeleteOperation is a utility method from google.longrunning.Operations.",
       "file": "MessagingClient/DeleteOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteOperation",
         "fullName": "google.showcase.v1beta1.MessagingClient.DeleteOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.DeleteOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1724,11 +2614,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_DeleteRoom_sync",
       "title": "showcase DeleteRoom Sample",
+      "description": "DeleteRoom deletes a room and all of its blurbs.",
       "file": "MessagingClient/DeleteRoom/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteRoom",
         "fullName": "google.showcase.v1beta1.MessagingClient.DeleteRoom",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.DeleteRoomRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1754,11 +2659,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_GetBlurb_sync",
       "title": "showcase GetBlurb Sample",
+      "description": "GetBlurb retrieves the Blurb with the given resource name.",
       "file": "MessagingClient/GetBlurb/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetBlurb",
         "fullName": "google.showcase.v1beta1.MessagingClient.GetBlurb",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.GetBlurbRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Blurb",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1784,11 +2705,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_GetIamPolicy_sync",
       "title": "showcase GetIamPolicy Sample",
+      "description": "GetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "MessagingClient/GetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetIamPolicy",
         "fullName": "google.showcase.v1beta1.MessagingClient.GetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.GetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1814,11 +2751,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_GetLocation_sync",
       "title": "showcase GetLocation Sample",
+      "description": "GetLocation is a utility method from google.cloud.location.Locations.",
       "file": "MessagingClient/GetLocation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetLocation",
         "fullName": "google.showcase.v1beta1.MessagingClient.GetLocation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.GetLocationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*locationpb.Location",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1844,11 +2797,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_GetOperation_sync",
       "title": "showcase GetOperation Sample",
+      "description": "GetOperation is a utility method from google.longrunning.Operations.",
       "file": "MessagingClient/GetOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetOperation",
         "fullName": "google.showcase.v1beta1.MessagingClient.GetOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.GetOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*longrunningpb.Operation",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1874,11 +2843,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_GetRoom_sync",
       "title": "showcase GetRoom Sample",
+      "description": "GetRoom retrieves the Room with the given resource name.",
       "file": "MessagingClient/GetRoom/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetRoom",
         "fullName": "google.showcase.v1beta1.MessagingClient.GetRoom",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.GetRoomRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Room",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1904,11 +2889,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_ListBlurbs_sync",
       "title": "showcase ListBlurbs Sample",
+      "description": "ListBlurbs lists blurbs for a specific chat room or user profile depending on the\n parent resource name.",
       "file": "MessagingClient/ListBlurbs/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListBlurbs",
         "fullName": "google.showcase.v1beta1.MessagingClient.ListBlurbs",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.ListBlurbsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "BlurbIterator",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1934,11 +2935,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_ListLocations_sync",
       "title": "showcase ListLocations Sample",
+      "description": "ListLocations is a utility method from google.cloud.location.Locations.",
       "file": "MessagingClient/ListLocations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListLocations",
         "fullName": "google.showcase.v1beta1.MessagingClient.ListLocations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.ListLocationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "LocationIterator",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1964,11 +2981,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_ListOperations_sync",
       "title": "showcase ListOperations Sample",
+      "description": "ListOperations is a utility method from google.longrunning.Operations.",
       "file": "MessagingClient/ListOperations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListOperations",
         "fullName": "google.showcase.v1beta1.MessagingClient.ListOperations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.ListOperationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "OperationIterator",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -1994,11 +3027,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_ListRooms_sync",
       "title": "showcase ListRooms Sample",
+      "description": "ListRooms lists all chat rooms.",
       "file": "MessagingClient/ListRooms/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListRooms",
         "fullName": "google.showcase.v1beta1.MessagingClient.ListRooms",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.ListRoomsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "RoomIterator",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2024,11 +3073,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_SearchBlurbs_sync",
       "title": "showcase SearchBlurbs Sample",
+      "description": "SearchBlurbs this method searches through all blurbs across all rooms and profiles\n for blurbs containing to words found in the query. Only posts that\n contain an exact match of a queried word will be returned.",
       "file": "MessagingClient/SearchBlurbs/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SearchBlurbs",
         "fullName": "google.showcase.v1beta1.MessagingClient.SearchBlurbs",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.SearchBlurbsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "SearchBlurbsOperation",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2054,11 +3119,23 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_SendBlurbs_sync",
       "title": "showcase SendBlurbs Sample",
+      "description": "SendBlurbs this is a stream to create multiple blurbs. If an invalid blurb is\n requested to be created, the stream will close with an error.\n\n\nThis method is not supported for the REST transport.",
       "file": "MessagingClient/SendBlurbs/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SendBlurbs",
         "fullName": "google.showcase.v1beta1.MessagingClient.SendBlurbs",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "genprotopb.Messaging_SendBlurbsClient",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2076,7 +3153,7 @@
       "segments": [
         {
           "start": 18,
-          "end": 27,
+          "end": 25,
           "type": "FULL"
         }
       ]
@@ -2084,11 +3161,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_SetIamPolicy_sync",
       "title": "showcase SetIamPolicy Sample",
+      "description": "SetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "MessagingClient/SetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SetIamPolicy",
         "fullName": "google.showcase.v1beta1.MessagingClient.SetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.SetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2114,11 +3207,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_StreamBlurbs_sync",
       "title": "showcase StreamBlurbs Sample",
+      "description": "StreamBlurbs this returns a stream that emits the blurbs that are created for a\n particular chat room or user profile.",
       "file": "MessagingClient/StreamBlurbs/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "StreamBlurbs",
         "fullName": "google.showcase.v1beta1.MessagingClient.StreamBlurbs",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.StreamBlurbsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "genprotopb.Messaging_StreamBlurbsClient",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2136,7 +3245,7 @@
       "segments": [
         {
           "start": 18,
-          "end": 27,
+          "end": 25,
           "type": "FULL"
         }
       ]
@@ -2144,11 +3253,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_TestIamPermissions_sync",
       "title": "showcase TestIamPermissions Sample",
+      "description": "TestIamPermissions is a utility method from google.iam.v1.IAMPolicy.",
       "file": "MessagingClient/TestIamPermissions/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "TestIamPermissions",
         "fullName": "google.showcase.v1beta1.MessagingClient.TestIamPermissions",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.TestIamPermissionsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.TestIamPermissionsResponse",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2174,11 +3299,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_UpdateBlurb_sync",
       "title": "showcase UpdateBlurb Sample",
+      "description": "UpdateBlurb updates a blurb.",
       "file": "MessagingClient/UpdateBlurb/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "UpdateBlurb",
         "fullName": "google.showcase.v1beta1.MessagingClient.UpdateBlurb",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.UpdateBlurbRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Blurb",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2204,11 +3345,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Messaging_UpdateRoom_sync",
       "title": "showcase UpdateRoom Sample",
+      "description": "UpdateRoom updates a room.",
       "file": "MessagingClient/UpdateRoom/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "UpdateRoom",
         "fullName": "google.showcase.v1beta1.MessagingClient.UpdateRoom",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.UpdateRoomRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Room",
         "client": {
           "shortName": "MessagingClient",
           "fullName": "google.showcase.v1beta1.MessagingClient"
@@ -2232,13 +3389,28 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_AttemptSequence_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_AttemptSequence_sync",
       "title": "showcase AttemptSequence Sample",
+      "description": "AttemptSequence attempts a sequence.",
       "file": "SequenceClient/AttemptSequence/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "AttemptSequence",
         "fullName": "google.showcase.v1beta1.SequenceClient.AttemptSequence",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.AttemptSequenceRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2262,13 +3434,28 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_CancelOperation_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_CancelOperation_sync",
       "title": "showcase CancelOperation Sample",
+      "description": "CancelOperation is a utility method from google.longrunning.Operations.",
       "file": "SequenceClient/CancelOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CancelOperation",
         "fullName": "google.showcase.v1beta1.SequenceClient.CancelOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.CancelOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2292,13 +3479,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_CreateSequence_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_CreateSequence_sync",
       "title": "showcase CreateSequence Sample",
+      "description": "CreateSequence creates a sequence.",
       "file": "SequenceClient/CreateSequence/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CreateSequence",
         "fullName": "google.showcase.v1beta1.SequenceClient.CreateSequence",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.CreateSequenceRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Sequence",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2322,13 +3525,28 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_DeleteOperation_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_DeleteOperation_sync",
       "title": "showcase DeleteOperation Sample",
+      "description": "DeleteOperation is a utility method from google.longrunning.Operations.",
       "file": "SequenceClient/DeleteOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteOperation",
         "fullName": "google.showcase.v1beta1.SequenceClient.DeleteOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.DeleteOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2352,13 +3570,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_GetIamPolicy_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_GetIamPolicy_sync",
       "title": "showcase GetIamPolicy Sample",
+      "description": "GetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "SequenceClient/GetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetIamPolicy",
         "fullName": "google.showcase.v1beta1.SequenceClient.GetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.GetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2382,13 +3616,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_GetLocation_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_GetLocation_sync",
       "title": "showcase GetLocation Sample",
+      "description": "GetLocation is a utility method from google.cloud.location.Locations.",
       "file": "SequenceClient/GetLocation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetLocation",
         "fullName": "google.showcase.v1beta1.SequenceClient.GetLocation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.GetLocationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*locationpb.Location",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2412,13 +3662,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_GetOperation_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_GetOperation_sync",
       "title": "showcase GetOperation Sample",
+      "description": "GetOperation is a utility method from google.longrunning.Operations.",
       "file": "SequenceClient/GetOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetOperation",
         "fullName": "google.showcase.v1beta1.SequenceClient.GetOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.GetOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*longrunningpb.Operation",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2442,13 +3708,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_GetSequenceReport_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_GetSequenceReport_sync",
       "title": "showcase GetSequenceReport Sample",
+      "description": "GetSequenceReport retrieves a sequence.",
       "file": "SequenceClient/GetSequenceReport/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetSequenceReport",
         "fullName": "google.showcase.v1beta1.SequenceClient.GetSequenceReport",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.GetSequenceReportRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.SequenceReport",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2472,13 +3754,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_ListLocations_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_ListLocations_sync",
       "title": "showcase ListLocations Sample",
+      "description": "ListLocations is a utility method from google.cloud.location.Locations.",
       "file": "SequenceClient/ListLocations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListLocations",
         "fullName": "google.showcase.v1beta1.SequenceClient.ListLocations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.ListLocationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "LocationIterator",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2502,13 +3800,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_ListOperations_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_ListOperations_sync",
       "title": "showcase ListOperations Sample",
+      "description": "ListOperations is a utility method from google.longrunning.Operations.",
       "file": "SequenceClient/ListOperations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListOperations",
         "fullName": "google.showcase.v1beta1.SequenceClient.ListOperations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.ListOperationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "OperationIterator",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2532,13 +3846,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_SetIamPolicy_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_SetIamPolicy_sync",
       "title": "showcase SetIamPolicy Sample",
+      "description": "SetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "SequenceClient/SetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SetIamPolicy",
         "fullName": "google.showcase.v1beta1.SequenceClient.SetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.SetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2562,13 +3892,29 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_SequenceService_TestIamPermissions_sync",
+      "regionTag": "showcase_v1beta1_generated_Sequence_TestIamPermissions_sync",
       "title": "showcase TestIamPermissions Sample",
+      "description": "TestIamPermissions is a utility method from google.iam.v1.IAMPolicy.",
       "file": "SequenceClient/TestIamPermissions/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "TestIamPermissions",
         "fullName": "google.showcase.v1beta1.SequenceClient.TestIamPermissions",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.TestIamPermissionsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.TestIamPermissionsResponse",
         "client": {
           "shortName": "SequenceClient",
           "fullName": "google.showcase.v1beta1.SequenceClient"
@@ -2594,11 +3940,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_CancelOperation_sync",
       "title": "showcase CancelOperation Sample",
+      "description": "CancelOperation is a utility method from google.longrunning.Operations.",
       "file": "TestingClient/CancelOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CancelOperation",
         "fullName": "google.showcase.v1beta1.TestingClient.CancelOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.CancelOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2624,11 +3985,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_CreateSession_sync",
       "title": "showcase CreateSession Sample",
+      "description": "CreateSession creates a new testing session.",
       "file": "TestingClient/CreateSession/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "CreateSession",
         "fullName": "google.showcase.v1beta1.TestingClient.CreateSession",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.CreateSessionRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Session",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2654,11 +4031,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_DeleteOperation_sync",
       "title": "showcase DeleteOperation Sample",
+      "description": "DeleteOperation is a utility method from google.longrunning.Operations.",
       "file": "TestingClient/DeleteOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteOperation",
         "fullName": "google.showcase.v1beta1.TestingClient.DeleteOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.DeleteOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2684,11 +4076,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_DeleteSession_sync",
       "title": "showcase DeleteSession Sample",
+      "description": "DeleteSession delete a test session.",
       "file": "TestingClient/DeleteSession/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteSession",
         "fullName": "google.showcase.v1beta1.TestingClient.DeleteSession",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.DeleteSessionRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2714,11 +4121,26 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_DeleteTest_sync",
       "title": "showcase DeleteTest Sample",
+      "description": "DeleteTest explicitly decline to implement a test.\n\n This removes the test from subsequent `ListTests` calls, and\n attempting to do the test will error.\n\n This method will error if attempting to delete a required test.",
       "file": "TestingClient/DeleteTest/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "DeleteTest",
         "fullName": "google.showcase.v1beta1.TestingClient.DeleteTest",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.DeleteTestRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2744,11 +4166,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_GetIamPolicy_sync",
       "title": "showcase GetIamPolicy Sample",
+      "description": "GetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "TestingClient/GetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetIamPolicy",
         "fullName": "google.showcase.v1beta1.TestingClient.GetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.GetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2774,11 +4212,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_GetLocation_sync",
       "title": "showcase GetLocation Sample",
+      "description": "GetLocation is a utility method from google.cloud.location.Locations.",
       "file": "TestingClient/GetLocation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetLocation",
         "fullName": "google.showcase.v1beta1.TestingClient.GetLocation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.GetLocationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*locationpb.Location",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2804,11 +4258,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_GetOperation_sync",
       "title": "showcase GetOperation Sample",
+      "description": "GetOperation is a utility method from google.longrunning.Operations.",
       "file": "TestingClient/GetOperation/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetOperation",
         "fullName": "google.showcase.v1beta1.TestingClient.GetOperation",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.GetOperationRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*longrunningpb.Operation",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2834,11 +4304,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_GetSession_sync",
       "title": "showcase GetSession Sample",
+      "description": "GetSession gets a testing session.",
       "file": "TestingClient/GetSession/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "GetSession",
         "fullName": "google.showcase.v1beta1.TestingClient.GetSession",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.GetSessionRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.Session",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2864,11 +4350,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_ListLocations_sync",
       "title": "showcase ListLocations Sample",
+      "description": "ListLocations is a utility method from google.cloud.location.Locations.",
       "file": "TestingClient/ListLocations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListLocations",
         "fullName": "google.showcase.v1beta1.TestingClient.ListLocations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "locationpb.ListLocationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "LocationIterator",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2894,11 +4396,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_ListOperations_sync",
       "title": "showcase ListOperations Sample",
+      "description": "ListOperations is a utility method from google.longrunning.Operations.",
       "file": "TestingClient/ListOperations/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListOperations",
         "fullName": "google.showcase.v1beta1.TestingClient.ListOperations",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "longrunningpb.ListOperationsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "OperationIterator",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2924,11 +4442,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_ListSessions_sync",
       "title": "showcase ListSessions Sample",
+      "description": "ListSessions lists the current test sessions.",
       "file": "TestingClient/ListSessions/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListSessions",
         "fullName": "google.showcase.v1beta1.TestingClient.ListSessions",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.ListSessionsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "SessionIterator",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2954,11 +4488,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_ListTests_sync",
       "title": "showcase ListTests Sample",
+      "description": "ListTests list the tests of a sessesion.",
       "file": "TestingClient/ListTests/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ListTests",
         "fullName": "google.showcase.v1beta1.TestingClient.ListTests",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.ListTestsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "TestIterator",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -2984,11 +4534,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_ReportSession_sync",
       "title": "showcase ReportSession Sample",
+      "description": "ReportSession report on the status of a session.\n This generates a report detailing which tests have been completed,\n and an overall rollup.",
       "file": "TestingClient/ReportSession/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "ReportSession",
         "fullName": "google.showcase.v1beta1.TestingClient.ReportSession",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.ReportSessionRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.ReportSessionResponse",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -3014,11 +4580,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_SetIamPolicy_sync",
       "title": "showcase SetIamPolicy Sample",
+      "description": "SetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
       "file": "TestingClient/SetIamPolicy/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "SetIamPolicy",
         "fullName": "google.showcase.v1beta1.TestingClient.SetIamPolicy",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.SetIamPolicyRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.Policy",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -3044,11 +4626,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_TestIamPermissions_sync",
       "title": "showcase TestIamPermissions Sample",
+      "description": "TestIamPermissions is a utility method from google.iam.v1.IAMPolicy.",
       "file": "TestingClient/TestIamPermissions/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "TestIamPermissions",
         "fullName": "google.showcase.v1beta1.TestingClient.TestIamPermissions",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "iampb.TestIamPermissionsRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*iampb.TestIamPermissionsResponse",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"
@@ -3074,11 +4672,27 @@
     {
       "regionTag": "showcase_v1beta1_generated_Testing_VerifyTest_sync",
       "title": "showcase VerifyTest Sample",
+      "description": "VerifyTest register a response to a test.\n\n In cases where a test involves registering a final answer at the\n end of the test, this method provides the means to do so.",
       "file": "TestingClient/VerifyTest/main.go",
       "language": "GO",
       "clientMethod": {
         "shortName": "VerifyTest",
         "fullName": "google.showcase.v1beta1.TestingClient.VerifyTest",
+        "parameters": [
+          {
+            "type": "context.Context",
+            "name": "ctx"
+          },
+          {
+            "type": "genprotopb.VerifyTestRequest",
+            "name": "req"
+          },
+          {
+            "type": "...gax.CallOption",
+            "name": "opts"
+          }
+        ],
+        "resultType": "*genprotopb.VerifyTestResponse",
         "client": {
           "shortName": "TestingClient",
           "fullName": "google.showcase.v1beta1.TestingClient"

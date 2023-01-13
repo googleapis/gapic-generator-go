@@ -51,7 +51,7 @@ type SnippetMetadata struct {
 func NewMetadata(protoPkg, libPkg, serviceConfigName string) *SnippetMetadata {
 	protoParts := strings.Split(protoPkg, ".")
 	apiVersion := protoParts[len(protoParts)-1]
-	shortName := strings.Split(g.serviceConfig.GetName(), ".")[0]
+	shortName := strings.Split(serviceConfigName, ".")[0]
 	return &SnippetMetadata{
 		protoPkg:      protoPkg,
 		libPkg:        libPkg,
@@ -62,65 +62,52 @@ func NewMetadata(protoPkg, libPkg, serviceConfigName string) *SnippetMetadata {
 }
 
 // service short name (e.g. "AutoscalingPolicyService")
-func (ai *SnippetMetadata) AddService(serviceName string) error {
+func (ai *SnippetMetadata) AddService(serviceName string) {
 	if ai.protoServices[serviceName] != nil {
-		return fmt.Errorf("snippets: service %s already added to metadata", serviceName)
+		panic(fmt.Sprintf("snippets: service %s already added to metadata", serviceName))
 	}
 	s := &service{
 		protoName: serviceName,
 		methods:   make(map[string]*method),
 	}
 	ai.protoServices[serviceName] = s
-	return nil
 }
 
 // service short name (e.g. "AutoscalingPolicyService")
-func (ai *SnippetMetadata) AddMethod(serviceName, methodName, regionTag string, regionTagEnd int) error {
+func (ai *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEnd int) {
 	if ai.protoServices[serviceName] == nil {
-		return fmt.Errorf("snippets: service not found: %s", serviceName)
+		panic(fmt.Sprintf("snippets: service not found: %s", serviceName))
 	}
 	if ai.protoServices[serviceName].methods[methodName] != nil {
-		return fmt.Errorf("snippets: method %s already added to service %s", methodName, serviceName)
+		panic(fmt.Sprintf("snippets: method %s already added to service %s", methodName, serviceName))
 	}
 	m := &method{
-		regionTag:      regionTag,
+		regionTag:      ai.RegionTag(serviceName, methodName),
 		regionTagStart: headerLen,
 		regionTagEnd:   regionTagEnd,
 	}
 	ai.protoServices[serviceName].methods[methodName] = m
-	return nil
 }
 
 // service short name (e.g. "AutoscalingPolicyService"), doc method comment
-func (ai *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) error {
-	m, err := ai.method(serviceName, methodName)
-	if err != nil {
-		return err
-	}
+func (ai *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) {
+	m := ai.method(serviceName, methodName)
 	m.doc = doc
-	return nil
 }
 
 // service short name (e.g. "AutoscalingPolicyService"), result type
-func (ai *SnippetMetadata) UpdateMethodResult(serviceName, methodName, result string) error {
-	m, err := ai.method(serviceName, methodName)
-	if err != nil {
-		return err
-	}
+func (ai *SnippetMetadata) UpdateMethodResult(serviceName, methodName, result string) {
+	m := ai.method(serviceName, methodName)
 	m.result = result
-	return nil
 }
 
 // Adds a slice of 3 params to the method: ctx context.Context, req <requestType>, opts ...gax.CallOption,
 // ctx and opts params are hardcoded since these are currently the same in all client wrapper methods.
 // The req param will be omitted if empty requestType is given.
-func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string) error {
-	m, err := ai.method(serviceName, methodName)
-	if err != nil {
-		return err
-	}
+func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string) {
+	m := ai.method(serviceName, methodName)
 	if m.params != nil {
-		return fmt.Errorf("snippets: params already added to method: %s.%s", serviceName, methodName)
+		panic(fmt.Sprintf("snippets: params already added to method: %s.%s", serviceName, methodName))
 	}
 	m.params = []*param{
 		{
@@ -140,7 +127,11 @@ func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string
 			name:  "opts",
 			pType: "...gax.CallOption",
 		})
-	return nil
+}
+
+// RegionTag generates a snippet region tag from shortName, apiVersion, and the given full serviceName and method name.
+func (ai *SnippetMetadata) RegionTag(serviceName, methodName string) string {
+	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", ai.shortName, ai.apiVersion, serviceName, methodName)
 }
 
 func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
@@ -154,15 +145,15 @@ func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 	return spaceSanitizerRegex.ReplaceAll(b, []byte(": ")), nil
 }
 
-func (ai *SnippetMetadata) method(serviceName, methodName string) (*method, error) {
+func (ai *SnippetMetadata) method(serviceName, methodName string) *method {
 	if ai.protoServices[serviceName] == nil {
-		return nil, fmt.Errorf("snippets: service not found: %s", serviceName)
+		panic(fmt.Sprintf("snippets: service not found: %s", serviceName))
 	}
 	m := ai.protoServices[serviceName].methods[methodName]
 	if m == nil {
-		return nil, fmt.Errorf("snippets: method %s not found in service %s", methodName, serviceName)
+		panic(fmt.Sprintf("snippets: method %s not found in service %s", methodName, serviceName))
 	}
-	return m, nil
+	return m
 }
 
 // toSnippetMetadata creates a metadata.Index from the SnippetMetadata.
