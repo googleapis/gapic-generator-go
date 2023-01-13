@@ -82,8 +82,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	protoPkg := g.descInfo.ParentFile[genServs[0]].GetPackage()
 	protoParts := strings.Split(protoPkg, ".")
-	shortName := protoParts[len(protoParts)-2]
 	apiVersion := protoParts[len(protoParts)-1]
+	shortName := strings.Split(g.serviceConfig.GetName(), ".")[0]
 
 	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.diregapic && ok {
 		g.aux.customOp = &customOp{
@@ -102,7 +102,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	g.opts.snippets = true // TODO: remove post dev
 	if g.opts.snippets {
 		// Initialize the model that will collect snippet metadata.
-		g.snippetMetadata = snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage, shortName)
+		g.snippetMetadata = snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage, g.serviceConfig.GetName())
 	}
 
 	for _, s := range genServs {
@@ -113,27 +113,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		servName := pbinfo.ReduceServName(s.GetName(), "")
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
-		clientName := servName + "Client"
-
-		if g.opts.snippets {
-			if err := g.snippetMetadata.AddService(servName); err != nil {
-				return &g.resp, err
-			}
-			methods := append(s.GetMethod(), g.getMixinMethods()...)
-			for _, m := range methods {
-				g.reset()
-				if err := g.genSnippetFile(s, m); err != nil {
-					return &g.resp, errors.E(err, "example: %s", s.GetName())
-				}
-				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-				methodName := m.GetName()
-				regionTag := fmt.Sprintf("%s_%s_generated_%s_%s_sync", shortName, apiVersion, s.GetName(), methodName)
-				lines := g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", clientName, methodName, "main.go"), "main", regionTag)
-				if err := g.snippetMetadata.AddMethod(servName, methodName, regionTag, lines-1); err != nil {
-					return &g.resp, err
-				}
-			}
-		}
 
 		g.reset()
 		// If the service has no REST-able RPCs, then a REGAPIC should not be
@@ -155,11 +134,43 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test", "")
 
+		if g.opts.snippets {
+			if err := g.snippetMetadata.AddService(servName); err != nil {
+				return &g.resp, err
+			}
+			methods := append(s.GetMethod(), g.getMixinMethods()...)
+			for _, m := range methods {
+				// For each method, reset the printer in order to write a separate main.go snippet file.
+				g.reset()
+				if err := g.genSnippetFile(s, m); err != nil {
+					return &g.resp, errors.E(err, "snippet: %s", s.GetName())
+				}
+				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
+				regionTag := fmt.Sprintf("%s_%s_generated_%s_%s_sync", shortName, apiVersion, s.GetName(), m.GetName())
+				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", servName+"Client", m.GetName(), "main.go"), "main", regionTag)
+				if err := g.snippetMetadata.AddMethod(servName, m.GetName(), regionTag, lineCount-1); err != nil {
+					return &g.resp, err
+				}
+			}
+		}
+
 		// Replace original set of transports for the next service that may have
 		// REST-able RPCs.
 		if !hasREST {
 			g.opts.transports = transports
 		}
+	}
+
+	if g.opts.snippets {
+		g.reset()
+		json, err := g.snippetMetadata.ToMetadataJSON()
+		if err != nil {
+			return &g.resp, err
+		}
+		g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+			Name:    proto.String(filepath.Join(g.opts.outDir, "internal", "snippets", fmt.Sprintf("snippet_metadata.%s.json", protoPkg))),
+			Content: proto.String(string(json[:])),
+		})
 	}
 
 	g.reset()
@@ -191,19 +202,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			return &g.resp, err
 		}
 		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName, "")
-	}
-
-	// Serialize the apiInfo to snippets metadata JSON file.
-	if g.opts.snippets {
-		g.reset()
-		json, err := g.snippetMetadata.ToMetadataJSON()
-		if err != nil {
-			return &g.resp, err
-		}
-		g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(filepath.Join(g.opts.outDir, "internal", "snippets", fmt.Sprintf("snippet_metadata.%s.json", protoPkg))),
-			Content: proto.String(string(json[:])),
-		})
 	}
 
 	return &g.resp, nil

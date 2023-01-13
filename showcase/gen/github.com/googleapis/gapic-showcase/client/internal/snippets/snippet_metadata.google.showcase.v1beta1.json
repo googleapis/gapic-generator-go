@@ -1,0 +1,3105 @@
+{
+  "clientLibrary": {
+    "name": "github.com/googleapis/gapic-showcase/client",
+    "version": "$VERSION",
+    "language": "GO",
+    "apis": [
+      {
+        "id": "google.showcase.v1beta1",
+        "version": "v1beta1"
+      }
+    ]
+  },
+  "snippets": [
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_CancelOperation_sync",
+      "title": "showcase CancelOperation Sample",
+      "file": "ComplianceClient/CancelOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CancelOperation",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.CancelOperation",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "CancelOperation",
+          "fullName": "google.showcase.v1beta1.Compliance.CancelOperation",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_DeleteOperation_sync",
+      "title": "showcase DeleteOperation Sample",
+      "file": "ComplianceClient/DeleteOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteOperation",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.DeleteOperation",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "DeleteOperation",
+          "fullName": "google.showcase.v1beta1.Compliance.DeleteOperation",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_GetEnum_sync",
+      "title": "showcase GetEnum Sample",
+      "file": "ComplianceClient/GetEnum/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetEnum",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.GetEnum",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "GetEnum",
+          "fullName": "google.showcase.v1beta1.Compliance.GetEnum",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_GetIamPolicy_sync",
+      "title": "showcase GetIamPolicy Sample",
+      "file": "ComplianceClient/GetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetIamPolicy",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.GetIamPolicy",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "GetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Compliance.GetIamPolicy",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_GetLocation_sync",
+      "title": "showcase GetLocation Sample",
+      "file": "ComplianceClient/GetLocation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetLocation",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.GetLocation",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "GetLocation",
+          "fullName": "google.showcase.v1beta1.Compliance.GetLocation",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_GetOperation_sync",
+      "title": "showcase GetOperation Sample",
+      "file": "ComplianceClient/GetOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetOperation",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.GetOperation",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "GetOperation",
+          "fullName": "google.showcase.v1beta1.Compliance.GetOperation",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_ListLocations_sync",
+      "title": "showcase ListLocations Sample",
+      "file": "ComplianceClient/ListLocations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListLocations",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.ListLocations",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "ListLocations",
+          "fullName": "google.showcase.v1beta1.Compliance.ListLocations",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_ListOperations_sync",
+      "title": "showcase ListOperations Sample",
+      "file": "ComplianceClient/ListOperations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListOperations",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.ListOperations",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "ListOperations",
+          "fullName": "google.showcase.v1beta1.Compliance.ListOperations",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBody_sync",
+      "title": "showcase RepeatDataBody Sample",
+      "file": "ComplianceClient/RepeatDataBody/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataBody",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBody",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataBody",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataBody",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBodyInfo_sync",
+      "title": "showcase RepeatDataBodyInfo Sample",
+      "file": "ComplianceClient/RepeatDataBodyInfo/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataBodyInfo",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBodyInfo",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataBodyInfo",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataBodyInfo",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBodyPatch_sync",
+      "title": "showcase RepeatDataBodyPatch Sample",
+      "file": "ComplianceClient/RepeatDataBodyPatch/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataBodyPatch",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBodyPatch",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataBodyPatch",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataBodyPatch",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataBodyPut_sync",
+      "title": "showcase RepeatDataBodyPut Sample",
+      "file": "ComplianceClient/RepeatDataBodyPut/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataBodyPut",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataBodyPut",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataBodyPut",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataBodyPut",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataPathResource_sync",
+      "title": "showcase RepeatDataPathResource Sample",
+      "file": "ComplianceClient/RepeatDataPathResource/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataPathResource",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataPathResource",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataPathResource",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataPathResource",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataPathTrailingResource_sync",
+      "title": "showcase RepeatDataPathTrailingResource Sample",
+      "file": "ComplianceClient/RepeatDataPathTrailingResource/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataPathTrailingResource",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataPathTrailingResource",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataPathTrailingResource",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataPathTrailingResource",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataQuery_sync",
+      "title": "showcase RepeatDataQuery Sample",
+      "file": "ComplianceClient/RepeatDataQuery/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataQuery",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataQuery",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataQuery",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataQuery",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_RepeatDataSimplePath_sync",
+      "title": "showcase RepeatDataSimplePath Sample",
+      "file": "ComplianceClient/RepeatDataSimplePath/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "RepeatDataSimplePath",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.RepeatDataSimplePath",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "RepeatDataSimplePath",
+          "fullName": "google.showcase.v1beta1.Compliance.RepeatDataSimplePath",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_SetIamPolicy_sync",
+      "title": "showcase SetIamPolicy Sample",
+      "file": "ComplianceClient/SetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SetIamPolicy",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.SetIamPolicy",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "SetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Compliance.SetIamPolicy",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_TestIamPermissions_sync",
+      "title": "showcase TestIamPermissions Sample",
+      "file": "ComplianceClient/TestIamPermissions/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "TestIamPermissions",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.TestIamPermissions",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "TestIamPermissions",
+          "fullName": "google.showcase.v1beta1.Compliance.TestIamPermissions",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Compliance_VerifyEnum_sync",
+      "title": "showcase VerifyEnum Sample",
+      "file": "ComplianceClient/VerifyEnum/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "VerifyEnum",
+        "fullName": "google.showcase.v1beta1.ComplianceClient.VerifyEnum",
+        "client": {
+          "shortName": "ComplianceClient",
+          "fullName": "google.showcase.v1beta1.ComplianceClient"
+        },
+        "method": {
+          "shortName": "VerifyEnum",
+          "fullName": "google.showcase.v1beta1.Compliance.VerifyEnum",
+          "service": {
+            "shortName": "Compliance",
+            "fullName": "google.showcase.v1beta1.Compliance"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_Block_sync",
+      "title": "showcase Block Sample",
+      "file": "EchoClient/Block/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "Block",
+        "fullName": "google.showcase.v1beta1.EchoClient.Block",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "Block",
+          "fullName": "google.showcase.v1beta1.Echo.Block",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_CancelOperation_sync",
+      "title": "showcase CancelOperation Sample",
+      "file": "EchoClient/CancelOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CancelOperation",
+        "fullName": "google.showcase.v1beta1.EchoClient.CancelOperation",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "CancelOperation",
+          "fullName": "google.showcase.v1beta1.Echo.CancelOperation",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_Chat_sync",
+      "title": "showcase Chat Sample",
+      "file": "EchoClient/Chat/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "Chat",
+        "fullName": "google.showcase.v1beta1.EchoClient.Chat",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "Chat",
+          "fullName": "google.showcase.v1beta1.Echo.Chat",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 68,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_Collect_sync",
+      "title": "showcase Collect Sample",
+      "file": "EchoClient/Collect/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "Collect",
+        "fullName": "google.showcase.v1beta1.EchoClient.Collect",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "Collect",
+          "fullName": "google.showcase.v1beta1.Echo.Collect",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 27,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_DeleteOperation_sync",
+      "title": "showcase DeleteOperation Sample",
+      "file": "EchoClient/DeleteOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteOperation",
+        "fullName": "google.showcase.v1beta1.EchoClient.DeleteOperation",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "DeleteOperation",
+          "fullName": "google.showcase.v1beta1.Echo.DeleteOperation",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_Echo_sync",
+      "title": "showcase Echo Sample",
+      "file": "EchoClient/Echo/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "Echo",
+        "fullName": "google.showcase.v1beta1.EchoClient.Echo",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "Echo",
+          "fullName": "google.showcase.v1beta1.Echo.Echo",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_Expand_sync",
+      "title": "showcase Expand Sample",
+      "file": "EchoClient/Expand/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "Expand",
+        "fullName": "google.showcase.v1beta1.EchoClient.Expand",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "Expand",
+          "fullName": "google.showcase.v1beta1.Echo.Expand",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 27,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_GetIamPolicy_sync",
+      "title": "showcase GetIamPolicy Sample",
+      "file": "EchoClient/GetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetIamPolicy",
+        "fullName": "google.showcase.v1beta1.EchoClient.GetIamPolicy",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "GetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Echo.GetIamPolicy",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_GetLocation_sync",
+      "title": "showcase GetLocation Sample",
+      "file": "EchoClient/GetLocation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetLocation",
+        "fullName": "google.showcase.v1beta1.EchoClient.GetLocation",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "GetLocation",
+          "fullName": "google.showcase.v1beta1.Echo.GetLocation",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_GetOperation_sync",
+      "title": "showcase GetOperation Sample",
+      "file": "EchoClient/GetOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetOperation",
+        "fullName": "google.showcase.v1beta1.EchoClient.GetOperation",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "GetOperation",
+          "fullName": "google.showcase.v1beta1.Echo.GetOperation",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_ListLocations_sync",
+      "title": "showcase ListLocations Sample",
+      "file": "EchoClient/ListLocations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListLocations",
+        "fullName": "google.showcase.v1beta1.EchoClient.ListLocations",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "ListLocations",
+          "fullName": "google.showcase.v1beta1.Echo.ListLocations",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_ListOperations_sync",
+      "title": "showcase ListOperations Sample",
+      "file": "EchoClient/ListOperations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListOperations",
+        "fullName": "google.showcase.v1beta1.EchoClient.ListOperations",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "ListOperations",
+          "fullName": "google.showcase.v1beta1.Echo.ListOperations",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_PagedExpand_sync",
+      "title": "showcase PagedExpand Sample",
+      "file": "EchoClient/PagedExpand/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "PagedExpand",
+        "fullName": "google.showcase.v1beta1.EchoClient.PagedExpand",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "PagedExpand",
+          "fullName": "google.showcase.v1beta1.Echo.PagedExpand",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_PagedExpandLegacy_sync",
+      "title": "showcase PagedExpandLegacy Sample",
+      "file": "EchoClient/PagedExpandLegacy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "PagedExpandLegacy",
+        "fullName": "google.showcase.v1beta1.EchoClient.PagedExpandLegacy",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "PagedExpandLegacy",
+          "fullName": "google.showcase.v1beta1.Echo.PagedExpandLegacy",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_PagedExpandLegacyMapped_sync",
+      "title": "showcase PagedExpandLegacyMapped Sample",
+      "file": "EchoClient/PagedExpandLegacyMapped/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "PagedExpandLegacyMapped",
+        "fullName": "google.showcase.v1beta1.EchoClient.PagedExpandLegacyMapped",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "PagedExpandLegacyMapped",
+          "fullName": "google.showcase.v1beta1.Echo.PagedExpandLegacyMapped",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_SetIamPolicy_sync",
+      "title": "showcase SetIamPolicy Sample",
+      "file": "EchoClient/SetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SetIamPolicy",
+        "fullName": "google.showcase.v1beta1.EchoClient.SetIamPolicy",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "SetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Echo.SetIamPolicy",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_TestIamPermissions_sync",
+      "title": "showcase TestIamPermissions Sample",
+      "file": "EchoClient/TestIamPermissions/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "TestIamPermissions",
+        "fullName": "google.showcase.v1beta1.EchoClient.TestIamPermissions",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "TestIamPermissions",
+          "fullName": "google.showcase.v1beta1.Echo.TestIamPermissions",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Echo_Wait_sync",
+      "title": "showcase Wait Sample",
+      "file": "EchoClient/Wait/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "Wait",
+        "fullName": "google.showcase.v1beta1.EchoClient.Wait",
+        "client": {
+          "shortName": "EchoClient",
+          "fullName": "google.showcase.v1beta1.EchoClient"
+        },
+        "method": {
+          "shortName": "Wait",
+          "fullName": "google.showcase.v1beta1.Echo.Wait",
+          "service": {
+            "shortName": "Echo",
+            "fullName": "google.showcase.v1beta1.Echo"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 56,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_CancelOperation_sync",
+      "title": "showcase CancelOperation Sample",
+      "file": "IdentityClient/CancelOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CancelOperation",
+        "fullName": "google.showcase.v1beta1.IdentityClient.CancelOperation",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "CancelOperation",
+          "fullName": "google.showcase.v1beta1.Identity.CancelOperation",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_CreateUser_sync",
+      "title": "showcase CreateUser Sample",
+      "file": "IdentityClient/CreateUser/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CreateUser",
+        "fullName": "google.showcase.v1beta1.IdentityClient.CreateUser",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "CreateUser",
+          "fullName": "google.showcase.v1beta1.Identity.CreateUser",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_DeleteOperation_sync",
+      "title": "showcase DeleteOperation Sample",
+      "file": "IdentityClient/DeleteOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteOperation",
+        "fullName": "google.showcase.v1beta1.IdentityClient.DeleteOperation",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "DeleteOperation",
+          "fullName": "google.showcase.v1beta1.Identity.DeleteOperation",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_DeleteUser_sync",
+      "title": "showcase DeleteUser Sample",
+      "file": "IdentityClient/DeleteUser/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteUser",
+        "fullName": "google.showcase.v1beta1.IdentityClient.DeleteUser",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "DeleteUser",
+          "fullName": "google.showcase.v1beta1.Identity.DeleteUser",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_GetIamPolicy_sync",
+      "title": "showcase GetIamPolicy Sample",
+      "file": "IdentityClient/GetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetIamPolicy",
+        "fullName": "google.showcase.v1beta1.IdentityClient.GetIamPolicy",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "GetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Identity.GetIamPolicy",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_GetLocation_sync",
+      "title": "showcase GetLocation Sample",
+      "file": "IdentityClient/GetLocation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetLocation",
+        "fullName": "google.showcase.v1beta1.IdentityClient.GetLocation",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "GetLocation",
+          "fullName": "google.showcase.v1beta1.Identity.GetLocation",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_GetOperation_sync",
+      "title": "showcase GetOperation Sample",
+      "file": "IdentityClient/GetOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetOperation",
+        "fullName": "google.showcase.v1beta1.IdentityClient.GetOperation",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "GetOperation",
+          "fullName": "google.showcase.v1beta1.Identity.GetOperation",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_GetUser_sync",
+      "title": "showcase GetUser Sample",
+      "file": "IdentityClient/GetUser/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetUser",
+        "fullName": "google.showcase.v1beta1.IdentityClient.GetUser",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "GetUser",
+          "fullName": "google.showcase.v1beta1.Identity.GetUser",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_ListLocations_sync",
+      "title": "showcase ListLocations Sample",
+      "file": "IdentityClient/ListLocations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListLocations",
+        "fullName": "google.showcase.v1beta1.IdentityClient.ListLocations",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "ListLocations",
+          "fullName": "google.showcase.v1beta1.Identity.ListLocations",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_ListOperations_sync",
+      "title": "showcase ListOperations Sample",
+      "file": "IdentityClient/ListOperations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListOperations",
+        "fullName": "google.showcase.v1beta1.IdentityClient.ListOperations",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "ListOperations",
+          "fullName": "google.showcase.v1beta1.Identity.ListOperations",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_ListUsers_sync",
+      "title": "showcase ListUsers Sample",
+      "file": "IdentityClient/ListUsers/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListUsers",
+        "fullName": "google.showcase.v1beta1.IdentityClient.ListUsers",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "ListUsers",
+          "fullName": "google.showcase.v1beta1.Identity.ListUsers",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_SetIamPolicy_sync",
+      "title": "showcase SetIamPolicy Sample",
+      "file": "IdentityClient/SetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SetIamPolicy",
+        "fullName": "google.showcase.v1beta1.IdentityClient.SetIamPolicy",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "SetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Identity.SetIamPolicy",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_TestIamPermissions_sync",
+      "title": "showcase TestIamPermissions Sample",
+      "file": "IdentityClient/TestIamPermissions/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "TestIamPermissions",
+        "fullName": "google.showcase.v1beta1.IdentityClient.TestIamPermissions",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "TestIamPermissions",
+          "fullName": "google.showcase.v1beta1.Identity.TestIamPermissions",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Identity_UpdateUser_sync",
+      "title": "showcase UpdateUser Sample",
+      "file": "IdentityClient/UpdateUser/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "UpdateUser",
+        "fullName": "google.showcase.v1beta1.IdentityClient.UpdateUser",
+        "client": {
+          "shortName": "IdentityClient",
+          "fullName": "google.showcase.v1beta1.IdentityClient"
+        },
+        "method": {
+          "shortName": "UpdateUser",
+          "fullName": "google.showcase.v1beta1.Identity.UpdateUser",
+          "service": {
+            "shortName": "Identity",
+            "fullName": "google.showcase.v1beta1.Identity"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_CancelOperation_sync",
+      "title": "showcase CancelOperation Sample",
+      "file": "MessagingClient/CancelOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CancelOperation",
+        "fullName": "google.showcase.v1beta1.MessagingClient.CancelOperation",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "CancelOperation",
+          "fullName": "google.showcase.v1beta1.Messaging.CancelOperation",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_Connect_sync",
+      "title": "showcase Connect Sample",
+      "file": "MessagingClient/Connect/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "Connect",
+        "fullName": "google.showcase.v1beta1.MessagingClient.Connect",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "Connect",
+          "fullName": "google.showcase.v1beta1.Messaging.Connect",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 68,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_CreateBlurb_sync",
+      "title": "showcase CreateBlurb Sample",
+      "file": "MessagingClient/CreateBlurb/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CreateBlurb",
+        "fullName": "google.showcase.v1beta1.MessagingClient.CreateBlurb",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "CreateBlurb",
+          "fullName": "google.showcase.v1beta1.Messaging.CreateBlurb",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_CreateRoom_sync",
+      "title": "showcase CreateRoom Sample",
+      "file": "MessagingClient/CreateRoom/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CreateRoom",
+        "fullName": "google.showcase.v1beta1.MessagingClient.CreateRoom",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "CreateRoom",
+          "fullName": "google.showcase.v1beta1.Messaging.CreateRoom",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_DeleteBlurb_sync",
+      "title": "showcase DeleteBlurb Sample",
+      "file": "MessagingClient/DeleteBlurb/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteBlurb",
+        "fullName": "google.showcase.v1beta1.MessagingClient.DeleteBlurb",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "DeleteBlurb",
+          "fullName": "google.showcase.v1beta1.Messaging.DeleteBlurb",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_DeleteOperation_sync",
+      "title": "showcase DeleteOperation Sample",
+      "file": "MessagingClient/DeleteOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteOperation",
+        "fullName": "google.showcase.v1beta1.MessagingClient.DeleteOperation",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "DeleteOperation",
+          "fullName": "google.showcase.v1beta1.Messaging.DeleteOperation",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_DeleteRoom_sync",
+      "title": "showcase DeleteRoom Sample",
+      "file": "MessagingClient/DeleteRoom/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteRoom",
+        "fullName": "google.showcase.v1beta1.MessagingClient.DeleteRoom",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "DeleteRoom",
+          "fullName": "google.showcase.v1beta1.Messaging.DeleteRoom",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_GetBlurb_sync",
+      "title": "showcase GetBlurb Sample",
+      "file": "MessagingClient/GetBlurb/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetBlurb",
+        "fullName": "google.showcase.v1beta1.MessagingClient.GetBlurb",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "GetBlurb",
+          "fullName": "google.showcase.v1beta1.Messaging.GetBlurb",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_GetIamPolicy_sync",
+      "title": "showcase GetIamPolicy Sample",
+      "file": "MessagingClient/GetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetIamPolicy",
+        "fullName": "google.showcase.v1beta1.MessagingClient.GetIamPolicy",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "GetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Messaging.GetIamPolicy",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_GetLocation_sync",
+      "title": "showcase GetLocation Sample",
+      "file": "MessagingClient/GetLocation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetLocation",
+        "fullName": "google.showcase.v1beta1.MessagingClient.GetLocation",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "GetLocation",
+          "fullName": "google.showcase.v1beta1.Messaging.GetLocation",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_GetOperation_sync",
+      "title": "showcase GetOperation Sample",
+      "file": "MessagingClient/GetOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetOperation",
+        "fullName": "google.showcase.v1beta1.MessagingClient.GetOperation",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "GetOperation",
+          "fullName": "google.showcase.v1beta1.Messaging.GetOperation",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_GetRoom_sync",
+      "title": "showcase GetRoom Sample",
+      "file": "MessagingClient/GetRoom/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetRoom",
+        "fullName": "google.showcase.v1beta1.MessagingClient.GetRoom",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "GetRoom",
+          "fullName": "google.showcase.v1beta1.Messaging.GetRoom",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_ListBlurbs_sync",
+      "title": "showcase ListBlurbs Sample",
+      "file": "MessagingClient/ListBlurbs/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListBlurbs",
+        "fullName": "google.showcase.v1beta1.MessagingClient.ListBlurbs",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "ListBlurbs",
+          "fullName": "google.showcase.v1beta1.Messaging.ListBlurbs",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_ListLocations_sync",
+      "title": "showcase ListLocations Sample",
+      "file": "MessagingClient/ListLocations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListLocations",
+        "fullName": "google.showcase.v1beta1.MessagingClient.ListLocations",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "ListLocations",
+          "fullName": "google.showcase.v1beta1.Messaging.ListLocations",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_ListOperations_sync",
+      "title": "showcase ListOperations Sample",
+      "file": "MessagingClient/ListOperations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListOperations",
+        "fullName": "google.showcase.v1beta1.MessagingClient.ListOperations",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "ListOperations",
+          "fullName": "google.showcase.v1beta1.Messaging.ListOperations",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_ListRooms_sync",
+      "title": "showcase ListRooms Sample",
+      "file": "MessagingClient/ListRooms/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListRooms",
+        "fullName": "google.showcase.v1beta1.MessagingClient.ListRooms",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "ListRooms",
+          "fullName": "google.showcase.v1beta1.Messaging.ListRooms",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_SearchBlurbs_sync",
+      "title": "showcase SearchBlurbs Sample",
+      "file": "MessagingClient/SearchBlurbs/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SearchBlurbs",
+        "fullName": "google.showcase.v1beta1.MessagingClient.SearchBlurbs",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "SearchBlurbs",
+          "fullName": "google.showcase.v1beta1.Messaging.SearchBlurbs",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 56,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_SendBlurbs_sync",
+      "title": "showcase SendBlurbs Sample",
+      "file": "MessagingClient/SendBlurbs/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SendBlurbs",
+        "fullName": "google.showcase.v1beta1.MessagingClient.SendBlurbs",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "SendBlurbs",
+          "fullName": "google.showcase.v1beta1.Messaging.SendBlurbs",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 27,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_SetIamPolicy_sync",
+      "title": "showcase SetIamPolicy Sample",
+      "file": "MessagingClient/SetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SetIamPolicy",
+        "fullName": "google.showcase.v1beta1.MessagingClient.SetIamPolicy",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "SetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Messaging.SetIamPolicy",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_StreamBlurbs_sync",
+      "title": "showcase StreamBlurbs Sample",
+      "file": "MessagingClient/StreamBlurbs/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "StreamBlurbs",
+        "fullName": "google.showcase.v1beta1.MessagingClient.StreamBlurbs",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "StreamBlurbs",
+          "fullName": "google.showcase.v1beta1.Messaging.StreamBlurbs",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 27,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_TestIamPermissions_sync",
+      "title": "showcase TestIamPermissions Sample",
+      "file": "MessagingClient/TestIamPermissions/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "TestIamPermissions",
+        "fullName": "google.showcase.v1beta1.MessagingClient.TestIamPermissions",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "TestIamPermissions",
+          "fullName": "google.showcase.v1beta1.Messaging.TestIamPermissions",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_UpdateBlurb_sync",
+      "title": "showcase UpdateBlurb Sample",
+      "file": "MessagingClient/UpdateBlurb/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "UpdateBlurb",
+        "fullName": "google.showcase.v1beta1.MessagingClient.UpdateBlurb",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "UpdateBlurb",
+          "fullName": "google.showcase.v1beta1.Messaging.UpdateBlurb",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Messaging_UpdateRoom_sync",
+      "title": "showcase UpdateRoom Sample",
+      "file": "MessagingClient/UpdateRoom/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "UpdateRoom",
+        "fullName": "google.showcase.v1beta1.MessagingClient.UpdateRoom",
+        "client": {
+          "shortName": "MessagingClient",
+          "fullName": "google.showcase.v1beta1.MessagingClient"
+        },
+        "method": {
+          "shortName": "UpdateRoom",
+          "fullName": "google.showcase.v1beta1.Messaging.UpdateRoom",
+          "service": {
+            "shortName": "Messaging",
+            "fullName": "google.showcase.v1beta1.Messaging"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_AttemptSequence_sync",
+      "title": "showcase AttemptSequence Sample",
+      "file": "SequenceClient/AttemptSequence/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "AttemptSequence",
+        "fullName": "google.showcase.v1beta1.SequenceClient.AttemptSequence",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "AttemptSequence",
+          "fullName": "google.showcase.v1beta1.Sequence.AttemptSequence",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_CancelOperation_sync",
+      "title": "showcase CancelOperation Sample",
+      "file": "SequenceClient/CancelOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CancelOperation",
+        "fullName": "google.showcase.v1beta1.SequenceClient.CancelOperation",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "CancelOperation",
+          "fullName": "google.showcase.v1beta1.Sequence.CancelOperation",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_CreateSequence_sync",
+      "title": "showcase CreateSequence Sample",
+      "file": "SequenceClient/CreateSequence/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CreateSequence",
+        "fullName": "google.showcase.v1beta1.SequenceClient.CreateSequence",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "CreateSequence",
+          "fullName": "google.showcase.v1beta1.Sequence.CreateSequence",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_DeleteOperation_sync",
+      "title": "showcase DeleteOperation Sample",
+      "file": "SequenceClient/DeleteOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteOperation",
+        "fullName": "google.showcase.v1beta1.SequenceClient.DeleteOperation",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "DeleteOperation",
+          "fullName": "google.showcase.v1beta1.Sequence.DeleteOperation",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_GetIamPolicy_sync",
+      "title": "showcase GetIamPolicy Sample",
+      "file": "SequenceClient/GetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetIamPolicy",
+        "fullName": "google.showcase.v1beta1.SequenceClient.GetIamPolicy",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "GetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Sequence.GetIamPolicy",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_GetLocation_sync",
+      "title": "showcase GetLocation Sample",
+      "file": "SequenceClient/GetLocation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetLocation",
+        "fullName": "google.showcase.v1beta1.SequenceClient.GetLocation",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "GetLocation",
+          "fullName": "google.showcase.v1beta1.Sequence.GetLocation",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_GetOperation_sync",
+      "title": "showcase GetOperation Sample",
+      "file": "SequenceClient/GetOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetOperation",
+        "fullName": "google.showcase.v1beta1.SequenceClient.GetOperation",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "GetOperation",
+          "fullName": "google.showcase.v1beta1.Sequence.GetOperation",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_GetSequenceReport_sync",
+      "title": "showcase GetSequenceReport Sample",
+      "file": "SequenceClient/GetSequenceReport/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetSequenceReport",
+        "fullName": "google.showcase.v1beta1.SequenceClient.GetSequenceReport",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "GetSequenceReport",
+          "fullName": "google.showcase.v1beta1.Sequence.GetSequenceReport",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_ListLocations_sync",
+      "title": "showcase ListLocations Sample",
+      "file": "SequenceClient/ListLocations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListLocations",
+        "fullName": "google.showcase.v1beta1.SequenceClient.ListLocations",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "ListLocations",
+          "fullName": "google.showcase.v1beta1.Sequence.ListLocations",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_ListOperations_sync",
+      "title": "showcase ListOperations Sample",
+      "file": "SequenceClient/ListOperations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListOperations",
+        "fullName": "google.showcase.v1beta1.SequenceClient.ListOperations",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "ListOperations",
+          "fullName": "google.showcase.v1beta1.Sequence.ListOperations",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_SetIamPolicy_sync",
+      "title": "showcase SetIamPolicy Sample",
+      "file": "SequenceClient/SetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SetIamPolicy",
+        "fullName": "google.showcase.v1beta1.SequenceClient.SetIamPolicy",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "SetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Sequence.SetIamPolicy",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_SequenceService_TestIamPermissions_sync",
+      "title": "showcase TestIamPermissions Sample",
+      "file": "SequenceClient/TestIamPermissions/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "TestIamPermissions",
+        "fullName": "google.showcase.v1beta1.SequenceClient.TestIamPermissions",
+        "client": {
+          "shortName": "SequenceClient",
+          "fullName": "google.showcase.v1beta1.SequenceClient"
+        },
+        "method": {
+          "shortName": "TestIamPermissions",
+          "fullName": "google.showcase.v1beta1.Sequence.TestIamPermissions",
+          "service": {
+            "shortName": "Sequence",
+            "fullName": "google.showcase.v1beta1.Sequence"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_CancelOperation_sync",
+      "title": "showcase CancelOperation Sample",
+      "file": "TestingClient/CancelOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CancelOperation",
+        "fullName": "google.showcase.v1beta1.TestingClient.CancelOperation",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "CancelOperation",
+          "fullName": "google.showcase.v1beta1.Testing.CancelOperation",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_CreateSession_sync",
+      "title": "showcase CreateSession Sample",
+      "file": "TestingClient/CreateSession/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "CreateSession",
+        "fullName": "google.showcase.v1beta1.TestingClient.CreateSession",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "CreateSession",
+          "fullName": "google.showcase.v1beta1.Testing.CreateSession",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_DeleteOperation_sync",
+      "title": "showcase DeleteOperation Sample",
+      "file": "TestingClient/DeleteOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteOperation",
+        "fullName": "google.showcase.v1beta1.TestingClient.DeleteOperation",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "DeleteOperation",
+          "fullName": "google.showcase.v1beta1.Testing.DeleteOperation",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_DeleteSession_sync",
+      "title": "showcase DeleteSession Sample",
+      "file": "TestingClient/DeleteSession/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteSession",
+        "fullName": "google.showcase.v1beta1.TestingClient.DeleteSession",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "DeleteSession",
+          "fullName": "google.showcase.v1beta1.Testing.DeleteSession",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_DeleteTest_sync",
+      "title": "showcase DeleteTest Sample",
+      "file": "TestingClient/DeleteTest/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "DeleteTest",
+        "fullName": "google.showcase.v1beta1.TestingClient.DeleteTest",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "DeleteTest",
+          "fullName": "google.showcase.v1beta1.Testing.DeleteTest",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 49,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_GetIamPolicy_sync",
+      "title": "showcase GetIamPolicy Sample",
+      "file": "TestingClient/GetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetIamPolicy",
+        "fullName": "google.showcase.v1beta1.TestingClient.GetIamPolicy",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "GetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Testing.GetIamPolicy",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_GetLocation_sync",
+      "title": "showcase GetLocation Sample",
+      "file": "TestingClient/GetLocation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetLocation",
+        "fullName": "google.showcase.v1beta1.TestingClient.GetLocation",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "GetLocation",
+          "fullName": "google.showcase.v1beta1.Testing.GetLocation",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_GetOperation_sync",
+      "title": "showcase GetOperation Sample",
+      "file": "TestingClient/GetOperation/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetOperation",
+        "fullName": "google.showcase.v1beta1.TestingClient.GetOperation",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "GetOperation",
+          "fullName": "google.showcase.v1beta1.Testing.GetOperation",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_GetSession_sync",
+      "title": "showcase GetSession Sample",
+      "file": "TestingClient/GetSession/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "GetSession",
+        "fullName": "google.showcase.v1beta1.TestingClient.GetSession",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "GetSession",
+          "fullName": "google.showcase.v1beta1.Testing.GetSession",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_ListLocations_sync",
+      "title": "showcase ListLocations Sample",
+      "file": "TestingClient/ListLocations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListLocations",
+        "fullName": "google.showcase.v1beta1.TestingClient.ListLocations",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "ListLocations",
+          "fullName": "google.showcase.v1beta1.Testing.ListLocations",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_ListOperations_sync",
+      "title": "showcase ListOperations Sample",
+      "file": "TestingClient/ListOperations/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListOperations",
+        "fullName": "google.showcase.v1beta1.TestingClient.ListOperations",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "ListOperations",
+          "fullName": "google.showcase.v1beta1.Testing.ListOperations",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_ListSessions_sync",
+      "title": "showcase ListSessions Sample",
+      "file": "TestingClient/ListSessions/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListSessions",
+        "fullName": "google.showcase.v1beta1.TestingClient.ListSessions",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "ListSessions",
+          "fullName": "google.showcase.v1beta1.Testing.ListSessions",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_ListTests_sync",
+      "title": "showcase ListTests Sample",
+      "file": "TestingClient/ListTests/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ListTests",
+        "fullName": "google.showcase.v1beta1.TestingClient.ListTests",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "ListTests",
+          "fullName": "google.showcase.v1beta1.Testing.ListTests",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 58,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_ReportSession_sync",
+      "title": "showcase ReportSession Sample",
+      "file": "TestingClient/ReportSession/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "ReportSession",
+        "fullName": "google.showcase.v1beta1.TestingClient.ReportSession",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "ReportSession",
+          "fullName": "google.showcase.v1beta1.Testing.ReportSession",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_SetIamPolicy_sync",
+      "title": "showcase SetIamPolicy Sample",
+      "file": "TestingClient/SetIamPolicy/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "SetIamPolicy",
+        "fullName": "google.showcase.v1beta1.TestingClient.SetIamPolicy",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "SetIamPolicy",
+          "fullName": "google.showcase.v1beta1.Testing.SetIamPolicy",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_TestIamPermissions_sync",
+      "title": "showcase TestIamPermissions Sample",
+      "file": "TestingClient/TestIamPermissions/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "TestIamPermissions",
+        "fullName": "google.showcase.v1beta1.TestingClient.TestIamPermissions",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "TestIamPermissions",
+          "fullName": "google.showcase.v1beta1.Testing.TestIamPermissions",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    },
+    {
+      "regionTag": "showcase_v1beta1_generated_Testing_VerifyTest_sync",
+      "title": "showcase VerifyTest Sample",
+      "file": "TestingClient/VerifyTest/main.go",
+      "language": "GO",
+      "clientMethod": {
+        "shortName": "VerifyTest",
+        "fullName": "google.showcase.v1beta1.TestingClient.VerifyTest",
+        "client": {
+          "shortName": "TestingClient",
+          "fullName": "google.showcase.v1beta1.TestingClient"
+        },
+        "method": {
+          "shortName": "VerifyTest",
+          "fullName": "google.showcase.v1beta1.Testing.VerifyTest",
+          "service": {
+            "shortName": "Testing",
+            "fullName": "google.showcase.v1beta1.Testing"
+          }
+        }
+      },
+      "origin": "API_DEFINITION",
+      "segments": [
+        {
+          "start": 18,
+          "end": 51,
+          "type": "FULL"
+        }
+      ]
+    }
+  ]
+}
