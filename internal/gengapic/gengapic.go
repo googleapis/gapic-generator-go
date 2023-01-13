@@ -115,6 +115,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			g.snippetMetadata.AddService(servName)
 			methods := append(s.GetMethod(), g.getMixinMethods()...)
 			for _, m := range methods {
+				if m.GetClientStreaming() != m.GetServerStreaming() {
+					// TODO: implement streaming examples correctly, see example.go TODOs.
+					continue
+				}
 				// For each method, reset the printer in order to write a separate main.go snippet file.
 				g.reset()
 				if err := g.genSnippetFile(s, m); err != nil {
@@ -550,7 +554,7 @@ func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorPro
 	// Prepend the method name to all non-empty comments.
 	com = m.GetName() + " " + lowerFirst(com)
 
-	if g.opts.snippets {
+	if g.opts.snippets && m.GetClientStreaming() == m.GetServerStreaming() {
 		g.snippetMetadata.UpdateMethodDoc(servName, m.GetName(), com)
 	}
 
