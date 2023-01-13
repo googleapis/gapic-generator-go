@@ -1017,48 +1017,6 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_Echo_Collect_sync",
-      "title": "showcase Collect Sample",
-      "description": "Collect this method will collect the words given to it. When the stream is closed\n by the client, this method will return the a concatenation of the strings\n passed to it. This method showcases client-side streaming RPCs.\n\n\nThis method is not supported for the REST transport.",
-      "file": "EchoClient/Collect/main.go",
-      "language": "GO",
-      "clientMethod": {
-        "shortName": "Collect",
-        "fullName": "google.showcase.v1beta1.EchoClient.Collect",
-        "parameters": [
-          {
-            "type": "context.Context",
-            "name": "ctx"
-          },
-          {
-            "type": "...gax.CallOption",
-            "name": "opts"
-          }
-        ],
-        "resultType": "genprotopb.Echo_CollectClient",
-        "client": {
-          "shortName": "EchoClient",
-          "fullName": "google.showcase.v1beta1.EchoClient"
-        },
-        "method": {
-          "shortName": "Collect",
-          "fullName": "google.showcase.v1beta1.Echo.Collect",
-          "service": {
-            "shortName": "Echo",
-            "fullName": "google.showcase.v1beta1.Echo"
-          }
-        }
-      },
-      "origin": "API_DEFINITION",
-      "segments": [
-        {
-          "start": 18,
-          "end": 25,
-          "type": "FULL"
-        }
-      ]
-    },
-    {
       "regionTag": "showcase_v1beta1_generated_Echo_DeleteOperation_sync",
       "title": "showcase DeleteOperation Sample",
       "description": "DeleteOperation is a utility method from google.longrunning.Operations.",
@@ -1145,52 +1103,6 @@
         {
           "start": 18,
           "end": 51,
-          "type": "FULL"
-        }
-      ]
-    },
-    {
-      "regionTag": "showcase_v1beta1_generated_Echo_Expand_sync",
-      "title": "showcase Expand Sample",
-      "description": "Expand this method splits the given content into words and will pass each word back\n through the stream. This method showcases server-side streaming RPCs.",
-      "file": "EchoClient/Expand/main.go",
-      "language": "GO",
-      "clientMethod": {
-        "shortName": "Expand",
-        "fullName": "google.showcase.v1beta1.EchoClient.Expand",
-        "parameters": [
-          {
-            "type": "context.Context",
-            "name": "ctx"
-          },
-          {
-            "type": "genprotopb.ExpandRequest",
-            "name": "req"
-          },
-          {
-            "type": "...gax.CallOption",
-            "name": "opts"
-          }
-        ],
-        "resultType": "genprotopb.Echo_ExpandClient",
-        "client": {
-          "shortName": "EchoClient",
-          "fullName": "google.showcase.v1beta1.EchoClient"
-        },
-        "method": {
-          "shortName": "Expand",
-          "fullName": "google.showcase.v1beta1.Echo.Expand",
-          "service": {
-            "shortName": "Echo",
-            "fullName": "google.showcase.v1beta1.Echo"
-          }
-        }
-      },
-      "origin": "API_DEFINITION",
-      "segments": [
-        {
-          "start": 18,
-          "end": 25,
           "type": "FULL"
         }
       ]
@@ -3117,48 +3029,6 @@
       ]
     },
     {
-      "regionTag": "showcase_v1beta1_generated_Messaging_SendBlurbs_sync",
-      "title": "showcase SendBlurbs Sample",
-      "description": "SendBlurbs this is a stream to create multiple blurbs. If an invalid blurb is\n requested to be created, the stream will close with an error.\n\n\nThis method is not supported for the REST transport.",
-      "file": "MessagingClient/SendBlurbs/main.go",
-      "language": "GO",
-      "clientMethod": {
-        "shortName": "SendBlurbs",
-        "fullName": "google.showcase.v1beta1.MessagingClient.SendBlurbs",
-        "parameters": [
-          {
-            "type": "context.Context",
-            "name": "ctx"
-          },
-          {
-            "type": "...gax.CallOption",
-            "name": "opts"
-          }
-        ],
-        "resultType": "genprotopb.Messaging_SendBlurbsClient",
-        "client": {
-          "shortName": "MessagingClient",
-          "fullName": "google.showcase.v1beta1.MessagingClient"
-        },
-        "method": {
-          "shortName": "SendBlurbs",
-          "fullName": "google.showcase.v1beta1.Messaging.SendBlurbs",
-          "service": {
-            "shortName": "Messaging",
-            "fullName": "google.showcase.v1beta1.Messaging"
-          }
-        }
-      },
-      "origin": "API_DEFINITION",
-      "segments": [
-        {
-          "start": 18,
-          "end": 25,
-          "type": "FULL"
-        }
-      ]
-    },
-    {
       "regionTag": "showcase_v1beta1_generated_Messaging_SetIamPolicy_sync",
       "title": "showcase SetIamPolicy Sample",
       "description": "SetIamPolicy is a utility method from google.iam.v1.IAMPolicy.",
@@ -3200,52 +3070,6 @@
         {
           "start": 18,
           "end": 51,
-          "type": "FULL"
-        }
-      ]
-    },
-    {
-      "regionTag": "showcase_v1beta1_generated_Messaging_StreamBlurbs_sync",
-      "title": "showcase StreamBlurbs Sample",
-      "description": "StreamBlurbs this returns a stream that emits the blurbs that are created for a\n particular chat room or user profile.",
-      "file": "MessagingClient/StreamBlurbs/main.go",
-      "language": "GO",
-      "clientMethod": {
-        "shortName": "StreamBlurbs",
-        "fullName": "google.showcase.v1beta1.MessagingClient.StreamBlurbs",
-        "parameters": [
-          {
-            "type": "context.Context",
-            "name": "ctx"
-          },
-          {
-            "type": "genprotopb.StreamBlurbsRequest",
-            "name": "req"
-          },
-          {
-            "type": "...gax.CallOption",
-            "name": "opts"
-          }
-        ],
-        "resultType": "genprotopb.Messaging_StreamBlurbsClient",
-        "client": {
-          "shortName": "MessagingClient",
-          "fullName": "google.showcase.v1beta1.MessagingClient"
-        },
-        "method": {
-          "shortName": "StreamBlurbs",
-          "fullName": "google.showcase.v1beta1.Messaging.StreamBlurbs",
-          "service": {
-            "shortName": "Messaging",
-            "fullName": "google.showcase.v1beta1.Messaging"
-          }
-        }
-      },
-      "origin": "API_DEFINITION",
-      "segments": [
-        {
-          "start": 18,
-          "end": 25,
           "type": "FULL"
         }
       ]
