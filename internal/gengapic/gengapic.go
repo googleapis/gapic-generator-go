@@ -99,7 +99,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	g.opts.snippets = true // TODO: remove post dev
 	if g.opts.snippets {
 		// Initialize the model that will collect snippet metadata.
-		g.snippetMetadata = snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage, g.serviceConfig.GetName())
+		g.snippetMetadata = snippets.NewMetadata(protoPkg,
+			g.metadata.LibraryPackage, g.serviceConfig.GetName())
 	}
 
 	for _, s := range genServs {
@@ -119,13 +120,15 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 					// TODO: implement streaming examples correctly, see example.go TODOs.
 					continue
 				}
-				// For each method, reset the printer in order to write a separate main.go snippet file.
+				// For each method, reset the generator in order to write a
+				// separate main.go snippet file.
 				g.reset()
 				if err := g.genSnippetFile(s, m); err != nil {
 					return &g.resp, errors.E(err, "snippet: %s", s.GetName())
 				}
 				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal", "snippets", servName+"Client", m.GetName(), "main.go"), "main")
+				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
+					"snippets", servName+"Client", m.GetName(), "main.go"), "main")
 				g.snippetMetadata.AddMethod(servName, m.GetName(), lineCount-1)
 			}
 		}
@@ -163,8 +166,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		if err != nil {
 			return &g.resp, err
 		}
+		file := filepath.Join(g.opts.outDir, "internal", "snippets",
+			fmt.Sprintf("snippet_metadata.%s.json", protoPkg))
 		g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(filepath.Join(g.opts.outDir, "internal", "snippets", fmt.Sprintf("snippet_metadata.%s.json", protoPkg))),
+			Name:    proto.String(file),
 			Content: proto.String(string(json[:])),
 		})
 	}
