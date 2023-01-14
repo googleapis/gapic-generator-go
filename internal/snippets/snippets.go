@@ -32,6 +32,16 @@ var headerLen = len(strings.Split(license.Apache, "\n"))
 
 var spaceSanitizerRegex = regexp.MustCompile(`:\s*`)
 
+var ctxParam = &param{
+	name:  "ctx",
+	pType: "context.Context",
+}
+
+var optsParam = &param{
+	name:  "opts",
+	pType: "...gax.CallOption",
+}
+
 // SnippetMetadata is a model for capturing snippet details and writing them to
 // a snippet_metadata.*.json file.
 type SnippetMetadata struct {
@@ -109,12 +119,7 @@ func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string
 	if m.params != nil {
 		panic(fmt.Sprintf("snippets: params already added to method: %s.%s", serviceName, methodName))
 	}
-	m.params = []*param{
-		{
-			name:  "ctx",
-			pType: "context.Context",
-		},
-	}
+	m.params = []*param{ctxParam}
 	if requestType != "" {
 		m.params = append(m.params,
 			&param{
@@ -122,11 +127,7 @@ func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string
 				pType: requestType,
 			})
 	}
-	m.params = append(m.params,
-		&param{
-			name:  "opts",
-			pType: "...gax.CallOption",
-		})
+	m.params = append(m.params, optsParam)
 }
 
 // RegionTag generates a snippet region tag from shortName, apiVersion, and the given full serviceName and method name.
