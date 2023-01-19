@@ -69,6 +69,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		genServs = append(genServs, f.GetService()...)
 	}
 
+	if len(genServs) == 0 {
+		return &g.resp, nil
+	}
+
 	g.checkIAMPolicyOverrides(genServs)
 
 	if g.serviceConfig != nil {
