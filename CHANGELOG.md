@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.7](https://github.com/googleapis/gapic-generator-go/compare/v0.33.6...v0.33.7) (2023-01-19)
+
+
+### Bug Fixes
+
+* **gengapic:** Fix panic when a file not conain any service ([#1214](https://github.com/googleapis/gapic-generator-go/issues/1214)) ([cd0c02f](https://github.com/googleapis/gapic-generator-go/commit/cd0c02f43a041b62c2cc9dfafe5aff8ccabe3485)), closes [#1213](https://github.com/googleapis/gapic-generator-go/issues/1213)
+
 ## [0.33.6](https://github.com/googleapis/gapic-generator-go/compare/v0.33.5...v0.33.6) (2023-01-09)
 
 
