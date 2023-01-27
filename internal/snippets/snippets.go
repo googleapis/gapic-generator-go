@@ -47,17 +47,20 @@ var optsParam = &param{
 type SnippetMetadata struct {
 	// protoPkg is the proto namespace for the API package.
 	protoPkg string
-	// libPkg is the gapic import path.
+	// libPkg is the Go import path for the GAPIC client.
 	libPkg string
 	// protoServices is a map of gapic service short names to service structs.
 	protoServices map[string]*service
 	// apiVersion is the gapic service version. (e.g. "v1", "v1beta1")
 	apiVersion string
-	// shortName the first element of API service config DNS-like Name field. (e.g. "bigquerymigration")
+	// shortName the first element of API service config DNS-like Name field. (e.g. "bigquerymigration" from "bigquerymigration.googleapis.com")
 	shortName string
 }
 
-// NewMetadata initializes the model that will collect snippet metadata.
+// NewMetadata initializes the model that will collect snippet metadata, from:
+// protoPkg - dot-separated, without final type name element (e.g. "google.cloud.bigquery.migration.v2")
+// libPkg - the Go import path for the GAPIC client, per libraryPackage in gapic_metadata.json (e.g. "cloud.google.com/go/bigquery/migration/apiv2")
+// serviceConfigName - the API service config DNS-like Name field. (e.g. "bigquerymigration.googleapis.com")
 func NewMetadata(protoPkg, libPkg, serviceConfigName string) *SnippetMetadata {
 	protoParts := strings.Split(protoPkg, ".")
 	apiVersion := protoParts[len(protoParts)-1]
