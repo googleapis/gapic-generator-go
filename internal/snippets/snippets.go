@@ -74,7 +74,8 @@ func NewMetadata(protoPkg, libPkg, serviceConfigName string) *SnippetMetadata {
 	}
 }
 
-// service short name (e.g. "AutoscalingPolicyService")
+// AddService uses the service short name (e.g. "AutoscalingPolicyService") identifier
+// to add a service entry.
 func (ai *SnippetMetadata) AddService(serviceName string) {
 	if ai.protoServices[serviceName] != nil {
 		panic(fmt.Sprintf("snippets: service %s already added to metadata", serviceName))
@@ -86,7 +87,9 @@ func (ai *SnippetMetadata) AddService(serviceName string) {
 	ai.protoServices[serviceName] = s
 }
 
-// service short name (e.g. "AutoscalingPolicyService")
+// AddMethod uses the service short name (e.g. "AutoscalingPolicyService") and method name
+// identifiers to add an incomplete method entry that will be updated via UpdateMethodDoc
+// and UpdateMethodResult.
 func (ai *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEnd int) {
 	if ai.protoServices[serviceName] == nil {
 		panic(fmt.Sprintf("snippets: service not found: %s", serviceName))
@@ -102,19 +105,21 @@ func (ai *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEn
 	ai.protoServices[serviceName].methods[methodName] = m
 }
 
-// service short name (e.g. "AutoscalingPolicyService"), doc method comment
+// UpdateMethodDoc uses service short name (e.g. "AutoscalingPolicyService") and
+// and method name identifiers to add a doc method comment.
 func (ai *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) {
 	m := ai.method(serviceName, methodName)
 	m.doc = doc
 }
 
-// service short name (e.g. "AutoscalingPolicyService"), result type
+// UpdateMethodResult uses service short name (e.g. "AutoscalingPolicyService") and
+// and method name identifiers to add a method result type.
 func (ai *SnippetMetadata) UpdateMethodResult(serviceName, methodName, result string) {
 	m := ai.method(serviceName, methodName)
 	m.result = result
 }
 
-// Adds a slice of 3 params to the method: ctx context.Context, req <requestType>, opts ...gax.CallOption,
+// AddParams adds a slice of 3 params to the method: ctx context.Context, req <requestType>, opts ...gax.CallOption,
 // ctx and opts params are hardcoded since these are currently the same in all client wrapper methods.
 // The req param will be omitted if empty requestType is given.
 func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string) {
@@ -138,6 +143,8 @@ func (ai *SnippetMetadata) RegionTag(serviceName, methodName string) string {
 	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", ai.shortName, ai.apiVersion, serviceName, methodName)
 }
 
+// ToMetadataJSON marshals the completed SnippetMetadata to a []byte containing
+// the protojson output.
 func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 	m := ai.toSnippetMetadata()
 	b, err := protojson.MarshalOptions{Multiline: true}.Marshal(m)
