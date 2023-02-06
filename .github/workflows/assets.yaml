@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: '1.15.8'
+          go-version: '1.17.13'
       - uses: actions/checkout@v3
       # The generator does not use these,  but we need them to build the
       # binaries.
@@ -32,8 +32,8 @@ jobs:
       # automatically as a dependency.
       - name: Install the cross-platform build tool.
         run: |
-          go get github.com/mitchellh/gox
-          go get github.com/inconshreveable/mousetrap
+          go install github.com/mitchellh/gox@latest
+          go get github.com/inconshreveable/mousetrap@latest
       - name: Build for the ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} platform.
         run: |
           gox -osarch ${{ matrix.osarch.os }}/${{ matrix.osarch.arch }} -output protoc-gen-go_gapic ./cmd/protoc-gen-go_gapic && \
