@@ -52,7 +52,6 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 	p("  return resp, nil")
 	p("}")
 	p("")
-
 	return nil
 }
 

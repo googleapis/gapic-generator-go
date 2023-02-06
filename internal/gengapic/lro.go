@@ -71,7 +71,6 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
-
 	return nil
 }
 

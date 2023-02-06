@@ -96,7 +96,6 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 	g.metadata.LibraryPackage = g.opts.pkgPath
 
-	g.opts.snippets = true // TODO: remove post dev
 	if g.opts.snippets {
 		// Initialize the model that will collect snippet metadata.
 		g.snippetMetadata = snippets.NewMetadata(protoPkg,
