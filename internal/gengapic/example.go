@@ -48,7 +48,7 @@ func (g *generator) genSnippetFile(s *descriptor.ServiceDescriptorProto, m *desc
 	servName := pbinfo.ReduceServName(s.GetName(), pkgName)
 
 	p := g.printf
-	p("func Main() {")
+	p("func main() {")
 	if err := g.exampleMethodBody(pkgName, servName, m); err != nil {
 		return err
 	}
@@ -92,6 +92,8 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	p("  // TODO: Handle error.")
 	p("}")
 	p("defer c.Close()")
+
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 }
 
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
