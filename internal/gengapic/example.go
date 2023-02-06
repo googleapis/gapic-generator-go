@@ -31,6 +31,7 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) erro
 	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
 
 	g.exampleClientFactory(pkgName, servName)
+
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 
 	for _, m := range methods {
