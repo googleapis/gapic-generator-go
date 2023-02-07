@@ -27,6 +27,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+// VersionPlaceholder is the string value $VERSION, intended to be replaced with
+// the actual module version by a generator post-processing script.
+var VersionPlaceholder = "$VERSION"
+
 // headerLen is the length of the Apache license header including trailing newlines.
 var headerLen = len(strings.Split(license.Apache, "\n"))
 
@@ -76,57 +80,45 @@ func NewMetadata(protoPkg, libPkg, serviceConfigName string) *SnippetMetadata {
 
 // AddService uses the service short name (e.g. "AutoscalingPolicyService") identifier
 // to add a service entry.
-func (ai *SnippetMetadata) AddService(serviceName string) {
-	if ai.protoServices[serviceName] != nil {
-		panic(fmt.Sprintf("snippets: service %s already added to metadata", serviceName))
-	}
+func (sm *SnippetMetadata) AddService(serviceName string) {
 	s := &service{
 		protoName: serviceName,
 		methods:   make(map[string]*method),
 	}
-	ai.protoServices[serviceName] = s
+	sm.protoServices[serviceName] = s
 }
 
 // AddMethod uses the service short name (e.g. "AutoscalingPolicyService") and method name
 // identifiers to add an incomplete method entry that will be updated via UpdateMethodDoc
 // and UpdateMethodResult.
-func (ai *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEnd int) {
-	if ai.protoServices[serviceName] == nil {
-		panic(fmt.Sprintf("snippets: service not found: %s", serviceName))
-	}
-	if ai.protoServices[serviceName].methods[methodName] != nil {
-		panic(fmt.Sprintf("snippets: method %s already added to service %s", methodName, serviceName))
-	}
+func (sm *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEnd int) {
 	m := &method{
-		regionTag:      ai.RegionTag(serviceName, methodName),
+		regionTag:      sm.RegionTag(serviceName, methodName),
 		regionTagStart: headerLen,
 		regionTagEnd:   regionTagEnd,
 	}
-	ai.protoServices[serviceName].methods[methodName] = m
+	sm.protoServices[serviceName].methods[methodName] = m
 }
 
 // UpdateMethodDoc uses service short name (e.g. "AutoscalingPolicyService") and
 // and method name identifiers to add a doc method comment.
-func (ai *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) {
-	m := ai.method(serviceName, methodName)
+func (sm *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) {
+	m := sm.protoServices[serviceName].methods[methodName]
 	m.doc = doc
 }
 
 // UpdateMethodResult uses service short name (e.g. "AutoscalingPolicyService") and
 // and method name identifiers to add a method result type.
-func (ai *SnippetMetadata) UpdateMethodResult(serviceName, methodName, result string) {
-	m := ai.method(serviceName, methodName)
+func (sm *SnippetMetadata) UpdateMethodResult(serviceName, methodName, result string) {
+	m := sm.protoServices[serviceName].methods[methodName]
 	m.result = result
 }
 
 // AddParams adds a slice of 3 params to the method: ctx context.Context, req <requestType>, opts ...gax.CallOption,
 // ctx and opts params are hardcoded since these are currently the same in all client wrapper methods.
 // The req param will be omitted if empty requestType is given.
-func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string) {
-	m := ai.method(serviceName, methodName)
-	if m.params != nil {
-		panic(fmt.Sprintf("snippets: params already added to method: %s.%s", serviceName, methodName))
-	}
+func (sm *SnippetMetadata) AddParams(serviceName, methodName, requestType string) {
+	m := sm.protoServices[serviceName].methods[methodName]
 	m.params = []*param{ctxParam}
 	if requestType != "" {
 		m.params = append(m.params,
@@ -139,14 +131,14 @@ func (ai *SnippetMetadata) AddParams(serviceName, methodName, requestType string
 }
 
 // RegionTag generates a snippet region tag from shortName, apiVersion, and the given full serviceName and method name.
-func (ai *SnippetMetadata) RegionTag(serviceName, methodName string) string {
-	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", ai.shortName, ai.apiVersion, serviceName, methodName)
+func (sm *SnippetMetadata) RegionTag(serviceName, methodName string) string {
+	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", sm.shortName, sm.apiVersion, serviceName, methodName)
 }
 
 // ToMetadataJSON marshals the completed SnippetMetadata to a []byte containing
 // the protojson output.
-func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
-	m := ai.toSnippetMetadata()
+func (sm *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
+	m := sm.toSnippetMetadata()
 	b, err := protojson.MarshalOptions{Multiline: true}.Marshal(m)
 	if err != nil {
 		return nil, err
@@ -156,28 +148,17 @@ func (ai *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 	return spaceSanitizerRegex.ReplaceAll(b, []byte(": ")), nil
 }
 
-func (ai *SnippetMetadata) method(serviceName, methodName string) *method {
-	if ai.protoServices[serviceName] == nil {
-		panic(fmt.Sprintf("snippets: service not found: %s", serviceName))
-	}
-	m := ai.protoServices[serviceName].methods[methodName]
-	if m == nil {
-		panic(fmt.Sprintf("snippets: method %s not found in service %s", methodName, serviceName))
-	}
-	return m
-}
-
 // toSnippetMetadata creates a metadata.Index from the SnippetMetadata.
-func (ai *SnippetMetadata) toSnippetMetadata() *metadata.Index {
+func (sm *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 	index := &metadata.Index{
 		ClientLibrary: &metadata.ClientLibrary{
-			Name:     ai.libPkg,
-			Version:  "$VERSION", // Placeholder: The Go module version will be set by the generator client.
+			Name:     sm.libPkg,
+			Version:  VersionPlaceholder,
 			Language: metadata.Language_GO,
 			Apis: []*metadata.Api{
 				{
-					Id:      ai.protoPkg,
-					Version: ai.protoVersion(),
+					Id:      sm.protoPkg,
+					Version: sm.protoVersion(),
 				},
 			},
 		},
@@ -185,13 +166,13 @@ func (ai *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 
 	// Sort keys to stabilize output
 	var svcKeys []string
-	for k := range ai.protoServices {
+	for k := range sm.protoServices {
 		svcKeys = append(svcKeys, k)
 	}
 	sort.StringSlice(svcKeys).Sort()
 	for _, serviceShortName := range svcKeys {
 		clientShortName := serviceShortName + "Client"
-		service := ai.protoServices[serviceShortName]
+		service := sm.protoServices[serviceShortName]
 		var methodKeys []string
 		for k := range service.methods {
 			methodKeys = append(methodKeys, k)
@@ -201,7 +182,7 @@ func (ai *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 			method := service.methods[methodShortName]
 			snip := &metadata.Snippet{
 				RegionTag:   method.regionTag,
-				Title:       fmt.Sprintf("%s %s Sample", ai.shortName, methodShortName),
+				Title:       fmt.Sprintf("%s %s Sample", sm.shortName, methodShortName),
 				Description: strings.TrimSpace(method.doc),
 				File:        fmt.Sprintf("%s/%s/main.go", clientShortName, methodShortName),
 				Language:    metadata.Language_GO,
@@ -209,19 +190,19 @@ func (ai *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 				Origin:      *metadata.Snippet_API_DEFINITION.Enum(),
 				ClientMethod: &metadata.ClientMethod{
 					ShortName:  methodShortName,
-					FullName:   fmt.Sprintf("%s.%s.%s", ai.protoPkg, clientShortName, methodShortName),
+					FullName:   fmt.Sprintf("%s.%s.%s", sm.protoPkg, clientShortName, methodShortName),
 					Async:      false,
 					ResultType: method.result,
 					Client: &metadata.ServiceClient{
 						ShortName: clientShortName,
-						FullName:  fmt.Sprintf("%s.%s", ai.protoPkg, clientShortName),
+						FullName:  fmt.Sprintf("%s.%s", sm.protoPkg, clientShortName),
 					},
 					Method: &metadata.Method{
 						ShortName: methodShortName,
-						FullName:  fmt.Sprintf("%s.%s.%s", ai.protoPkg, service.protoName, methodShortName),
+						FullName:  fmt.Sprintf("%s.%s.%s", sm.protoPkg, service.protoName, methodShortName),
 						Service: &metadata.Service{
 							ShortName: service.protoName,
-							FullName:  fmt.Sprintf("%s.%s", ai.protoPkg, service.protoName),
+							FullName:  fmt.Sprintf("%s.%s", sm.protoPkg, service.protoName),
 						},
 					},
 				},
@@ -245,8 +226,8 @@ func (ai *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 	return index
 }
 
-func (ai *SnippetMetadata) protoVersion() string {
-	ss := strings.Split(ai.protoPkg, ".")
+func (sm *SnippetMetadata) protoVersion() string {
+	ss := strings.Split(sm.protoPkg, ".")
 	return ss[len(ss)-1]
 }
 
