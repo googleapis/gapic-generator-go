@@ -180,7 +180,7 @@ func (sm *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 		sort.StringSlice(methodKeys).Sort()
 		for _, methodShortName := range methodKeys {
 			method := service.methods[methodShortName]
-			snip := &metadata.Snippet{
+			snp := &metadata.Snippet{
 				RegionTag:   method.regionTag,
 				Title:       fmt.Sprintf("%s %s Sample", sm.shortName, methodShortName),
 				Description: strings.TrimSpace(method.doc),
@@ -212,15 +212,15 @@ func (sm *SnippetMetadata) toSnippetMetadata() *metadata.Index {
 				End:   int32(method.regionTagEnd - 1),
 				Type:  metadata.Snippet_Segment_FULL,
 			}
-			snip.Segments = append(snip.Segments, segment)
+			snp.Segments = append(snp.Segments, segment)
 			for _, param := range method.params {
 				methParam := &metadata.ClientMethod_Parameter{
 					Type: param.pType,
 					Name: param.name,
 				}
-				snip.ClientMethod.Parameters = append(snip.ClientMethod.Parameters, methParam)
+				snp.ClientMethod.Parameters = append(snp.ClientMethod.Parameters, methParam)
 			}
-			index.Snippets = append(index.Snippets, snip)
+			index.Snippets = append(index.Snippets, snp)
 		}
 	}
 	return index

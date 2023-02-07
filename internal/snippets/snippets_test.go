@@ -46,27 +46,18 @@ func TestNewMetadata(t *testing.T) {
 }
 
 func TestToMetadataJSON(t *testing.T) {
-	serviceName1 := "Service1"
-	serviceName2 := "Service2"
-	methodName1 := "Method1"
-	methodName2 := "Method2"
-	methodName3 := "Method3"
-
 	sm := NewMetadata(protoPkg, libPkg, serviceConfigName)
-	sm.AddService(serviceName1)
-	sm.AddService(serviceName2)
-	sm.AddMethod(serviceName1, methodName1, 51)
-	sm.AddMethod(serviceName1, methodName2, 52)
-	sm.AddMethod(serviceName2, methodName3, 53)
-	sm.UpdateMethodDoc(serviceName1, methodName1, "methodName1 doc")
-	sm.UpdateMethodDoc(serviceName1, methodName2, "methodName2 doc")
-	sm.UpdateMethodDoc(serviceName2, methodName3, "methodName3 doc")
-	sm.UpdateMethodResult(serviceName1, methodName1, "mypackage.MethodName1Result")
-	sm.UpdateMethodResult(serviceName1, methodName2, "mypackage.MethodName2Result")
-	sm.UpdateMethodResult(serviceName2, methodName3, "mypackage.MethodName3Result")
-	sm.AddParams(serviceName1, methodName1, "mypackage.MethodName1Request")
-	sm.AddParams(serviceName1, methodName2, "mypackage.MethodName2Request")
-	sm.AddParams(serviceName2, methodName3, "mypackage.MethodName3Request")
+	regionTagStart := 18
+	regionTagEnd := 50
+	for i := 0; i < 2; i++ {
+		serviceName := fmt.Sprintf("Service%d", i)
+		methodName := fmt.Sprintf("Method%d", i)
+		sm.AddService(serviceName)
+		sm.AddMethod(serviceName, methodName, regionTagEnd)
+		sm.UpdateMethodDoc(serviceName, methodName, methodName+" doc")
+		sm.UpdateMethodResult(serviceName, methodName, "mypackage."+methodName+"Result")
+		sm.AddParams(serviceName, methodName, "mypackage."+methodName+"Request")
+	}
 
 	mi := sm.toSnippetMetadata()
 	cl := mi.ClientLibrary
@@ -88,14 +79,105 @@ func TestToMetadataJSON(t *testing.T) {
 	if got := cl.Apis[0].Version; got != version {
 		t.Errorf("%s: wanted %s, got %s", t.Name(), version, got)
 	}
-
-	if got := len(mi.Snippets); got != 3 {
-		t.Errorf("%s: wanted len 3 Snippets, got %d", t.Name(), got)
+	if got := len(mi.Snippets); got != 2 {
+		t.Errorf("%s: wanted len 2 Snippets, got %d", t.Name(), got)
 	}
-	for i, snippet := range mi.Snippets {
-		want := fmt.Sprintf("bigquerymigration Method%d Sample", i+1)
-		if got := snippet.Title; got != want {
+	for i, snp := range mi.Snippets {
+		want := fmt.Sprintf("bigquerymigration_v2_generated_Service%d_Method%d_sync", i, i)
+		if got := snp.RegionTag; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("bigquerymigration Method%d Sample", i)
+		if got := snp.Title; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("Method%d doc", i)
+		if got := snp.Description; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("Service%dClient/Method%d/main.go", i, i)
+		if got := snp.File; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		if snp.Language != metadata.Language_GO {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), metadata.Language_GO, snp.Language)
+		}
+		if snp.Canonical {
+			t.Errorf("%s: wanted Canonical false, got true", t.Name())
+		}
+		cm := snp.ClientMethod
+		want = fmt.Sprintf("Method%d", i)
+		if got := cm.ShortName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%dClient.Method%d", i, i)
+		if got := cm.FullName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		if cm.Async {
+			t.Errorf("%s: wanted Async false, got true", t.Name())
+		}
+		want = fmt.Sprintf("mypackage.Method%dResult", i)
+		if got := cm.ResultType; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("Service%dClient", i)
+		if got := cm.Client.ShortName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%dClient", i)
+		if got := cm.Client.FullName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("Method%d", i)
+		if got := cm.Method.ShortName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%d.Method%d", i, i)
+		if got := cm.Method.FullName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("Service%d", i)
+		if got := cm.Method.Service.ShortName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%d", i)
+		if got := cm.Method.Service.FullName; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		if got := len(snp.Segments); got != 1 {
+			t.Errorf("%s: wanted len 1 Segments, got %d", t.Name(), got)
+		}
+		if got := snp.Segments[0].Start; got != int32(regionTagStart) {
+			t.Errorf("%s: wanted %d, got %d", t.Name(), regionTagStart, got)
+		}
+		if got := int(snp.Segments[0].End); got != regionTagEnd-1 {
+			t.Errorf("%s: wanted 1, got %d", t.Name(), got)
+		}
+		if got := snp.Segments[0].Type; got != metadata.Snippet_Segment_FULL {
+			t.Errorf("%s: wanted metadata.Snippet_Segment_FULL, got %d", t.Name(), got)
+		}
+		if got := len(snp.ClientMethod.Parameters); got != 3 {
+			t.Errorf("%s: wanted len 3 Parameters, got %d", t.Name(), got)
+		}
+		if got := snp.ClientMethod.Parameters[0].Type; got != "context.Context" {
+			t.Errorf("%s: wanted context.Context, got %s", t.Name(), got)
+		}
+		if got := snp.ClientMethod.Parameters[0].Name; got != "ctx" {
+			t.Errorf("%s: wanted ctx, got %s", t.Name(), got)
+		}
+		want = fmt.Sprintf("mypackage.Method%dRequest", i)
+		if got := snp.ClientMethod.Parameters[1].Type; got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		}
+		if got := snp.ClientMethod.Parameters[1].Name; got != "req" {
+			t.Errorf("%s: wanted req, got %s", t.Name(), got)
+		}
+		if got := snp.ClientMethod.Parameters[2].Type; got != "...gax.CallOption" {
+			t.Errorf("%s: wanted ...gax.CallOption, got %s", t.Name(), got)
+		}
+		if got := snp.ClientMethod.Parameters[2].Name; got != "opts" {
+			t.Errorf("%s: wanted opts, got %s", t.Name(), got)
 		}
 	}
 
@@ -105,7 +187,7 @@ func TestToMetadataJSON(t *testing.T) {
 	}
 
 	if got := len(json); got == 0 {
-		t.Errorf("%s: wanted non-empty []byte, got 0", t.Name())
+		t.Errorf("%s: wanted non-empty []byte, got len 0", t.Name())
 	}
 }
 
