@@ -540,7 +540,7 @@ func TestClientInit(t *testing.T) {
 		}
 
 		g.reset()
-		if tst.servName != "" {
+		if tst.servName != "" { // TODO(chrisdsmith): Support empty service name in snippets and remove this conditional
 			g.opts.snippets = true
 			sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
 			sm.AddService(tst.servName)
@@ -560,7 +560,7 @@ func TestClientInit(t *testing.T) {
 
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 
-		if tst.servName != "" {
+		if tst.servName != "" { // TODO(chrisdsmith): Support empty service name in snippets and remove this conditionalNelso
 			mi := g.snippetMetadata.ToMetadataIndex()
 			if got := len(mi.Snippets); got != 6 {
 				t.Errorf("%s: wanted len 6 Snippets, got %d", t.Name(), got)

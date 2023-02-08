@@ -565,6 +565,11 @@ func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorPro
 	g.comment(com)
 }
 
+// printFunc defines a function type accepting arguments to be format-printed.
+type printFunc func(s string, a ...interface{})
+
+// printComment accepts a string to print in code comments and a printFunc
+// function to format-print the comment slashes plus the string.
 func (g *generator) printComment(s string, p printFunc) {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -583,10 +588,12 @@ func (g *generator) printComment(s string, p printFunc) {
 	}
 }
 
+// comment format-prints a string in code comments to pt using printf.
 func (g *generator) comment(s string) {
 	g.printComment(s, g.printf)
 }
 
+// comment format-prints a string in code comments to headerComments.
 func (g *generator) headerComment(s string) {
 	g.printComment(s, g.headerComments.Printf)
 }
