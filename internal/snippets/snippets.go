@@ -138,7 +138,7 @@ func (sm *SnippetMetadata) RegionTag(serviceName, methodName string) string {
 // ToMetadataJSON marshals the completed SnippetMetadata to a []byte containing
 // the protojson output.
 func (sm *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
-	m := sm.toSnippetMetadata()
+	m := sm.ToMetadataIndex()
 	b, err := protojson.MarshalOptions{Multiline: true}.Marshal(m)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (sm *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 }
 
 // toSnippetMetadata creates a metadata.Index from the SnippetMetadata.
-func (sm *SnippetMetadata) toSnippetMetadata() *metadata.Index {
+func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 	index := &metadata.Index{
 		ClientLibrary: &metadata.ClientLibrary{
 			Name:     sm.libPkg,
