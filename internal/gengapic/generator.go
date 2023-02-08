@@ -180,8 +180,6 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	return nil
 }
 
-type printFunc func(s string, a ...interface{})
-
 // printf formatted-prints to sb, using the print syntax from fmt package.
 //
 // It automatically keeps track of indentation caused by curly-braces.
