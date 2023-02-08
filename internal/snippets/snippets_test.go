@@ -59,7 +59,7 @@ func TestToMetadataJSON(t *testing.T) {
 		sm.AddParams(serviceName, methodName, "mypackage."+methodName+"Request")
 	}
 
-	mi := sm.toSnippetMetadata()
+	mi := sm.ToMetadataIndex()
 	cl := mi.ClientLibrary
 	if cl.Name != libPkg {
 		t.Errorf("%s: wanted %s, got %s", t.Name(), libPkg, cl.Name)
@@ -157,26 +157,26 @@ func TestToMetadataJSON(t *testing.T) {
 		if got := snp.Segments[0].Type; got != metadata.Snippet_Segment_FULL {
 			t.Errorf("%s: wanted metadata.Snippet_Segment_FULL, got %d", t.Name(), got)
 		}
-		if got := len(snp.ClientMethod.Parameters); got != 3 {
+		if got := len(cm.Parameters); got != 3 {
 			t.Errorf("%s: wanted len 3 Parameters, got %d", t.Name(), got)
 		}
-		if got := snp.ClientMethod.Parameters[0].Type; got != "context.Context" {
+		if got := cm.Parameters[0].Type; got != "context.Context" {
 			t.Errorf("%s: wanted context.Context, got %s", t.Name(), got)
 		}
-		if got := snp.ClientMethod.Parameters[0].Name; got != "ctx" {
+		if got := cm.Parameters[0].Name; got != "ctx" {
 			t.Errorf("%s: wanted ctx, got %s", t.Name(), got)
 		}
 		want = fmt.Sprintf("mypackage.Method%dRequest", i)
-		if got := snp.ClientMethod.Parameters[1].Type; got != want {
+		if got := cm.Parameters[1].Type; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		if got := snp.ClientMethod.Parameters[1].Name; got != "req" {
+		if got := cm.Parameters[1].Name; got != "req" {
 			t.Errorf("%s: wanted req, got %s", t.Name(), got)
 		}
-		if got := snp.ClientMethod.Parameters[2].Type; got != "...gax.CallOption" {
+		if got := cm.Parameters[2].Type; got != "...gax.CallOption" {
 			t.Errorf("%s: wanted ...gax.CallOption, got %s", t.Name(), got)
 		}
-		if got := snp.ClientMethod.Parameters[2].Name; got != "opts" {
+		if got := cm.Parameters[2].Name; got != "opts" {
 			t.Errorf("%s: wanted opts, got %s", t.Name(), got)
 		}
 	}
