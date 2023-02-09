@@ -193,6 +193,8 @@ func (g *generator) printf(s string, a ...interface{}) {
 	g.pt.Printf(s, a...)
 }
 
+// TODO(chrisdsmith): Add generator_test.go with TestCommit
+
 // commit adds header, etc to current pt and returns the line length of the
 // final file output.
 func (g *generator) commit(fileName, pkgName string) int {
