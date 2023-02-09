@@ -315,7 +315,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		// TODO: implement streaming examples correctly, see example.go TODOs.
+		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		if g.opts.snippets && m.GetClientStreaming() == m.GetServerStreaming() {
 			g.snippetMetadata.AddParams(servName, m.GetName(), "")
 			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)
@@ -335,7 +335,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		// TODO: implement streaming examples correctly, see example.go TODOs.
+		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		if g.opts.snippets && m.GetClientStreaming() == m.GetServerStreaming() {
 			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
 			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)

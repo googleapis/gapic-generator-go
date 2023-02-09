@@ -558,6 +558,7 @@ func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorPro
 	// Prepend the method name to all non-empty comments.
 	com = m.GetName() + " " + lowerFirst(com)
 
+	// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 	if g.opts.snippets && m.GetClientStreaming() == m.GetServerStreaming() {
 		g.snippetMetadata.UpdateMethodDoc(servName, m.GetName(), com)
 	}

@@ -19,12 +19,14 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/longrunning"
@@ -555,8 +557,10 @@ func TestContainsDeprecated(t *testing.T) {
 }
 
 func TestMethodDoc(t *testing.T) {
+	servName := "Foo"
+	methodName := "MyMethod"
 	m := &descriptor.MethodDescriptorProto{
-		Name: proto.String("MyMethod"),
+		Name: proto.String(methodName),
 	}
 
 	g := generator{
@@ -573,11 +577,11 @@ func TestMethodDoc(t *testing.T) {
 			want: "",
 		},
 		{
-			in:   "Does stuff.\n It also does other stuffs.",
+			in:   "Does stuff.\nIt also does other stuffs.",
 			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
 		},
 		{
-			in:         "This is deprecated.\n It does not have a proper comment.",
+			in:         "This is deprecated.\nIt does not have a proper comment.",
 			want:       "// MyMethod this is deprecated.\n// It does not have a proper comment.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
 			deprecated: true,
 		},
@@ -597,22 +601,39 @@ func TestMethodDoc(t *testing.T) {
 			deprecated: true,
 		},
 		{
-			in:              "Does client streaming stuff.\n It also does other stuffs.",
+			in:              "Does client streaming stuff.\nIt also does other stuffs.",
 			want:            "// MyMethod does client streaming stuff.\n// It also does other stuffs.\n//\n// This method is not supported for the REST transport.\n",
 			clientStreaming: true,
 			opts:            options{transports: []transport{rest}},
 		},
 	} {
 		g.opts = &tst.opts
+		g.opts.snippets = true
+		sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
+		sm.AddService(servName)
+		sm.AddMethod(servName, methodName, 50)
+		g.snippetMetadata = sm
 		g.comments[m] = tst.in
 		m.Options = &descriptor.MethodOptions{
 			Deprecated: proto.Bool(tst.deprecated),
 		}
 		m.ClientStreaming = proto.Bool(tst.clientStreaming)
 		g.pt.Reset()
-		g.methodDoc("", m)
+		g.methodDoc(servName, m)
 		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
 			t.Errorf("comment() got(-),want(+):\n%s", diff)
+		}
+		mi := g.snippetMetadata.ToMetadataIndex()
+		if got := len(mi.Snippets); got != 1 {
+			t.Errorf("%s: wanted len 1 Snippets, got %d", t.Name(), got)
+		}
+		snp := mi.Snippets[0]
+		// remove slashes to compare with snippet description.
+		want := strings.Replace(tst.want, "// ", "", -1)
+		want = strings.Replace(want, "//", "", -1)
+		want = strings.Trim(want, "\n")
+		if got := snp.Description; !tst.clientStreaming && got != want {
+			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
 	}
 }
