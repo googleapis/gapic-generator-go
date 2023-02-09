@@ -252,7 +252,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if g.opts.snippets {
+		if !g.opts.omitSnippets {
 			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
 		}
 		return nil
@@ -273,7 +273,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if g.opts.snippets {
+		if !g.opts.omitSnippets {
 			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
 			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), lroType)
 		}
@@ -294,7 +294,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if g.opts.snippets {
+		if !g.opts.omitSnippets {
 			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
 			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), iter.iterTypeName)
 		}
@@ -316,7 +316,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
-		if g.opts.snippets && m.GetClientStreaming() == m.GetServerStreaming() {
+		if !g.opts.omitSnippets && m.GetClientStreaming() == m.GetServerStreaming() {
 			g.snippetMetadata.AddParams(servName, m.GetName(), "")
 			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)
 		}
@@ -336,7 +336,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("")
 
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
-		if g.opts.snippets && m.GetClientStreaming() == m.GetServerStreaming() {
+		if !g.opts.omitSnippets && m.GetClientStreaming() == m.GetServerStreaming() {
 			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
 			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)
 		}
@@ -354,7 +354,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if g.opts.snippets {
+		if !g.opts.omitSnippets {
 			g.snippetMetadata.AddParams(servName, m.GetName(), reqTyp)
 			g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), retTyp)
 		}

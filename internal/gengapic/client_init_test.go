@@ -540,8 +540,9 @@ func TestClientInit(t *testing.T) {
 		}
 
 		g.reset()
-		if tst.servName != "" { // TODO(chrisdsmith): Support empty service name in snippets and remove this conditional
-			g.opts.snippets = true
+		if tst.servName == "" { // TODO(chrisdsmith): Support empty service name in snippets and remove this conditional
+			g.opts.omitSnippets = true
+		} else {
 			sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
 			sm.AddService(tst.servName)
 			for _, m := range tst.serv.GetMethod() {

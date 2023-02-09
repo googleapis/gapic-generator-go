@@ -96,7 +96,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 	g.metadata.LibraryPackage = g.opts.pkgPath
 
-	if g.opts.snippets {
+	if !g.opts.omitSnippets {
 		// Initialize the model that will collect snippet metadata.
 		g.snippetMetadata = snippets.NewMetadata(protoPkg,
 			g.metadata.LibraryPackage, g.serviceConfig.GetName())
@@ -111,7 +111,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
-		if g.opts.snippets {
+		if !g.opts.omitSnippets {
 			g.snippetMetadata.AddService(servName)
 			methods := append(s.GetMethod(), g.getMixinMethods()...)
 			for _, m := range methods {
@@ -159,7 +159,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		}
 	}
 
-	if g.opts.snippets {
+	if !g.opts.omitSnippets {
 		g.reset()
 		json, err := g.snippetMetadata.ToMetadataJSON()
 		if err != nil {
@@ -559,7 +559,7 @@ func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorPro
 	com = m.GetName() + " " + lowerFirst(com)
 
 	// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
-	if g.opts.snippets && m.GetClientStreaming() == m.GetServerStreaming() {
+	if !g.opts.omitSnippets && m.GetClientStreaming() == m.GetServerStreaming() {
 		g.snippetMetadata.UpdateMethodDoc(servName, m.GetName(), com)
 	}
 

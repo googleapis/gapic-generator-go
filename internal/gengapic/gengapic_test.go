@@ -617,7 +617,6 @@ func TestMethodDoc(t *testing.T) {
 		},
 	} {
 		g.opts = &tst.opts
-		g.opts.snippets = true
 		sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
 		sm.AddService(servName)
 		sm.AddMethod(servName, methodName, 50)
