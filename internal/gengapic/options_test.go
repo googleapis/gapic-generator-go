@@ -98,13 +98,13 @@ func TestParseOptions(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			param: "snippets,go-gapic-package=path;pkg",
+			param: "omit-snippets,go-gapic-package=path;pkg",
 			expectedOpts: &options{
-				transports: []transport{grpc},
-				pkgPath:    "path",
-				pkgName:    "pkg",
-				outDir:     "path",
-				snippets:   true,
+				transports:   []transport{grpc},
+				pkgPath:      "path",
+				pkgName:      "pkg",
+				outDir:       "path",
+				omitSnippets: true,
 			},
 		},
 		{
