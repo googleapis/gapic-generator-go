@@ -29,6 +29,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -126,7 +127,9 @@ func TestGRPCClientField(t *testing.T) {
 	}
 }
 
-func TestGenMethod(t *testing.T) {
+// TODO(chrisdsmith): Expand this test to invoke Gen (or at least gen) in gengapic.go,
+// otherwise move it to gengrpc_test.go. (genGRPCMethods was extracted to gengrpc.go on 2021-05-04.)
+func TestGenGRPCMethods(t *testing.T) {
 	extra := &descriptor.DescriptorProto{
 		Name: proto.String("ExtraMessage"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -308,6 +311,9 @@ func TestGenMethod(t *testing.T) {
 	g.opts = &options{
 		pkgName: "pkg",
 	}
+	g.metadata = &metadatapb.GapicMetadata{
+		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
+	}
 	g.mixins = mixins{
 		"google.longrunning.Operations":   operationsMethods(),
 		"google.cloud.location.Locations": locationMethods(),
@@ -487,11 +493,14 @@ methods:
 	} {
 		g.reset()
 		g.descInfo.ParentElement[tst.m] = serv
+		serv.Method = []*descriptor.MethodDescriptorProto{
+			tst.m,
+		}
 
 		g.aux = &auxTypes{
 			iters: map[string]*iterType{},
 		}
-		if err := g.genGRPCMethod("Foo", serv, tst.m); err != nil {
+		if err := g.genGRPCMethods(serv, "Foo"); err != nil {
 			t.Error(err)
 			continue
 		}
