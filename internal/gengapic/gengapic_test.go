@@ -566,6 +566,9 @@ func TestContainsDeprecated(t *testing.T) {
 }
 
 func TestMethodDoc(t *testing.T) {
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+	}
 	servName := "Foo"
 	methodName := "MyMethod"
 	m := &descriptor.MethodDescriptorProto{
@@ -617,7 +620,10 @@ func TestMethodDoc(t *testing.T) {
 		},
 	} {
 		g.opts = &tst.opts
-		sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
+		sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
+		if err != nil {
+			t.Fatal(err)
+		}
 		sm.AddService(servName)
 		sm.AddMethod(servName, methodName, 50)
 		g.snippetMetadata = sm
@@ -627,7 +633,7 @@ func TestMethodDoc(t *testing.T) {
 		}
 		m.ClientStreaming = proto.Bool(tst.clientStreaming)
 		g.pt.Reset()
-		g.methodDoc(servName, m)
+		g.methodDoc(serv, servName, m)
 		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
 			t.Errorf("comment() got(-),want(+):\n%s", diff)
 		}

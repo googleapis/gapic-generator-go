@@ -65,17 +65,20 @@ type SnippetMetadata struct {
 // protoPkg - dot-separated, without final type name element (e.g. "google.cloud.bigquery.migration.v2")
 // libPkg - the Go import path for the GAPIC client, per libraryPackage in gapic_metadata.json (e.g. "cloud.google.com/go/bigquery/migration/apiv2")
 // serviceConfigName - the API service config DNS-like Name field. (e.g. "bigquerymigration.googleapis.com")
-func NewMetadata(protoPkg, libPkg, serviceConfigName string) *SnippetMetadata {
+func NewMetadata(protoPkg, libPkg, serviceConfigName string) (*SnippetMetadata, error) {
 	protoParts := strings.Split(protoPkg, ".")
 	apiVersion := protoParts[len(protoParts)-1]
 	shortName := strings.Split(serviceConfigName, ".")[0]
+	if shortName == "" {
+		return nil, fmt.Errorf("snippets: api-service-config is required and must contain Name for %s", protoPkg)
+	}
 	return &SnippetMetadata{
 		protoPkg:      protoPkg,
 		libPkg:        libPkg,
 		shortName:     shortName,
 		apiVersion:    apiVersion,
 		protoServices: make(map[string]*service),
-	}
+	}, nil
 }
 
 // AddService uses the service short name (e.g. "AutoscalingPolicyService") identifier
@@ -148,7 +151,7 @@ func (sm *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 	return spaceSanitizerRegex.ReplaceAll(b, []byte(": ")), nil
 }
 
-// toSnippetMetadata creates a metadata.Index from the SnippetMetadata.
+// ToMetadataIndex creates a metadata.Index from the SnippetMetadata.
 func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 	index := &metadata.Index{
 		ClientLibrary: &metadata.ClientLibrary{

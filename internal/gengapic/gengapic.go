@@ -98,8 +98,12 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	if !g.opts.omitSnippets {
 		// Initialize the model that will collect snippet metadata.
-		g.snippetMetadata = snippets.NewMetadata(protoPkg,
+		sm, err := snippets.NewMetadata(protoPkg,
 			g.metadata.LibraryPackage, g.serviceConfig.GetName())
+		if err != nil {
+			return &g.resp, err
+		}
+		g.snippetMetadata = sm
 	}
 
 	for _, s := range genServs {
@@ -112,7 +116,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		if !g.opts.omitSnippets {
-			g.snippetMetadata.AddService(servName)
+			g.snippetMetadata.AddService(s.GetName())
 			methods := append(s.GetMethod(), g.getMixinMethods()...)
 			for _, m := range methods {
 				if m.GetClientStreaming() != m.GetServerStreaming() {
@@ -128,7 +132,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
 				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
 					"snippets", servName+"Client", m.GetName(), "main.go"), "main")
-				g.snippetMetadata.AddMethod(servName, m.GetName(), lineCount-1)
+				g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), lineCount-1)
 			}
 		}
 
@@ -530,7 +534,7 @@ func containsDeprecated(com string) bool {
 	return false
 }
 
-func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorProto) {
+func (g *generator) methodDoc(serv *descriptor.ServiceDescriptorProto, servName string, m *descriptor.MethodDescriptorProto) {
 	com := g.comments[m]
 
 	// If there's no comment and the method is not deprecated, adding method name is just confusing.
@@ -560,7 +564,7 @@ func (g *generator) methodDoc(servName string, m *descriptor.MethodDescriptorPro
 
 	// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 	if !g.opts.omitSnippets && m.GetClientStreaming() == m.GetServerStreaming() {
-		g.snippetMetadata.UpdateMethodDoc(servName, m.GetName(), com)
+		g.snippetMetadata.UpdateMethodDoc(serv.GetName(), m.GetName(), com)
 	}
 
 	g.comment(com)
