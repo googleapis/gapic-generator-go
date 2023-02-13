@@ -26,7 +26,10 @@ var serviceConfigName = "bigquerymigration.googleapis.com"
 var version = "v2"
 
 func TestNewMetadata(t *testing.T) {
-	sm := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if sm.protoPkg != protoPkg {
 		t.Errorf("%s: wanted %s, got %s", t.Name(), protoPkg, sm.protoPkg)
@@ -46,7 +49,10 @@ func TestNewMetadata(t *testing.T) {
 }
 
 func TestToMetadataJSON(t *testing.T) {
-	sm := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	if err != nil {
+		t.Fatal(err)
+	}
 	regionTagStart := 18
 	regionTagEnd := 50
 	for i := 0; i < 2; i++ {
@@ -195,7 +201,10 @@ func TestRegionTag(t *testing.T) {
 	protoPkg := "google.cloud.bigquery.migration.v2"
 	libPkg := "google.golang.org/genproto/googleapis/cloud/bigquery/migration/v2"
 	serviceConfigName := "bigquerymigration.googleapis.com"
-	m := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	m, err := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	serviceName := "MigrationService"
 	methodName := "GetMigrationWorkflow"
