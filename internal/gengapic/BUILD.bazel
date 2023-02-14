@@ -72,6 +72,7 @@ go_test(
     deps = [
         "//internal/grpc_service_config",
         "//internal/pbinfo",
+        "//internal/snippets",
         "//internal/txtdiff",
         "@com_github_google_go_cmp//cmp",
         "@go_googleapis//gapic/metadata:metadata_go_proto",
