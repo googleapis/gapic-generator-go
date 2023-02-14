@@ -289,8 +289,9 @@ func TestGenSnippetFile(t *testing.T) {
 	protoPkg := "google.cloud.bigquery.migration.v2"
 	libPkg := "cloud.google.com/go/bigquery/migration/apiv2"
 	serviceConfigName := "bigquerymigration.googleapis.com"
+	pkgName := "bigquerymigration"
 	var err error
-	g.snippetMetadata, err = snippets.NewMetadata(protoPkg, libPkg, serviceConfigName)
+	g.snippetMetadata, err = snippets.NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName)
 	if err != nil {
 		t.Fatal(err)
 	}

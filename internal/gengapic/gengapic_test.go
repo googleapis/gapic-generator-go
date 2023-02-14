@@ -620,7 +620,7 @@ func TestMethodDoc(t *testing.T) {
 		},
 	} {
 		g.opts = &tst.opts
-		sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
+		sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com", "mypackagego")
 		if err != nil {
 			t.Fatal(err)
 		}
