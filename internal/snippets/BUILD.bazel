@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//internal/license",
+        "//internal/pbinfo",
         "//internal/snippets/metadata",
         "@org_golang_google_protobuf//encoding/protojson",
     ],
@@ -16,4 +17,5 @@ go_test(
     name = "snippets_test",
     srcs = ["snippets_test.go"],
     embed = [":snippets"],
+    deps = ["//internal/snippets/metadata"],
 )
