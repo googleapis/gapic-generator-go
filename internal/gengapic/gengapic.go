@@ -98,8 +98,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	if !g.opts.omitSnippets {
 		// Initialize the model that will collect snippet metadata.
-		sm, err := snippets.NewMetadata(protoPkg,
-			g.metadata.LibraryPackage, g.serviceConfig.GetName())
+		sm, err := snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage,
+			g.serviceConfig.GetName(), g.opts.pkgName)
 		if err != nil {
 			return &g.resp, err
 		}

@@ -543,7 +543,7 @@ func TestClientInit(t *testing.T) {
 		if tst.servName == "" { // TODO(chrisdsmith): Support empty service name in snippets and remove this conditional
 			g.opts.omitSnippets = true
 		} else {
-			sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com")
+			sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com", "mypackagego")
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/license"
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -59,13 +60,15 @@ type SnippetMetadata struct {
 	apiVersion string
 	// shortName the first element of API service config DNS-like Name field. (e.g. "bigquerymigration" from "bigquerymigration.googleapis.com")
 	shortName string
+	// pkgName is the short package name after the semi-colon in go-gapic-package.
+	pkgName string
 }
 
 // NewMetadata initializes the model that will collect snippet metadata, from:
 // protoPkg - dot-separated, without final type name element (e.g. "google.cloud.bigquery.migration.v2")
 // libPkg - the Go import path for the GAPIC client, per libraryPackage in gapic_metadata.json (e.g. "cloud.google.com/go/bigquery/migration/apiv2")
 // serviceConfigName - the API service config DNS-like Name field. (e.g. "bigquerymigration.googleapis.com")
-func NewMetadata(protoPkg, libPkg, serviceConfigName string) (*SnippetMetadata, error) {
+func NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName string) (*SnippetMetadata, error) {
 	protoParts := strings.Split(protoPkg, ".")
 	apiVersion := protoParts[len(protoParts)-1]
 	shortName := strings.Split(serviceConfigName, ".")[0]
@@ -78,6 +81,7 @@ func NewMetadata(protoPkg, libPkg, serviceConfigName string) (*SnippetMetadata, 
 		shortName:     shortName,
 		apiVersion:    apiVersion,
 		protoServices: make(map[string]*service),
+		pkgName:       pkgName,
 	}, nil
 }
 
@@ -174,7 +178,8 @@ func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 	}
 	sort.StringSlice(svcKeys).Sort()
 	for _, serviceShortName := range svcKeys {
-		clientShortName := serviceShortName + "Client"
+		reducedServName := pbinfo.ReduceServName(serviceShortName, sm.pkgName)
+		clientShortName := reducedServName + "Client"
 		service := sm.protoServices[serviceShortName]
 		var methodKeys []string
 		for k := range service.methods {

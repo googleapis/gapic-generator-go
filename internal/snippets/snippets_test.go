@@ -24,9 +24,10 @@ var protoPkg = "google.cloud.bigquery.migration.v2"
 var libPkg = "cloud.google.com/go/bigquery/migration/apiv2"
 var serviceConfigName = "bigquerymigration.googleapis.com"
 var version = "v2"
+var pkgName = "migration"
 
 func TestNewMetadata(t *testing.T) {
-	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,15 +50,15 @@ func TestNewMetadata(t *testing.T) {
 }
 
 func TestToMetadataJSON(t *testing.T) {
-	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName)
 	if err != nil {
 		t.Fatal(err)
 	}
 	regionTagStart := 18
 	regionTagEnd := 50
 	for i := 0; i < 2; i++ {
-		serviceName := fmt.Sprintf("Service%d", i)
-		methodName := fmt.Sprintf("Method%d", i)
+		serviceName := fmt.Sprintf("Foo%dService", i)
+		methodName := fmt.Sprintf("Bar%dMethod", i)
 		sm.AddService(serviceName)
 		sm.AddMethod(serviceName, methodName, regionTagEnd)
 		sm.UpdateMethodDoc(serviceName, methodName, methodName+" doc")
@@ -89,19 +90,19 @@ func TestToMetadataJSON(t *testing.T) {
 		t.Errorf("%s: wanted len 2 Snippets, got %d", t.Name(), got)
 	}
 	for i, snp := range mi.Snippets {
-		want := fmt.Sprintf("bigquerymigration_v2_generated_Service%d_Method%d_sync", i, i)
+		want := fmt.Sprintf("bigquerymigration_v2_generated_Foo%dService_Bar%dMethod_sync", i, i)
 		if got := snp.RegionTag; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("bigquerymigration Method%d Sample", i)
+		want = fmt.Sprintf("bigquerymigration Bar%dMethod Sample", i)
 		if got := snp.Title; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("Method%d doc", i)
+		want = fmt.Sprintf("Bar%dMethod doc", i)
 		if got := snp.Description; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("Service%dClient/Method%d/main.go", i, i)
+		want = fmt.Sprintf("Foo%dClient/Bar%dMethod/main.go", i, i)
 		if got := snp.File; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
@@ -112,42 +113,42 @@ func TestToMetadataJSON(t *testing.T) {
 			t.Errorf("%s: wanted Canonical false, got true", t.Name())
 		}
 		cm := snp.ClientMethod
-		want = fmt.Sprintf("Method%d", i)
+		want = fmt.Sprintf("Bar%dMethod", i)
 		if got := cm.ShortName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%dClient.Method%d", i, i)
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dClient.Bar%dMethod", i, i)
 		if got := cm.FullName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
 		if cm.Async {
 			t.Errorf("%s: wanted Async false, got true", t.Name())
 		}
-		want = fmt.Sprintf("mypackage.Method%dResult", i)
+		want = fmt.Sprintf("mypackage.Bar%dMethodResult", i)
 		if got := cm.ResultType; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("Service%dClient", i)
+		want = fmt.Sprintf("Foo%dClient", i)
 		if got := cm.Client.ShortName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%dClient", i)
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dClient", i)
 		if got := cm.Client.FullName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("Method%d", i)
+		want = fmt.Sprintf("Bar%dMethod", i)
 		if got := cm.Method.ShortName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%d.Method%d", i, i)
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dService.Bar%dMethod", i, i)
 		if got := cm.Method.FullName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("Service%d", i)
+		want = fmt.Sprintf("Foo%dService", i)
 		if got := cm.Method.Service.ShortName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Service%d", i)
+		want = fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dService", i)
 		if got := cm.Method.Service.FullName; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
@@ -172,7 +173,7 @@ func TestToMetadataJSON(t *testing.T) {
 		if got := cm.Parameters[0].Name; got != "ctx" {
 			t.Errorf("%s: wanted ctx, got %s", t.Name(), got)
 		}
-		want = fmt.Sprintf("mypackage.Method%dRequest", i)
+		want = fmt.Sprintf("mypackage.Bar%dMethodRequest", i)
 		if got := cm.Parameters[1].Type; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
@@ -201,7 +202,7 @@ func TestRegionTag(t *testing.T) {
 	protoPkg := "google.cloud.bigquery.migration.v2"
 	libPkg := "google.golang.org/genproto/googleapis/cloud/bigquery/migration/v2"
 	serviceConfigName := "bigquerymigration.googleapis.com"
-	m, err := NewMetadata(protoPkg, libPkg, serviceConfigName)
+	m, err := NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName)
 	if err != nil {
 		t.Fatal(err)
 	}
