@@ -547,11 +547,11 @@ func TestClientInit(t *testing.T) {
 		}
 
 		g.reset()
-		sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com", "mypackagego")
+		sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
 		if err != nil {
 			t.Fatal(err)
 		}
-		sm.AddService(tst.serv.GetName())
+		sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
 		for _, m := range tst.serv.GetMethod() {
 			sm.AddMethod(tst.serv.GetName(), m.GetName(), 50)
 		}

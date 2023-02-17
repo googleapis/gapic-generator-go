@@ -22,12 +22,12 @@ import (
 
 var protoPkg = "google.cloud.bigquery.migration.v2"
 var libPkg = "cloud.google.com/go/bigquery/migration/apiv2"
-var serviceConfigName = "bigquerymigration.googleapis.com"
+var defaultHost = "bigquerymigration.googleapis.com"
 var version = "v2"
 var pkgName = "migration"
 
 func TestNewMetadata(t *testing.T) {
-	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName)
+	sm, err := NewMetadata(protoPkg, libPkg, pkgName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,13 +44,10 @@ func TestNewMetadata(t *testing.T) {
 	if sm.apiVersion != version {
 		t.Errorf("%s: wanted %s, got %s", t.Name(), version, sm.apiVersion)
 	}
-	if shortName := "bigquerymigration"; sm.shortName != shortName {
-		t.Errorf("%s: wanted %s, got %s", t.Name(), shortName, sm.shortName)
-	}
 }
 
 func TestToMetadataJSON(t *testing.T) {
-	sm, err := NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName)
+	sm, err := NewMetadata(protoPkg, libPkg, pkgName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +56,7 @@ func TestToMetadataJSON(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		serviceName := fmt.Sprintf("Foo%dService", i)
 		methodName := fmt.Sprintf("Bar%dMethod", i)
-		sm.AddService(serviceName)
+		sm.AddService(serviceName, defaultHost)
 		sm.AddMethod(serviceName, methodName, regionTagEnd)
 		sm.UpdateMethodDoc(serviceName, methodName, methodName+" doc")
 		sm.UpdateMethodResult(serviceName, methodName, "mypackage."+methodName+"Result")
@@ -202,16 +199,16 @@ func TestToMetadataJSON(t *testing.T) {
 func TestRegionTag(t *testing.T) {
 	protoPkg := "google.cloud.bigquery.migration.v2"
 	libPkg := "google.golang.org/genproto/googleapis/cloud/bigquery/migration/v2"
-	serviceConfigName := "bigquerymigration.googleapis.com"
-	m, err := NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName)
+	sm, err := NewMetadata(protoPkg, libPkg, pkgName)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	serviceName := "MigrationService"
+	defaultHost := "bigquerymigration.googleapis.com"
+	sm.AddService(serviceName, defaultHost)
 	methodName := "GetMigrationWorkflow"
 	want := "bigquerymigration_v2_generated_MigrationService_GetMigrationWorkflow_sync"
-	if got := m.RegionTag(serviceName, methodName); got != want {
+	if got := sm.RegionTag(serviceName, methodName); got != want {
 		t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 	}
 }

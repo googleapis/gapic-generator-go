@@ -58,8 +58,6 @@ type SnippetMetadata struct {
 	protoServices map[string]*service
 	// apiVersion is the gapic service version. (e.g. "v1", "v1beta1")
 	apiVersion string
-	// shortName the first element of API service config DNS-like Name field. (e.g. "bigquerymigration" from "bigquerymigration.googleapis.com")
-	shortName string
 	// pkgName is the short package name after the semi-colon in go-gapic-package.
 	pkgName string
 }
@@ -67,33 +65,28 @@ type SnippetMetadata struct {
 // NewMetadata initializes the model that will collect snippet metadata, from:
 // protoPkg - dot-separated, without final type name element (e.g. "google.cloud.bigquery.migration.v2")
 // libPkg - the Go import path for the GAPIC client, per libraryPackage in gapic_metadata.json (e.g. "cloud.google.com/go/bigquery/migration/apiv2")
-// serviceConfigName - the API service config DNS-like Name field. (e.g. "bigquerymigration.googleapis.com")
-func NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName string) (*SnippetMetadata, error) {
+// pkgName - stored in g.opts.pkgName, used as an argument to pbinfo.ReduceServName
+func NewMetadata(protoPkg, libPkg, pkgName string) (*SnippetMetadata, error) {
 	protoParts := strings.Split(protoPkg, ".")
 	apiVersion := protoParts[len(protoParts)-1]
-	// TODO(chrisdsmith): replace serviceConfigName with
-	// eHost := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
-	// host := eHost.(string)
-	shortName := strings.Split(serviceConfigName, ".")[0]
-	if shortName == "" {
-		return nil, fmt.Errorf("snippets: api-service-config is required and must contain Name for %s", protoPkg)
-	}
 	return &SnippetMetadata{
 		protoPkg:      protoPkg,
 		libPkg:        libPkg,
-		shortName:     shortName,
 		apiVersion:    apiVersion,
 		protoServices: make(map[string]*service),
 		pkgName:       pkgName,
 	}, nil
 }
 
-// AddService uses the service short name (e.g. "AutoscalingPolicyService") identifier
-// to add a service entry.
-func (sm *SnippetMetadata) AddService(serviceName string) {
+// AddService creates a service entry from:
+// serviceName - the service short name (e.g. "AutoscalingPolicyService") identifier
+// defaultHost - the DNS hostname for the service, available from annotations.E_DefaultHost. (e.g. "bigquerymigration.googleapis.com")
+func (sm *SnippetMetadata) AddService(serviceName, defaultHost string) {
+	shortName := strings.Split(defaultHost, ".")[0]
 	s := &service{
 		protoName: serviceName,
 		methods:   make(map[string]*method),
+		shortName: shortName,
 	}
 	sm.protoServices[serviceName] = s
 }
@@ -141,9 +134,11 @@ func (sm *SnippetMetadata) AddParams(serviceName, methodName, requestType string
 	m.params = append(m.params, optsParam)
 }
 
-// RegionTag generates a snippet region tag from shortName, apiVersion, and the given full serviceName and method name.
+// RegionTag generates a snippet region tag from service.shortName(defaultHost),
+// apiVersion, and the given full serviceName and method name.
 func (sm *SnippetMetadata) RegionTag(serviceName, methodName string) string {
-	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", sm.shortName, sm.apiVersion, serviceName, methodName)
+	s := sm.protoServices[serviceName]
+	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", s.shortName, sm.apiVersion, serviceName, methodName)
 }
 
 // ToMetadataJSON marshals the completed SnippetMetadata to a []byte containing
@@ -154,8 +149,8 @@ func (sm *SnippetMetadata) ToMetadataJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Hack to standardize output from protojson which is currently non-deterministic
-	// with spacing after json keys.
+	// Hack to standardize output from protojson which is currently
+	// non-deterministic with spacing after json keys.
 	return spaceSanitizerRegex.ReplaceAll(b, []byte(": ")), nil
 }
 
@@ -194,7 +189,7 @@ func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 			method := service.methods[methodShortName]
 			snp := &metadata.Snippet{
 				RegionTag:   method.regionTag,
-				Title:       fmt.Sprintf("%s %s Sample", sm.shortName, methodShortName),
+				Title:       fmt.Sprintf("%s %s Sample", service.shortName, methodShortName),
 				Description: strings.TrimSpace(method.doc),
 				File:        fmt.Sprintf("%s/%s/main.go", clientShortName, methodShortName),
 				Language:    metadata.Language_GO,
@@ -250,6 +245,9 @@ type service struct {
 	protoName string
 	// methods is a map of gapic method short names to method structs.
 	methods map[string]*method
+	// shortName the first element of the default DNS hostname for the service.
+	// (e.g. "bigquerymigration" from "bigquerymigration.googleapis.com")
+	shortName string
 }
 
 // method associates elements of gapic client methods (docs, params and return types)
