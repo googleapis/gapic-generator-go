@@ -71,6 +71,9 @@ type SnippetMetadata struct {
 func NewMetadata(protoPkg, libPkg, serviceConfigName, pkgName string) (*SnippetMetadata, error) {
 	protoParts := strings.Split(protoPkg, ".")
 	apiVersion := protoParts[len(protoParts)-1]
+	// TODO(chrisdsmith): replace serviceConfigName with
+	// eHost := proto.GetExtension(serv.Options, annotations.E_DefaultHost)
+	// host := eHost.(string)
 	shortName := strings.Split(serviceConfigName, ".")[0]
 	if shortName == "" {
 		return nil, fmt.Errorf("snippets: api-service-config is required and must contain Name for %s", protoPkg)
@@ -111,6 +114,7 @@ func (sm *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEn
 // and method name identifiers to add a doc method comment.
 func (sm *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) {
 	m := sm.protoServices[serviceName].methods[methodName]
+	// TODO(chrisdsmith): split lines, trim whitespace from line ends, join lines with \n.
 	m.doc = doc
 }
 
@@ -217,8 +221,9 @@ func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 			}
 			segment := &metadata.Snippet_Segment{
 				Start: int32(method.regionTagStart + 1),
-				End:   int32(method.regionTagEnd - 1),
-				Type:  metadata.Snippet_Segment_FULL,
+				// TODO(chrisdsmith): verify tag end value in actual output vs existing metadata files in google-cloud-go, using test.sh (seems to be off by 1).
+				End:  int32(method.regionTagEnd - 1),
+				Type: metadata.Snippet_Segment_FULL,
 			}
 			snp.Segments = append(snp.Segments, segment)
 			for _, param := range method.params {

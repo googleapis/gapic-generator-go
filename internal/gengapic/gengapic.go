@@ -120,7 +120,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			methods := append(s.GetMethod(), g.getMixinMethods()...)
 			for _, m := range methods {
 				if m.GetClientStreaming() != m.GetServerStreaming() {
-					// TODO: implement streaming examples correctly, see example.go TODOs.
+					// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODOs.
 					continue
 				}
 				// For each method, reset the generator in order to write a
@@ -534,7 +534,7 @@ func containsDeprecated(com string) bool {
 	return false
 }
 
-func (g *generator) methodDoc(serv *descriptor.ServiceDescriptorProto, servName string, m *descriptor.MethodDescriptorProto) {
+func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto, serv *descriptor.ServiceDescriptorProto) {
 	com := g.comments[m]
 
 	// If there's no comment and the method is not deprecated, adding method name is just confusing.

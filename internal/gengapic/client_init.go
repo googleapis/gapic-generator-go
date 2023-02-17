@@ -242,7 +242,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 	}
 
 	// Generate method documentation just before any method is generated.
-	g.methodDoc(serv, servName, m)
+	g.methodDoc(m, serv)
 
 	if m.GetOutputType() == emptyType {
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
