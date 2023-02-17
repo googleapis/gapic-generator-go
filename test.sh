@@ -37,22 +37,22 @@ generate() {
 }
 
 echo "Generating Cloud KMS v1 - gRPC"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms,transport=grpc' --go_gapic_opt "api-service-config=$GOOGLEAPIS/google/cloud/kms/v1/cloudkms_v1.yaml" $GOOGLEAPIS/google/cloud/kms/v1/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms,transport=grpc' $GOOGLEAPIS/google/cloud/kms/v1/*.proto
 
 echo "Generating Cloud Data Catalog v1beta1 - REST"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog,transport=rest' --go_gapic_opt "api-service-config=$GOOGLEAPIS/google/cloud/datacatalog/v1beta1/datacatalog_v1beta1.yaml" $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog,transport=rest' $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto
 
 echo "Generating Cloud Text-to-Speech v1 w/gRPC ServiceConfig"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/texttospeech/apiv1;texttospeech,transport=grpc+rest' --go_gapic_opt "api-service-config=$GOOGLEAPIS/google/cloud/texttospeech/v1/texttospeech_v1.yaml" --go_gapic_opt "grpc-service-config=$GOOGLEAPIS/google/cloud/texttospeech/v1/texttospeech_grpc_service_config.json" $GOOGLEAPIS/google/cloud/texttospeech/v1/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/texttospeech/apiv1;texttospeech,transport=grpc+rest' --go_gapic_opt "grpc-service-config=$GOOGLEAPIS/google/cloud/texttospeech/v1/texttospeech_grpc_service_config.json" $GOOGLEAPIS/google/cloud/texttospeech/v1/*.proto
 
 echo "Generating Cloud Storage v2"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/storage/internal/apiv2;storage,transport=grpc' --go_gapic_opt "api-service-config=$GOOGLEAPIS/google/storage/v2/storage_v2.yaml" $GOOGLEAPIS/google/storage/v2/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/storage/internal/apiv2;storage,transport=grpc' $GOOGLEAPIS/google/storage/v2/*.proto
 
 echo "Generating Cloud Retail v2"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/retail/apiv2;retail,transport=rest' --go_gapic_opt "api-service-config=$GOOGLEAPIS/google/cloud/retail/v2/retail_v2.yaml" $GOOGLEAPIS/google/cloud/retail/v2/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/retail/apiv2;retail,transport=rest' $GOOGLEAPIS/google/cloud/retail/v2/*.proto
 
 echo "Generating Apigee Connect v1 - Dual Transport, partial REGAPIC"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/apigeeconnect/apiv1;apigeeconnect,transport=grpc+rest' --go_gapic_opt "api-service-config=$GOOGLEAPIS/google/cloud/apigeeconnect/v1/apigeeconnect_v1.yaml" $GOOGLEAPIS/google/cloud/apigeeconnect/v1/*.proto
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/apigeeconnect/apiv1;apigeeconnect,transport=grpc+rest' $GOOGLEAPIS/google/cloud/apigeeconnect/v1/*.proto
 
 echo "Generation complete"
 

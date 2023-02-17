@@ -98,8 +98,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	if !g.opts.omitSnippets {
 		// Initialize the model that will collect snippet metadata.
-		sm, err := snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage,
-			g.serviceConfig.GetName(), g.opts.pkgName)
+		sm, err := snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage, g.opts.pkgName)
 		if err != nil {
 			return &g.resp, err
 		}
@@ -116,7 +115,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		if !g.opts.omitSnippets {
-			g.snippetMetadata.AddService(s.GetName())
+			defaultHost := proto.GetExtension(s.Options, annotations.E_DefaultHost).(string)
+			g.snippetMetadata.AddService(s.GetName(), defaultHost)
 			methods := append(s.GetMethod(), g.getMixinMethods()...)
 			for _, m := range methods {
 				if m.GetClientStreaming() != m.GetServerStreaming() {
