@@ -386,6 +386,7 @@ func TestClientInit(t *testing.T) {
 		customOpServ *descriptor.ServiceDescriptorProto
 		parameter    *string
 		imports      map[pbinfo.ImportSpec]bool
+		wantNumSnps  int
 	}{
 		{
 			tstName: "foo_client_init",
@@ -406,6 +407,7 @@ func TestClientInit(t *testing.T) {
 				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
 				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
 			},
+			wantNumSnps: 6,
 		},
 		{
 			tstName: "foo_rest_client_init",
@@ -425,6 +427,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "net/http"}:                                                    true,
 				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
 			},
+			wantNumSnps: 6,
 		},
 		{
 			tstName:   "empty_client_init",
@@ -442,6 +445,7 @@ func TestClientInit(t *testing.T) {
 				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:        true,
 				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
 			},
+			wantNumSnps: 1,
 		},
 		{
 			tstName: "lro_client_init",
@@ -461,6 +465,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "google.golang.org/grpc"}:          true,
 				{Path: "google.golang.org/grpc/metadata"}: true,
 			},
+			wantNumSnps: 6,
 		},
 		{
 			tstName:   "deprecated_client_init",
@@ -478,6 +483,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "google.golang.org/grpc/metadata"}:             true,
 				{Path: "net/http"}:                                    true,
 			},
+			wantNumSnps: 1,
 		},
 		{
 			tstName:      "custom_op_init",
@@ -494,6 +500,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "net/http"}:                                                    true,
 				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
 			},
+			wantNumSnps: 1,
 		},
 	} {
 		fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
@@ -540,22 +547,18 @@ func TestClientInit(t *testing.T) {
 		}
 
 		g.reset()
-		if tst.servName == "" { // TODO(chrisdsmith): Support empty service name in snippets and remove this conditional
-			g.opts.omitSnippets = true
-		} else {
-			sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com", "mypackagego")
-			if err != nil {
-				t.Fatal(err)
-			}
-			sm.AddService(tst.servName)
-			for _, m := range tst.serv.GetMethod() {
-				sm.AddMethod(tst.servName, m.GetName(), 50)
-			}
-			for _, m := range g.getMixinMethods() {
-				sm.AddMethod(tst.servName, m.GetName(), 50)
-			}
-			g.snippetMetadata = sm
+		sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackage.googleapis.com", "mypackagego")
+		if err != nil {
+			t.Fatal(err)
 		}
+		sm.AddService(tst.serv.GetName())
+		for _, m := range tst.serv.GetMethod() {
+			sm.AddMethod(tst.serv.GetName(), m.GetName(), 50)
+		}
+		for _, m := range g.getMixinMethods() {
+			sm.AddMethod(tst.serv.GetName(), m.GetName(), 50)
+		}
+		g.snippetMetadata = sm
 		g.makeClients(tst.serv, tst.servName)
 
 		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
@@ -563,25 +566,22 @@ func TestClientInit(t *testing.T) {
 		}
 
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
-
-		if tst.servName != "" { // TODO(chrisdsmith): Support empty service name in snippets and remove this conditionalNelso
-			mi := g.snippetMetadata.ToMetadataIndex()
-			if got := len(mi.Snippets); got != 6 {
-				t.Errorf("%s: wanted len 6 Snippets, got %d", t.Name(), got)
+		mi := g.snippetMetadata.ToMetadataIndex()
+		if got := len(mi.Snippets); got != tst.wantNumSnps {
+			t.Errorf("%s: wanted len %d Snippets, got %d", t.Name(), tst.wantNumSnps, got)
+		}
+		for _, snp := range mi.Snippets {
+			if got := snp.ClientMethod.Parameters[0].Name; got != "ctx" {
+				t.Errorf("%s: wanted ctx, got %s", t.Name(), got)
 			}
-			for _, snp := range mi.Snippets {
-				if got := snp.ClientMethod.Parameters[0].Name; got != "ctx" {
-					t.Errorf("%s: wanted ctx, got %s", t.Name(), got)
-				}
-				if got := snp.ClientMethod.Parameters[1].Name; got != "req" {
-					t.Errorf("%s: wanted req, got %s", t.Name(), got)
-				}
-				if got := snp.ClientMethod.Parameters[2].Name; got != "opts" {
-					t.Errorf("%s: wanted opts, got %s", t.Name(), got)
-				}
-				if snp.ClientMethod.ShortName != "CancelOperation" && snp.ClientMethod.ShortName != "DeleteOperation" && snp.ClientMethod.ResultType == "" {
-					t.Errorf("%s: wanted ResultType, got empty string for %s", t.Name(), snp.ClientMethod.ShortName)
-				}
+			if got := snp.ClientMethod.Parameters[1].Name; got != "req" {
+				t.Errorf("%s: wanted req, got %s", t.Name(), got)
+			}
+			if got := snp.ClientMethod.Parameters[2].Name; got != "opts" {
+				t.Errorf("%s: wanted opts, got %s", t.Name(), got)
+			}
+			if snp.ClientMethod.ShortName != "CancelOperation" && snp.ClientMethod.ShortName != "DeleteOperation" && snp.ClientMethod.ResultType == "" {
+				t.Errorf("%s: wanted ResultType, got empty string for %s", t.Name(), snp.ClientMethod.ShortName)
 			}
 		}
 	}

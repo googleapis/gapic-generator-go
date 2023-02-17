@@ -67,6 +67,7 @@ func TestToMetadataJSON(t *testing.T) {
 	}
 
 	mi := sm.ToMetadataIndex()
+	// TODO(chrisdsmith): replace assertions with go-cmp(..., proto.EQUAL)
 	cl := mi.ClientLibrary
 	if cl.Name != libPkg {
 		t.Errorf("%s: wanted %s, got %s", t.Name(), libPkg, cl.Name)

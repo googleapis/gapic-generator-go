@@ -93,8 +93,6 @@ The configuration supported by the plugin option includes:
   * `api-service-config`: the path the service YAML file.
     * This is used for service-level client documentation.
 
-  * `snippets`: enable generation of code snippets to the `internal/generated/snippets` path. The default is `false`.
-
   * `transport`: the desired transport(s) to generate, delimited by `+` e.g. `grpc+rest`.
     * Acceptable values are `grpc` and `rest`.
     * Defaults to `grpc`.
@@ -102,6 +100,8 @@ The configuration supported by the plugin option includes:
   * `rest-numeric-enums`: enables requesting response enums be encoded as numbers.
     * Not enabled by default.
     * Only effective when `rest` is included as a `transport` to be generated.
+
+  * `omit-snippets`: disable generation of code snippets to the `internal/generated/snippets` path. The default is `false`.
 
 Bazel
 -----
@@ -167,7 +167,7 @@ following attributes:
     * Default is `False`.
     * Only effective when `rest` is included as a `transport` to be generated.
 
-  * `snippets`: if `True`, code snippets will be generated to the `internal/generated/snippets` path. The default is `false`.
+  * `omit-snippets`: if `True`, code snippets will be generated to the `internal/generated/snippets` path. The default is `false`.
 
 Docker Wrapper
 --------------
