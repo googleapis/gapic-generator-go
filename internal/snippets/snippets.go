@@ -107,8 +107,12 @@ func (sm *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEn
 // and method name identifiers to add a doc method comment.
 func (sm *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) {
 	m := sm.protoServices[serviceName].methods[methodName]
-	// TODO(chrisdsmith): split lines, trim whitespace from line ends, join lines with \n.
-	m.doc = doc
+	lines := strings.Split(doc, "\n")
+	var b strings.Builder
+	for _, l := range lines {
+		b.WriteString(strings.TrimSpace(l) + "\n")
+	}
+	m.doc = b.String()
 }
 
 // UpdateMethodResult uses service short name (e.g. "AutoscalingPolicyService") and
@@ -216,9 +220,8 @@ func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 			}
 			segment := &metadata.Snippet_Segment{
 				Start: int32(method.regionTagStart + 1),
-				// TODO(chrisdsmith): verify tag end value in actual output vs existing metadata files in google-cloud-go, using test.sh (seems to be off by 1).
-				End:  int32(method.regionTagEnd - 1),
-				Type: metadata.Snippet_Segment_FULL,
+				End:   int32(method.regionTagEnd - 1),
+				Type:  metadata.Snippet_Segment_FULL,
 			}
 			snp.Segments = append(snp.Segments, segment)
 			for _, param := range method.params {
