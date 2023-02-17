@@ -58,7 +58,7 @@ func TestToMetadataJSON(t *testing.T) {
 		methodName := fmt.Sprintf("Bar%dMethod", i)
 		sm.AddService(serviceName, defaultHost)
 		sm.AddMethod(serviceName, methodName, regionTagEnd)
-		sm.UpdateMethodDoc(serviceName, methodName, methodName+" doc")
+		sm.UpdateMethodDoc(serviceName, methodName, methodName+" doc\n New line.")
 		sm.UpdateMethodResult(serviceName, methodName, "mypackage."+methodName+"Result")
 		sm.AddParams(serviceName, methodName, "mypackage."+methodName+"Request")
 	}
@@ -96,7 +96,7 @@ func TestToMetadataJSON(t *testing.T) {
 		if got := snp.Title; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
-		want = fmt.Sprintf("Bar%dMethod doc", i)
+		want = fmt.Sprintf("Bar%dMethod doc\nNew line.", i)
 		if got := snp.Description; got != want {
 			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
 		}
