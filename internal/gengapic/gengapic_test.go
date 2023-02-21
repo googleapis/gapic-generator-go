@@ -639,7 +639,7 @@ func TestMethodDoc(t *testing.T) {
 		}
 		mi := g.snippetMetadata.ToMetadataIndex()
 		if got := len(mi.Snippets); got != 1 {
-			t.Errorf("%s: wanted len 1 Snippets, got %d", t.Name(), got)
+			t.Errorf("%s: got %d want 1,", t.Name(), got)
 		}
 		snp := mi.Snippets[0]
 		// remove slashes to compare with snippet description.
@@ -647,7 +647,7 @@ func TestMethodDoc(t *testing.T) {
 		want = strings.Replace(want, "//", "", -1)
 		want = strings.Trim(want, "\n")
 		if got := snp.Description; !tst.clientStreaming && got != want {
-			t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+			t.Errorf("%s: got %s want %s", t.Name(), got, want)
 		}
 	}
 }

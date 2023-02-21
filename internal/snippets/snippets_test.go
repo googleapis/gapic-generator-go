@@ -35,16 +35,16 @@ func TestNewMetadata(t *testing.T) {
 	}
 
 	if sm.protoPkg != protoPkg {
-		t.Errorf("%s: wanted %s, got %s", t.Name(), protoPkg, sm.protoPkg)
+		t.Errorf("%s: got %s want %s,", t.Name(), sm.protoPkg, protoPkg)
 	}
 	if sm.libPkg != libPkg {
-		t.Errorf("%s: wanted %s, got %s", t.Name(), libPkg, sm.libPkg)
+		t.Errorf("%s: got %s want %s", t.Name(), sm.libPkg, libPkg)
 	}
 	if got := len(sm.protoServices); got != 0 {
-		t.Errorf("%s: wanted empty, got %d", t.Name(), len(sm.protoServices))
+		t.Errorf("%s: got %d want empty", t.Name(), len(sm.protoServices))
 	}
 	if sm.apiVersion != version {
-		t.Errorf("%s: wanted %s, got %s", t.Name(), version, sm.apiVersion)
+		t.Errorf("%s: got %s want %s", t.Name(), sm.apiVersion, version)
 	}
 }
 
@@ -143,7 +143,7 @@ func TestToMetadataJSON(t *testing.T) {
 	}
 
 	if got := len(json); got == 0 {
-		t.Errorf("%s: wanted non-empty []byte, got len 0", t.Name())
+		t.Errorf("%s: got len 0, want non-empty []byte", t.Name())
 	}
 }
 
@@ -160,6 +160,6 @@ func TestRegionTag(t *testing.T) {
 	methodName := "GetMigrationWorkflow"
 	want := "bigquerymigration_v2_generated_MigrationService_GetMigrationWorkflow_sync"
 	if got := sm.RegionTag(serviceName, methodName); got != want {
-		t.Errorf("%s: wanted %s, got %s", t.Name(), want, got)
+		t.Errorf("%s: got %s want %s", t.Name(), got, want)
 	}
 }
