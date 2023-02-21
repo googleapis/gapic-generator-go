@@ -568,20 +568,20 @@ func TestClientInit(t *testing.T) {
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
 		mi := g.snippetMetadata.ToMetadataIndex()
 		if got := len(mi.Snippets); got != tst.wantNumSnps {
-			t.Errorf("%s: wanted len %d Snippets, got %d", t.Name(), tst.wantNumSnps, got)
+			t.Errorf("%s: got %d want len %d", t.Name(), tst.wantNumSnps, got)
 		}
 		for _, snp := range mi.Snippets {
 			if got := snp.ClientMethod.Parameters[0].Name; got != "ctx" {
-				t.Errorf("%s: wanted ctx, got %s", t.Name(), got)
+				t.Errorf("%s: got %s want ctx,", t.Name(), got)
 			}
 			if got := snp.ClientMethod.Parameters[1].Name; got != "req" {
-				t.Errorf("%s: wanted req, got %s", t.Name(), got)
+				t.Errorf("%s: got %s want req,", t.Name(), got)
 			}
 			if got := snp.ClientMethod.Parameters[2].Name; got != "opts" {
-				t.Errorf("%s: wanted opts, got %s", t.Name(), got)
+				t.Errorf("%s: got %s want opts,", t.Name(), got)
 			}
 			if snp.ClientMethod.ShortName != "CancelOperation" && snp.ClientMethod.ShortName != "DeleteOperation" && snp.ClientMethod.ResultType == "" {
-				t.Errorf("%s: wanted ResultType, got empty string for %s", t.Name(), snp.ClientMethod.ShortName)
+				t.Errorf("%s: got empty string, want ResultType for %s", t.Name(), snp.ClientMethod.ShortName)
 			}
 		}
 	}
