@@ -130,8 +130,11 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 					return &g.resp, errors.E(err, "snippet: %s", s.GetName())
 				}
 				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
+				// Use the client short name in this filepath.
+				// E.g. the client for LoggingServiceV2 is just "Client".
+				clientName := pbinfo.ReduceServName(s.GetName(), g.opts.pkgName) + "Client"
 				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
-					"snippets", servName+"Client", m.GetName(), "main.go"), "main")
+					"snippets", clientName, m.GetName(), "main.go"), "main")
 				g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), lineCount-1)
 			}
 		}
