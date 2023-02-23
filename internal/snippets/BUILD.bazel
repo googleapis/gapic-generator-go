@@ -19,6 +19,7 @@ go_test(
     embed = [":snippets"],
     deps = [
         "@com_github_google_go_cmp//cmp",
-        "//internal/snippets/metadata"
+        "//internal/snippets/metadata",
+        "@org_golang_google_protobuf//proto",
     ],
 )
