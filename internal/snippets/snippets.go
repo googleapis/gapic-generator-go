@@ -67,8 +67,8 @@ type SnippetMetadata struct {
 // libPkg - the Go import path for the GAPIC client, per libraryPackage in gapic_metadata.json (e.g. "cloud.google.com/go/bigquery/migration/apiv2")
 // pkgName - stored in g.opts.pkgName, used as an argument to pbinfo.ReduceServName
 func NewMetadata(protoPkg, libPkg, pkgName string) (*SnippetMetadata, error) {
-	protoParts := strings.Split(protoPkg, ".")
-	apiVersion := protoParts[len(protoParts)-1]
+	lastDot := strings.LastIndex(protoPkg, ".")
+	apiVersion := protoPkg[lastDot+1:]
 	return &SnippetMetadata{
 		protoPkg:      protoPkg,
 		libPkg:        libPkg,
@@ -219,9 +219,13 @@ func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 				},
 			}
 			segment := &metadata.Snippet_Segment{
+				// The line where this segment begins, inclusive.
+				// For the FULL segment, this will be the START region tag line + 1.
 				Start: int32(method.regionTagStart + 1),
-				End:   int32(method.regionTagEnd - 1),
-				Type:  metadata.Snippet_Segment_FULL,
+				// The line where this segment ends, inclusive.
+				// For the FULL segment, this will be the END region tag line - 1.
+				End:  int32(method.regionTagEnd - 1),
+				Type: metadata.Snippet_Segment_FULL,
 			}
 			snp.Segments = append(snp.Segments, segment)
 			for _, param := range method.params {

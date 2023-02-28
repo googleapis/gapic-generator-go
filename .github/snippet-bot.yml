@@ -1,2 +1,7 @@
 aggregateChecks: false
 alwaysCreateStatusCheck: false
+
+# The generator prints region tags and snippet-bot wants to correct
+# the printing code.
+ignoreFiles:
+  - "internal/**"

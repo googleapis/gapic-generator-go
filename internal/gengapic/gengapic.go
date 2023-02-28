@@ -27,6 +27,7 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
@@ -573,12 +574,9 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto, serv *descrip
 	g.comment(com)
 }
 
-// printFunc defines a function type accepting arguments to be format-printed.
-type printFunc func(s string, a ...interface{})
-
 // printComment accepts a string to print in code comments and a printFunc
 // function to format-print the comment slashes plus the string.
-func (g *generator) printComment(s string, p printFunc) {
+func (g *generator) printComment(s string, p *printer.P) {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return
@@ -589,21 +587,21 @@ func (g *generator) printComment(s string, p printFunc) {
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {
 		if strings.TrimSpace(l) == "" {
-			p("//")
+			p.Printf("//")
 		} else {
-			p("// %s", l)
+			p.Printf("// %s", l)
 		}
 	}
 }
 
 // comment format-prints a string in code comments to pt using printf.
 func (g *generator) comment(s string) {
-	g.printComment(s, g.printf)
+	g.printComment(s, &g.pt)
 }
 
 // comment format-prints a string in code comments to headerComments.
 func (g *generator) headerComment(s string) {
-	g.printComment(s, g.headerComments.Printf)
+	g.printComment(s, &g.headerComments)
 }
 
 // Similar functionality to 'comment', except specifically used for generating formatted code snippets.
