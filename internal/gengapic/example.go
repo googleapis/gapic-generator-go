@@ -17,10 +17,10 @@ package gengapic
 import (
 	"strings"
 
+	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
 )
 
