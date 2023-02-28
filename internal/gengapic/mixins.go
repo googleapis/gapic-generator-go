@@ -23,7 +23,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/cloud/location"
-	iam "google.golang.org/genproto/googleapis/iam/v1"
+	iam "cloud.google.com/go/iam/apiv1/iampb"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 )

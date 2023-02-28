@@ -26,6 +26,7 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/iam/apiv1/iampb"
 	"github.com/google/go-cmp/cmp"
 	showcase "github.com/googleapis/gapic-showcase/client"
 	showcasepb "github.com/googleapis/gapic-showcase/server/genproto"
@@ -34,7 +35,6 @@ import (
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	locationpb "google.golang.org/genproto/googleapis/cloud/location"
-	iampb "google.golang.org/genproto/googleapis/iam/v1"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
