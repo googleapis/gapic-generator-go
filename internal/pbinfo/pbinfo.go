@@ -168,7 +168,6 @@ func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
 	if pkgOverride, ok := in.PkgOverrides[fdesc.GetName()]; ok {
 		pkg = pkgOverride
 	}
-
 	if pkg == "" {
 		return "", ImportSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", eTxt, fdesc.GetName())
 	}
