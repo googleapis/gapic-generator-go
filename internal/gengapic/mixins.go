@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"regexp"
 
+	iam "cloud.google.com/go/iam/apiv1/iampb"
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/cloud/location"
-	iam "cloud.google.com/go/iam/apiv1/iampb"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 )
