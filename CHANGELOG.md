@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.0](https://github.com/googleapis/gapic-generator-go/compare/v0.33.7...v0.34.0) (2023-03-01)
+
+
+### Features
+
+* Migrate to lro & iam submodules ([#1240](https://github.com/googleapis/gapic-generator-go/issues/1240)) ([76944b9](https://github.com/googleapis/gapic-generator-go/commit/76944b9f52ff6bacf5f68b267fbbf210d091c823))
+
 ## [0.33.7](https://github.com/googleapis/gapic-generator-go/compare/v0.33.6...v0.33.7) (2023-01-19)
 
 
