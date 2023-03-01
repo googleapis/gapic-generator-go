@@ -15,7 +15,7 @@ jobs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
     env:
-      USE_BAZEL_VERSION: 5.0.0
+      USE_BAZEL_VERSION: 6.0.0
     container: gcr.io/gapic-images/googleapis:latest
     # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
     steps:
