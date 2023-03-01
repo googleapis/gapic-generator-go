@@ -20,6 +20,7 @@ import (
 	"sort"
 	"testing"
 
+	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/google/go-cmp/cmp"
@@ -29,7 +30,6 @@ import (
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/genproto/googleapis/cloud/extendedops"
-	"google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/runtime/protoiface"

@@ -1,6 +1,8 @@
 module github.com/googleapis/gapic-generator-go
 
 require (
+	cloud.google.com/go/iam v0.12.0
+	cloud.google.com/go/longrunning v0.4.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.9
@@ -11,8 +13,6 @@ require (
 )
 
 require (
-	cloud.google.com/go/iam v0.12.0 // indirect
-	cloud.google.com/go/longrunning v0.4.1 // indirect
 	gitlab.com/golang-commonmark/html v0.0.0-20191124015941-a22733972181 // indirect
 	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20191124015652-932350d1cb84 // indirect

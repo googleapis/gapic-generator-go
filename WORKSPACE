@@ -54,14 +54,6 @@ http_archive(
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-
-go_rules_dependencies()
-
-go_register_toolchains(
-    version = "1.18.6",
-)
-
 http_archive(
     name = "bazel_gazelle",
     sha256 = "efbbba6ac1a4fd342d5122cbdfdb82aeb2cf2862e35022c752eaddffada7c3f3",
@@ -71,12 +63,18 @@ http_archive(
     ],
 )
 
-# gazelle:repo bazel_gazelle
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
-
-gazelle_dependencies()
-
 load("//:repositories.bzl", "com_googleapis_gapic_generator_go_repositories")
 
 # gazelle:repository_macro repositories.bzl%com_googleapis_gapic_generator_go_repositories
 com_googleapis_gapic_generator_go_repositories()
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_register_toolchains(version = "1.18.6")
+
+go_rules_dependencies()
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+gazelle_dependencies()
+
