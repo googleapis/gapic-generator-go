@@ -134,9 +134,13 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 				// Use the client short name in this filepath.
 				// E.g. the client for LoggingServiceV2 is just "Client".
 				clientName := pbinfo.ReduceServName(s.GetName(), g.opts.pkgName) + "Client"
+				// Get the original proto namespace for the method (different from `s` only for mixins).
+				f := g.descInfo.ParentFile[m]
+				// Get the original proto service for the method (different from `s` only for mixins).
+				methodServ := (g.descInfo.ParentElement[m]).(*descriptor.ServiceDescriptorProto)
 				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
 					"snippets", clientName, m.GetName(), "main.go"), "main")
-				g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), lineCount-1)
+				g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
 			}
 		}
 

@@ -60,7 +60,7 @@ func TestToMetadataJSON(t *testing.T) {
 		serviceName := fmt.Sprintf("Foo%dService", i)
 		methodName := fmt.Sprintf("Bar%dMethod", i)
 		sm.AddService(serviceName, defaultHost)
-		sm.AddMethod(serviceName, methodName, regionTagEnd)
+		sm.AddMethod(serviceName, methodName, protoPkg, serviceName, regionTagEnd)
 		sm.UpdateMethodDoc(serviceName, methodName, methodName+" doc\n New line.")
 		sm.UpdateMethodResult(serviceName, methodName, "mypackage."+methodName+"Result")
 		sm.AddParams(serviceName, methodName, "mypackage."+methodName+"Request")

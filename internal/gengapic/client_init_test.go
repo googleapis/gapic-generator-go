@@ -553,10 +553,10 @@ func TestClientInit(t *testing.T) {
 		}
 		sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
 		for _, m := range tst.serv.GetMethod() {
-			sm.AddMethod(tst.serv.GetName(), m.GetName(), 50)
+			sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
 		}
 		for _, m := range g.getMixinMethods() {
-			sm.AddMethod(tst.serv.GetName(), m.GetName(), 50)
+			sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
 		}
 		g.snippetMetadata = sm
 		g.makeClients(tst.serv, tst.servName)

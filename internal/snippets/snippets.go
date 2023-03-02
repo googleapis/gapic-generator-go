@@ -92,13 +92,16 @@ func (sm *SnippetMetadata) AddService(serviceName, defaultHost string) {
 }
 
 // AddMethod uses the service short name (e.g. "AutoscalingPolicyService") and method name
-// identifiers to add an incomplete method entry that will be updated via UpdateMethodDoc
-// and UpdateMethodResult.
-func (sm *SnippetMetadata) AddMethod(serviceName, methodName string, regionTagEnd int) {
+// to add an incomplete method entry that will be updated via UpdateMethodDoc and UpdateMethodResult.
+// parentProtoPkg and parentName are the original proto namespace and service for the method.
+// (In mixin methods, these are different from the protoPkg and service into which it has been mixed.)
+func (sm *SnippetMetadata) AddMethod(serviceName, methodName, parentProtoPkg, parentName string, regionTagEnd int) {
 	m := &method{
 		regionTag:      sm.RegionTag(serviceName, methodName),
 		regionTagStart: headerLen,
 		regionTagEnd:   regionTagEnd,
+		parentProtoPkg: parentProtoPkg,
+		parentName:     parentName,
 	}
 	sm.protoServices[serviceName].methods[methodName] = m
 }
@@ -210,10 +213,10 @@ func (sm *SnippetMetadata) ToMetadataIndex() *metadata.Index {
 					},
 					Method: &metadata.Method{
 						ShortName: methodShortName,
-						FullName:  fmt.Sprintf("%s.%s.%s", sm.protoPkg, service.protoName, methodShortName),
+						FullName:  fmt.Sprintf("%s.%s.%s", method.parentProtoPkg, method.parentName, methodShortName),
 						Service: &metadata.Service{
-							ShortName: service.protoName,
-							FullName:  fmt.Sprintf("%s.%s", sm.protoPkg, service.protoName),
+							ShortName: method.parentName,
+							FullName:  fmt.Sprintf("%s.%s", method.parentProtoPkg, method.parentName),
 						},
 					},
 				},
@@ -260,7 +263,7 @@ type service struct {
 // method associates elements of gapic client methods (docs, params and return types)
 // with snippet file details such as the region tag string and line numbers.
 type method struct {
-	// doc is the documention for the methods.
+	// doc is the documentation for the methods.
 	doc string
 	// regionTag is the region tag that will be used for the generated snippet.
 	regionTag string
@@ -272,6 +275,12 @@ type method struct {
 	params []*param
 	// result is the return value for the method.
 	result string
+	// parentProtoPkg is the original proto namespace for the method.
+	// In mixin methods, this namespace is different from the protoPkg namespace into which it has been mixed.
+	parentProtoPkg string
+	// parentName is the proto name of the method's original parent.
+	// In mixin methods, this parent is different from the service into which it has been mixed.
+	parentName string
 }
 
 // param contains the details of a method parameter.

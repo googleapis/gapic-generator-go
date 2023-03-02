@@ -566,18 +566,20 @@ func TestContainsDeprecated(t *testing.T) {
 }
 
 func TestMethodDoc(t *testing.T) {
-	serv := &descriptor.ServiceDescriptorProto{
-		Name: proto.String("Foo"),
-	}
 	servName := "Foo"
 	methodName := "MyMethod"
 	m := &descriptor.MethodDescriptorProto{
 		Name: proto.String(methodName),
 	}
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String(servName),
+	}
 
 	g := generator{
 		comments: make(map[protoiface.MessageV1]string),
 	}
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{}
+	g.descInfo.ParentElement[m] = serv
 
 	for _, tst := range []struct {
 		in, want                    string
@@ -625,7 +627,7 @@ func TestMethodDoc(t *testing.T) {
 			t.Fatal(err)
 		}
 		sm.AddService(servName, "mypackage.googleapis.com")
-		sm.AddMethod(servName, methodName, 50)
+		sm.AddMethod(servName, methodName, "mypackage", servName, 50)
 		g.snippetMetadata = sm
 		g.comments[m] = tst.in
 		m.Options = &descriptor.MethodOptions{
