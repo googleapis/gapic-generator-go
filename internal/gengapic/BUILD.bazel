@@ -19,6 +19,7 @@ go_library(
         "mixins.go",
         "options.go",
         "paging.go",
+        "snippets.go",
         "stream.go",
         "test_utils.go",
     ],
