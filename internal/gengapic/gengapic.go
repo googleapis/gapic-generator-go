@@ -28,7 +28,6 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
-	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 )
@@ -96,15 +95,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.metadata.ProtoPackage = protoPkg
 	}
 	g.metadata.LibraryPackage = g.opts.pkgPath
-
-	if !g.opts.omitSnippets {
-		// Initialize the model that will collect snippet metadata.
-		sm, err := snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage, g.opts.pkgName)
-		if err != nil {
-			return &g.resp, err
-		}
-		g.snippetMetadata = sm
-	}
+	// Initialize the model that will collect snippet metadata.
+	g.snippetMetadata = g.newSnippetsMetadata(protoPkg)
 
 	for _, s := range genServs {
 		// TODO(pongad): gapic-generator does not remove the package name here,
@@ -115,33 +107,8 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
-		if !g.opts.omitSnippets {
-			defaultHost := proto.GetExtension(s.Options, annotations.E_DefaultHost).(string)
-			g.snippetMetadata.AddService(s.GetName(), defaultHost)
-			methods := append(s.GetMethod(), g.getMixinMethods()...)
-			for _, m := range methods {
-				if m.GetClientStreaming() != m.GetServerStreaming() {
-					// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODOs.
-					continue
-				}
-				// For each method, reset the generator in order to write a
-				// separate main.go snippet file.
-				g.reset()
-				if err := g.genSnippetFile(s, m); err != nil {
-					return &g.resp, errors.E(err, "snippet: %s", s.GetName())
-				}
-				g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-				// Use the client short name in this filepath.
-				// E.g. the client for LoggingServiceV2 is just "Client".
-				clientName := pbinfo.ReduceServName(s.GetName(), g.opts.pkgName) + "Client"
-				// Get the original proto namespace for the method (different from `s` only for mixins).
-				f := g.descInfo.ParentFile[m]
-				// Get the original proto service for the method (different from `s` only for mixins).
-				methodServ := (g.descInfo.ParentElement[m]).(*descriptor.ServiceDescriptorProto)
-				lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
-					"snippets", clientName, m.GetName(), "main.go"), "main")
-				g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
-			}
+		if err := g.genAndCommitSnippets(s); err != nil {
+			return &g.resp, errors.E(err, "snippets: %s", s.GetName())
 		}
 
 		g.reset()
@@ -170,21 +137,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			g.opts.transports = transports
 		}
 	}
-
-	if !g.opts.omitSnippets {
-		g.reset()
-		json, err := g.snippetMetadata.ToMetadataJSON()
-		if err != nil {
-			return &g.resp, err
-		}
-		file := filepath.Join(g.opts.outDir, "internal", "snippets",
-			fmt.Sprintf("snippet_metadata.%s.json", protoPkg))
-		g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(file),
-			Content: proto.String(string(json[:])),
-		})
+	err := g.genAndCommitSnippetMetadata(protoPkg)
+	if err != nil {
+		return &g.resp, err
 	}
-
 	g.reset()
 	scopes, err := collectScopes(genServs)
 	if err != nil {
@@ -569,12 +525,7 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto, serv *descrip
 
 	// Prepend the method name to all non-empty comments.
 	com = m.GetName() + " " + lowerFirst(com)
-
-	// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
-	if !g.opts.omitSnippets && m.GetClientStreaming() == m.GetServerStreaming() {
-		g.snippetMetadata.UpdateMethodDoc(serv.GetName(), m.GetName(), com)
-	}
-
+	g.addSnippetsMetadataDoc(m, serv.GetName(), com)
 	g.comment(com)
 }
 

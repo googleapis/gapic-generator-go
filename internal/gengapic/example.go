@@ -15,7 +15,6 @@
 package gengapic
 
 import (
-	"fmt"
 	"strings"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
@@ -23,7 +22,6 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) error {
@@ -39,23 +37,6 @@ func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) erro
 			return err
 		}
 	}
-	return nil
-}
-
-func (g *generator) genSnippetFile(s *descriptor.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
-	regionTag := g.snippetMetadata.RegionTag(s.GetName(), m.GetName())
-	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
-	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(s.GetName(), pkgName)
-
-	p := g.printf
-	p("func main() {")
-	if err := g.exampleMethodBody(pkgName, servName, m); err != nil {
-		return err
-	}
-	p("}")
-	p("")
-	g.comment(fmt.Sprintf("[END %s]\n", regionTag))
 	return nil
 }
 

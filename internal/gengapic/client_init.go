@@ -252,9 +252,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if !g.opts.omitSnippets {
-			g.snippetMetadata.AddParams(serv.GetName(), m.GetName(), reqTyp)
-		}
+		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
 		return nil
 	}
 
@@ -273,10 +271,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if !g.opts.omitSnippets {
-			g.snippetMetadata.AddParams(serv.GetName(), m.GetName(), reqTyp)
-			g.snippetMetadata.UpdateMethodResult(serv.GetName(), m.GetName(), lroType)
-		}
+		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
+		g.addSnippetsMetadataResult(m, serv.GetName(), lroType)
 		return nil
 	}
 
@@ -294,10 +290,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if !g.opts.omitSnippets {
-			g.snippetMetadata.AddParams(serv.GetName(), m.GetName(), reqTyp)
-			g.snippetMetadata.UpdateMethodResult(serv.GetName(), m.GetName(), iter.iterTypeName)
-		}
+		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
+		g.addSnippetsMetadataResult(m, serv.GetName(), iter.iterTypeName)
 		return nil
 	}
 
@@ -315,11 +309,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
-		if !g.opts.omitSnippets && m.GetClientStreaming() == m.GetServerStreaming() {
-			g.snippetMetadata.AddParams(serv.GetName(), m.GetName(), "")
-			g.snippetMetadata.UpdateMethodResult(serv.GetName(), m.GetName(), retTyp)
-		}
+		g.addSnippetsMetadataParams(m, serv.GetName(), "")
+		g.addSnippetsMetadataResult(m, serv.GetName(), retTyp)
 		return nil
 	case m.GetServerStreaming():
 		servSpec, err := g.descInfo.ImportSpec(serv)
@@ -335,11 +326,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
-		if !g.opts.omitSnippets && m.GetClientStreaming() == m.GetServerStreaming() {
-			g.snippetMetadata.AddParams(serv.GetName(), m.GetName(), reqTyp)
-			g.snippetMetadata.UpdateMethodResult(serv.GetName(), m.GetName(), retTyp)
-		}
+		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
+		g.addSnippetsMetadataResult(m, serv.GetName(), retTyp)
 		return nil
 	default:
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
@@ -354,10 +342,8 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 		p("}")
 		p("")
 
-		if !g.opts.omitSnippets {
-			g.snippetMetadata.AddParams(serv.GetName(), m.GetName(), reqTyp)
-			g.snippetMetadata.UpdateMethodResult(serv.GetName(), m.GetName(), retTyp)
-		}
+		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
+		g.addSnippetsMetadataResult(m, serv.GetName(), retTyp)
 		return nil
 	}
 

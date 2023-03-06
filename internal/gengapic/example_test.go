@@ -289,11 +289,7 @@ func TestGenSnippetFile(t *testing.T) {
 	protoPkg := "google.cloud.bigquery.migration.v2"
 	libPkg := "cloud.google.com/go/bigquery/migration/apiv2"
 	pkgName := "bigquerymigration"
-	var err error
-	g.snippetMetadata, err = snippets.NewMetadata(protoPkg, libPkg, pkgName)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.snippetMetadata = snippets.NewMetadata(protoPkg, libPkg, pkgName)
 
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("CreateMigrationWorkflowRequest"),

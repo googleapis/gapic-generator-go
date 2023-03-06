@@ -66,7 +66,7 @@ type SnippetMetadata struct {
 // protoPkg - dot-separated, without final type name element (e.g. "google.cloud.bigquery.migration.v2")
 // libPkg - the Go import path for the GAPIC client, per libraryPackage in gapic_metadata.json (e.g. "cloud.google.com/go/bigquery/migration/apiv2")
 // pkgName - stored in g.opts.pkgName, used as an argument to pbinfo.ReduceServName
-func NewMetadata(protoPkg, libPkg, pkgName string) (*SnippetMetadata, error) {
+func NewMetadata(protoPkg, libPkg, pkgName string) *SnippetMetadata {
 	lastDot := strings.LastIndex(protoPkg, ".")
 	apiVersion := protoPkg[lastDot+1:]
 	return &SnippetMetadata{
@@ -75,41 +75,41 @@ func NewMetadata(protoPkg, libPkg, pkgName string) (*SnippetMetadata, error) {
 		apiVersion:    apiVersion,
 		protoServices: make(map[string]*service),
 		pkgName:       pkgName,
-	}, nil
+	}
 }
 
 // AddService creates a service entry from:
-// serviceName - the service short name (e.g. "AutoscalingPolicyService") identifier
+// servName - the service short name (e.g. "AutoscalingPolicyService") identifier
 // defaultHost - the DNS hostname for the service, available from annotations.E_DefaultHost. (e.g. "bigquerymigration.googleapis.com")
-func (sm *SnippetMetadata) AddService(serviceName, defaultHost string) {
+func (sm *SnippetMetadata) AddService(servName, defaultHost string) {
 	shortName := strings.Split(defaultHost, ".")[0]
 	s := &service{
-		protoName: serviceName,
+		protoName: servName,
 		methods:   make(map[string]*method),
 		shortName: shortName,
 	}
-	sm.protoServices[serviceName] = s
+	sm.protoServices[servName] = s
 }
 
 // AddMethod uses the service short name (e.g. "AutoscalingPolicyService") and method name
 // to add an incomplete method entry that will be updated via UpdateMethodDoc and UpdateMethodResult.
 // parentProtoPkg and parentName are the original proto namespace and service for the method.
 // (In mixin methods, these are different from the protoPkg and service into which it has been mixed.)
-func (sm *SnippetMetadata) AddMethod(serviceName, methodName, parentProtoPkg, parentName string, regionTagEnd int) {
+func (sm *SnippetMetadata) AddMethod(servName, methodName, parentProtoPkg, parentName string, regionTagEnd int) {
 	m := &method{
-		regionTag:      sm.RegionTag(serviceName, methodName),
+		regionTag:      sm.RegionTag(servName, methodName),
 		regionTagStart: headerLen,
 		regionTagEnd:   regionTagEnd,
 		parentProtoPkg: parentProtoPkg,
 		parentName:     parentName,
 	}
-	sm.protoServices[serviceName].methods[methodName] = m
+	sm.protoServices[servName].methods[methodName] = m
 }
 
 // UpdateMethodDoc uses service short name (e.g. "AutoscalingPolicyService") and
 // and method name identifiers to add a doc method comment.
-func (sm *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) {
-	m := sm.protoServices[serviceName].methods[methodName]
+func (sm *SnippetMetadata) UpdateMethodDoc(servName, methodName, doc string) {
+	m := sm.protoServices[servName].methods[methodName]
 	lines := strings.Split(doc, "\n")
 	var b strings.Builder
 	for _, l := range lines {
@@ -120,16 +120,16 @@ func (sm *SnippetMetadata) UpdateMethodDoc(serviceName, methodName, doc string) 
 
 // UpdateMethodResult uses service short name (e.g. "AutoscalingPolicyService") and
 // and method name identifiers to add a method result type.
-func (sm *SnippetMetadata) UpdateMethodResult(serviceName, methodName, result string) {
-	m := sm.protoServices[serviceName].methods[methodName]
+func (sm *SnippetMetadata) UpdateMethodResult(servName, methodName, result string) {
+	m := sm.protoServices[servName].methods[methodName]
 	m.result = result
 }
 
 // AddParams adds a slice of 3 params to the method: ctx context.Context, req <requestType>, opts ...gax.CallOption,
 // ctx and opts params are hardcoded since these are currently the same in all client wrapper methods.
 // The req param will be omitted if empty requestType is given.
-func (sm *SnippetMetadata) AddParams(serviceName, methodName, requestType string) {
-	m := sm.protoServices[serviceName].methods[methodName]
+func (sm *SnippetMetadata) AddParams(servName, methodName, requestType string) {
+	m := sm.protoServices[servName].methods[methodName]
 	m.params = []*param{ctxParam}
 	if requestType != "" {
 		m.params = append(m.params,
@@ -142,10 +142,10 @@ func (sm *SnippetMetadata) AddParams(serviceName, methodName, requestType string
 }
 
 // RegionTag generates a snippet region tag from service.shortName(defaultHost),
-// apiVersion, and the given full serviceName and method name.
-func (sm *SnippetMetadata) RegionTag(serviceName, methodName string) string {
-	s := sm.protoServices[serviceName]
-	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", s.shortName, sm.apiVersion, serviceName, methodName)
+// apiVersion, and the given full servName and method name.
+func (sm *SnippetMetadata) RegionTag(servName, methodName string) string {
+	s := sm.protoServices[servName]
+	return fmt.Sprintf("%s_%s_generated_%s_%s_sync", s.shortName, sm.apiVersion, servName, methodName)
 }
 
 // ToMetadataJSON marshals the completed SnippetMetadata to a []byte containing

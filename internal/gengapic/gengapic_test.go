@@ -622,10 +622,7 @@ func TestMethodDoc(t *testing.T) {
 		},
 	} {
 		g.opts = &tst.opts
-		sm, err := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
-		if err != nil {
-			t.Fatal(err)
-		}
+		sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
 		sm.AddService(servName, "mypackage.googleapis.com")
 		sm.AddMethod(servName, methodName, "mypackage", servName, 50)
 		g.snippetMetadata = sm
