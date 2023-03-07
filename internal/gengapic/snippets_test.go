@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -198,9 +199,13 @@ func TestGenAndCommitSnippets(t *testing.T) {
 		}
 
 		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("TestGenMethod(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
+			t.Errorf("TestGenAndCommitSnippets(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
 		}
 		if !tst.wantNil {
+			wantRegionTag := fmt.Sprintf("// [START _pkg_generated_Foo_%s_sync]\n", tst.m.GetName())
+			if g.headerComments.String() != wantRegionTag {
+				t.Errorf("TestGenAndCommitSnippets(%s): got %s, want %s", tst.m.GetName(), g.headerComments.String(), wantRegionTag)
+			}
 			txtdiff.Diff(t, tst.m.GetName(), g.pt.String(), filepath.Join("testdata", "snippet_"+tst.m.GetName()+".want"))
 		}
 	}
