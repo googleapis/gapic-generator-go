@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.35.0](https://github.com/googleapis/gapic-generator-go/compare/v0.34.0...v0.35.0) (2023-03-08)
+
+
+### Features
+
+* **gengapic:** Add snippets ([#1220](https://github.com/googleapis/gapic-generator-go/issues/1220)) ([98f7a13](https://github.com/googleapis/gapic-generator-go/commit/98f7a13fb501df907462041eb39ae93cac472ebd))
+* Update generator for new iam and longrunning locations ([#1247](https://github.com/googleapis/gapic-generator-go/issues/1247)) ([2584c29](https://github.com/googleapis/gapic-generator-go/commit/2584c29a5a545d25622962fae983e2b16640df9d))
+
 ## [0.34.0](https://github.com/googleapis/gapic-generator-go/compare/v0.33.7...v0.34.0) (2023-03-01)
 
 
