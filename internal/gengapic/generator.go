@@ -205,6 +205,13 @@ func (g *generator) commit(fileName, pkgName string) int {
 
 	var imps []pbinfo.ImportSpec
 	for imp := range g.imports {
+		// TODO(codyoss): This if can be removed once the public protos
+		// have been migrated to their new package. This should be soon after this
+		// code is merged.
+		if imp.Path == "google.golang.org/genproto/googleapis/longrunning" ||
+			imp.Path == "google.golang.org/genproto/googleapis/iam/v1" {
+			continue
+		}
 		imps = append(imps, imp)
 	}
 	impDiv := sortImports(imps)
