@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
@@ -26,8 +27,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
@@ -124,7 +127,9 @@ func TestGRPCClientField(t *testing.T) {
 	}
 }
 
-func TestGenMethod(t *testing.T) {
+// TODO(chrisdsmith): Expand this test to invoke Gen (or at least gen) in gengapic.go,
+// otherwise move it to gengrpc_test.go. (genGRPCMethods was extracted to gengrpc.go on 2021-05-04.)
+func TestGenGRPCMethods(t *testing.T) {
 	extra := &descriptor.DescriptorProto{
 		Name: proto.String("ExtraMessage"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -306,6 +311,9 @@ func TestGenMethod(t *testing.T) {
 	g.opts = &options{
 		pkgName: "pkg",
 	}
+	g.metadata = &metadatapb.GapicMetadata{
+		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
+	}
 	g.mixins = mixins{
 		"google.longrunning.Operations":   operationsMethods(),
 		"google.cloud.location.Locations": locationMethods(),
@@ -485,11 +493,14 @@ methods:
 	} {
 		g.reset()
 		g.descInfo.ParentElement[tst.m] = serv
+		serv.Method = []*descriptor.MethodDescriptorProto{
+			tst.m,
+		}
 
 		g.aux = &auxTypes{
 			iters: map[string]*iterType{},
 		}
-		if err := g.genGRPCMethod("Foo", serv, tst.m); err != nil {
+		if err := g.genGRPCMethods(serv, "Foo"); err != nil {
 			t.Error(err)
 			continue
 		}
@@ -555,13 +566,20 @@ func TestContainsDeprecated(t *testing.T) {
 }
 
 func TestMethodDoc(t *testing.T) {
+	servName := "Foo"
+	methodName := "MyMethod"
 	m := &descriptor.MethodDescriptorProto{
-		Name: proto.String("MyMethod"),
+		Name: proto.String(methodName),
+	}
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String(servName),
 	}
 
 	g := generator{
 		comments: make(map[protoiface.MessageV1]string),
 	}
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{}
+	g.descInfo.ParentElement[m] = serv
 
 	for _, tst := range []struct {
 		in, want                    string
@@ -573,11 +591,11 @@ func TestMethodDoc(t *testing.T) {
 			want: "",
 		},
 		{
-			in:   "Does stuff.\n It also does other stuffs.",
+			in:   "Does stuff.\nIt also does other stuffs.",
 			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
 		},
 		{
-			in:         "This is deprecated.\n It does not have a proper comment.",
+			in:         "This is deprecated.\nIt does not have a proper comment.",
 			want:       "// MyMethod this is deprecated.\n// It does not have a proper comment.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
 			deprecated: true,
 		},
@@ -597,22 +615,38 @@ func TestMethodDoc(t *testing.T) {
 			deprecated: true,
 		},
 		{
-			in:              "Does client streaming stuff.\n It also does other stuffs.",
+			in:              "Does client streaming stuff.\nIt also does other stuffs.",
 			want:            "// MyMethod does client streaming stuff.\n// It also does other stuffs.\n//\n// This method is not supported for the REST transport.\n",
 			clientStreaming: true,
 			opts:            options{transports: []transport{rest}},
 		},
 	} {
 		g.opts = &tst.opts
+		sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
+		sm.AddService(servName, "mypackage.googleapis.com")
+		sm.AddMethod(servName, methodName, "mypackage", servName, 50)
+		g.snippetMetadata = sm
 		g.comments[m] = tst.in
 		m.Options = &descriptor.MethodOptions{
 			Deprecated: proto.Bool(tst.deprecated),
 		}
 		m.ClientStreaming = proto.Bool(tst.clientStreaming)
 		g.pt.Reset()
-		g.methodDoc(m)
+		g.methodDoc(m, serv)
 		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
 			t.Errorf("comment() got(-),want(+):\n%s", diff)
+		}
+		mi := g.snippetMetadata.ToMetadataIndex()
+		if got := len(mi.Snippets); got != 1 {
+			t.Errorf("%s: got %d want 1,", t.Name(), got)
+		}
+		snp := mi.Snippets[0]
+		// remove slashes to compare with snippet description.
+		want := strings.Replace(tst.want, "// ", "", -1)
+		want = strings.Replace(want, "//", "", -1)
+		want = strings.Trim(want, "\n")
+		if got := snp.Description; !tst.clientStreaming && got != want {
+			t.Errorf("%s: got %s want %s", t.Name(), got, want)
 		}
 	}
 }

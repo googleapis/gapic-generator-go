@@ -29,6 +29,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
+	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -39,12 +40,16 @@ import (
 type generator struct {
 	pt printer.P
 
+	// Protobuf descriptor properties
 	descInfo pbinfo.Info
 
 	// Maps proto elements to their comments
 	comments map[protoiface.MessageV1]string
 
 	resp plugin.CodeGeneratorResponse
+
+	// Comments to appear after the license header and before the package declaration.
+	headerComments printer.P
 
 	imports map[pbinfo.ImportSpec]bool
 
@@ -67,6 +72,9 @@ type generator struct {
 	// GapicMetadata for recording proto-to-code mappings in a
 	// gapic_metadata.json file.
 	metadata *metadatapb.GapicMetadata
+
+	// Model for capturing snippet details in a snippet_metadata.*.json file.
+	snippetMetadata *snippets.SnippetMetadata
 
 	mixins mixins
 
@@ -185,9 +193,14 @@ func (g *generator) printf(s string, a ...interface{}) {
 	g.pt.Printf(s, a...)
 }
 
-func (g *generator) commit(fileName, pkgName string) {
+// TODO(chrisdsmith): Add generator_test.go with TestCommit
+
+// commit adds header, etc to current pt and returns the line length of the
+// final file output.
+func (g *generator) commit(fileName, pkgName string) int {
 	var header strings.Builder
 	fmt.Fprintf(&header, license.Apache, time.Now().Year())
+	header.WriteString(g.headerComments.String() + "\n")
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []pbinfo.ImportSpec
@@ -222,7 +235,7 @@ func (g *generator) commit(fileName, pkgName string) {
 		writeImp(imp)
 	}
 	header.WriteString(")\n\n")
-
+	lineCount := len(strings.Split(header.String(), "\n"))
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    &fileName,
 		Content: proto.String(header.String()),
@@ -245,10 +258,13 @@ func (g *generator) commit(fileName, pkgName string) {
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Content: proto.String(body),
 	})
+
+	return lineCount + len(strings.Split(body, "\n"))
 }
 
 func (g *generator) reset() {
 	g.pt.Reset()
+	g.headerComments.Reset()
 	for k := range g.imports {
 		delete(g.imports, k)
 	}

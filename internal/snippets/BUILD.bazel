@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "snippets",
+    srcs = ["snippets.go"],
+    importpath = "github.com/googleapis/gapic-generator-go/internal/snippets",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//internal/license",
+        "//internal/pbinfo",
+        "//internal/snippets/metadata",
+        "@org_golang_google_protobuf//encoding/protojson",
+    ],
+)
+
+go_test(
+    name = "snippets_test",
+    srcs = ["snippets_test.go"],
+    embed = [":snippets"],
+    deps = [
+        "@com_github_google_go_cmp//cmp",
+        "//internal/snippets/metadata",
+        "@org_golang_google_protobuf//proto",
+    ],
+)

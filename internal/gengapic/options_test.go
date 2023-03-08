@@ -98,6 +98,16 @@ func TestParseOptions(t *testing.T) {
 			expectErr: false,
 		},
 		{
+			param: "omit-snippets,go-gapic-package=path;pkg",
+			expectedOpts: &options{
+				transports:   []transport{grpc},
+				pkgPath:      "path",
+				pkgName:      "pkg",
+				outDir:       "path",
+				omitSnippets: true,
+			},
+		},
+		{
 			param:     "transport=tcp,go-gapic-package=path;pkg",
 			expectErr: true,
 		},

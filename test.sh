@@ -37,7 +37,7 @@ generate() {
 }
 
 echo "Generating Cloud KMS v1 - gRPC"
-generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/kms/apiv1;kms,transport=grpc' $GOOGLEAPIS/google/cloud/kms/v1/*.proto
+generate --go_gapic_opt "go-gapic-package=cloud.google.com/go/kms/apiv1;kms,transport=grpc,api-service-config=$GOOGLEAPIS/google/cloud/kms/v1/cloudkms_v1.yaml" $GOOGLEAPIS/google/cloud/kms/v1/*.proto
 
 echo "Generating Cloud Data Catalog v1beta1 - REST"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/datacatalog/apiv1beta1;datacatalog,transport=rest' $GOOGLEAPIS/google/cloud/datacatalog/v1beta1/*.proto

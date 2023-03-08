@@ -22,6 +22,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
@@ -273,6 +274,88 @@ func TestExample(t *testing.T) {
 			t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
 		}
 		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+	}
+}
+
+func TestGenSnippetFile(t *testing.T) {
+	var g generator
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.serviceConfig = &serviceconfig.Service{
+		Apis: []*apipb.Api{
+			{Name: "google.cloud.bigquery.migration.v2.MigrationService"},
+		},
+	}
+
+	protoPkg := "google.cloud.bigquery.migration.v2"
+	libPkg := "cloud.google.com/go/bigquery/migration/apiv2"
+	pkgName := "bigquerymigration"
+	g.snippetMetadata = snippets.NewMetadata(protoPkg, libPkg, pkgName)
+
+	inputType := &descriptor.DescriptorProto{
+		Name: proto.String("CreateMigrationWorkflowRequest"),
+	}
+	outputType := &descriptor.DescriptorProto{
+		Name: proto.String("MigrationWorkflow"),
+	}
+
+	file := &descriptor.FileDescriptorProto{
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("cloud.google.com/go/bigquery/migration/apiv2/migrationpb"),
+		},
+		Package: proto.String(protoPkg),
+	}
+
+	files := []*descriptor.FileDescriptorProto{}
+	g.descInfo = pbinfo.Of(files)
+	for _, typ := range []*descriptor.DescriptorProto{
+		inputType, outputType,
+	} {
+		g.descInfo.Type[".google.cloud.bigquery.migration.v2."+typ.GetName()] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("MigrationService"),
+		Method: []*descriptor.MethodDescriptorProto{
+			{
+				Name:       proto.String("CreateMigrationWorkflow"),
+				InputType:  proto.String(".google.cloud.bigquery.migration.v2.CreateMigrationWorkflowRequest"),
+				OutputType: proto.String(".google.cloud.bigquery.migration.v2.MigrationWorkflow"),
+			},
+		},
+	}
+
+	for _, tst := range []struct {
+		tstName string
+		options options
+		imports map[pbinfo.ImportSpec]bool
+	}{
+		{
+			tstName: "snippet",
+			options: options{
+				pkgName:    "migration",
+				transports: []transport{grpc, rest},
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}: true,
+				{Name: "migrationpb", Path: "cloud.google.com/go/bigquery/migration/apiv2/migrationpb"}: true,
+			},
+		},
+	} {
+		g.reset()
+		g.opts = &tst.options
+		defaultHost := "bigquerymigration.googleapis.com"
+		g.snippetMetadata.AddService(serv.GetName(), defaultHost)
+		err := g.genSnippetFile(serv, serv.Method[0])
+		if err != nil {
+			t.Fatal(err)
+		}
+		g.commit(filepath.Join(g.opts.outDir, "temp", "snippets", "main.go"), "main")
+		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+			t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
+		}
+		got := *g.resp.File[0].Content + *g.resp.File[1].Content
+		txtdiff.Diff(t, tst.tstName, got, filepath.Join("testdata", tst.tstName+".want"))
 	}
 }
 

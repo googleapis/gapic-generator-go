@@ -101,6 +101,8 @@ The configuration supported by the plugin option includes:
     * Not enabled by default.
     * Only effective when `rest` is included as a `transport` to be generated.
 
+  * `omit-snippets`: disable generation of code snippets to the `internal/generated/snippets` path. The default is `false`.
+
 Bazel
 -----
 
@@ -164,6 +166,8 @@ following attributes:
   response enums be encoded as numbers.
     * Default is `False`.
     * Only effective when `rest` is included as a `transport` to be generated.
+
+  * `omit_snippets`: if `True`, code snippets will be generated to the `internal/generated/snippets` path. The default is `false`.
 
 Docker Wrapper
 --------------
