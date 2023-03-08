@@ -912,6 +912,13 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	if err != nil {
 		return err
 	}
+
+	// TODO(codyoss): This if can be removed once the public protos
+	// have been migrated to their new package. This should be soon after this
+	// code is merged.
+	if outSpec.Path == "google.golang.org/genproto/googleapis/longrunning" {
+		outSpec.Path = "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	}
 	g.imports[outSpec] = true
 
 	opWrapperType := lroTypeName(m.GetName())

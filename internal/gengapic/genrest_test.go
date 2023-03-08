@@ -835,7 +835,7 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "net/url"}:                                                true,
 				{Path: "time"}:                                                   true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
-				{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}: true,
+				{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}: true,
 			},
 		},
 		{

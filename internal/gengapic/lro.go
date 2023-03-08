@@ -176,7 +176,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 				p("")
 			}
 		}
-		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}] = true
 	}
 
 	// Wait

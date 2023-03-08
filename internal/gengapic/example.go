@@ -109,6 +109,14 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 	if err != nil {
 		return err
 	}
+	// TODO(codyoss): This if can be removed once the public protos
+	// have been migrated to their new package. This should be soon after this
+	// code is merged.
+	if inSpec.Path == "google.golang.org/genproto/googleapis/longrunning" {
+		inSpec.Path = "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	} else if inSpec.Path == "google.golang.org/genproto/googleapis/iam/v1" {
+		inSpec.Path = "cloud.google.com/go/iam/apiv1/iampb"
+	}
 
 	httpInfo := getHTTPInfo(m)
 

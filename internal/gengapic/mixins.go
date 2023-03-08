@@ -151,7 +151,7 @@ func (g *generator) mixinStubs() {
 		p("operationsClient longrunningpb.OperationsClient")
 		p("")
 
-		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "google.golang.org/genproto/googleapis/longrunning"}] = true
+		g.imports[pbinfo.ImportSpec{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}] = true
 	}
 
 	if g.hasIAMPolicyMixin() {
@@ -159,7 +159,7 @@ func (g *generator) mixinStubs() {
 		p("iamPolicyClient iampb.IAMPolicyClient")
 		p("")
 
-		g.imports[pbinfo.ImportSpec{Name: "iampb", Path: "google.golang.org/genproto/googleapis/iam/v1"}] = true
+		g.imports[pbinfo.ImportSpec{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"}] = true
 	}
 
 	if g.hasLocationMixin() {
