@@ -45,6 +45,7 @@ type options struct {
 	diregapic         bool
 	restNumericEnum   bool
 	pkgOverrides      map[string]string
+	omitSnippets      bool
 }
 
 // parseOptions takes a string and parses it into a struct defining
@@ -59,6 +60,7 @@ type options struct {
 // * release-level (one of 'alpha', 'beta', or empty)
 // * transport ('+' separated list of transport backends to generate)
 // * metadata (enable GAPIC metadata generation)
+// * omit-snippets (skip example code snippets generation to the `internal/generated/snippets` path)
 // The only required option is 'go-gapic-package'.
 //
 // Valid parameter example:
@@ -90,6 +92,9 @@ func parseOptions(parameter *string) (*options, error) {
 			continue
 		case "rest-numeric-enums":
 			opts.restNumericEnum = true
+			continue
+		case "omit-snippets":
+			opts.omitSnippets = true
 			continue
 		}
 

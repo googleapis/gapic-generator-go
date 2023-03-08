@@ -74,6 +74,8 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	p("  // TODO: Handle error.")
 	p("}")
 	p("defer c.Close()")
+
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 }
 
 func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {

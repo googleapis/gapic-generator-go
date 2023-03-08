@@ -27,6 +27,7 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 )
@@ -94,15 +95,21 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		g.metadata.ProtoPackage = protoPkg
 	}
 	g.metadata.LibraryPackage = g.opts.pkgPath
+	// Initialize the model that will collect snippet metadata.
+	g.snippetMetadata = g.newSnippetsMetadata(protoPkg)
 
 	for _, s := range genServs {
 		// TODO(pongad): gapic-generator does not remove the package name here,
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
-		outFile := pbinfo.ReduceServName(s.GetName(), "")
-		outFile = camelToSnake(outFile)
+		servName := pbinfo.ReduceServName(s.GetName(), "")
+		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
+
+		if err := g.genAndCommitSnippets(s); err != nil {
+			return &g.resp, errors.E(err, "snippets: %s", s.GetName())
+		}
 
 		g.reset()
 		// If the service has no REST-able RPCs, then a REGAPIC should not be
@@ -130,7 +137,10 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 			g.opts.transports = transports
 		}
 	}
-
+	err := g.genAndCommitSnippetMetadata(protoPkg)
+	if err != nil {
+		return &g.resp, err
+	}
 	g.reset()
 	scopes, err := collectScopes(genServs)
 	if err != nil {
@@ -488,7 +498,7 @@ func containsDeprecated(com string) bool {
 	return false
 }
 
-func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
+func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto, serv *descriptor.ServiceDescriptorProto) {
 	com := g.comments[m]
 
 	// If there's no comment and the method is not deprecated, adding method name is just confusing.
@@ -515,11 +525,13 @@ func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto) {
 
 	// Prepend the method name to all non-empty comments.
 	com = m.GetName() + " " + lowerFirst(com)
-
+	g.addSnippetsMetadataDoc(m, serv.GetName(), com)
 	g.comment(com)
 }
 
-func (g *generator) comment(s string) {
+// printComment accepts a string to print in code comments and a printFunc
+// function to format-print the comment slashes plus the string.
+func (g *generator) printComment(s string, p *printer.P) {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return
@@ -530,11 +542,21 @@ func (g *generator) comment(s string) {
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {
 		if strings.TrimSpace(l) == "" {
-			g.printf("//")
+			p.Printf("//")
 		} else {
-			g.printf("// %s", l)
+			p.Printf("// %s", l)
 		}
 	}
+}
+
+// comment format-prints a string in code comments to pt using printf.
+func (g *generator) comment(s string) {
+	g.printComment(s, &g.pt)
+}
+
+// comment format-prints a string in code comments to headerComments.
+func (g *generator) headerComment(s string) {
+	g.printComment(s, &g.headerComments)
 }
 
 // Similar functionality to 'comment', except specifically used for generating formatted code snippets.

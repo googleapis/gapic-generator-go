@@ -125,7 +125,7 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 
 	for _, m := range methods {
-		g.methodDoc(m)
+		g.methodDoc(m, serv)
 		if err := g.genRESTMethod(servName, serv, m); err != nil {
 			return errors.E(err, "method: %s", m.GetName())
 		}
