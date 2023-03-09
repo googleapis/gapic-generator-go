@@ -94,7 +94,7 @@ def go_gapic_library(
   transport = "grpc",
   diregapic = False,
   rest_numeric_enums = False,
-  omit_snippets = False,
+  omit_snippets = True,
   **kwargs):
 
   file_args = {}
