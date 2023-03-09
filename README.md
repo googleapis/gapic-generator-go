@@ -167,7 +167,7 @@ following attributes:
     * Default is `False`.
     * Only effective when `rest` is included as a `transport` to be generated.
 
-  * `omit_snippets`: if `True`, code snippets will be generated to the `internal/generated/snippets` path. The default is `false`.
+  * `omit_snippets`: if `True`, code snippets will be generated to the `internal/generated/snippets` path. The default is `True`.
 
 Docker Wrapper
 --------------
