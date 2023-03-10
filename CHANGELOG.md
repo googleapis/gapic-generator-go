@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.2](https://github.com/googleapis/gapic-generator-go/compare/v0.35.1...v0.35.2) (2023-03-10)
+
+
+### Bug Fixes
+
+* Explicitly override the import paths for iam and longrunning ([#1257](https://github.com/googleapis/gapic-generator-go/issues/1257)) ([132fb43](https://github.com/googleapis/gapic-generator-go/commit/132fb43b6034fa77790964c4a8a0a5ddb214a451))
+
 ## [0.35.1](https://github.com/googleapis/gapic-generator-go/compare/v0.35.0...v0.35.1) (2023-03-09)
 
 
