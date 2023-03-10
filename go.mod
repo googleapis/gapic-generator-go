@@ -4,7 +4,7 @@ require (
 	cloud.google.com/go/iam v0.12.0
 	cloud.google.com/go/longrunning v0.4.1
 	github.com/ghodss/yaml v1.0.0
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.5.9
 	github.com/jhump/protoreflect v1.14.1
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
