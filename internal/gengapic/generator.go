@@ -204,6 +204,7 @@ func (g *generator) commit(fileName, pkgName string) int {
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []pbinfo.ImportSpec
+	dupCheck := map[string]bool{}
 	for imp := range g.imports {
 		// TODO(codyoss): This if can be removed once the public protos
 		// have been migrated to their new package. This should be soon after this
@@ -214,7 +215,10 @@ func (g *generator) commit(fileName, pkgName string) int {
 		if imp.Path == "google.golang.org/genproto/googleapis/iam/v1" {
 			imp.Path = "cloud.google.com/go/iam/apiv1/iampb"
 		}
-		imps = append(imps, imp)
+		if exists := dupCheck[imp.Path]; !exists {
+			dupCheck[imp.Path] = true
+			imps = append(imps, imp)
+		}
 	}
 	impDiv := sortImports(imps)
 
