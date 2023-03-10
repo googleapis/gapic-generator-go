@@ -208,9 +208,11 @@ func (g *generator) commit(fileName, pkgName string) int {
 		// TODO(codyoss): This if can be removed once the public protos
 		// have been migrated to their new package. This should be soon after this
 		// code is merged.
-		if imp.Path == "google.golang.org/genproto/googleapis/longrunning" ||
-			imp.Path == "google.golang.org/genproto/googleapis/iam/v1" {
-			continue
+		if imp.Path == "google.golang.org/genproto/googleapis/longrunning" {
+			imp.Path = "cloud.google.com/go/longrunning/autogen/longrunningpb"
+		}
+		if imp.Path == "google.golang.org/genproto/googleapis/iam/v1" {
+			imp.Path = "cloud.google.com/go/iam/apiv1/iampb"
 		}
 		imps = append(imps, imp)
 	}
