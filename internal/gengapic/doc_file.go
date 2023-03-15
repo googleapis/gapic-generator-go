@@ -117,9 +117,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		p("%s%q", "\t", "fmt")
 		p("%s%q", "\t", "net/http")
 	}
-	p("%s%q", "\t", "os")
 	p("%s%q", "\t", "runtime")
-	p("%s%q", "\t", "strconv")
 	p("%s%q", "\t", "strings")
 	p("%s%q", "\t", "unicode")
 	p("")
@@ -153,17 +151,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("    }")
 	p("  }")
 	p("  return metadata.NewOutgoingContext(ctx, out)")
-	p("}")
-	p("")
-
-	p("func checkDisableDeadlines() (bool, error) {")
-	p("  raw, ok := os.LookupEnv(%q)", disableDeadlinesVar)
-	p("  if !ok {")
-	p("    return false, nil")
-	p("  }")
-	p("")
-	p("  b, err := strconv.ParseBool(raw)")
-	p("  return b, err")
 	p("}")
 	p("")
 

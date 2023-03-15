@@ -372,7 +372,6 @@ methods:
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                            true,
 				{Path: "net/url"}:                        true,
-				{Path: "time"}:                           true,
 				{Name: "mypackagepb", Path: "mypackage"}: true,
 			},
 		},
@@ -386,7 +385,6 @@ methods:
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                            true,
 				{Path: "net/url"}:                        true,
-				{Path: "time"}:                           true,
 				{Name: "mypackagepb", Path: "mypackage"}: true,
 			},
 		},
@@ -472,7 +470,6 @@ methods:
 				{Path: "net/url"}:                        true,
 				{Path: "regexp"}:                         true,
 				{Path: "strings"}:                        true,
-				{Path: "time"}:                           true,
 				{Name: "mypackagepb", Path: "mypackage"}: true,
 			},
 		},

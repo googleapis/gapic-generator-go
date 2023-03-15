@@ -25,7 +25,6 @@ import (
 )
 
 func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	sFQN := g.fqn(g.descInfo.ParentElement[m])
 	inType := g.descInfo.Type[m.GetInputType()]
 	outType := g.descInfo.Type[m.GetOutputType()]
 
@@ -46,8 +45,6 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
-
-	g.deadline(sFQN, m.GetName())
 
 	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)

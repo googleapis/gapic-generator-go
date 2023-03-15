@@ -256,21 +256,6 @@ type auxTypes struct {
 	customOp *customOp
 }
 
-func (g *generator) deadline(s, m string) {
-	t, ok := g.grpcConf.Timeout(s, m)
-	if !ok {
-		return
-	}
-
-	g.printf("if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {")
-	g.printf("  cctx, cancel := context.WithTimeout(ctx, %d * time.Millisecond)", t)
-	g.printf("  defer cancel()")
-	g.printf("  ctx = cctx")
-	g.printf("}")
-
-	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
-}
-
 func (g *generator) getFormattedValue(m *descriptor.MethodDescriptorProto, field string, accessor string) (string, error) {
 	f := g.lookupField(m.GetInputType(), field)
 	value := ""
