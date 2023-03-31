@@ -36,8 +36,8 @@ def _go_gapic_postprocessed_srcjar_impl(ctx):
     cd {output_dir_path}
     zip -q -r {output_dir_name}-test.srcjar . -i ./*_test.go
     find . -name "*_test.go" -delete
-    zip -q -r {output_dir_name}-snippets.srcjar . -i ./*main.go.txt ./*snippet_metadata.*.json
-    find . -name "*main.go.txt" -delete
+    zip -q -r {output_dir_name}-snippets.srcjar . -i ./*main.go ./*snippet_metadata.*.json
+    find . -name "*main.go" -delete
     find . -name "*snippet_metadata.*.json" -delete
     zip -q -r {output_dir_name}.srcjar . -i ./*.go
     find . -name "*.go" -delete

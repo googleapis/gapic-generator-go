@@ -95,7 +95,7 @@ func (g *generator) genAndCommitSnippets(s *descriptor.ServiceDescriptorProto) e
 		// Get the original proto service for the method (different from `s` only for mixins).
 		methodServ := (g.descInfo.ParentElement[m]).(*descriptor.ServiceDescriptorProto)
 		lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
-			"snippets", clientName, m.GetName(), "main.go.txt"), "main")
+			"snippets", clientName, m.GetName(), "main.go"), "main")
 		g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
 	}
 	return nil
