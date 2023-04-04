@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	cloud.google.com/go v0.110.0
-	cloud.google.com/go/iam v0.13.0
+	cloud.google.com/go/iam v1.0.0
 	github.com/google/go-cmp v0.5.9
 	github.com/googleapis/gapic-showcase v0.26.0
 	github.com/googleapis/gax-go/v2 v2.8.0
