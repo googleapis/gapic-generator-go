@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.3](https://github.com/googleapis/gapic-generator-go/compare/v0.35.2...v0.35.3) (2023-04-05)
+
+
+### Bug Fixes
+
+* Restore omit-snippets for bazel ([#1278](https://github.com/googleapis/gapic-generator-go/issues/1278)) ([9810cf4](https://github.com/googleapis/gapic-generator-go/commit/9810cf44cc6348cc6b1034310ebf512e7ff7bc40))
+
 ## [0.35.2](https://github.com/googleapis/gapic-generator-go/compare/v0.35.1...v0.35.2) (2023-03-10)
 
 
