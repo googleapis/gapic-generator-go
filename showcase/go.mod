@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/googleapis/gapic-showcase v0.26.0
 	github.com/googleapis/gax-go/v2 v2.8.0
-	google.golang.org/api v0.115.0
+	google.golang.org/api v0.116.0
 	google.golang.org/genproto v0.0.0-20230403163135-c38d8f061ccd
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
