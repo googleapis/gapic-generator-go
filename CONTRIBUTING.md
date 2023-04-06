@@ -34,14 +34,14 @@ to be kept up-to-date.
 When new files are added, or existing ones are deleted or moved, the appropriate BUILD files must
 be updated. This can, and should, be done automatically via Gazelle e.g. `make gazelle`.
 
-_Note: If running on linux, you must comment remove the `''` value of the `-i` flag in the this
+_Note: If running on linux, you must comment remove the `''` value of the `-i` flag in this
 target's `sed` command._
 
 If there are changes to the `go.mod`, an equivalent change must be made on the `repositories.bzl`
 macro that defines the Go repository dependencies. This can be done manually or by executing the
 Make target: `make update-bazel-repos`.
 
-_Note: If running on linux, you must comment remove the `''` value of the `-i` flag in the this
+_Note: If running on linux, you must comment remove the `''` value of the `-i` flag in this
 target's `sed` command._
 
 ## Releases
