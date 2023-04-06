@@ -49,10 +49,6 @@ def _go_gapic_src_pkg_impl(ctx):
             mkdir -p {package_dir_path}/${{src_str%:*}}
             cp -f ${{src_str#*:}} {package_dir_path}/${{src_str%:*}}
         fi
-        # dest_dir_path is split again, on the ';' delimiter, for the
-        # Go importpath that includes the package name following ';'
-        s=${{src_str%:*}}
-        chmod 644 {package_dir_path}/${{s%;*}}/*
     done
     cd {package_dir_path}
     tar -zchpf {package_dir}.tar.gz {package_dir_expr}*
