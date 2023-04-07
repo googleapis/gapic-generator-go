@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.35.5](https://github.com/googleapis/gapic-generator-go/compare/v0.35.4...v0.35.5) (2023-04-07)
+
+
+### Bug Fixes
+
+* Add time import for compute operations ([#1292](https://github.com/googleapis/gapic-generator-go/issues/1292)) ([a18ff1e](https://github.com/googleapis/gapic-generator-go/commit/a18ff1eeccec94f94685f1641fe3b130a0d4d834))
+
+## [0.35.4](https://github.com/googleapis/gapic-generator-go/compare/v0.35.3...v0.35.4) (2023-04-06)
+
+
+### Bug Fixes
+
+* Add wkt desc, bazel snippet copy ([#1288](https://github.com/googleapis/gapic-generator-go/issues/1288)) ([d7965aa](https://github.com/googleapis/gapic-generator-go/commit/d7965aa74fdcffa7b13d77e6897c58ed2259e7a8))
+* **gengapic:** Check error from exampleMethodBody ([#1291](https://github.com/googleapis/gapic-generator-go/issues/1291)) ([068217c](https://github.com/googleapis/gapic-generator-go/commit/068217c4ddf88ce7abebbf1c6f86e7464ee87598))
+
 ## [0.35.3](https://github.com/googleapis/gapic-generator-go/compare/v0.35.2...v0.35.3) (2023-04-05)
 
 

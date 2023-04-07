@@ -83,64 +83,6 @@ jobs:
       run: |
         cd showcase
         apidiff -incompatible pkg.latest github.com/googleapis/gapic-showcase/client > diff.txt && cat diff.txt && ! [ -s diff.txt ]
-  compute-regen:
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.pull_request.labels.*.name, 'disable job: compute-regen')"
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v4
-      with:
-        go-version-file: 'go.mod'
-    - name: Install protoc
-      run: |
-        sudo mkdir -p /usr/src/protoc/
-        sudo chown -R ${USER} /usr/src/
-        curl --location https://github.com/google/protobuf/releases/download/v3.17.3/protoc-3.17.3-linux-x86_64.zip --output /usr/src/protoc/protoc-3.17.3.zip
-        cd /usr/src/protoc/
-        unzip protoc-3.17.3.zip
-        sudo ln -s /usr/src/protoc/bin/protoc /usr/local/bin/protoc
-        export PATH=$PATH:protobuf/bin
-    - name: Install tools
-      run: |
-        go install golang.org/x/exp/cmd/apidiff@latest
-        go install github.com/golang/protobuf/protoc-gen-go@latest
-        go install golang.org/x/tools/cmd/goimports@latest
-        go install ./cmd/protoc-gen-go_gapic
-    - name: Download protos
-      run: |
-        curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
-        unzip googleapis.zip -x "googleapis-master/google/ads/*"
-        mv googleapis-master /tmp/googleapis
-        export GOOGLEAPIS=/tmp/googleapis
-    - name: Clone google-cloud-go
-      uses: actions/checkout@v3
-      with:
-        repository: googleapis/google-cloud-go
-    - uses: actions/setup-go@v4
-      with:
-        go-version-file: 'compute/go.mod'
-    - name: Create Go package API baseline
-      if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
-      run: |
-        cd compute
-        apidiff -w pkg.latest cloud.google.com/go/compute/apiv1
-    - name: Regenerate compute
-      run: |
-        export CLOUD_GO=$(pwd)
-        cd internal/gapicgen
-        go run cloud.google.com/go/internal/gapicgen/cmd/genbot \
-          -local \
-          -regen-only \
-          -only-gapics \
-          -gapic=cloud.google.com/go/compute/apiv1 \
-          -gocloud-dir=$CLOUD_GO \
-          -googleapis-dir=$GOOGLEAPIS
-        cd $CLOUD_GO/compute && go get -u ./apiv1 && go mod tidy
-    - name: Compare regenerated code to baseline
-      if: "!contains(github.event.pull_request.labels.*.name, 'breaking change allowed')"
-      run: |
-        cd compute
-        apidiff -incompatible pkg.latest cloud.google.com/go/compute/apiv1 > diff.txt && cat diff.txt && ! [ -s diff.txt ]
   bazel-build:
     runs-on: ubuntu-latest
     env:

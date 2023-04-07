@@ -30,6 +30,12 @@ update-bazel-repos:
 	bazel run //:gazelle -- update-repos -from_file=showcase/go.mod -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
 	sed -i ''  "s/    \"go_repository\",//g" repositories.bzl
 
+gazelle:
+	bazel run //:gazelle
+	sed -i '' "s/extendedops_go_proto/extended_operations_go_proto/g" internal/gengapic/BUILD.bazel
+	sed -i '' "s/@com_github_golang_protobuf\/\/protoc-gen-go\/plugin/@io_bazel_rules_go\/\/proto\/wkt:compiler_plugin_go_proto/g" cmd/protoc-gen-go_gapic/BUILD
+	sed -i '' "s/@com_github_golang_protobuf\/\/protoc-gen-go\/plugin/@io_bazel_rules_go\/\/proto\/wkt:compiler_plugin_go_proto/g" cmd/protoc-gen-go_cli/BUILD.bazel
+
 clean:
 	rm -rf testdata
 	rm -rf cmd/protoc-gen-go_cli/testprotos

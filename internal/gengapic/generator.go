@@ -107,6 +107,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 		return err
 	}
 	files := req.GetProtoFile()
+	files = append(files, wellKnownTypeFiles...)
 
 	if opts.serviceConfigPath != "" {
 		y, err := ioutil.ReadFile(opts.serviceConfigPath)

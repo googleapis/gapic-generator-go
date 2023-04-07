@@ -36,6 +36,9 @@ generate() {
 	protoc --go_gapic_out "$OUT" -I "$GOOGLEAPIS" $*
 }
 
+echo "Generating Cloud Datastore v1 - mixin with well known type"
+generate --go_gapic_opt "go-gapic-package=cloud.google.com/go/datastore/apiv1;datastore,api-service-config=$GOOGLEAPIS/google/datastore/v1/datastore_v1.yaml" $GOOGLEAPIS/google/datastore/v1/*.proto
+
 echo "Generating Cloud KMS v1 - gRPC"
 generate --go_gapic_opt "go-gapic-package=cloud.google.com/go/kms/apiv1;kms,transport=grpc,api-service-config=$GOOGLEAPIS/google/cloud/kms/v1/cloudkms_v1.yaml" $GOOGLEAPIS/google/cloud/kms/v1/*.proto
 

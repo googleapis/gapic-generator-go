@@ -87,7 +87,9 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	p := g.printf
 
 	p("func Example%sClient_%s() {", servName, m.GetName())
-	g.exampleMethodBody(pkgName, servName, m)
+	if err := g.exampleMethodBody(pkgName, servName, m); err != nil {
+		return err
+	}
 
 	p("}")
 	p("")
