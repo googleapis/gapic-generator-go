@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.5](https://github.com/googleapis/gapic-generator-go/compare/v0.35.4...v0.35.5) (2023-04-07)
+
+
+### Bug Fixes
+
+* Add time import for compute operations ([#1292](https://github.com/googleapis/gapic-generator-go/issues/1292)) ([a18ff1e](https://github.com/googleapis/gapic-generator-go/commit/a18ff1eeccec94f94685f1641fe3b130a0d4d834))
+
 ## [0.35.4](https://github.com/googleapis/gapic-generator-go/compare/v0.35.3...v0.35.4) (2023-04-06)
 
 
