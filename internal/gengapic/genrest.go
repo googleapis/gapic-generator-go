@@ -53,23 +53,6 @@ var gRPCToHTTP map[code.Code]string = map[code.Code]string{
 	code.Code_DATA_LOSS:           "http.StatusInternalServerError",
 }
 
-var wellKnownTypes = []string{
-	".google.protobuf.FieldMask",
-	".google.protobuf.Timestamp",
-	".google.protobuf.Duration",
-	".google.protobuf.DoubleValue",
-	".google.protobuf.FloatValue",
-	".google.protobuf.Int64Value",
-	".google.protobuf.UInt64Value",
-	".google.protobuf.Int32Value",
-	".google.protobuf.UInt32Value",
-	".google.protobuf.BoolValue",
-	".google.protobuf.StringValue",
-	".google.protobuf.BytesValue",
-	".google.protobuf.Value",
-	".google.protobuf.ListValue",
-}
-
 func lowcaseRestClientName(servName string) string {
 	if servName == "" {
 		return "restClient"
@@ -382,7 +365,7 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 		m *descriptor.DescriptorProto,
 	) {
 		for _, field := range m.GetField() {
-			if field.GetType() == fieldTypeMessage && !strContains(wellKnownTypes, field.GetTypeName()) {
+			if field.GetType() == fieldTypeMessage && !strContains(wellKnownTypeNames, field.GetTypeName()) {
 				handleMsg(field, stack)
 			} else {
 				handleLeaf(field, stack)
@@ -424,7 +407,7 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 
 		var paramAdd string
 		// Handle well known protobuf types with special JSON encodings.
-		if strContains(wellKnownTypes, field.GetTypeName()) {
+		if strContains(wellKnownTypeNames, field.GetTypeName()) {
 			b := strings.Builder{}
 			b.WriteString(fmt.Sprintf("%s, err := protojson.Marshal(req%s)\n", field.GetJsonName(), accessor))
 			b.WriteString("if err != nil {\n")

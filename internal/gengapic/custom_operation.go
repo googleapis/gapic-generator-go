@@ -193,6 +193,7 @@ func (g *generator) customOperationType() error {
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 
 	for _, handle := range op.handles {
 		pollingParams := op.pollingParams[handle]
