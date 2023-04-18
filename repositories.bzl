@@ -34,12 +34,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:/hemPrYIhOhy8zYrNj+069zDB68us2sMGsfkFJO0iZs=",
         version = "v0.0.0-20190523083050-ea95bdfd59fc",
     )
-    go_repository(
-        name = "com_github_antihax_optional",
-        importpath = "github.com/antihax/optional",
-        sum = "h1:xK2lYat7ZLaVVcIuj82J8kIro4V6kDe0AUDFboUCwcg=",
-        version = "v1.0.0",
-    )
 
     go_repository(
         name = "com_github_bufbuild_protocompile",
@@ -158,12 +152,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:IqNFLAmvJOgVlpdEBiQbDc2EwKW77amAycfTuWKdfvw=",
         version = "v3.3.2",
     )
-    go_repository(
-        name = "com_github_google_s2a_go",
-        importpath = "github.com/google/s2a-go",
-        sum = "h1:3Qm0liEiCErViKERO2Su5wp+9PfMRiuS6XB5FvpKnYQ=",
-        version = "v0.1.0",
-    )
 
     go_repository(
         name = "com_github_google_uuid",
@@ -201,12 +189,6 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/gorilla/mux",
         sum = "h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=",
         version = "v1.8.0",
-    )
-    go_repository(
-        name = "com_github_grpc_ecosystem_grpc_gateway",
-        importpath = "github.com/grpc-ecosystem/grpc-gateway",
-        sum = "h1:gmcG1KaJ57LophUzW0Hy8NmPhnMZb4M0+kPpLofRdBo=",
-        version = "v1.16.0",
     )
     go_repository(
         name = "com_github_hashicorp_hcl",
@@ -279,12 +261,6 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/prometheus/client_model",
         sum = "h1:gQz4mCbXsO+nc9n1hCxHcGA3Zx3Eo+UHZoInFGUIXNM=",
         version = "v0.0.0-20190812154241-14fe0d1b01d4",
-    )
-    go_repository(
-        name = "com_github_rogpeppe_fastuuid",
-        importpath = "github.com/rogpeppe/fastuuid",
-        sum = "h1:Ppwyp6VYCF1nvBTXL3trRso7mXMlRrw9ooo375wvi2s=",
-        version = "v1.2.0",
     )
 
     go_repository(
@@ -1199,18 +1175,12 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=",
         version = "v0.24.0",
     )
-    go_repository(
-        name = "io_opentelemetry_go_proto_otlp",
-        importpath = "go.opentelemetry.io/proto/otlp",
-        sum = "h1:rwOQPCuKAKmwGKq2aVNnYIibI6wnV7EvzgfTCzcdGg8=",
-        version = "v0.7.0",
-    )
 
     go_repository(
         name = "org_golang_google_api",
         importpath = "google.golang.org/api",
-        sum = "h1:JsXRperckxXjnPl42ku4+KQRhWFiW6XjcZlOEHoxG8M=",
-        version = "v0.117.0",
+        sum = "h1:09tOPVufPwfm5W4aA8EizGHJ7BcoRDsIareM2a15gO4=",
+        version = "v0.116.0",
     )
 
     go_repository(
@@ -1242,8 +1212,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        sum = "h1:MDRAIl0xIo9Io2xV565hzXHw3zVseKrJKodhohM5CjU=",
-        version = "v0.1.0",
+        sum = "h1:psW17arqaxU48Z5kZ0CQnkZWQJsqcURM6tKiBApRjXI=",
+        version = "v0.0.0-20200622213623-75b288015ac9",
     )
     go_repository(
         name = "org_golang_x_exp",
