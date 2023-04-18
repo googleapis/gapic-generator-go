@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	iam "cloud.google.com/go/iam/apiv1/iampb"
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
@@ -227,18 +228,19 @@ func (g *generator) checkIAMPolicyOverrides(servs []*descriptor.ServiceDescripto
 
 // includeMixinInputFile determines if the given proto file name matches
 // a known mixin file and indicates if it should be included in the
-// protos-to-be-generated file set based on if the package is using it for
-// mixins or not.
+// protos-to-be-generated file set based on if the Go package to be generated
+// is for one of the mixin services explicitly or not.
 func (g *generator) includeMixinInputFile(file string) bool {
-	if file == "google/cloud/location/locations.proto" && g.hasLocationMixin() {
+	if strings.HasPrefix(file, "google/cloud/location") && !strings.Contains(g.opts.pkgPath, "location") {
 		return false
 	}
-	if file == "google/iam/v1/iam_policy.proto" && g.hasIAMPolicyMixin() {
+	if strings.HasPrefix(file, "google/iam/v1") && !strings.Contains(g.opts.pkgPath, "iam") {
 		return false
 	}
-	if file == "google/longrunning/operations.proto" && g.hasLROMixin() {
+	if strings.HasPrefix(file, "google/longrunning") && !strings.Contains(g.opts.pkgPath, "longrunning") {
 		return false
 	}
+	// Not a mixin file or generating a mixin GAPIC explicitly so include the file.
 	return true
 }
 
