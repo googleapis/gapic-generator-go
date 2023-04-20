@@ -144,7 +144,6 @@ func (g *generator) snippetsOutDir() string {
 		// This matches the destination directory structure in google-cloud-go.
 		pkg := strings.TrimPrefix(g.opts.pkgPath, "cloud.google.com/go/")
 		return filepath.Join("cloud.google.com/go", "internal", "generated", "snippets", filepath.FromSlash(pkg))
-	} else {
-		return filepath.Join(g.opts.outDir, "internal", "snippets")
 	}
+	return filepath.Join(g.opts.outDir, "internal", "snippets")
 }
