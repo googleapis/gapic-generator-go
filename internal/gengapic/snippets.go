@@ -94,7 +94,10 @@ func (g *generator) genAndCommitSnippets(s *descriptor.ServiceDescriptorProto) e
 		f := g.descInfo.ParentFile[m]
 		// Get the original proto service for the method (different from `s` only for mixins).
 		methodServ := (g.descInfo.ParentElement[m]).(*descriptor.ServiceDescriptorProto)
-		lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
+		// Write snippets at the top level of the google-cloud-go namespace, not at the client package.
+		// This matches the destination directory structure in google-cloud-go.
+		outDir := "cloud.google.com/go"
+		lineCount := g.commit(filepath.Join(outDir, "internal", "generated",
 			"snippets", clientName, m.GetName(), "main.go"), "main")
 		g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
 	}
