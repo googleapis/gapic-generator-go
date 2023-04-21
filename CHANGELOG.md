@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.7](https://github.com/googleapis/gapic-generator-go/compare/v0.35.6...v0.35.7) (2023-04-21)
+
+
+### Bug Fixes
+
+* **internal/gengapic:** Write snippet output to cloud.google.com/go ([#1313](https://github.com/googleapis/gapic-generator-go/issues/1313)) ([dfc5ce2](https://github.com/googleapis/gapic-generator-go/commit/dfc5ce2336a0f1a8b10732e32164540ba5686883))
+
 ## [0.35.6](https://github.com/googleapis/gapic-generator-go/compare/v0.35.5...v0.35.6) (2023-04-18)
 
 
