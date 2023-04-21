@@ -17,6 +17,7 @@ package gengapic
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -94,8 +95,7 @@ func (g *generator) genAndCommitSnippets(s *descriptor.ServiceDescriptorProto) e
 		f := g.descInfo.ParentFile[m]
 		// Get the original proto service for the method (different from `s` only for mixins).
 		methodServ := (g.descInfo.ParentElement[m]).(*descriptor.ServiceDescriptorProto)
-		lineCount := g.commit(filepath.Join(g.opts.outDir, "internal",
-			"snippets", clientName, m.GetName(), "main.go"), "main")
+		lineCount := g.commit(filepath.Join(g.snippetsOutDir(), clientName, m.GetName(), "main.go"), "main")
 		g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
 	}
 	return nil
@@ -130,11 +130,20 @@ func (g *generator) genAndCommitSnippetMetadata(protoPkg string) error {
 	if err != nil {
 		return err
 	}
-	file := filepath.Join(g.opts.outDir, "internal", "snippets",
-		fmt.Sprintf("snippet_metadata.%s.json", protoPkg))
+	file := filepath.Join(g.snippetsOutDir(), fmt.Sprintf("snippet_metadata.%s.json", protoPkg))
 	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
 		Name:    proto.String(file),
 		Content: proto.String(string(json[:])),
 	})
 	return nil
+}
+
+func (g *generator) snippetsOutDir() string {
+	if strings.Contains(g.opts.pkgPath, "cloud.google.com/go/") {
+		// Write snippet metadata at the top level of the google-cloud-go namespace, not at the client package.
+		// This matches the destination directory structure in google-cloud-go.
+		pkg := strings.TrimPrefix(g.opts.pkgPath, "cloud.google.com/go/")
+		return filepath.Join("cloud.google.com/go", "internal", "generated", "snippets", filepath.FromSlash(pkg))
+	}
+	return filepath.Join(g.opts.outDir, "internal", "snippets")
 }

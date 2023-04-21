@@ -27,6 +27,34 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+func TestSnippetsOutDir(t *testing.T) {
+	for _, tst := range []struct {
+		opts options
+		want string
+	}{
+		{
+			opts: options{
+				outDir:  "cloud.google.com/go/video/stitcher/apiv1",
+				pkgPath: "cloud.google.com/go/video/stitcher/apiv1",
+			},
+			want: "cloud.google.com/go/internal/generated/snippets/video/stitcher/apiv1",
+		},
+		{
+			opts: options{
+				outDir:  "example.com/my/package",
+				pkgPath: "example.com/my/package",
+			},
+			want: "example.com/my/package/internal/snippets",
+		},
+	} {
+		var g generator
+		g.opts = &tst.opts
+		if s := g.snippetsOutDir(); s != tst.want {
+			t.Errorf("TestGenAndCommitSnippets(g.opts.pkgPath = %s): got %s, want %s", g.opts.pkgPath, s, tst.want)
+		}
+	}
+}
+
 func TestGenAndCommitSnippets(t *testing.T) {
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
