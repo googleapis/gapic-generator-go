@@ -178,10 +178,16 @@ def com_googleapis_gapic_generator_go_repositories():
         version = "v0.2.3",
     )
     go_repository(
+        name = "com_github_googleapis_gapic_generator_go",
+        importpath = "github.com/googleapis/gapic-generator-go",
+        sum = "h1:QCK+lt6Oq6DzRHhrJrr26AjLeMfxq4GNFlV9U9e21N0=",
+        version = "v0.35.2",
+    )
+    go_repository(
         name = "com_github_googleapis_gapic_showcase",
         importpath = "github.com/googleapis/gapic-showcase",
-        sum = "h1:MitsKIl0rlPqov3WrWfl655GJ8i3o+fbnn3KFxg2e4Y=",
-        version = "v0.26.0",
+        sum = "h1:5mC6y4BZRtpxANqSfzD3mQDTiP3pt09igNA8fxmiaGk=",
+        version = "v0.27.0",
     )
 
     go_repository(
@@ -223,8 +229,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_inconshreveable_mousetrap",
         importpath = "github.com/inconshreveable/mousetrap",
-        sum = "h1:U3uMjPSQEBMNp1lFxmllqCPM6P5u/Xq7Pgzkat/bFNc=",
-        version = "v1.0.1",
+        sum = "h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=",
+        version = "v1.1.0",
     )
 
     go_repository(
@@ -246,8 +252,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This should be retained by gazelle.
         build_file_proto_mode = "disable",
         importpath = "github.com/jhump/protoreflect",
-        sum = "h1:HUMERORf3I3ZdX05WaQ6MIpd/NJ434hTp5YiKgfCL6c=",
-        version = "v1.15.1",
+        sum = "h1:N88q7JkxTHWFEqReuTsYH1dPIwXxA0ITNQp7avLY10s=",
+        version = "v1.14.1",
     )
     go_repository(
         name = "com_github_magiconair_properties",
@@ -314,8 +320,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_spf13_cobra",
         importpath = "github.com/spf13/cobra",
-        sum = "h1:o94oiPyS4KD1mPy2fmcYYHHfCxLqYjJOhGsCHFZtEzA=",
-        version = "v1.6.1",
+        sum = "h1:hyqWnYt1ZQShIddO5kBpj3vu05/++x6tJ6dg8EC572I=",
+        version = "v1.7.0",
     )
     go_repository(
         name = "com_github_spf13_jwalterweatherman",
