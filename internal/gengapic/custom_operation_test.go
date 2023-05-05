@@ -154,9 +154,18 @@ func TestCustomOperationType(t *testing.T) {
 		Options: statusOpts,
 	}
 
+	errorCodeOpts := &descriptor.FieldOptions{}
+	proto.SetExtension(errorCodeOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_ERROR_CODE)
+	errorCodeField := &descriptor.FieldDescriptorProto{
+		Name:    proto.String("ERROR_CODE"),
+		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Options: errorCodeOpts,
+	}
+
 	op := &descriptor.DescriptorProto{
 		Name:     proto.String("Operation"),
 		EnumType: []*descriptor.EnumDescriptorProto{statusEnum},
+		Field:    []*descriptor.FieldDescriptorProto{errorCodeField},
 	}
 
 	inNameOpts := &descriptor.FieldOptions{}

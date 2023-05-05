@@ -192,8 +192,11 @@ func (g *generator) customOperationType() error {
 	p("}")
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
+	g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/apierror"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 
 	for _, handle := range op.handles {
 		pollingParams := op.pollingParams[handle]
@@ -204,6 +207,16 @@ func (g *generator) customOperationType() error {
 		poll := operationPollingMethod(handle)
 		pollReq := g.descInfo.Type[poll.GetInputType()].(*descriptor.DescriptorProto)
 		pollNameField := operationResponseField(pollReq, opNameField.GetName())
+		// Look up the fields for error code and error message.
+		errorCodeField := operationField(op.message, extendedops.OperationResponseMapping_ERROR_CODE)
+		if errorCodeField == nil {
+			return fmt.Errorf("field %s not found in %T", extendedops.OperationResponseMapping_ERROR_CODE, op)
+		}
+		errorCode := snakeToCamel(errorCodeField.GetName())
+		errorMessageField := operationField(op.message, extendedops.OperationResponseMapping_ERROR_MESSAGE)
+		if errorMessageField == nil {
+			return fmt.Errorf("field %s not found in %T", extendedops.OperationResponseMapping_ERROR_MESSAGE, op)
+		}
 
 		// type
 		p("// Implements the %s interface for %s.", handleInt, handle.GetName())
@@ -229,6 +242,19 @@ func (g *generator) customOperationType() error {
 		p("    return err")
 		p("  }")
 		p("  h.proto = resp")
+		p("  if resp.%s != nil && resp.Get%s() != http.StatusOK {", errorCode, errorCode)
+		p("  	aErr := googleapi.Error{")
+		p("  		Code: int(resp.Get%s()),", errorCode)
+		if hasField(op.message, "error") {
+			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+			p("  		Message: fmt.Sprintf(\"%%s: %%v\", resp.Get%s(), resp.GetError()),", snakeToCamel(errorMessageField.GetName()))
+		} else {
+			p("  		Message: resp.Get%s(),", snakeToCamel(errorMessageField.GetName()))
+		}
+		p("  	}")
+		p("  	err, _ := apierror.FromError(&aErr)")
+		p("  	return err")
+		p("  }")
 		p("  return nil")
 		p("}")
 		p("")
@@ -312,6 +338,17 @@ func (g *generator) customOpStatusEnumDone() string {
 	s := fmt.Sprintf("%s.%s", imp.Name, enum)
 
 	return s
+}
+
+// hasField returns true if the target DescriptorProto has the given field,
+// otherwise it returns false.
+func hasField(m *descriptor.DescriptorProto, field string) bool {
+	for _, f := range m.GetField() {
+		if f.GetName() == field {
+			return true
+		}
+	}
+	return false
 }
 
 // operationField is a helper for loading the target google.cloud.operation_field annotation value
