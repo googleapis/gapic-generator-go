@@ -1,7 +1,7 @@
 module github.com/googleapis/gapic-generator-go
 
 require (
-	cloud.google.com/go/iam v1.0.0
+	cloud.google.com/go/iam v1.0.1
 	cloud.google.com/go/longrunning v0.4.2
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.3
