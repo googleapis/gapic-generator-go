@@ -243,7 +243,7 @@ func (g *generator) customOperationType() error {
 		p("    return err")
 		p("  }")
 		p("  h.proto = resp")
-		p("  if resp.%s != nil && resp.Get%s() != http.StatusOK {", errorCode, errorCode)
+		p("  if resp.%[1]s != nil && (resp.Get%[1]s() < 200 || resp.Get%[1]s() > 299) {", errorCode)
 		p("  	aErr := &googleapi.Error{")
 		p("  		Code: int(resp.Get%s()),", errorCode)
 		if hasField(op.message, "error") {
