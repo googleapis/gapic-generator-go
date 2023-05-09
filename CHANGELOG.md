@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.0](https://github.com/googleapis/gapic-generator-go/compare/v0.35.7...v0.36.0) (2023-05-09)
+
+
+### Features
+
+* **gengapic:** Raise Operation errors from diregapic ([#1323](https://github.com/googleapis/gapic-generator-go/issues/1323)) ([66d43c6](https://github.com/googleapis/gapic-generator-go/commit/66d43c661329f26440aae237e5f5bf1716489e68)), closes [#1320](https://github.com/googleapis/gapic-generator-go/issues/1320)
+
 ## [0.35.7](https://github.com/googleapis/gapic-generator-go/compare/v0.35.6...v0.35.7) (2023-04-21)
 
 
