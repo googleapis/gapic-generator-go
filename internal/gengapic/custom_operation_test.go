@@ -121,6 +121,22 @@ func TestCustomOpInit(t *testing.T) {
 }
 
 func TestCustomOperationType(t *testing.T) {
+	errorType := &descriptor.DescriptorProto{
+		Name: proto.String("Error"),
+		Field: []*descriptor.FieldDescriptorProto{
+			{
+				Name:  proto.String("nested"),
+				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			},
+		},
+	}
+	errorField := &descriptor.FieldDescriptorProto{
+		Name:     proto.String("error"),
+		Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+		TypeName: proto.String("Error"),
+	}
+
 	errorCodeOpts := &descriptor.FieldOptions{}
 	proto.SetExtension(errorCodeOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_ERROR_CODE)
 	errorCodeField := &descriptor.FieldDescriptorProto{
@@ -229,25 +245,32 @@ func TestCustomOperationType(t *testing.T) {
 			},
 			Type: map[string]pbinfo.ProtoType{
 				statusEnumField.GetTypeName():                 statusEnum,
+				".google.cloud.foo.v1.Error":                  errorType,
 				".google.cloud.foo.v1.GetFooOperationRequest": getInput,
 			},
 		},
 		imports: map[pbinfo.ImportSpec]bool{},
 	}
 	for _, tst := range []struct {
-		name string
-		st   *descriptor.FieldDescriptorProto
+		name       string
+		st         *descriptor.FieldDescriptorProto
+		errorField bool
 	}{
 		{
-			name: "enum",
-			st:   statusEnumField,
+			name:       "enum",
+			st:         statusEnumField,
+			errorField: false,
 		},
 		{
-			name: "bool",
-			st:   statusBoolField,
+			name:       "bool",
+			st:         statusBoolField,
+			errorField: true,
 		},
 	} {
 		op.Field = []*descriptor.FieldDescriptorProto{errorCodeField, errorMessageField, nameField, tst.st}
+		if tst.errorField {
+			op.Field = append(op.Field, errorField)
+		}
 		err := g.customOperationType()
 		if err != nil {
 			t.Fatal(err)
