@@ -192,8 +192,10 @@ func (g *generator) customOperationType() error {
 	p("}")
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
+	g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/apierror"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 
 	for _, handle := range op.handles {
 		pollingParams := op.pollingParams[handle]
@@ -204,6 +206,17 @@ func (g *generator) customOperationType() error {
 		poll := operationPollingMethod(handle)
 		pollReq := g.descInfo.Type[poll.GetInputType()].(*descriptor.DescriptorProto)
 		pollNameField := operationResponseField(pollReq, opNameField.GetName())
+		// Look up the fields for error code and error message.
+		errorCodeField := operationField(op.message, extendedops.OperationResponseMapping_ERROR_CODE)
+		if errorCodeField == nil {
+			return fmt.Errorf("field %s not found in %T", extendedops.OperationResponseMapping_ERROR_CODE, op)
+		}
+		errorCode := snakeToCamel(errorCodeField.GetName())
+		errorMessageField := operationField(op.message, extendedops.OperationResponseMapping_ERROR_MESSAGE)
+		if errorMessageField == nil {
+			return fmt.Errorf("field %s not found in %T", extendedops.OperationResponseMapping_ERROR_MESSAGE, op)
+		}
+		errorMessage := snakeToCamel(errorMessageField.GetName())
 
 		// type
 		p("// Implements the %s interface for %s.", handleInt, handle.GetName())
@@ -229,6 +242,19 @@ func (g *generator) customOperationType() error {
 		p("    return err")
 		p("  }")
 		p("  h.proto = resp")
+		p("  if resp.%[1]s != nil && (resp.Get%[1]s() < 200 || resp.Get%[1]s() > 299) {", errorCode)
+		p("  	aErr := &googleapi.Error{")
+		p("  		Code: int(resp.Get%s()),", errorCode)
+		if hasField(op.message, "error") {
+			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+			p(`  		Message: fmt.Sprintf("%%s: %%v", resp.Get%s(), resp.GetError()),`, errorMessage)
+		} else {
+			p("  		Message: resp.Get%s(),", errorMessage)
+		}
+		p("  	}")
+		p("  	err, _ := apierror.FromError(aErr)")
+		p("  	return err")
+		p("  }")
 		p("  return nil")
 		p("}")
 		p("")
