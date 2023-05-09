@@ -192,7 +192,7 @@ func (g *generator) customOperationType() error {
 	p("}")
 	p("")
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "http"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "time"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/apierror"}] = true

@@ -121,6 +121,22 @@ func TestCustomOpInit(t *testing.T) {
 }
 
 func TestCustomOperationType(t *testing.T) {
+	errorCodeOpts := &descriptor.FieldOptions{}
+	proto.SetExtension(errorCodeOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_ERROR_CODE)
+	errorCodeField := &descriptor.FieldDescriptorProto{
+		Name:    proto.String("http_error_status_code"),
+		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Options: errorCodeOpts,
+	}
+
+	errorMessageOpts := &descriptor.FieldOptions{}
+	proto.SetExtension(errorMessageOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_ERROR_MESSAGE)
+	errorMessageField := &descriptor.FieldDescriptorProto{
+		Name:    proto.String("http_error_message"),
+		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Options: errorMessageOpts,
+	}
+
 	nameOpts := &descriptor.FieldOptions{}
 	proto.SetExtension(nameOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_NAME)
 	nameField := &descriptor.FieldDescriptorProto{
@@ -154,18 +170,9 @@ func TestCustomOperationType(t *testing.T) {
 		Options: statusOpts,
 	}
 
-	errorCodeOpts := &descriptor.FieldOptions{}
-	proto.SetExtension(errorCodeOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_ERROR_CODE)
-	errorCodeField := &descriptor.FieldDescriptorProto{
-		Name:    proto.String("ERROR_CODE"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
-		Options: errorCodeOpts,
-	}
-
 	op := &descriptor.DescriptorProto{
 		Name:     proto.String("Operation"),
 		EnumType: []*descriptor.EnumDescriptorProto{statusEnum},
-		Field:    []*descriptor.FieldDescriptorProto{errorCodeField},
 	}
 
 	inNameOpts := &descriptor.FieldOptions{}
@@ -240,7 +247,7 @@ func TestCustomOperationType(t *testing.T) {
 			st:   statusBoolField,
 		},
 	} {
-		op.Field = []*descriptor.FieldDescriptorProto{nameField, tst.st}
+		op.Field = []*descriptor.FieldDescriptorProto{errorCodeField, errorMessageField, nameField, tst.st}
 		err := g.customOperationType()
 		if err != nil {
 			t.Fatal(err)
