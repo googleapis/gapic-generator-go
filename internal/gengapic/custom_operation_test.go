@@ -259,7 +259,6 @@ func TestCustomOperationType(t *testing.T) {
 		{
 			name:       "enum",
 			st:         statusEnumField,
-			errorField: false,
 		},
 		{
 			name:       "bool",

@@ -62,11 +62,11 @@ func (h *fooOperationsHandle) Poll(ctx context.Context, opts ...gax.CallOption) 
 	}
 	h.proto = resp
 	if resp.HttpErrorStatusCode != nil && resp.GetHttpErrorStatusCode() != http.StatusOK {
-		aErr := googleapi.Error{
+		aErr := &googleapi.Error{
 			Code: int(resp.GetHttpErrorStatusCode()),
 			Message: fmt.Sprintf("%s: %v", resp.GetHttpErrorMessage(), resp.GetError()),
 		}
-		err, _ := apierror.FromError(&aErr)
+		err, _ := apierror.FromError(aErr)
 		return err
 	}
 	return nil

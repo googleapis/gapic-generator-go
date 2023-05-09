@@ -144,6 +144,26 @@ func TestStrContains(t *testing.T) {
 	}
 }
 
+func TestHasField(t *testing.T) {
+	msg := &descriptor.DescriptorProto{
+		Field: []*descriptor.FieldDescriptorProto{
+			{Name: proto.String("foo")},
+			{Name: proto.String("bar")},
+		},
+	}
+	for _, tst := range []struct {
+		in   string
+		want bool
+	}{
+		{in: "foo", want: true},
+		{in: "baz"},
+	} {
+		if got := hasField(msg, tst.in); !cmp.Equal(got, tst.want) {
+			t.Errorf("TestHasField got %v want %v", got, tst.want)
+		}
+	}
+}
+
 func TestHasMethod(t *testing.T) {
 	serv := &descriptor.ServiceDescriptorProto{
 		Method: []*descriptor.MethodDescriptorProto{

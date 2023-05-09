@@ -110,6 +110,17 @@ func grpcClientField(reducedServName string) string {
 	return lowerFirst(reducedServName + "Client")
 }
 
+// hasField returns true if the target DescriptorProto has the given field,
+// otherwise it returns false.
+func hasField(m *descriptor.DescriptorProto, field string) bool {
+	for _, f := range m.GetField() {
+		if f.GetName() == field {
+			return true
+		}
+	}
+	return false
+}
+
 // hasMethod reports if the given service defines an RPC with the same name as
 // the given simple method name.
 func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
