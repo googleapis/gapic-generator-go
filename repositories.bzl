@@ -185,16 +185,10 @@ def com_googleapis_gapic_generator_go_repositories():
         version = "v0.2.3",
     )
     go_repository(
-        name = "com_github_googleapis_gapic_generator_go",
-        importpath = "github.com/googleapis/gapic-generator-go",
-        sum = "h1:QCK+lt6Oq6DzRHhrJrr26AjLeMfxq4GNFlV9U9e21N0=",
-        version = "v0.35.2",
-    )
-    go_repository(
         name = "com_github_googleapis_gapic_showcase",
         importpath = "github.com/googleapis/gapic-showcase",
-        sum = "h1:5mC6y4BZRtpxANqSfzD3mQDTiP3pt09igNA8fxmiaGk=",
-        version = "v0.27.0",
+        sum = "h1:EhC0jYylEEzaqguF7c80IX7UmcpYqc5mU6kFKgDvxcQ=",
+        version = "v0.28.1",
     )
 
     go_repository(
@@ -259,8 +253,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This should be retained by gazelle.
         build_file_proto_mode = "disable",
         importpath = "github.com/jhump/protoreflect",
-        sum = "h1:N88q7JkxTHWFEqReuTsYH1dPIwXxA0ITNQp7avLY10s=",
-        version = "v1.14.1",
+        sum = "h1:HUMERORf3I3ZdX05WaQ6MIpd/NJ434hTp5YiKgfCL6c=",
+        version = "v1.15.1",
     )
     go_repository(
         name = "com_github_magiconair_properties",
@@ -1189,8 +1183,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "in_gopkg_check_v1",
         importpath = "gopkg.in/check.v1",
-        sum = "h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=",
-        version = "v0.0.0-20161208181325-20d25e280405",
+        sum = "h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=",
+        version = "v1.0.0-20190902080502-41f04d3bba15",
     )
     go_repository(
         name = "in_gopkg_ini_v1",
