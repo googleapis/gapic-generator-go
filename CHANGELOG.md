@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/googleapis/gapic-generator-go/compare/v0.36.0...v0.37.0) (2023-05-17)
+
+
+### Features
+
+* **gengapic:** Use WithTimeout for default logical timeout ([#1267](https://github.com/googleapis/gapic-generator-go/issues/1267)) ([7d1418f](https://github.com/googleapis/gapic-generator-go/commit/7d1418faaa4d7bc0ef76b661ab1be33c85be8a7f)), closes [#1206](https://github.com/googleapis/gapic-generator-go/issues/1206)
+
 ## [0.36.0](https://github.com/googleapis/gapic-generator-go/compare/v0.35.7...v0.36.0) (2023-05-09)
 
 
