@@ -307,6 +307,61 @@ func TestGetOperationPathOverride(t *testing.T) {
 	}
 }
 
+func TestIncludeMixinInputFile(t *testing.T) {
+	for _, tst := range []struct {
+		name, file, pkgPath string
+		want                bool
+	}{
+		{
+			name:    "non-mixin",
+			file:    "google/cloud/library/v1/library.proto",
+			pkgPath: "cloud.google.com/go/library/apiv1",
+			want:    true,
+		},
+		{
+			name:    "exclude-iam",
+			file:    "google/iam/v1/iam_policy.proto",
+			pkgPath: "cloud.google.com/go/library/apiv1",
+			want:    false,
+		},
+		{
+			name:    "exclude-locations",
+			file:    "google/cloud/location/locations.proto",
+			pkgPath: "cloud.google.com/go/library/apiv1",
+			want:    false,
+		},
+		{
+			name:    "exclude-longrunning",
+			file:    "google/longrunning/operations.proto",
+			pkgPath: "cloud.google.com/go/library/apiv1",
+			want:    false,
+		},
+		{
+			name:    "include-iam",
+			file:    "google/iam/v1/iam_policy.proto",
+			pkgPath: "cloud.google.com/go/iam/apiv1",
+			want:    true,
+		},
+		{
+			name:    "include-locations",
+			file:    "google/cloud/location/locations.proto",
+			pkgPath: "cloud.google.com/go/locations/apiv1",
+			want:    true,
+		},
+		{
+			name:    "include-longrunning",
+			file:    "google/longrunning/operations.proto",
+			pkgPath: "cloud.google.com/go/longrunning/apiv1",
+			want:    true,
+		},
+	} {
+		g := &generator{opts: &options{pkgPath: tst.pkgPath}}
+		if got := g.includeMixinInputFile(tst.file); got != tst.want {
+			t.Errorf("%s: got %v, want %v", tst.name, got, tst.want)
+		}
+	}
+}
+
 // locationMethods is just used for testing.
 func locationMethods() []*descriptor.MethodDescriptorProto {
 	return mixinFiles["google.cloud.location.Locations"][0].GetService()[0].GetMethod()

@@ -1232,6 +1232,66 @@ func TestReturnType(t *testing.T) {
 	}
 }
 
+func TestCollectServices(t *testing.T) {
+	libraryServ := &descriptor.ServiceDescriptorProto{
+		Name: proto.String("Library"),
+	}
+	library := &descriptor.FileDescriptorProto{
+		Name: proto.String("google/cloud/library/v1/library.proto"),
+		Options: &descriptor.FileOptions{
+			GoPackage: proto.String("cloud.google.com/go/library/apiv1/librarypb;librarypb"),
+		},
+		Service: []*descriptor.ServiceDescriptorProto{libraryServ},
+	}
+
+	for _, tst := range []struct {
+		name, goPkgPath string
+		toGen           []string
+		fileSet         []*descriptor.FileDescriptorProto
+		want            []*descriptor.ServiceDescriptorProto
+	}{
+		{
+			name:      "simple",
+			goPkgPath: "cloud.google.com/go/library/apiv1",
+			toGen:     []string{library.GetName()},
+			fileSet:   []*descriptor.FileDescriptorProto{library},
+			want:      []*descriptor.ServiceDescriptorProto{libraryServ},
+		},
+		{
+			name:      "ignore-mixins",
+			goPkgPath: "cloud.google.com/go/library/apiv1",
+			toGen:     []string{library.GetName()},
+			fileSet: []*descriptor.FileDescriptorProto{
+				library,
+				mixinFiles["google.longrunning.Operations"][0],
+				mixinFiles["google.iam.v1.IAMPolicy"][0],
+				mixinFiles["google.cloud.location.Locations"][0],
+			},
+			want: []*descriptor.ServiceDescriptorProto{libraryServ},
+		},
+		{
+			name:      "include-iam-mixin",
+			goPkgPath: "cloud.google.com/go/iam/apiv1",
+			toGen:     []string{mixinFiles["google.iam.v1.IAMPolicy"][0].GetName()},
+			fileSet: []*descriptor.FileDescriptorProto{
+				mixinFiles["google.longrunning.Operations"][0],
+				mixinFiles["google.iam.v1.IAMPolicy"][0],
+				mixinFiles["google.cloud.location.Locations"][0],
+			},
+			want: []*descriptor.ServiceDescriptorProto{mixinFiles["google.iam.v1.IAMPolicy"][0].GetService()[0]},
+		},
+	} {
+		g := &generator{opts: &options{pkgPath: tst.goPkgPath}}
+		got := g.collectServices(&pluginpb.CodeGeneratorRequest{
+			FileToGenerate: tst.toGen,
+			ProtoFile:      tst.fileSet,
+		})
+		if diff := cmp.Diff(got, tst.want, cmp.Comparer(proto.Equal)); diff != "" {
+			t.Errorf("%s: got(-),want(+):\n%s", tst.name, diff)
+		}
+	}
+}
+
 func setHTTPOption(o *descriptor.MethodOptions, pattern string) {
 	proto.SetExtension(o, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{

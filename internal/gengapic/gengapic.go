@@ -59,16 +59,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		return &g.resp, err
 	}
 
-	var genServs []*descriptor.ServiceDescriptorProto
-	for _, f := range genReq.GetProtoFile() {
-		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
-			continue
-		}
-		if !g.includeMixinInputFile(f.GetName()) {
-			continue
-		}
-		genServs = append(genServs, f.GetService()...)
-	}
+	genServs := g.collectServices(genReq)
 
 	if len(genServs) == 0 {
 		return &g.resp, nil
@@ -173,6 +164,20 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	return &g.resp, nil
+}
+
+// Collects the proto services to generate GAPICs for from the CodeGeneratorRequest.
+func (g *generator) collectServices(genReq *plugin.CodeGeneratorRequest) (genServs []*descriptor.ServiceDescriptorProto) {
+	for _, f := range genReq.GetProtoFile() {
+		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
+			continue
+		}
+		if !g.includeMixinInputFile(f.GetName()) {
+			continue
+		}
+		genServs = append(genServs, f.GetService()...)
+	}
+	return
 }
 
 // gen generates client for the given service.

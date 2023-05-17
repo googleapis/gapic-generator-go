@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.36.0](https://github.com/googleapis/gapic-generator-go/compare/v0.35.7...v0.36.0) (2023-05-09)
+
+
+### Features
+
+* **gengapic:** Raise Operation errors from diregapic ([#1323](https://github.com/googleapis/gapic-generator-go/issues/1323)) ([66d43c6](https://github.com/googleapis/gapic-generator-go/commit/66d43c661329f26440aae237e5f5bf1716489e68)), closes [#1320](https://github.com/googleapis/gapic-generator-go/issues/1320)
+
+## [0.35.7](https://github.com/googleapis/gapic-generator-go/compare/v0.35.6...v0.35.7) (2023-04-21)
+
+
+### Bug Fixes
+
+* **internal/gengapic:** Write snippet output to cloud.google.com/go ([#1313](https://github.com/googleapis/gapic-generator-go/issues/1313)) ([dfc5ce2](https://github.com/googleapis/gapic-generator-go/commit/dfc5ce2336a0f1a8b10732e32164540ba5686883))
+
+## [0.35.6](https://github.com/googleapis/gapic-generator-go/compare/v0.35.5...v0.35.6) (2023-04-18)
+
+
+### Bug Fixes
+
+* **deps:** Revert middleware version, drop s2a-go ([#1308](https://github.com/googleapis/gapic-generator-go/issues/1308)) ([4609f47](https://github.com/googleapis/gapic-generator-go/commit/4609f47aae6f175fde04db51b0e564056ac135e4))
+* **internal/gengapic:** Fix mixin file filter ([#1310](https://github.com/googleapis/gapic-generator-go/issues/1310)) ([79a7a34](https://github.com/googleapis/gapic-generator-go/commit/79a7a3443dca516746f9998f12749b9cefdac61c))
+
 ## [0.35.5](https://github.com/googleapis/gapic-generator-go/compare/v0.35.4...v0.35.5) (2023-04-07)
 
 

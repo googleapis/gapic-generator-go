@@ -350,7 +350,7 @@ func TestGenSnippetFile(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		g.commit(filepath.Join(g.opts.outDir, "temp", "snippets", "main.go"), "main")
+		g.commit(filepath.Join("cloud.google.com/go", "internal", "generated", "snippets", "bigquery", "main.go"), "main")
 		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
 			t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
 		}
