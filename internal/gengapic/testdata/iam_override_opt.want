@@ -29,6 +29,7 @@ func defaultBazCallOptions() *BazCallOptions {
 		GetIamPolicy: []gax.CallOption{
 			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
 			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+			gax.WithTimeout(5000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnCodes([]codes.Code{
 					codes.Unknown,
@@ -42,6 +43,7 @@ func defaultBazCallOptions() *BazCallOptions {
 		SetIamPolicy: []gax.CallOption{
 			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
 			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+			gax.WithTimeout(5000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnCodes([]codes.Code{
 					codes.Unknown,
@@ -55,6 +57,7 @@ func defaultBazCallOptions() *BazCallOptions {
 		TestIamPermissions: []gax.CallOption{
 			gax.WithGRPCOptions(grpc.MaxCallSendMsgSize(654321)),
 			gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(654321)),
+			gax.WithTimeout(5000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnCodes([]codes.Code{
 					codes.Unknown,
@@ -85,6 +88,7 @@ func defaultBazCallOptions() *BazCallOptions {
 func defaultBazRESTCallOptions() *BazCallOptions {
 	return &BazCallOptions{
 		GetIamPolicy: []gax.CallOption{
+			gax.WithTimeout(5000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnHTTPCodes(gax.Backoff{
 					Initial:    10 * time.Millisecond,
@@ -95,6 +99,7 @@ func defaultBazRESTCallOptions() *BazCallOptions {
 			}),
 		},
 		SetIamPolicy: []gax.CallOption{
+			gax.WithTimeout(5000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnHTTPCodes(gax.Backoff{
 					Initial:    10 * time.Millisecond,
@@ -105,6 +110,7 @@ func defaultBazRESTCallOptions() *BazCallOptions {
 			}),
 		},
 		TestIamPermissions: []gax.CallOption{
+			gax.WithTimeout(5000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
 				return gax.OnHTTPCodes(gax.Backoff{
 					Initial:    10 * time.Millisecond,

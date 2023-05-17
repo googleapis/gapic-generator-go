@@ -83,7 +83,6 @@ func (g *generator) genGRPCMethod(servName string, serv *descriptor.ServiceDescr
 }
 
 func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	sFQN := g.fqn(g.descInfo.ParentElement[m])
 	inType := g.descInfo.Type[*m.InputType]
 	outType := g.descInfo.Type[*m.OutputType]
 
@@ -102,8 +101,6 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 	retTyp := fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
-
-	g.deadline(sFQN, m.GetName())
 
 	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
@@ -129,8 +126,6 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 }
 
 func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptor.MethodDescriptorProto) error {
-	s := g.descInfo.ParentElement[m]
-	sFQN := fmt.Sprintf("%s.%s", g.descInfo.ParentFile[s].GetPackage(), s.GetName())
 	inType := g.descInfo.Type[*m.InputType]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
@@ -144,8 +139,6 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptor.MethodDesc
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
-
-	g.deadline(sFQN, m.GetName())
 
 	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
@@ -223,6 +216,12 @@ func (g *generator) grpcCallOptions(serv *descriptor.ServiceDescriptorProto, ser
 			p("gax.WithGRPCOptions(grpc.MaxCallRecvMsgSize(%d)),", maxRes)
 		}
 
+		streaming := m.GetClientStreaming() || m.GetServerStreaming()
+		if timeout, ok := c.Timeout(sFQN, mn); !streaming && ok {
+			p("gax.WithTimeout(%d * time.Millisecond),", timeout)
+			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
+		}
+
 		if rp, ok := c.RetryPolicy(sFQN, mn); ok && rp != nil {
 			p("gax.WithRetry(func() gax.Retryer {")
 			p("  return gax.OnCodes([]codes.Code{")
@@ -267,10 +266,6 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("type %s struct {", lowcaseServName)
 	p("// Connection pool of gRPC connections to the service.")
 	p("connPool gtransport.ConnPool")
-	p("")
-
-	p("// flag to opt out of default deadlines via %s", disableDeadlinesVar)
-	p("disableDeadlines bool")
 	p("")
 
 	p("// Points back to the CallOptions field of the containing %sClient", servName)
@@ -327,11 +322,6 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("    clientOpts = append(clientOpts, hookOpts...)")
 	p("  }")
 	p("")
-	p("  disableDeadlines, err := checkDisableDeadlines()")
-	p("  if err != nil {")
-	p("    return nil, err")
-	p("  }")
-	p("")
 	p("  connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)")
 	p("  if err != nil {")
 	p("    return nil, err")
@@ -340,7 +330,6 @@ func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("")
 	p("  c := &%s{", lowcaseServName)
 	p("    connPool:    connPool,")
-	p("    disableDeadlines: disableDeadlines,")
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
 	p("    CallOptions: &client.CallOptions,")
 	g.mixinStubsInit()

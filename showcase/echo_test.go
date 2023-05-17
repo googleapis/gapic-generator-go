@@ -19,7 +19,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -459,23 +458,17 @@ func TestBlock_default_timeout(t *testing.T) {
 	}
 }
 
-func TestBlock_disable_default_timeout(t *testing.T) {
+func TestBlock_override_default_timeout(t *testing.T) {
 	defer check(t)
 	content := "hello world!"
 	req := &showcasepb.BlockRequest{
-		ResponseDelay: &durationpb.Duration{Seconds: 11},
+		ResponseDelay: &durationpb.Duration{Seconds: 6},
 		Response: &showcasepb.BlockRequest_Success{
 			Success: &showcasepb.BlockResponse{Content: content},
 		},
 	}
 
-	os.Setenv("GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE", "true")
-	e, err := showcase.NewEchoClient(context.Background(), option.WithGRPCConn(echo.Connection()))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp, err := e.Block(context.Background(), req)
+	resp, err := echo.Block(context.Background(), req, gax.WithTimeout(10*time.Second))
 	if err != nil {
 		t.Error(err)
 	}

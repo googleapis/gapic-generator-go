@@ -1,9 +1,4 @@
 func (c *fooGRPCClient) GetAnotherThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
-	if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {
-		cctx, cancel := context.WithTimeout(ctx, 10000 * time.Millisecond)
-		defer cancel()
-		ctx = cctx
-	}
 	routingHeaders := ""
 	routingHeadersMap := make(map[string]string)
 	if reg := regexp.MustCompile("(.*)"); reg.MatchString(req.GetOther()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])) > 0 {

@@ -1238,6 +1238,12 @@ func (g *generator) restCallOptions(serv *descriptor.ServiceDescriptorProto, ser
 		sFQN := g.fqn(g.descInfo.ParentElement[m])
 		mn := m.GetName()
 		p("%s: []gax.CallOption{", mn)
+
+		if timeout, ok := c.Timeout(sFQN, mn); ok {
+			p("gax.WithTimeout(%d * time.Millisecond),", timeout)
+			g.imports[pbinfo.ImportSpec{Path: "time"}] = true
+		}
+
 		if rp, ok := c.RetryPolicy(sFQN, mn); ok && rp != nil && len(rp.GetRetryableStatusCodes()) > 0 {
 			p("gax.WithRetry(func() gax.Retryer {")
 			p("  return gax.OnHTTPCodes(gax.Backoff{")

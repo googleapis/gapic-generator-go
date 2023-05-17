@@ -1,9 +1,4 @@
 func (c *fooGRPCClient) RespLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*RespLROOperation, error) {
-	if _, ok := ctx.Deadline(); !ok && !c.disableDeadlines {
-		cctx, cancel := context.WithTimeout(ctx, 10000 * time.Millisecond)
-		defer cancel()
-		ctx = cctx
-	}
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	opts = append((*c.CallOptions).RespLRO[0:len((*c.CallOptions).RespLRO):len((*c.CallOptions).RespLRO)], opts...)
 	var resp *longrunningpb.Operation

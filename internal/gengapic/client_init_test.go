@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -60,6 +61,7 @@ func TestClientOpt(t *testing.T) {
 						Method:  "Zip",
 					},
 				},
+				Timeout:                 duration.New(10 * time.Second),
 				MaxRequestMessageBytes:  &wrappers.UInt32Value{Value: 123456},
 				MaxResponseMessageBytes: &wrappers.UInt32Value{Value: 123456},
 				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
@@ -86,6 +88,7 @@ func TestClientOpt(t *testing.T) {
 						Service: "bar.ServIamOverride",
 					},
 				},
+				Timeout:                 duration.New(5 * time.Second),
 				MaxRequestMessageBytes:  &wrappers.UInt32Value{Value: 654321},
 				MaxResponseMessageBytes: &wrappers.UInt32Value{Value: 654321},
 				RetryOrHedgingPolicy: &conf.MethodConfig_RetryPolicy_{
