@@ -101,6 +101,12 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 		g.codesnippet(snipMethod)
 	}
 
+	p("// Inspecting errors")
+	p("//")
+	p("// To see examples of how to inspect errors returned by this package please reference")
+	p("// [Inspecting errors](https://pkg.go.dev/cloud.google.com/go#hdr-Inspecting_errors).")
+	p("//")
+
 	p("// Use of Context")
 	p("//")
 	p("// The ctx passed to New%sClient is used for authentication requests and", servName)
