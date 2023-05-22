@@ -16,7 +16,6 @@ package grpc_service_config
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 
 	"github.com/golang/protobuf/ptypes"
@@ -37,7 +36,7 @@ type Config struct {
 // mapped by the names to the specific config values. Use the accessors on the
 // resulting Config to retrieve values for a Service or Method.
 func New(in io.Reader) (Config, error) {
-	data, err := ioutil.ReadAll(in)
+	data, err := io.ReadAll(in)
 	if err != nil {
 		return Config{}, err
 	}
