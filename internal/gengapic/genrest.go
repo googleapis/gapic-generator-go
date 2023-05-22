@@ -842,7 +842,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p(`      return err`)
 	p("    }")
 	p("")
-	p("    buf, err := ioutil.ReadAll(httpRsp.Body)")
+	p("    buf, err := io.ReadAll(httpRsp.Body)")
 	p("    if err != nil {")
 	p(`      return err`)
 	p("    }")
@@ -865,7 +865,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
@@ -964,7 +964,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("    return err")
 	p("  }")
 	p("")
-	p("  buf, err := ioutil.ReadAll(httpRsp.Body)")
+	p("  buf, err := io.ReadAll(httpRsp.Body)")
 	p("  if err != nil {")
 	p("    return err")
 	p("  }")
@@ -989,7 +989,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -1172,7 +1172,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("    return err")
 	p("  }")
 	p("")
-	p("  buf, err := ioutil.ReadAll(httpRsp.Body)")
+	p("  buf, err := io.ReadAll(httpRsp.Body)")
 	p("  if err != nil {")
 	p("    return err")
 	p("  }")
@@ -1203,7 +1203,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p(ret)
 	p("}")
 
-	g.imports[pbinfo.ImportSpec{Path: "io/ioutil"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true

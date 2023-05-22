@@ -17,7 +17,6 @@ package showcase
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -110,7 +109,7 @@ func getComplianceSuite() (*genprotopb.ComplianceSuite, error) {
 		return nil, err
 	}
 
-	complianceSuiteJSON, err := ioutil.ReadFile(filePath)
+	complianceSuiteJSON, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not open suite file %q", filePath)
 	}

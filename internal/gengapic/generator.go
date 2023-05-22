@@ -16,7 +16,6 @@ package gengapic
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -110,7 +109,7 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	files = append(files, wellKnownTypeFiles...)
 
 	if opts.serviceConfigPath != "" {
-		y, err := ioutil.ReadFile(opts.serviceConfigPath)
+		y, err := os.ReadFile(opts.serviceConfigPath)
 		if err != nil {
 			return errors.E(nil, "error reading service config: %v", err)
 		}

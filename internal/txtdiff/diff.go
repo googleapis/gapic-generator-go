@@ -17,7 +17,7 @@ package txtdiff
 
 import (
 	"flag"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 )
@@ -30,13 +30,13 @@ func Diff(t *testing.T, name, got, goldenFile string) {
 	t.Helper()
 
 	if *updateGolden {
-		if err := ioutil.WriteFile(goldenFile, []byte(got), 0644); err != nil {
+		if err := os.WriteFile(goldenFile, []byte(got), 0644); err != nil {
 			t.Fatal(err)
 		}
 		return
 	}
 
-	wantBytes, err := ioutil.ReadFile(goldenFile)
+	wantBytes, err := os.ReadFile(goldenFile)
 	if err != nil {
 		t.Fatal(err)
 	}
