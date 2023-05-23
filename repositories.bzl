@@ -194,8 +194,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_googleapis_gax_go_v2",
         importpath = "github.com/googleapis/gax-go/v2",
-        sum = "h1:ie5/2yPjucjZW6fEGjLhS5+PhEg6owWMrFB5d7TFFhw=",
-        version = "v2.9.0",
+        sum = "h1:DpTpJqzZ3NvX9zqjhIuI1oVzYZMvboZe+3LoeEIJjHM=",
+        version = "v2.9.1",
     )
     go_repository(
         name = "com_github_googleapis_grpc_fallback_go",
