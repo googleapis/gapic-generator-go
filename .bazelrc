@@ -1,2 +1,0 @@
-# Will be fixed by b/284490710.
-build --repo_env=BAZEL_CXXOPTS="-std=c++14"
