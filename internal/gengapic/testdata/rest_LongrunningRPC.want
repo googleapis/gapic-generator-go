@@ -42,7 +42,7 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 		}
 
 		if err := unm.Unmarshal(buf, resp); err != nil {
-			return maybeUnknownEnum(err)
+			return err
 		}
 
 		return nil

@@ -59,7 +59,7 @@ func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 		}
 
 		if err := unm.Unmarshal(buf, resp); err != nil {
-			return maybeUnknownEnum(err)
+			return err
 		}
 
 		return nil
