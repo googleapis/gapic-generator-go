@@ -56,7 +56,7 @@ func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFooReques
 			}
 
 			if err := unm.Unmarshal(buf, resp); err != nil {
-				return maybeUnknownEnum(err)
+				return err
 			}
 
 			return nil

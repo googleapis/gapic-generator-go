@@ -61,7 +61,7 @@ func (c *fooRESTClient) UpdateRPC(ctx context.Context, req *foopb.UpdateRequest,
 		}
 
 		if err := unm.Unmarshal(buf, resp); err != nil {
-			return maybeUnknownEnum(err)
+			return err
 		}
 
 		return nil

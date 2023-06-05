@@ -120,7 +120,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("import (")
 	p("%s%q", "\t", "context")
 	if hasREST {
-		p("%s%q", "\t", "fmt")
 		p("%s%q", "\t", "net/http")
 	}
 	p("%s%q", "\t", "runtime")
@@ -212,17 +211,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	}
 
 	if hasREST {
-		// UnknownEnum error check helper.
-		p("// maybeUnknownEnum wraps the given proto-JSON parsing error if it is the result")
-		p("// of receiving an unknown enum value.")
-		p("func maybeUnknownEnum(err error) error {")
-		p(`  if strings.Contains(err.Error(), "invalid value for enum type") {`)
-		p(`    err = fmt.Errorf("received an unknown enum value; a later version of the library may support it: %%w", err)`)
-		p("  }")
-		p("  return err")
-		p("}")
-		p("")
-
 		// buildHeaders from context and other metadata helper.
 		p("// buildHeaders extracts metadata from the outgoing context, joins it with any other")
 		p("// given metadata, and converts them into a http.Header. ")

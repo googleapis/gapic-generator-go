@@ -848,7 +848,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	p("    }")
 	p("")
 	p("    if err := unm.Unmarshal(buf, resp); err != nil {")
-	p("      return maybeUnknownEnum(err)")
+	p("      return err")
 	p("    }")
 	p("")
 	p("    return nil")
@@ -970,7 +970,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	p("  }")
 	p("")
 	p("  if err := unm.Unmarshal(buf, resp); err != nil {")
-	p("    return maybeUnknownEnum(err)")
+	p("    return err")
 	p("  }")
 	p("")
 	p("  return nil")
@@ -1184,7 +1184,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 		p("}")
 	} else {
 		p("if err := unm.Unmarshal(buf, resp); err != nil {")
-		p("  return maybeUnknownEnum(err)")
+		p("  return err")
 		p("}")
 	}
 
