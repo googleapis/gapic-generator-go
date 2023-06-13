@@ -190,6 +190,45 @@ func TestEchoHeaderREST(t *testing.T) {
 	}
 }
 
+func TestXGoogeMetadata(t *testing.T) {
+	// Inspect the private property `xGoogMetadata` of the transport-specific
+	// client implementation that is populated on creation of the client.
+	w := reflect.ValueOf(*echo)
+	x := w.FieldByName("internalClient")
+	y := x.Elem().Elem()
+	info := y.FieldByName("xGoogMetadata")
+
+	var goVersion string
+	for _, key := range info.MapKeys() {
+		// Only check for the client info set by the generated setGoogleClientInfo()
+		if key.String() != "x-goog-api-client" {
+			continue
+		}
+
+		vals := info.MapIndex(key)
+
+		for i := 0; goVersion == "" || i < vals.Len(); i++ {
+			v := vals.Index(i).String()
+			split := strings.Split(v, " ")
+			for _, s := range split {
+				// For now, we only want to check that the Go version is being
+				// properly populated.
+				if strings.HasPrefix(s, "gl-go/") {
+					goVersion = s
+					break
+				}
+			}
+		}
+		break
+	}
+
+	if goVersion == "" {
+		t.Errorf("expected Go version pair to be populated, but wasn't: %v", info)
+	} else if strings.Contains(goVersion, "UNKNOWN") {
+		t.Errorf("expected Go version pair to not be UNKNOWN: %q", goVersion)
+	}
+}
+
 type headerChecker struct {
 	rt   http.RoundTripper
 	want []string
