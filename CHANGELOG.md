@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.37.1](https://github.com/googleapis/gapic-generator-go/compare/v0.37.0...v0.37.1) (2023-06-13)
+
+
+### Bug Fixes
+
+* **gengapic:** Remove unknown enum error helper ([#1358](https://github.com/googleapis/gapic-generator-go/issues/1358)) ([34af96c](https://github.com/googleapis/gapic-generator-go/commit/34af96cccbe3fe5f700133fbe5b6f4595a6996fc))
+* **gengapic:** Use gax GoVersion ([#1359](https://github.com/googleapis/gapic-generator-go/issues/1359)) ([9116eca](https://github.com/googleapis/gapic-generator-go/commit/9116eca768029a58f5d353795748b6351c0fc9eb))
+* Refactor usage of deprecated io/ioutil to io ([#1336](https://github.com/googleapis/gapic-generator-go/issues/1336)) ([455a421](https://github.com/googleapis/gapic-generator-go/commit/455a421978e82d79155fbe120af2725f5cc8b9da))
+
 ## [0.37.0](https://github.com/googleapis/gapic-generator-go/compare/v0.36.0...v0.37.0) (2023-05-17)
 
 
