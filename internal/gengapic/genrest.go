@@ -419,7 +419,11 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 				b.WriteString("  return nil, err\n")
 			}
 			b.WriteString("}\n")
-			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", key, field.GetJsonName()))
+			// Convert to string and remove surrounding quotes
+			b.WriteString(fmt.Sprintf("%sString := string(%s)\n", field.GetJsonName(), field.GetJsonName()))
+			b.WriteString(fmt.Sprintf("%sString = %sString[1:len(%sString)-1]\n", field.GetJsonName(), field.GetJsonName(), field.GetJsonName()))
+			// Add field to query parameters
+			b.WriteString(fmt.Sprintf("params.Add(%q, %sString)", key, field.GetJsonName()))
 			paramAdd = b.String()
 		} else {
 			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", key, "%v", accessor)
