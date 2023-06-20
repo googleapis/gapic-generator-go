@@ -44,6 +44,16 @@ var wellKnownTypeNames = []string{
 	".google.protobuf.ListValue",
 }
 
+// TODO: Look into if we need to support ListValue/Value fields with
+// StringValue or BytesValue values.
+var wellKnownStringTypes = []string{
+	".google.protobuf.FieldMask",
+	".google.protobuf.Timestamp",
+	".google.protobuf.Duration",
+	".google.protobuf.StringValue",
+	".google.protobuf.BytesValue",
+}
+
 var wellKnownTypeFiles = []*descriptor.FileDescriptorProto{
 	protodesc.ToFileDescriptorProto(emptypb.File_google_protobuf_empty_proto),
 	protodesc.ToFileDescriptorProto(anypb.File_google_protobuf_any_proto),

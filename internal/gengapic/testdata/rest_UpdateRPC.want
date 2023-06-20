@@ -14,6 +14,13 @@ func (c *fooRESTClient) UpdateRPC(ctx context.Context, req *foopb.UpdateRequest,
 
 	params := url.Values{}
 	params.Add("$alt", "json;enum-encoding=int")
+	if req.GetNumericWrapper() != nil {
+		numericWrapper, err := protojson.Marshal(req.GetNumericWrapper())
+		if err != nil {
+		  return nil, err
+		}
+		params.Add("numericWrapper", string(numericWrapper))
+	}
 	if items := req.GetPrimitives(); len(items) > 0 {
 		for _, item := range items {
 		  params.Add("primitives", fmt.Sprintf("%v", item))
@@ -24,7 +31,7 @@ func (c *fooRESTClient) UpdateRPC(ctx context.Context, req *foopb.UpdateRequest,
 		if err != nil {
 		  return nil, err
 		}
-		params.Add("updateMask", string(updateMask))
+		params.Add("updateMask", string(updateMask[1:len(updateMask)-1]))
 	}
 
 	baseUrl.RawQuery = params.Encode()

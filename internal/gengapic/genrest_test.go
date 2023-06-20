@@ -506,9 +506,16 @@ func TestGenRestMethod(t *testing.T) {
 		Label:    descriptor.FieldDescriptorProto_LABEL_REPEATED.Enum(),
 	}
 
+	numericWrapperField := &descriptor.FieldDescriptorProto{
+		Name:     proto.String("numeric_wrapper"),
+		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		JsonName: proto.String("numericWrapper"),
+		TypeName: proto.String(".google.protobuf.DoubleValue"),
+	}
+
 	updateReq := &descriptor.DescriptorProto{
 		Name:  proto.String("UpdateRequest"),
-		Field: []*descriptor.FieldDescriptorProto{fooField, maskField, repeatedPrimField},
+		Field: []*descriptor.FieldDescriptorProto{fooField, maskField, repeatedPrimField, numericWrapperField},
 	}
 	updateReqFqn := fmt.Sprintf(".%s.UpdateRequest", pkg)
 
@@ -704,19 +711,20 @@ func TestGenRestMethod(t *testing.T) {
 				updateReq:    f,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
-				opRPC:           s,
-				emptyRPC:        s,
-				unaryRPC:        s,
-				pagingRPC:       s,
-				serverStreamRPC: s,
-				clientStreamRPC: s,
-				lroRPC:          s,
-				httpBodyRPC:     s,
-				updateRPC:       s,
-				nameField:       op,
-				sizeField:       foo,
-				otherField:      foo,
-				maskField:       updateReq,
+				opRPC:               s,
+				emptyRPC:            s,
+				unaryRPC:            s,
+				pagingRPC:           s,
+				serverStreamRPC:     s,
+				clientStreamRPC:     s,
+				lroRPC:              s,
+				httpBodyRPC:         s,
+				updateRPC:           s,
+				nameField:           op,
+				sizeField:           foo,
+				otherField:          foo,
+				maskField:           updateReq,
+				numericWrapperField: updateReq,
 			},
 			Type: map[string]pbinfo.ProtoType{
 				opfqn:          op,
