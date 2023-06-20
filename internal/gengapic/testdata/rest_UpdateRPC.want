@@ -24,7 +24,7 @@ func (c *fooRESTClient) UpdateRPC(ctx context.Context, req *foopb.UpdateRequest,
 		if err != nil {
 		  return nil, err
 		}
-		params.Add("updateMask", string(updateMask))
+		params.Add("updateMask", strings.ReplaceAll(string(updateMask), "\"", ""))
 	}
 
 	baseUrl.RawQuery = params.Encode()

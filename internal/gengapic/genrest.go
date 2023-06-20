@@ -419,8 +419,9 @@ func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
 				b.WriteString("  return nil, err\n")
 			}
 			b.WriteString("}\n")
-			b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", key, field.GetJsonName()))
+			b.WriteString(fmt.Sprintf("params.Add(%q, strings.ReplaceAll(string(%s), %q, %q))", key, field.GetJsonName(), "\"", ""))
 			paramAdd = b.String()
+			g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
 		} else {
 			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", key, "%v", accessor)
 			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
