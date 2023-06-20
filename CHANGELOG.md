@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.2](https://github.com/googleapis/gapic-generator-go/compare/v0.37.1...v0.37.2) (2023-06-20)
+
+
+### Bug Fixes
+
+* **gengapic:** Remove encoded quotes in query params ([#1364](https://github.com/googleapis/gapic-generator-go/issues/1364)) ([5d62c34](https://github.com/googleapis/gapic-generator-go/commit/5d62c344a7a7aac5b49979a800430b144062900b)), closes [#1363](https://github.com/googleapis/gapic-generator-go/issues/1363)
+
 ## [0.37.1](https://github.com/googleapis/gapic-generator-go/compare/v0.37.0...v0.37.1) (2023-06-13)
 
 
