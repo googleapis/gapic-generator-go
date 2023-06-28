@@ -16,9 +16,9 @@
 # (eg in development), set the following variables before calling the
 # test-with-local-showcase function below.
 
-GO_GENERATOR="$(pwd)/.."
-API_COMMON_PROTOS="" # path to local version of api-common-protos
-LOCAL_SHOWCASE_REPO="" # path to local version of gapic-showcase
+GO_GENERATOR="$(pwd)/.." # path to local clone of gapic-generator-go
+API_COMMON_PROTOS="" # path to local clone of api-common-protos
+LOCAL_SHOWCASE_REPO="" # path to local clone of gapic-showcase
 
 test-with-local-showcase(){
 
