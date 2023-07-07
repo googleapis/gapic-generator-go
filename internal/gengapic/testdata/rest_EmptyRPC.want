@@ -11,8 +11,9 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	baseUrl.RawQuery = params.Encode()
 
 	// Build HTTP headers from client and context metadata.
-	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v", "other", url.QueryEscape(req.GetOther())))
+	hds := []string{"x-goog-request-params", fmt.Sprintf("%s=%v", "other", url.QueryEscape(req.GetOther()))}
 
+	md := metadata.Pairs(hds...)
 	headers := buildHeaders(ctx, c.xGoogMetadata, md, metadata.Pairs("Content-Type", "application/json"))
 	return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		if settings.Path != "" {

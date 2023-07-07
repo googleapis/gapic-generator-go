@@ -1,5 +1,5 @@
 func (c *fooGRPCClient) GetManyOtherThings(ctx context.Context, req *mypackagepb.PageInputType, opts ...gax.CallOption) *StringIterator {
-	ctx = insertMetadata(ctx, c.xGoogMetadata)
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
 	opts = append((*c.CallOptions).GetManyOtherThings[0:len((*c.CallOptions).GetManyOtherThings):len((*c.CallOptions).GetManyOtherThings)], opts...)
 	it := &StringIterator{}
 	req = proto.Clone(req).(*mypackagepb.PageInputType)

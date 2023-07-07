@@ -144,18 +144,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("}")
 	p("")
 
-	p("func insertMetadata(ctx context.Context, mds ...metadata.MD) context.Context {")
-	p("  out, _ := metadata.FromOutgoingContext(ctx)")
-	p("  out = out.Copy()")
-	p("  for _, md := range mds {")
-	p("    for k, v := range md {")
-	p("      out[k] = append(out[k], v...)")
-	p("    }")
-	p("  }")
-	p("  return metadata.NewOutgoingContext(ctx, out)")
-	p("}")
-	p("")
-
 	p("// DefaultAuthScopes reports the default set of authentication scopes to use with this package.")
 	p("func DefaultAuthScopes() []string {")
 	p("  return []string{")

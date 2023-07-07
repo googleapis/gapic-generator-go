@@ -21,8 +21,9 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 		routingHeaders = fmt.Sprintf("%s%s=%s&", routingHeaders, headerName, headerValue)
 	}
 	routingHeaders = strings.TrimSuffix(routingHeaders, "&")
-	md := metadata.Pairs("x-goog-request-params", routingHeaders)
+	hds := []string{"x-goog-request-params", routingHeaders}
 
+	md := metadata.Pairs(hds...)
 	headers := buildHeaders(ctx, c.xGoogMetadata, md, metadata.Pairs("Content-Type", "application/json"))
 	opts = append((*c.CallOptions).HttpBodyRPC[0:len((*c.CallOptions).HttpBodyRPC):len((*c.CallOptions).HttpBodyRPC)], opts...)
 	resp := &httpbodypb.HttpBody{}
