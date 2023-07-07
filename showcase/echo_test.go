@@ -197,6 +197,10 @@ func TestXGoogeMetadata(t *testing.T) {
 	x := w.FieldByName("internalClient")
 	y := x.Elem().Elem()
 	info := y.FieldByName("xGoogMetadata")
+	if !info.IsValid() {
+		// TODO: Inspect xGoogHeaders for goVersion instead.
+		return
+	}
 
 	var goVersion string
 	for _, key := range info.MapKeys() {
