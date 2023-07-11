@@ -294,7 +294,6 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[imp] = true
 
 	g.grpcClientUtilities(serv, servName, imp, hasRPCForLRO)

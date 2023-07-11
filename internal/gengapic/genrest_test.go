@@ -837,7 +837,6 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "cloud.google.com/go/longrunning"}: true,
 				{Path: "fmt"}: true,
 				{Path: "google.golang.org/api/googleapi"}:               true,
-				{Path: "google.golang.org/grpc/metadata"}:               true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "io"}:      true,
 				{Path: "net/url"}: true,

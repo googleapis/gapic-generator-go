@@ -383,8 +383,9 @@ func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t 
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
 		case rest:
-			p("md := metadata.Pairs(hds...)")
-			p(`headers := buildHeaders(ctx, c.xGoogMetadata, md, metadata.Pairs("Content-Type", "application/json"))`)
+			p(`hds = append(c.xGoogHeaders, hds...)`)
+			p(`hds = append(hds, "Content-Type", "application/json")`)
+			p(`headers := gax.BuildHeaders(ctx, hds...)`)
 		}
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
@@ -395,7 +396,8 @@ func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t 
 	case grpc:
 		p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)")
 	case rest:
-		p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+		p(`hds := append(c.xGoogHeaders, "Content-Type", "application/json")`)
+		p(`headers := gax.BuildHeaders(ctx, hds...)`)
 	}
 }
 
