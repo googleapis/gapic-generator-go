@@ -1,7 +1,8 @@
 func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) error {
-	md := metadata.Pairs("x-goog-request-params", fmt.Sprintf("%s=%v&%s=%v&%s=%v&%s=%v&%s=%v&%s=%v", "field_name.nested", url.QueryEscape(req.GetFieldName().GetNested()), "other", url.QueryEscape(req.GetOther()), "another", url.QueryEscape(req.GetAnother()), "biz", url.QueryEscape(fmt.Sprintf("%g", req.GetBiz())), "top_level_enum", mypackagepb.TopLevelEnum_name[int32(req.GetTopLevelEnum())], "nested_enum", mypackagepb.InputType_NestedEnum_name[int32(req.GetNestedEnum())]))
+	hds := []string{"x-goog-request-params", fmt.Sprintf("%s=%v&%s=%v&%s=%v&%s=%v&%s=%v&%s=%v", "field_name.nested", url.QueryEscape(req.GetFieldName().GetNested()), "other", url.QueryEscape(req.GetOther()), "another", url.QueryEscape(req.GetAnother()), "biz", url.QueryEscape(fmt.Sprintf("%g", req.GetBiz())), "top_level_enum", mypackagepb.TopLevelEnum_name[int32(req.GetTopLevelEnum())], "nested_enum", mypackagepb.InputType_NestedEnum_name[int32(req.GetNestedEnum())])}
 
-	ctx = insertMetadata(ctx, c.xGoogMetadata, md)
+	hds = append(c.xGoogHeaders, hds...)
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
 	opts = append((*c.CallOptions).GetEmptyThing[0:len((*c.CallOptions).GetEmptyThing):len((*c.CallOptions).GetEmptyThing)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error

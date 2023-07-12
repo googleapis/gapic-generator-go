@@ -190,36 +190,37 @@ func TestEchoHeaderREST(t *testing.T) {
 	}
 }
 
-func TestXGoogeMetadata(t *testing.T) {
-	// Inspect the private property `xGoogMetadata` of the transport-specific
+func TestXGoogeHeaders(t *testing.T) {
+	// Inspect the private property `xGoogHeaders` of the transport-specific
 	// client implementation that is populated on creation of the client.
 	w := reflect.ValueOf(*echo)
 	x := w.FieldByName("internalClient")
 	y := x.Elem().Elem()
-	info := y.FieldByName("xGoogMetadata")
+	info := y.FieldByName("xGoogHeaders")
 
 	var goVersion string
-	for _, key := range info.MapKeys() {
+	vals := make([]string, 0)
+	for i := 0; i < info.Len(); i++ {
+		key := info.Index(i)
 		// Only check for the client info set by the generated setGoogleClientInfo()
 		if key.String() != "x-goog-api-client" {
 			continue
 		}
 
-		vals := info.MapIndex(key)
+		vals = append(vals, info.Index(i+1).String())
+	}
 
-		for i := 0; goVersion == "" || i < vals.Len(); i++ {
-			v := vals.Index(i).String()
-			split := strings.Split(v, " ")
-			for _, s := range split {
-				// For now, we only want to check that the Go version is being
-				// properly populated.
-				if strings.HasPrefix(s, "gl-go/") {
-					goVersion = s
-					break
-				}
+	for i := 0; goVersion == "" || i < len(vals); i++ {
+		v := vals[i]
+		split := strings.Split(v, " ")
+		for _, s := range split {
+			// For now, we only want to check that the Go version is being
+			// properly populated.
+			if strings.HasPrefix(s, "gl-go/") {
+				goVersion = s
+				break
 			}
 		}
-		break
 	}
 
 	if goVersion == "" {

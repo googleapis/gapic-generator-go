@@ -87,8 +87,8 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 		p("operationClient *%sClient", opServName)
 		p("")
 	}
-	p("	 // The x-goog-* metadata to be sent with each request.")
-	p("	 xGoogMetadata metadata.MD")
+	p("	 // The x-goog-* headers to be sent with each request.")
+	p("	 xGoogHeaders []string")
 	p("")
 	p("  // Points back to the CallOptions field of the containing %sClient", servName)
 	p("  CallOptions **%sCallOptions", servName)
@@ -97,7 +97,6 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
 
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
 }
@@ -208,7 +207,7 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("func (c *%s) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
 	p(`  kv := append([]string{"gl-go", gax.GoVersion}, keyval...)`)
 	p(`  kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "rest", "UNKNOWN")`)
-	p(`  c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))`)
+	p(`  c.xGoogHeaders = []string{"x-goog-api-client", gax.XGoogHeader(kv...)}`)
 	p("}")
 	p("")
 
@@ -825,7 +824,8 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	g.generateBaseURL(info, `return nil, "", err`)
 	g.generateQueryString(m)
 	p("  // Build HTTP headers from client and context metadata.")
-	p(`  headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+	p(`  hds := append(c.xGoogHeaders, "Content-Type", "application/json")`)
+	p(`  headers := gax.BuildHeaders(ctx, hds...)`)
 	p("  e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`    if settings.Path != "" {`)
 	p("      baseUrl.Path = settings.Path")
@@ -997,7 +997,6 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
 	return nil

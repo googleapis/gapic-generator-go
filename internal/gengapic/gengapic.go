@@ -324,7 +324,7 @@ func (g *generator) insertImplicitRequestHeaders(m *descriptor.MethodDescriptorP
 	// Trim the trailing comma and ampersand symbols.
 	f := formats.String()[:formats.Len()-1]
 	v := values.String()[:values.Len()-1]
-	g.printf("md := metadata.Pairs(\"x-goog-request-params\", fmt.Sprintf(%q,%s))", f, v)
+	g.printf("hds := []string{\"x-goog-request-params\", fmt.Sprintf(%q,%s)}", f, v)
 	return nil
 }
 
@@ -355,7 +355,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptor.MethodDescriptorPr
 	g.printf("}")
 	g.printf(`routingHeaders = strings.TrimSuffix(routingHeaders, "&")`)
 	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
-	g.printf("md := metadata.Pairs(\"x-goog-request-params\", routingHeaders)")
+	g.printf(`hds := []string{"x-goog-request-params", routingHeaders}`)
 	g.imports[pbinfo.ImportSpec{Path: "regexp"}] = true
 	return nil
 }
@@ -380,9 +380,12 @@ func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t 
 		p("")
 		switch t {
 		case grpc:
-			p("ctx = insertMetadata(ctx, c.xGoogMetadata, md)")
+			p("hds = append(c.xGoogHeaders, hds...)")
+			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
 		case rest:
-			p(`headers := buildHeaders(ctx, c.xGoogMetadata, md, metadata.Pairs("Content-Type", "application/json"))`)
+			p(`hds = append(c.xGoogHeaders, hds...)`)
+			p(`hds = append(hds, "Content-Type", "application/json")`)
+			p(`headers := gax.BuildHeaders(ctx, hds...)`)
 		}
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
@@ -391,9 +394,10 @@ func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t 
 	// No request-based header parameters.
 	switch t {
 	case grpc:
-		p("ctx = insertMetadata(ctx, c.xGoogMetadata)")
+		p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)")
 	case rest:
-		p(`headers := buildHeaders(ctx, c.xGoogMetadata, metadata.Pairs("Content-Type", "application/json"))`)
+		p(`hds := append(c.xGoogHeaders, "Content-Type", "application/json")`)
+		p(`headers := gax.BuildHeaders(ctx, hds...)`)
 	}
 }
 

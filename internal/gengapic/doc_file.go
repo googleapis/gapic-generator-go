@@ -32,7 +32,6 @@ import (
 // it does not use g.commit().
 func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.ServiceDescriptorProto) {
 	p := g.printf
-	hasREST := containsTransport(g.opts.transports, rest)
 
 	p(license.Apache, year)
 	p("")
@@ -119,12 +118,8 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 
 	p("import (")
 	p("%s%q", "\t", "context")
-	if hasREST {
-		p("%s%q", "\t", "net/http")
-	}
 	p("")
 	p("%s%q", "\t", "google.golang.org/api/option")
-	p("%s%q", "\t", "google.golang.org/grpc/metadata")
 	p(")")
 	p("")
 
@@ -144,18 +139,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("}")
 	p("")
 
-	p("func insertMetadata(ctx context.Context, mds ...metadata.MD) context.Context {")
-	p("  out, _ := metadata.FromOutgoingContext(ctx)")
-	p("  out = out.Copy()")
-	p("  for _, md := range mds {")
-	p("    for k, v := range md {")
-	p("      out[k] = append(out[k], v...)")
-	p("    }")
-	p("  }")
-	p("  return metadata.NewOutgoingContext(ctx, out)")
-	p("}")
-	p("")
-
 	p("// DefaultAuthScopes reports the default set of authentication scopes to use with this package.")
 	p("func DefaultAuthScopes() []string {")
 	p("  return []string{")
@@ -164,20 +147,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	}
 	p("  }")
 	p("}")
-
-	if hasREST {
-		// buildHeaders from context and other metadata helper.
-		p("// buildHeaders extracts metadata from the outgoing context, joins it with any other")
-		p("// given metadata, and converts them into a http.Header. ")
-		p("func buildHeaders(ctx context.Context, mds ...metadata.MD) http.Header {")
-		p("  if cmd, ok := metadata.FromOutgoingContext(ctx); ok {")
-		p("    mds = append(mds, cmd)")
-		p("  }")
-		p("  md := metadata.Join(mds...)")
-		p("  return http.Header(md)")
-		p("}")
-		p("")
-	}
 }
 
 func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
