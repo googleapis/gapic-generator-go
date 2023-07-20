@@ -18,11 +18,11 @@ go_library(
         "//internal/pbinfo",
         "//internal/printer",
         "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//protoc-gen-go/descriptor",
+        "@com_github_golang_protobuf//protoc-gen-go/plugin",
         "@com_github_jhump_protoreflect//desc",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@go_googleapis//google/api:annotations_go_proto",
-        "@io_bazel_rules_go//proto/wkt:compiler_plugin_go_proto",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
 
@@ -40,6 +40,6 @@ go_test(
     deps = [
         "//internal/pbinfo",
         "//internal/txtdiff",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@com_github_golang_protobuf//protoc-gen-go/descriptor",
     ],
 )

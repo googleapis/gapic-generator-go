@@ -9,7 +9,7 @@ proto_library(
     deps = [
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:wrappers_proto",
-        "@go_googleapis//google/rpc:code_proto",
+        "@com_google_googleapis//google/rpc:code_proto",
     ],
 )
 
@@ -18,7 +18,7 @@ go_proto_library(
     importpath = "github.com/googleapis/gapic-generator-go/internal/grpc_service_config",
     proto = ":grpc_service_config_proto",
     visibility = ["//:__subpackages__"],
-    deps = ["@go_googleapis//google/rpc:code_go_proto"],
+    deps = ["@org_golang_google_genproto_googleapis_rpc//code"],
 )
 
 go_library(
@@ -40,7 +40,7 @@ go_test(
     embed = [":grpc_service_config"],
     deps = [
         "@com_github_google_go_cmp//cmp",
-        "@go_googleapis//google/rpc:code_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//code",
         "@org_golang_google_protobuf//encoding/protojson",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/known/durationpb",

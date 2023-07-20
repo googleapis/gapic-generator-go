@@ -11,7 +11,7 @@ go_library(
     deps = [
         "//internal/errors",
         "@com_github_golang_protobuf//proto:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@com_github_golang_protobuf//protoc-gen-go/descriptor",
     ],
 )
 
@@ -20,7 +20,7 @@ go_test(
     srcs = ["pbinfo_test.go"],
     embed = [":pbinfo"],
     deps = [
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@com_github_golang_protobuf//protoc-gen-go/descriptor",
         "@org_golang_google_protobuf//proto",
     ],
 )
