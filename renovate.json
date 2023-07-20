@@ -13,5 +13,12 @@
   },
   "rebaseWhen": "behind-base-branch",
   "labels": ["automerge"],
-  "groupName": "deps"
+  "groupName": "deps",
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["io_bazel_rules_go", "bazel_gazelle"],
+      "groupName": "bazel-go"
+    }
+  ]
+  
 }
