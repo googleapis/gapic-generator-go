@@ -19,9 +19,9 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "5f3cd52d6e5062071d99da57a96ea87e39bc020d6d25748001d919c474a4d8ed",
-    strip_prefix = "protobuf-4.23.4",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v4.23.4.tar.gz"],
+    sha256 = "a700a49470d301f1190a487a923b5095bf60f08f4ae4cac9f5f7c36883d17971",
+    strip_prefix = "protobuf-23.4",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v23.4.tar.gz"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
