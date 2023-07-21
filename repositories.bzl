@@ -1214,8 +1214,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:+VoAg+OKmWaommL56xmZSE2sUK8A7m6SUO7X89F2tbw=",
-        version = "v0.0.0-20230717213848-3f92550aa753",
+        sum = "h1:2CKO8yUZZPdYiN1S9T7/PWPcFeZbzWrK88x4dT+j/Qg=",
+        version = "v0.0.0-20230720185612-659f7aaaa771",
     )
     go_repository(
         name = "org_golang_google_genproto_googleapis_api",
@@ -1233,8 +1233,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto_googleapis_rpc",
         importpath = "google.golang.org/genproto/googleapis/rpc",
-        sum = "h1:XUODHrpzJEUeWmVo/jfNTLj0YyVveOo28oE6vkFbkO4=",
-        version = "v0.0.0-20230717213848-3f92550aa753",
+        sum = "h1:Z8qdAF9GFsmcUuWQ5KVYIpP3PCKydn/YKORnghIalu4=",
+        version = "v0.0.0-20230720185612-659f7aaaa771",
     )
 
     go_repository(
