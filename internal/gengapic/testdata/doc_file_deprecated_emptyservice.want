@@ -21,7 +21,7 @@
 // (at https://api.foo.com) with Buz (at https://api.buz.com) and Baz (at
 // https://api.baz.com) to acclerate bar.
 //
-//   NOTE: This package is deprecated.
+// Deprecated: Find the newer version of this package in the module.
 //
 // General documentation
 //
