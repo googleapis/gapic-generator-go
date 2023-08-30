@@ -141,6 +141,10 @@ func TestDocFileEmptyService(t *testing.T) {
 			relLvl: beta,
 			want:   filepath.Join("testdata", "doc_file_beta_emptyservice.want"),
 		},
+		{
+			relLvl: deprecated,
+			want:   filepath.Join("testdata", "doc_file_deprecated_emptyservice.want"),
+		},
 	} {
 		g.opts.relLvl = tst.relLvl
 		g.genDocFile(43, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"}, serv)

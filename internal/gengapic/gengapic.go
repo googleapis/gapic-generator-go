@@ -40,6 +40,7 @@ const (
 	httpBodyType            = ".google.api.HttpBody"
 	alpha                   = "alpha"
 	beta                    = "beta"
+	deprecated              = "deprecated"
 	disableDeadlinesVar     = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
 	fieldTypeBool           = descriptor.FieldDescriptorProto_TYPE_BOOL
 	fieldTypeString         = descriptor.FieldDescriptorProto_TYPE_STRING
