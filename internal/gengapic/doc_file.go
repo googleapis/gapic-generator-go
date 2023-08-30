@@ -64,7 +64,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.Ser
 		p("//   NOTE: This package is in beta. It is not stable, and may be subject to changes.")
 	case deprecated:
 		p("//")
-		p("// Deprecated: Find the newer version of this package in the module.")
+		p("//   NOTE: This package is deprecated.")
 	}
 
 	p("//")
