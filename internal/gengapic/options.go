@@ -57,7 +57,7 @@ type options struct {
 // * grpc-service-config (filepath)
 // * module (name)
 // * Mfile=import (e.g. Mgoogle/storage/v2/storage.proto=cloud.google.com/go/storage/internal/apiv2/stubs)
-// * release-level (one of 'alpha', 'beta', or empty)
+// * release-level (one of 'alpha', 'beta', 'deprecated', or empty)
 // * transport ('+' separated list of transport backends to generate)
 // * metadata (enable GAPIC metadata generation)
 // * omit-snippets (skip example code snippets generation to the `internal/generated/snippets` path)
