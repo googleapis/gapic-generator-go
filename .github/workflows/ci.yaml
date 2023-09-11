@@ -11,7 +11,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-go@v4
       with:
         go-version-file: 'go.mod'
@@ -41,7 +41,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-go@v4
       with:
         go-version-file: 'go.mod'
@@ -49,7 +49,7 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-go@v4
       with:
         go-version-file: 'go.mod'
@@ -90,7 +90,7 @@ jobs:
     container: gcr.io/gapic-images/googleapis:latest
     # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Run bazel build
       run: bazelisk build '//...'
     - name: Run bazel test
