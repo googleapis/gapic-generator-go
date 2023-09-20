@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.38.0](https://github.com/googleapis/gapic-generator-go/compare/v0.37.2...v0.38.0) (2023-08-07)
+
+
+### Features
+
+* **gengapic:** Use gax.BuildHeaders and gax.InsertMetadataIntoOutgoingContext ([#1368](https://github.com/googleapis/gapic-generator-go/issues/1368)) ([6f782f9](https://github.com/googleapis/gapic-generator-go/commit/6f782f96a29a27b6c7ca5d21a433533270679bcc)), closes [#1300](https://github.com/googleapis/gapic-generator-go/issues/1300) [#1301](https://github.com/googleapis/gapic-generator-go/issues/1301)
+
+
+### Bug Fixes
+
+* Update client docs to ref base docs more ([#1375](https://github.com/googleapis/gapic-generator-go/issues/1375)) ([b78472c](https://github.com/googleapis/gapic-generator-go/commit/b78472cc517c0f37582ee69fec21fdf992aca92b))
+
 ## [0.37.2](https://github.com/googleapis/gapic-generator-go/compare/v0.37.1...v0.37.2) (2023-06-20)
 
 
