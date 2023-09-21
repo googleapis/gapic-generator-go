@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.38.1](https://github.com/googleapis/gapic-generator-go/compare/v0.38.0...v0.38.1) (2023-09-21)
+
+
+### Bug Fixes
+
+* **gengapic:** Support deprecated as a release-level option value ([#1390](https://github.com/googleapis/gapic-generator-go/issues/1390)) ([0b0f823](https://github.com/googleapis/gapic-generator-go/commit/0b0f823ce3e2be05570e572eff5c2f98252cc8a5))
+* **internal/gengapic:** Add workaround for operation collision ([#1397](https://github.com/googleapis/gapic-generator-go/issues/1397)) ([edb3b8f](https://github.com/googleapis/gapic-generator-go/commit/edb3b8fb66bd6e8e57ac345f51030175807afc1d))
+
 ## [0.38.0](https://github.com/googleapis/gapic-generator-go/compare/v0.37.2...v0.38.0) (2023-08-07)
 
 
