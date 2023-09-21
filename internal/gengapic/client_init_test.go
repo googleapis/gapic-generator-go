@@ -33,6 +33,7 @@ import (
 	code "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/known/apipb"
 	duration "google.golang.org/protobuf/types/known/durationpb"
@@ -361,7 +362,6 @@ func TestClientInit(t *testing.T) {
 	}
 
 	customOpOpts := &descriptor.MethodOptions{}
-	proto.SetExtension(customOpOpts, extendedops.E_OperationService, opS.GetName())
 	servCustomOp := &descriptor.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptor.MethodDescriptorProto{
@@ -390,6 +390,7 @@ func TestClientInit(t *testing.T) {
 		parameter    *string
 		imports      map[pbinfo.ImportSpec]bool
 		wantNumSnps  int
+		setExt       func() (protoreflect.ExtensionType, interface{})
 	}{
 		{
 			tstName: "foo_client_init",
@@ -498,8 +499,50 @@ func TestClientInit(t *testing.T) {
 				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
 			},
 			wantNumSnps: 1,
+			setExt: func() (protoreflect.ExtensionType, interface{}) {
+				return extendedops.E_OperationService, opS.GetName()
+			},
+		},
+		{
+			tstName: "lro_client_conflict",
+			mixins: mixins{
+				"google.longrunning.Operations": operationsMethods(),
+			},
+			servName:  "Foo",
+			serv:      servLRO,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                     true,
+				{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}: true,
+				{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}:                     true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                         true,
+				{Path: "context"}:                      true,
+				{Path: "google.golang.org/api/option"}: true,
+				{Path: "google.golang.org/grpc"}:       true,
+			},
+			wantNumSnps: 6,
+			setExt: func() (protoreflect.ExtensionType, interface{}) {
+				return annotations.E_Http, &annotations.HttpRule{
+					Pattern: &annotations.HttpRule_Post{
+						Post: "/v1beta1/{parent=projects/*/locations/*/featureGroups/*}/features",
+					},
+				}
+			},
 		},
 	} {
+		setExt := tst.setExt
+		if setExt == nil {
+			setExt = func() (protoreflect.ExtensionType, interface{}) {
+				return annotations.E_Http, &annotations.HttpRule{
+					Pattern: &annotations.HttpRule_Get{
+						Get: "/zip",
+					},
+				}
+			}
+		}
+		ext, value := setExt()
+		proto.SetExtension(tst.serv.Method[0].GetOptions(), ext, value)
+
 		fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
 			Package: proto.String("mypackage"),
 			Options: &descriptor.FileOptions{

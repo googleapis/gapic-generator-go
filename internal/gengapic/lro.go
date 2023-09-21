@@ -21,6 +21,7 @@ import (
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -38,7 +39,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 		return err
 	}
 
-	lroType := lroTypeName(m.GetName())
+	lroType := lroTypeName(m)
 	p := g.printf
 
 	lowcaseServName := lowerFirst(servName + "GRPCClient")
@@ -74,7 +75,7 @@ func (g *generator) lroCall(servName string, m *descriptor.MethodDescriptorProto
 func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	protoPkg := g.descInfo.ParentFile[serv].GetPackage()
 	mFQN := fmt.Sprintf("%s.%s.%s", protoPkg, serv.GetName(), m.GetName())
-	lroType := lroTypeName(m.GetName())
+	lroType := lroTypeName(m)
 	p := g.printf
 	hasREST := containsTransport(g.opts.transports, rest)
 
@@ -280,6 +281,17 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 	return nil
 }
 
-func lroTypeName(methodName string) string {
-	return methodName + "Operation"
+func lroTypeName(m *descriptor.MethodDescriptorProto) string {
+	// This whole if block is a hack to workaround a operation handler namespace
+	// collision. We should remove this in the future if the design is fixed for
+	// the v1 api.
+	if eHTTP, ok := proto.GetExtension(m.GetOptions(), annotations.E_Http).(*annotations.HttpRule); ok && eHTTP != nil && eHTTP.Pattern != nil {
+		switch t := eHTTP.Pattern.(type) {
+		case *annotations.HttpRule_Post:
+			if t.Post == "/v1beta1/{parent=projects/*/locations/*/featureGroups/*}/features" {
+				return m.GetName() + "RegistryOperation"
+			}
+		}
+	}
+	return m.GetName() + "Operation"
 }
