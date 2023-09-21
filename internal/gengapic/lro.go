@@ -284,7 +284,7 @@ func (g *generator) lroType(servName string, serv *descriptor.ServiceDescriptorP
 func lroTypeName(m *descriptor.MethodDescriptorProto) string {
 	// This whole if block is a hack to workaround a operation handler namespace
 	// collision. We should remove this in the future if the design is fixed for
-	// the v1 api.
+	// the v1 api. This is for aiplatform.featureregistryservice.createfeature.
 	if eHTTP, ok := proto.GetExtension(m.GetOptions(), annotations.E_Http).(*annotations.HttpRule); ok && eHTTP != nil && eHTTP.Pattern != nil {
 		switch t := eHTTP.Pattern.(type) {
 		case *annotations.HttpRule_Post:
