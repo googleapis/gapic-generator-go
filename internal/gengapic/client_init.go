@@ -116,9 +116,9 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 		case g.isLRO(m):
 			// Unary call where the return type is a wrapper of
 			// longrunning.Operation and more precise types
-			lroType := lroTypeName(m.GetName())
+			lroType := lroTypeName(m)
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), lroTypeName(m.GetName()))
+				m.GetName(), inSpec.Name, inType.GetName(), lroType)
 			p("%[1]s(name string) *%[1]s", lroType)
 
 		case m.GetClientStreaming():
@@ -258,7 +258,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 
 	if g.isLRO(m) {
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
-		lroType := lroTypeName(m.GetName())
+		lroType := lroTypeName(m)
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (*%s, error) {",
 			clientTypeName, m.GetName(), reqTyp, lroType)
 		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
