@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.2](https://github.com/googleapis/gapic-generator-go/compare/v0.38.1...v0.38.2) (2023-09-22)
+
+
+### Bug Fixes
+
+* **internal/gengapic:** Add workaround to a delete lro ([#1398](https://github.com/googleapis/gapic-generator-go/issues/1398)) ([096e74d](https://github.com/googleapis/gapic-generator-go/commit/096e74d5f822716e1c6eaa22b6326e003e1cdf28))
+
 ## [0.38.1](https://github.com/googleapis/gapic-generator-go/compare/v0.38.0...v0.38.1) (2023-09-21)
 
 
