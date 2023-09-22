@@ -291,6 +291,10 @@ func lroTypeName(m *descriptor.MethodDescriptorProto) string {
 			if t.Post == "/v1beta1/{parent=projects/*/locations/*/featureGroups/*}/features" {
 				return m.GetName() + "RegistryOperation"
 			}
+		case *annotations.HttpRule_Delete:
+			if t.Delete == "/v1beta1/{name=projects/*/locations/*/featureGroups/*/features/*}" {
+				return m.GetName() + "RegistryOperation"
+			}
 		}
 	}
 	return m.GetName() + "Operation"
