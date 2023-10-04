@@ -23,7 +23,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -111,24 +110,24 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	if opts.serviceConfigPath != "" {
 		y, err := os.ReadFile(opts.serviceConfigPath)
 		if err != nil {
-			return errors.E(nil, "error reading service config: %v", err)
+			return fmt.Errorf("error reading service config: %v", err)
 		}
 
 		j, err := yaml.YAMLToJSON(y)
 		if err != nil {
-			return errors.E(nil, "error converting YAML to JSON: %v", err)
+			return fmt.Errorf("error converting YAML to JSON: %v", err)
 		}
 
 		cfg := &serviceconfig.Service{}
 		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(j, cfg); err != nil {
-			return errors.E(nil, "error unmarshaling service config: %v", err)
+			return fmt.Errorf("error unmarshaling service config: %v", err)
 		}
 		g.serviceConfig = cfg
 
 		// An API Service Config will always have a `name` so if it is not populated,
 		// it's an invalid config.
 		if g.serviceConfig.GetName() == "" {
-			return errors.E(nil, "invalid API service config file %q", opts.serviceConfigPath)
+			return fmt.Errorf("invalid API service config file %q", opts.serviceConfigPath)
 		}
 
 		g.collectMixins()
@@ -137,13 +136,13 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	if opts.grpcConfPath != "" {
 		f, err := os.Open(opts.grpcConfPath)
 		if err != nil {
-			return errors.E(nil, "error opening gRPC service config: %v", err)
+			return fmt.Errorf("error opening gRPC service config: %v", err)
 		}
 		defer f.Close()
 
 		g.grpcConf, err = conf.New(f)
 		if err != nil {
-			return errors.E(nil, "error parsing gPRC service config: %v", err)
+			return fmt.Errorf("error parsing gPRC service config: %v", err)
 		}
 	}
 	g.opts = opts

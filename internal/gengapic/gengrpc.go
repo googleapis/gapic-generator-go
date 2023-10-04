@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -41,7 +40,7 @@ func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, serv
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
 		if err := g.genGRPCMethod(servName, serv, m); err != nil {
-			return errors.E(err, "method: %s", m.GetName())
+			return fmt.Errorf("error generating method %q: %v", m.GetName(), err)
 		}
 		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
 	}

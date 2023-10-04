@@ -21,7 +21,6 @@ import (
 	"unicode"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -161,7 +160,7 @@ func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
 
 	fdesc := in.ParentFile[topLvl]
 	if fdesc == nil {
-		return "", ImportSpec{}, errors.E(nil, "can't determine import path for %v; can't find parent file", eTxt)
+		return "", ImportSpec{}, fmt.Errorf("can't determine import path for %q; can't find parent file", eTxt)
 	}
 
 	pkg := fdesc.GetOptions().GetGoPackage()
@@ -169,7 +168,7 @@ func (in *Info) NameSpec(e ProtoType) (string, ImportSpec, error) {
 		pkg = pkgOverride
 	}
 	if pkg == "" {
-		return "", ImportSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", eTxt, fdesc.GetName())
+		return "", ImportSpec{}, fmt.Errorf("can't determine import path for %q, file %q missing `option go_package`", eTxt, fdesc.GetName())
 	}
 
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {

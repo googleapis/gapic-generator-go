@@ -15,11 +15,11 @@
 package gengapic
 
 import (
+	"fmt"
 	"strings"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/protobuf/proto"
 )
@@ -106,7 +106,7 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 
 	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
-		return errors.E(nil, "cannot find type %q, malformed descriptor?", m.GetInputType())
+		return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetInputType())
 	}
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
