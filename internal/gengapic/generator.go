@@ -30,7 +30,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
-	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
+	"google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
@@ -70,7 +70,7 @@ type generator struct {
 
 	// GapicMetadata for recording proto-to-code mappings in a
 	// gapic_metadata.json file.
-	metadata *metadatapb.GapicMetadata
+	metadata *metadata.GapicMetadata
 
 	// Model for capturing snippet details in a snippet_metadata.*.json file.
 	snippetMetadata *snippets.SnippetMetadata
@@ -85,11 +85,11 @@ type generator struct {
 }
 
 func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
-	g.metadata = &metadatapb.GapicMetadata{
+	g.metadata = &metadata.GapicMetadata{
 		Schema:   "1.0",
 		Language: "go",
 		Comment:  "This file maps proto services/RPCs to the corresponding library clients/methods.",
-		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
+		Services: make(map[string]*metadata.GapicMetadata_ServiceForTransport),
 	}
 
 	g.mixins = make(mixins)

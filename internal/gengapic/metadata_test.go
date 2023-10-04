@@ -19,28 +19,28 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
-	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
+	"google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
 func TestAddMetadataServiceForTransport(t *testing.T) {
 	for _, tst := range []struct {
 		service, lib string
-		init, want   *metadatapb.GapicMetadata
+		init, want   *metadata.GapicMetadata
 	}{
 		{
 			service: "LibraryService",
 			lib:     "LibraryService",
-			init: &metadatapb.GapicMetadata{
-				Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
+			init: &metadata.GapicMetadata{
+				Services: make(map[string]*metadata.GapicMetadata_ServiceForTransport),
 			},
-			want: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -50,29 +50,29 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 		{
 			service: "LibraryService",
 			lib:     "LibraryService",
-			init: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			init: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
 					},
 				},
 			},
-			want: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -82,29 +82,29 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 		{
 			service: "LibraryService",
 			lib:     "",
-			init: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			init: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
 					},
 				},
 			},
-			want: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "Client",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 							"rest": {
 								LibraryClient: "LibraryServiceRESTClient",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
 					},
@@ -126,30 +126,30 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 func TestAddMetadataMethod(t *testing.T) {
 	for _, tst := range []struct {
 		service, rpc string
-		init, want   *metadatapb.GapicMetadata
+		init, want   *metadata.GapicMetadata
 	}{
 		{
 			service: "LibraryService",
 			rpc:     "GetBook",
-			init: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			init: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs:          make(map[string]*metadatapb.GapicMetadata_MethodList),
+								Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 							},
 						},
 					},
 				},
 			},
-			want: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
+								Rpcs: map[string]*metadata.GapicMetadata_MethodList{
 									"GetBook": {Methods: []string{"GetBook"}},
 								},
 							},
@@ -161,13 +161,13 @@ func TestAddMetadataMethod(t *testing.T) {
 		{
 			service: "LibraryService",
 			rpc:     "GetBook",
-			init: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			init: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
+								Rpcs: map[string]*metadata.GapicMetadata_MethodList{
 									"ListBooks": {Methods: []string{"ListBooks"}},
 								},
 							},
@@ -175,13 +175,13 @@ func TestAddMetadataMethod(t *testing.T) {
 					},
 				},
 			},
-			want: &metadatapb.GapicMetadata{
-				Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"LibraryService": {
-						Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 							"grpc": {
 								LibraryClient: "LibraryServiceClient",
-								Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
+								Rpcs: map[string]*metadata.GapicMetadata_MethodList{
 									"GetBook":   {Methods: []string{"GetBook"}},
 									"ListBooks": {Methods: []string{"ListBooks"}},
 								},
@@ -205,18 +205,18 @@ func TestAddMetadataMethod(t *testing.T) {
 
 func TestGenGapicMetadataFile_standardized(t *testing.T) {
 	g := generator{
-		metadata: &metadatapb.GapicMetadata{
+		metadata: &metadata.GapicMetadata{
 			Schema:         "schema",
 			Comment:        "comment",
 			Language:       "language",
 			ProtoPackage:   "packagename",
 			LibraryPackage: "lib",
-			Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 				"FooService": {
-					Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+					Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
 						"grpc": {
 							LibraryClient: "libClient",
-							Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
+							Rpcs: map[string]*metadata.GapicMetadata_MethodList{
 								"GetBook": {Methods: []string{"GetBook"}},
 							},
 						},
