@@ -909,7 +909,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	}
 	g.imports[outSpec] = true
 
-	opWrapperType := lroTypeName(m.GetName())
+	opWrapperType := lroTypeName(m)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), opWrapperType)
 
