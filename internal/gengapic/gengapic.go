@@ -25,7 +25,6 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -100,7 +99,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
 		if err := g.genAndCommitSnippets(s); err != nil {
-			return &g.resp, errors.E(err, "snippets: %s", s.GetName())
+			return &g.resp, fmt.Errorf("snippets: %s", s.GetName())
 		}
 
 		g.reset()
@@ -118,7 +117,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 		g.reset()
 		if err := g.genExampleFile(s); err != nil {
-			return &g.resp, errors.E(err, "example: %s", s.GetName())
+			return &g.resp, fmt.Errorf("example: %s", s.GetName())
 		}
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
 		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test")

@@ -19,7 +19,6 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
@@ -54,7 +53,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 
 		eMsg, ok := eType.(*descriptor.DescriptorProto)
 		if !ok {
-			return nil, errors.E(nil, "cannot find message type %q, malformed descriptor", eType)
+			return nil, fmt.Errorf("cannot find message type %q, malformed descriptor", eType)
 		}
 
 		// Most repeated fields are not maps, so handle maps separately
@@ -71,7 +70,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 				}
 			}
 			if valueField == nil {
-				return nil, errors.E(nil, "unusual map entry message: %q", eMsg)
+				return nil, fmt.Errorf("unusual map entry message: %q", eMsg)
 			}
 
 			// The most common case is mapping to messages,
@@ -141,20 +140,20 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 
 	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
-		return nil, nil, errors.E(nil, "expected %q to be message type, found %T", m.GetInputType(), inType)
+		return nil, nil, fmt.Errorf("expected %q to be message type, found %T", m.GetInputType(), inType)
 	}
 	inMsg, ok := inType.(*descriptor.DescriptorProto)
 	if !ok {
-		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor", m.GetInputType())
+		return nil, nil, fmt.Errorf("cannot find message type %q, malformed descriptor", m.GetInputType())
 	}
 
 	outType := g.descInfo.Type[m.GetOutputType()]
 	if outType == nil {
-		return nil, nil, errors.E(nil, "expected %q to be message type, found %T", m.GetOutputType(), outType)
+		return nil, nil, fmt.Errorf("expected %q to be message type, found %T", m.GetOutputType(), outType)
 	}
 	outMsg, ok := outType.(*descriptor.DescriptorProto)
 	if !ok {
-		return nil, nil, errors.E(nil, "cannot find message type %q, malformed descriptor", m.GetOutputType())
+		return nil, nil, fmt.Errorf("cannot find message type %q, malformed descriptor", m.GetOutputType())
 	}
 
 	hasPageToken := false
@@ -162,7 +161,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 		isInt32 := f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptor.FieldDescriptorProto_TYPE_UINT32
 		if (f.GetName() == "page_size" || f.GetName() == "max_results") && isInt32 {
 			if pageSizeField != nil {
-				return nil, nil, errors.E(nil, "found both page_size and max_results fields in message %q", m.GetInputType())
+				return nil, nil, fmt.Errorf("found both page_size and max_results fields in message %q", m.GetInputType())
 			}
 			pageSizeField = f
 			continue
@@ -186,7 +185,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 				// In this case, subsequent repeated fields are ignored.
 				// See https://aip.dev/4233 for details.
 				if repeatedField.GetNumber() > f.GetNumber() {
-					return nil, nil, errors.E(nil, "found multiple repeated or map fields in message %q", m.GetOutputType())
+					return nil, nil, fmt.Errorf("found multiple repeated or map fields in message %q", m.GetOutputType())
 				}
 				// We want the _first_ repeated field to be the one paged over.
 				continue
