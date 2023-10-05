@@ -159,7 +159,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("}")
 }
 
-func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error) {
+func collectScopes(servs []*descriptor.ServiceDescriptorProto) []string {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
 		eOauthScopes := proto.GetExtension(s.Options, annotations.E_OauthScopes)
@@ -174,7 +174,7 @@ func collectScopes(servs []*descriptor.ServiceDescriptorProto) ([]string, error)
 		scopes = append(scopes, sc)
 	}
 	sort.Strings(scopes)
-	return scopes, nil
+	return scopes
 }
 
 func wrapString(str string, max int) []string {

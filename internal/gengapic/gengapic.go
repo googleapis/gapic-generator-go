@@ -134,11 +134,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		return &g.resp, err
 	}
 	g.reset()
-	scopes, err := collectScopes(genServs)
-	if err != nil {
-		return &g.resp, err
-	}
-
+	scopes := collectScopes(genServs)
 	serv := genServs[0]
 
 	g.genDocFile(time.Now().Year(), scopes, serv)

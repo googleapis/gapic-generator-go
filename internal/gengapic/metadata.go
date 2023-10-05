@@ -37,7 +37,7 @@ func (g *generator) genGapicMetadataFile() error {
 
 // Adds a metadata structure for the (service, transport) combination.
 // This method is idempotent.
-func (g *generator) addMetadataServiceForTransport(service, transport, lib string) *metadata.GapicMetadata_ServiceAsClient {
+func (g *generator) addMetadataServiceForTransport(service, transport, lib string) {
 	s, ok := g.metadata.GetServices()[service]
 	if !ok {
 		s = &metadata.GapicMetadata_ServiceForTransport{
@@ -59,8 +59,6 @@ func (g *generator) addMetadataServiceForTransport(service, transport, lib strin
 		}
 		s.Clients[transport] = c
 	}
-
-	return c
 }
 
 func (g *generator) addMetadataMethod(service, transport, rpc string) {
