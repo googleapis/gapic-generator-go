@@ -46,9 +46,8 @@ func (g *generator) addMetadataServiceForTransport(service, transport, lib strin
 		g.metadata.Services[service] = s
 	}
 
-	c, ok := s.Clients[transport]
-	if !ok {
-		c = &metadata.GapicMetadata_ServiceAsClient{
+	if _, ok := s.Clients[transport]; !ok {
+		s.Clients[transport] = &metadata.GapicMetadata_ServiceAsClient{
 			// The "Client" part of the generated type's name is hard-coded in the
 			// generator so we need to append it to the lib name.
 			//
@@ -57,7 +56,6 @@ func (g *generator) addMetadataServiceForTransport(service, transport, lib strin
 			LibraryClient: lib + "Client",
 			Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 		}
-		s.Clients[transport] = c
 	}
 }
 
