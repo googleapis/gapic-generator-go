@@ -877,45 +877,47 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 	} {
-		s.Method = []*descriptor.MethodDescriptorProto{tst.method}
-		g.opts = tst.options
-		g.imports = make(map[pbinfo.ImportSpec]bool)
-		g.serviceConfig = &serviceconfig.Service{
-			Http: &annotations.Http{
-				Rules: []*annotations.HttpRule{
-					{
-						Selector: "google.longrunning.Operations.GetOperation",
-						Pattern: &annotations.HttpRule_Get{
-							Get: "/v1beta1/{name=projects/*/locations/*/operations/*}",
+		t.Run(fmt.Sprintf("%s_%s", t.Name(), tst.name), func(t *testing.T) {
+			s.Method = []*descriptor.MethodDescriptorProto{tst.method}
+			g.opts = tst.options
+			g.imports = make(map[pbinfo.ImportSpec]bool)
+			g.serviceConfig = &serviceconfig.Service{
+				Http: &annotations.Http{
+					Rules: []*annotations.HttpRule{
+						{
+							Selector: "google.longrunning.Operations.GetOperation",
+							Pattern: &annotations.HttpRule_Get{
+								Get: "/v1beta1/{name=projects/*/locations/*/operations/*}",
+							},
 						},
 					},
 				},
-			},
-		}
-
-		if err := g.genRESTMethod("Foo", s, tst.method); err != nil {
-			t.Fatal(err)
-		}
-
-		var genLros []*descriptor.MethodDescriptorProto
-		for m := range g.aux.lros {
-			genLros = append(genLros, m)
-		}
-		sort.Slice(genLros, func(i, j int) bool {
-			return genLros[i].GetName() < genLros[j].GetName()
-		})
-		for _, m := range genLros {
-			if err := g.lroType("Foo", s, m); err != nil {
-				t.Error(err)
 			}
-		}
 
-		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("TestGenRESTMethod(%s): imports got(-),want(+):\n%s", tst.name, diff)
-		}
+			if err := g.genRESTMethod("Foo", s, tst.method); err != nil {
+				t.Fatal(err)
+			}
 
-		txtdiff.Diff(t, fmt.Sprintf("%s_%s", t.Name(), tst.name), g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
-		g.reset()
-		g.aux.lros = make(map[*descriptor.MethodDescriptorProto]bool)
+			var genLros []*descriptor.MethodDescriptorProto
+			for m := range g.aux.lros {
+				genLros = append(genLros, m)
+			}
+			sort.Slice(genLros, func(i, j int) bool {
+				return genLros[i].GetName() < genLros[j].GetName()
+			})
+			for _, m := range genLros {
+				if err := g.lroType("Foo", s, m); err != nil {
+					t.Error(err)
+				}
+			}
+
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("TestGenRESTMethod(%s): imports got(-),want(+):\n%s", tst.name, diff)
+			}
+
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
+			g.reset()
+			g.aux.lros = make(map[*descriptor.MethodDescriptorProto]bool)
+		})
 	}
 }

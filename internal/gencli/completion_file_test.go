@@ -44,5 +44,5 @@ func TestCompletionFile(t *testing.T) {
 	if file.GetName() != "completion.go" {
 		t.Errorf("(%s).genCompletionCmdFile() = %s, want %s", g.root, file.GetName(), "completion.go")
 	}
-	txtdiff.Diff(t, "completion_file", file.GetContent(), filepath.Join("testdata", "completion_file.want"))
+	txtdiff.Diff(t, file.GetContent(), filepath.Join("testdata", "completion_file.want"))
 }

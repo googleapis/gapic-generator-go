@@ -212,29 +212,30 @@ func TestGenAndCommitSnippets(t *testing.T) {
 			},
 		},
 	} {
-		g.reset()
-		g.descInfo.ParentElement[tst.m] = serv
-		serv.Method = []*descriptor.MethodDescriptorProto{
-			tst.m,
-		}
-		g.aux = &auxTypes{
-			iters: map[string]*iterType{},
-		}
-
-		if err := g.genAndCommitSnippets(serv); err != nil {
-			t.Error(err)
-			continue
-		}
-
-		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("TestGenAndCommitSnippets(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
-		}
-		if !tst.wantNil {
-			wantRegionTag := fmt.Sprintf("// [START _pkg_generated_Foo_%s_sync]\n", tst.m.GetName())
-			if g.headerComments.String() != wantRegionTag {
-				t.Errorf("TestGenAndCommitSnippets(%s): got %s, want %s", tst.m.GetName(), g.headerComments.String(), wantRegionTag)
+		t.Run(tst.m.GetName(), func(t *testing.T) {
+			g.reset()
+			g.descInfo.ParentElement[tst.m] = serv
+			serv.Method = []*descriptor.MethodDescriptorProto{
+				tst.m,
 			}
-			txtdiff.Diff(t, tst.m.GetName(), g.pt.String(), filepath.Join("testdata", "snippet_"+tst.m.GetName()+".want"))
-		}
+			g.aux = &auxTypes{
+				iters: map[string]*iterType{},
+			}
+
+			if err := g.genAndCommitSnippets(serv); err != nil {
+				t.Fatal(err)
+			}
+
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("TestGenAndCommitSnippets(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
+			}
+			if !tst.wantNil {
+				wantRegionTag := fmt.Sprintf("// [START _pkg_generated_Foo_%s_sync]\n", tst.m.GetName())
+				if g.headerComments.String() != wantRegionTag {
+					t.Errorf("TestGenAndCommitSnippets(%s): got %s, want %s", tst.m.GetName(), g.headerComments.String(), wantRegionTag)
+				}
+				txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "snippet_"+tst.m.GetName()+".want"))
+			}
+		})
 	}
 }

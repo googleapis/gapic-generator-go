@@ -357,7 +357,6 @@ func TestGenGRPCMethods(t *testing.T) {
 	n := fmt.Sprintf(".my.pkg.%s.%s", inputType.GetName(), nestedEnum.GetName())
 	g.descInfo.Type[n] = nestedEnum
 
-methods:
 	for _, tst := range []struct {
 		m       *descriptor.MethodDescriptorProto
 		imports map[pbinfo.ImportSpec]bool
@@ -488,43 +487,42 @@ methods:
 			},
 		},
 	} {
-		g.reset()
-		g.descInfo.ParentElement[tst.m] = serv
-		serv.Method = []*descriptor.MethodDescriptorProto{
-			tst.m,
-		}
-
-		g.aux = &auxTypes{
-			iters: map[string]*iterType{},
-		}
-		if err := g.genGRPCMethods(serv, "Foo"); err != nil {
-			t.Error(err)
-			continue
-		}
-
-		var lros []*descriptor.MethodDescriptorProto
-		for m := range g.aux.lros {
-			lros = append(lros, m)
-		}
-		sort.Slice(lros, func(i, j int) bool {
-			return lros[i].GetName() < lros[j].GetName()
-		})
-		for _, m := range lros {
-			if err := g.lroType("MyService", serv, m); err != nil {
-				t.Error(err)
-				continue methods
+		t.Run(tst.m.GetName(), func(t *testing.T) {
+			g.reset()
+			g.descInfo.ParentElement[tst.m] = serv
+			serv.Method = []*descriptor.MethodDescriptorProto{
+				tst.m,
 			}
-		}
 
-		for _, iter := range g.aux.iters {
-			g.pagingIter(iter)
-		}
+			g.aux = &auxTypes{
+				iters: map[string]*iterType{},
+			}
+			if err := g.genGRPCMethods(serv, "Foo"); err != nil {
+				t.Fatal(err)
+			}
 
-		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("TestGenMethod(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
-		}
+			var lros []*descriptor.MethodDescriptorProto
+			for m := range g.aux.lros {
+				lros = append(lros, m)
+			}
+			sort.Slice(lros, func(i, j int) bool {
+				return lros[i].GetName() < lros[j].GetName()
+			})
+			for _, m := range lros {
+				if err := g.lroType("MyService", serv, m); err != nil {
+					t.Fatal(err)
+				}
+			}
 
-		txtdiff.Diff(t, tst.m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+tst.m.GetName()+".want"))
+			for _, iter := range g.aux.iters {
+				g.pagingIter(iter)
+			}
+
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("TestGenMethod(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
+			}
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_"+tst.m.GetName()+".want"))
+		})
 	}
 }
 
@@ -721,7 +719,7 @@ func TestGenLRO(t *testing.T) {
 	respLROOpts := &descriptor.MethodOptions{}
 	proto.SetExtension(respLROOpts, longrunning.E_OperationInfo, respLRO)
 
-	lros := []*descriptor.MethodDescriptorProto{
+	for _, m := range []*descriptor.MethodDescriptorProto{
 		{
 			Name:       proto.String("EmptyLRO"),
 			InputType:  proto.String(".my.pkg.InputType"),
@@ -734,37 +732,34 @@ func TestGenLRO(t *testing.T) {
 			OutputType: proto.String(".google.longrunning.Operation"),
 			Options:    respLROOpts,
 		},
-	}
+	} {
+		t.Run(m.GetName(), func(t *testing.T) {
+			g.pt.Reset()
+			g.descInfo.ParentElement[m] = serv
 
-lros:
-	for _, m := range lros {
-		g.pt.Reset()
-		g.descInfo.ParentElement[m] = serv
-
-		g.aux = &auxTypes{
-			lros: map[*descriptor.MethodDescriptorProto]bool{},
-		}
-
-		if err := g.genGRPCMethod("Foo", serv, m); err != nil {
-			t.Error(err)
-			continue
-		}
-
-		var genLros []*descriptor.MethodDescriptorProto
-		for m := range g.aux.lros {
-			genLros = append(genLros, m)
-		}
-		sort.Slice(genLros, func(i, j int) bool {
-			return genLros[i].GetName() < genLros[j].GetName()
-		})
-		for _, m := range genLros {
-			if err := g.lroType("MyService", serv, m); err != nil {
-				t.Error(err)
-				continue lros
+			g.aux = &auxTypes{
+				lros: map[*descriptor.MethodDescriptorProto]bool{},
 			}
-		}
 
-		txtdiff.Diff(t, m.GetName(), g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+			if err := g.genGRPCMethod("Foo", serv, m); err != nil {
+				t.Fatal(err)
+			}
+
+			var genLros []*descriptor.MethodDescriptorProto
+			for m := range g.aux.lros {
+				genLros = append(genLros, m)
+			}
+			sort.Slice(genLros, func(i, j int) bool {
+				return genLros[i].GetName() < genLros[j].GetName()
+			})
+			for _, m := range genLros {
+				if err := g.lroType("MyService", serv, m); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))
+		})
 	}
 }
 
