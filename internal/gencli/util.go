@@ -20,6 +20,8 @@ import (
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/jhump/protoreflect/desc"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -82,7 +84,8 @@ func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 func title(name string) string {
 	split := strings.Split(name, "_")
 	for i, s := range split {
-		split[i] = strings.Title(s)
+		caser := cases.Title(language.English)
+		split[i] = caser.String(s)
 	}
 
 	return strings.Join(split, "")

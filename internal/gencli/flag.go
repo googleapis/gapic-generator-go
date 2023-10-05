@@ -23,6 +23,8 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/jhump/protoreflect/desc"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Flag is used to represent fields as flags
@@ -58,7 +60,8 @@ func (f *Flag) GenFlag() string {
 	if f.IsEnum() {
 		tStr = "string"
 	}
-	fType := strings.Title(tStr)
+	caser := cases.Title(language.English)
+	fType := caser.String(tStr)
 
 	if f.Repeated {
 		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
