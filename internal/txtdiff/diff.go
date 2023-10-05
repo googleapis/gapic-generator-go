@@ -27,7 +27,7 @@ var updateGolden = flag.Bool("update_golden", false, "update golden files")
 
 // Diff is a test helper, testing got against contents of goldenFile. If they do not match,
 // Diff fails the test, reporting the diff.
-func Diff(t *testing.T, name, got, goldenFile string) {
+func Diff(t *testing.T, got, goldenFile string) {
 	t.Helper()
 
 	if *updateGolden {

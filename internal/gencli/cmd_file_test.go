@@ -205,17 +205,19 @@ func TestCommandFile(t *testing.T) {
 			goldenPath: filepath.Join("testdata", "manage-todos.want"),
 		},
 	} {
-		tst.g.genCommandFile(tst.cmd)
-		if tst.g.response.GetError() != "" {
-			t.Errorf("Error generating the command file %s: %s", tst.name, tst.g.response.GetError())
-			return
-		}
+		t.Run(tst.name, func(t *testing.T) {
+			tst.g.genCommandFile(tst.cmd)
+			if tst.g.response.GetError() != "" {
+				t.Errorf("Error generating the command file %s: %s", tst.name, tst.g.response.GetError())
+				return
+			}
 
-		file := tst.g.response.File[0]
+			file := tst.g.response.File[0]
 
-		if file.GetName() != tst.name+".go" {
-			t.Errorf("(%+v).genCommands() = %s, want %s", tst.g, file.GetName(), tst.name+".go")
-		}
-		txtdiff.Diff(t, tst.name, file.GetContent(), tst.goldenPath)
+			if file.GetName() != tst.name+".go" {
+				t.Errorf("(%+v).genCommands() = %s, want %s", tst.g, file.GetName(), tst.name+".go")
+			}
+			txtdiff.Diff(t, file.GetContent(), tst.goldenPath)
+		})
 	}
 }
