@@ -24,13 +24,13 @@ import (
 	"github.com/jhump/protoreflect/desc"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -216,14 +216,7 @@ func (g *gcli) genCommands() {
 				cmd.IsLRO = true
 				cmd.OutputMessageType = out
 
-				operationInfo, err := proto.GetExtension(mthd.GetMethodOptions(), longrunning.E_OperationInfo)
-				if err == proto.ErrMissingExtension {
-					return
-				} else if err != nil {
-					errStr := fmt.Sprintf("Error parsing the %s operation_info: %v", mthd.GetName(), err)
-					g.response.Error = &errStr
-					return
-				}
+				operationInfo := proto.GetExtension(mthd.GetMethodOptions(), longrunning.E_OperationInfo)
 				opInfo := operationInfo.(*longrunning.OperationInfo)
 				cmd.IsLRORespEmpty = opInfo == nil || opInfo.GetResponseType() == emptyValue
 
@@ -621,17 +614,8 @@ func (g *gcli) getFieldBehavior(field *desc.FieldDescriptor) (output bool, requi
 		return
 	}
 
-	eBehav, err := proto.GetExtension(field.GetFieldOptions(), annotations.E_FieldBehavior)
-	if err == proto.ErrMissingExtension {
-		return
-	} else if err != nil {
-		errStr := fmt.Sprintf("Error parsing the %s field_behavior: %v", field.GetName(), err)
-		g.response.Error = &errStr
-		return
-	}
-
+	eBehav := proto.GetExtension(field.GetFieldOptions(), annotations.E_FieldBehavior)
 	behavior := eBehav.([]annotations.FieldBehavior)
-
 	for _, b := range behavior {
 		if b == annotations.FieldBehavior_REQUIRED {
 			required = true

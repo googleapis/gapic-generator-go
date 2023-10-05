@@ -20,9 +20,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/errors"
+	"google.golang.org/protobuf/proto"
 )
 
 // ProtoType represents a type in protobuf descriptors.
