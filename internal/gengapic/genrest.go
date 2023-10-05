@@ -61,7 +61,7 @@ func lowcaseRestClientName(servName string) string {
 	return lowerFirst(servName + "RESTClient")
 }
 
-func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 
@@ -94,7 +94,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	p("  CallOptions **%sCallOptions", servName)
 	p("}")
 	p("")
-	g.restClientUtilities(serv, servName, imp, hasRPCForLRO)
+	g.restClientUtilities(serv, servName, hasRPCForLRO)
 
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
@@ -117,10 +117,10 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 	return nil
 }
 
-func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, servName string) {
 	if !proto.HasExtension(serv.GetOptions(), annotations.E_DefaultHost) {
 		// Not an error, just doesn't apply to us.
-		return nil
+		return
 	}
 
 	p := g.printf
@@ -138,11 +138,9 @@ func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, s
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("  }")
 	p("}")
-
-	return nil
 }
 
-func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 	clientName := camelToSnake(serv.GetName())

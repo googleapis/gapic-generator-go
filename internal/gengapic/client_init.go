@@ -173,7 +173,7 @@ func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
 	g.comment(com)
 }
 
-func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
 
 	// client struct
@@ -367,14 +367,14 @@ func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servNam
 	if err != nil {
 		return err
 	}
-	g.clientInit(serv, servName, imp, hasLRO)
+	g.clientInit(serv, servName, hasLRO)
 
 	for _, v := range g.opts.transports {
 		switch v {
 		case grpc:
 			g.grpcClientInit(serv, servName, imp, hasLRO)
 		case rest:
-			g.restClientInit(serv, servName, imp, hasLRO)
+			g.restClientInit(serv, servName, hasLRO)
 		default:
 			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
 				v, grpc, rest)
