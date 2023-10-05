@@ -125,7 +125,7 @@ func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
 
 	err = g.parseParameters(req.Parameter)
 	if err != nil {
-		errStr := fmt.Sprintf("Error in parsing params: %s", err.Error())
+		errStr := fmt.Sprintf("error in parsing params: %s", err.Error())
 		g.response.Error = &errStr
 		return err
 	}
@@ -727,13 +727,13 @@ func (g *gcli) parseParameters(params *string) (err error) {
 	g.format = true
 
 	if params == nil {
-		return fmt.Errorf("Missing required parameters. See usage")
+		return fmt.Errorf("parameters should not be nil")
 	}
 
 	for _, str := range strings.Split(*params, ",") {
 		argSep := strings.Index(str, "=")
 		if argSep == -1 {
-			return fmt.Errorf("Unknown parameter: %s", str)
+			return fmt.Errorf("unknown parameter: %s", str)
 		}
 
 		switch str[:argSep] {
@@ -758,16 +758,16 @@ func (g *gcli) parseParameters(params *string) (err error) {
 				return
 			}
 		default:
-			return fmt.Errorf("Unknown parameter: %s", str)
+			return fmt.Errorf("unknown parameter: %s", str)
 		}
 	}
 
 	if _, ok := g.imports["gapic"]; !ok {
-		return fmt.Errorf("Missing option \"gapic=[import path]\". Got %q", *params)
+		return fmt.Errorf("missing option \"gapic=[import path]\". Got %q", *params)
 	}
 
 	if g.root == "" {
-		return fmt.Errorf("Missing option \"root=[root cmd]\". Got %q", *params)
+		return fmt.Errorf("missing option \"root=[root cmd]\". Got %q", *params)
 	}
 
 	return

@@ -60,15 +60,6 @@ func sanitizeComment(cmt string) string {
 	return cmt
 }
 
-func strContains(a []string, s string) bool {
-	for _, as := range a {
-		if as == s {
-			return true
-		}
-	}
-	return false
-}
-
 func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 	key := pkg.Name
 	if key == "" {
