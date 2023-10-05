@@ -228,7 +228,7 @@ func convertPathTemplateToRegex(pattern string) string {
 
 // This intakes a path template and returns the name of the header to be returned.
 func getHeaderName(pattern string) string {
-	curlyBraceRegex := regexp.MustCompile("\\{([^}]+)\\}")
+	curlyBraceRegex := regexp.MustCompile(`{([^}]+)\}`)
 	// Path template should only contain one name (e.g. at most one `=`) or
 	// a collectionId, and should be contained within curly braces.
 	if strings.Count(pattern, "=") > 1 || !curlyBraceRegex.MatchString(pattern) {
