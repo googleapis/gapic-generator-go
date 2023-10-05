@@ -228,5 +228,5 @@ func TestGenGapicMetadataFile_standardized(t *testing.T) {
 	if err := g.genGapicMetadataFile(); err != nil {
 		t.Fatalf("got genGapicMetadataFile() = %v, want nil", err)
 	}
-	txtdiff.Diff(t, "genGapicMetadataFile", g.pt.String(), "testdata/metadata.want")
+	txtdiff.Diff(t, g.pt.String(), "testdata/metadata.want")
 }

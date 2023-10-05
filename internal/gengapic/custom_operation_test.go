@@ -117,7 +117,7 @@ func TestCustomOpInit(t *testing.T) {
 		opts: &options{pkgName: "bar"},
 	}
 	g.customOpInit("foo", "req", "op", req, opServ)
-	txtdiff.Diff(t, "custom_op_init_helper", g.pt.String(), filepath.Join("testdata", "custom_op_init_helper.want"))
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "custom_op_init_helper.want"))
 }
 
 func TestCustomOperationType(t *testing.T) {
@@ -266,16 +266,18 @@ func TestCustomOperationType(t *testing.T) {
 			errorField: true,
 		},
 	} {
-		op.Field = []*descriptor.FieldDescriptorProto{errorCodeField, errorMessageField, nameField, tst.st}
-		if tst.errorField {
-			op.Field = append(op.Field, errorField)
-		}
-		err := g.customOperationType()
-		if err != nil {
-			t.Fatal(err)
-		}
-		tn := "custom_op_type_" + tst.name
-		txtdiff.Diff(t, tn, g.pt.String(), filepath.Join("testdata", tn+".want"))
-		g.reset()
+		t.Run(tst.name, func(t *testing.T) {
+			op.Field = []*descriptor.FieldDescriptorProto{errorCodeField, errorMessageField, nameField, tst.st}
+			if tst.errorField {
+				op.Field = append(op.Field, errorField)
+			}
+			err := g.customOperationType()
+			if err != nil {
+				t.Fatal(err)
+			}
+			tn := "custom_op_type_" + tst.name
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", tn+".want"))
+			g.reset()
+		})
 	}
 }

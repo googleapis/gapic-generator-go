@@ -244,16 +244,17 @@ func TestClientOpt(t *testing.T) {
 			},
 		},
 	} {
-		g.reset()
-		g.hasIAMPolicyOverrides = tst.hasOverride
-		if err := g.clientOptions(tst.serv, tst.servName); err != nil {
-			t.Error(err)
-			continue
-		}
-		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("TestClientOpt(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
-		}
-		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+		t.Run(tst.tstName, func(t *testing.T) {
+			g.reset()
+			g.hasIAMPolicyOverrides = tst.hasOverride
+			if err := g.clientOptions(tst.serv, tst.servName); err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("TestClientOpt(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
+			}
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+		})
 	}
 }
 
@@ -530,97 +531,99 @@ func TestClientInit(t *testing.T) {
 			},
 		},
 	} {
-		setExt := tst.setExt
-		if setExt == nil {
-			setExt = func() (protoreflect.ExtensionType, interface{}) {
-				return annotations.E_Http, &annotations.HttpRule{
-					Pattern: &annotations.HttpRule_Get{
-						Get: "/zip",
-					},
+		t.Run(tst.tstName, func(t *testing.T) {
+			setExt := tst.setExt
+			if setExt == nil {
+				setExt = func() (protoreflect.ExtensionType, interface{}) {
+					return annotations.E_Http, &annotations.HttpRule{
+						Pattern: &annotations.HttpRule_Get{
+							Get: "/zip",
+						},
+					}
 				}
 			}
-		}
-		ext, value := setExt()
-		proto.SetExtension(tst.serv.Method[0].GetOptions(), ext, value)
+			ext, value := setExt()
+			proto.SetExtension(tst.serv.Method[0].GetOptions(), ext, value)
 
-		fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
-			Package: proto.String("mypackage"),
-			Options: &descriptor.FileOptions{
-				GoPackage: proto.String("github.com/googleapis/mypackage/v1"),
-			},
-			Service: []*descriptor.ServiceDescriptorProto{tst.serv, tst.customOpServ},
-			MessageType: []*descriptor.DescriptorProto{
-				{
-					Name: proto.String("Bar"),
+			fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
+				Package: proto.String("mypackage"),
+				Options: &descriptor.FileOptions{
+					GoPackage: proto.String("github.com/googleapis/mypackage/v1"),
 				},
-				{
-					Name: proto.String("Foo"),
+				Service: []*descriptor.ServiceDescriptorProto{tst.serv, tst.customOpServ},
+				MessageType: []*descriptor.DescriptorProto{
+					{
+						Name: proto.String("Bar"),
+					},
+					{
+						Name: proto.String("Foo"),
+					},
+					cop,
 				},
-				cop,
-			},
+			})
+			request := plugin.CodeGeneratorRequest{
+				Parameter: tst.parameter,
+				ProtoFile: fds,
+			}
+			g.init(&request)
+			g.comments = map[protoiface.MessageV1]string{
+				tst.serv:                "Foo service does stuff.",
+				tst.serv.GetMethod()[0]: "Does some stuff.",
+			}
+			g.mixins = tst.mixins
+			g.serviceConfig = &serviceconfig.Service{
+				Apis: []*apipb.Api{
+					{Name: "foo.bar.Baz"},
+					{Name: "google.iam.v1.IAMPolicy"},
+					{Name: "google.cloud.location.Locations"},
+					{Name: "google.longrunning.Operations"},
+				},
+			}
+			g.aux.customOp = &customOp{
+				message: cop,
+			}
+			if tst.customOpServ != nil {
+				g.customOpServices = map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
+					tst.serv: tst.customOpServ,
+				}
+			}
+
+			g.reset()
+			sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
+			sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
+			for _, m := range tst.serv.GetMethod() {
+				sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
+			}
+			for _, m := range g.getMixinMethods() {
+				sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
+			}
+			g.snippetMetadata = sm
+			g.makeClients(tst.serv, tst.servName)
+
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("ClientInit(%s) imports got(-),want(+):\n%s", tst.tstName, diff)
+			}
+
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+			mi := g.snippetMetadata.ToMetadataIndex()
+			if got := len(mi.Snippets); got != tst.wantNumSnps {
+				t.Errorf("%s: got %d want len %d", t.Name(), tst.wantNumSnps, got)
+			}
+			for _, snp := range mi.Snippets {
+				if got := snp.ClientMethod.Parameters[0].Name; got != "ctx" {
+					t.Errorf("%s: got %s want ctx,", t.Name(), got)
+				}
+				if got := snp.ClientMethod.Parameters[1].Name; got != "req" {
+					t.Errorf("%s: got %s want req,", t.Name(), got)
+				}
+				if got := snp.ClientMethod.Parameters[2].Name; got != "opts" {
+					t.Errorf("%s: got %s want opts,", t.Name(), got)
+				}
+				if snp.ClientMethod.ShortName != "CancelOperation" && snp.ClientMethod.ShortName != "DeleteOperation" && snp.ClientMethod.ResultType == "" {
+					t.Errorf("%s: got empty string, want ResultType for %s", t.Name(), snp.ClientMethod.ShortName)
+				}
+			}
 		})
-		request := plugin.CodeGeneratorRequest{
-			Parameter: tst.parameter,
-			ProtoFile: fds,
-		}
-		g.init(&request)
-		g.comments = map[protoiface.MessageV1]string{
-			tst.serv:                "Foo service does stuff.",
-			tst.serv.GetMethod()[0]: "Does some stuff.",
-		}
-		g.mixins = tst.mixins
-		g.serviceConfig = &serviceconfig.Service{
-			Apis: []*apipb.Api{
-				{Name: "foo.bar.Baz"},
-				{Name: "google.iam.v1.IAMPolicy"},
-				{Name: "google.cloud.location.Locations"},
-				{Name: "google.longrunning.Operations"},
-			},
-		}
-		g.aux.customOp = &customOp{
-			message: cop,
-		}
-		if tst.customOpServ != nil {
-			g.customOpServices = map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
-				tst.serv: tst.customOpServ,
-			}
-		}
-
-		g.reset()
-		sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
-		sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
-		for _, m := range tst.serv.GetMethod() {
-			sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
-		}
-		for _, m := range g.getMixinMethods() {
-			sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
-		}
-		g.snippetMetadata = sm
-		g.makeClients(tst.serv, tst.servName)
-
-		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("ClientInit(%s) imports got(-),want(+):\n%s", tst.tstName, diff)
-		}
-
-		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
-		mi := g.snippetMetadata.ToMetadataIndex()
-		if got := len(mi.Snippets); got != tst.wantNumSnps {
-			t.Errorf("%s: got %d want len %d", t.Name(), tst.wantNumSnps, got)
-		}
-		for _, snp := range mi.Snippets {
-			if got := snp.ClientMethod.Parameters[0].Name; got != "ctx" {
-				t.Errorf("%s: got %s want ctx,", t.Name(), got)
-			}
-			if got := snp.ClientMethod.Parameters[1].Name; got != "req" {
-				t.Errorf("%s: got %s want req,", t.Name(), got)
-			}
-			if got := snp.ClientMethod.Parameters[2].Name; got != "opts" {
-				t.Errorf("%s: got %s want opts,", t.Name(), got)
-			}
-			if snp.ClientMethod.ShortName != "CancelOperation" && snp.ClientMethod.ShortName != "DeleteOperation" && snp.ClientMethod.ResultType == "" {
-				t.Errorf("%s: got empty string, want ResultType for %s", t.Name(), snp.ClientMethod.ShortName)
-			}
-		}
 	}
 }
 

@@ -68,5 +68,5 @@ func TestServiceFile(t *testing.T) {
 	if file.GetName() != "todo_service.go" {
 		t.Errorf("(%+v).genServiceCmdFile(%+v) = %s, want %s", g, cmd, file.GetName(), "todo_service.go")
 	}
-	txtdiff.Diff(t, "service_file", file.GetContent(), filepath.Join("testdata", "service_file.want"))
+	txtdiff.Diff(t, file.GetContent(), filepath.Join("testdata", "service_file.want"))
 }

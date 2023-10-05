@@ -44,5 +44,5 @@ func TestRootFile(t *testing.T) {
 	if file.GetName() != "root.go" {
 		t.Errorf("(%s).genRootCmdFile() = %s, want %s", g.root, file.GetName(), "root.go")
 	}
-	txtdiff.Diff(t, "root_file", file.GetContent(), filepath.Join("testdata", "root_file.want"))
+	txtdiff.Diff(t, file.GetContent(), filepath.Join("testdata", "root_file.want"))
 }

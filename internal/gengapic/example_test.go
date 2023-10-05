@@ -262,18 +262,20 @@ func TestExample(t *testing.T) {
 			op: &customOp{message: cop},
 		},
 	} {
-		g.reset()
-		g.opts = &tst.options
-		g.mixins = mix
-		if tst.options.diregapic {
-			g.mixins = nil
-		}
-		g.aux.customOp = tst.op
-		g.genExampleFile(serv)
-		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
-		}
-		txtdiff.Diff(t, tst.tstName, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+		t.Run(tst.tstName, func(t *testing.T) {
+			g.reset()
+			g.opts = &tst.options
+			g.mixins = mix
+			if tst.options.diregapic {
+				g.mixins = nil
+			}
+			g.aux.customOp = tst.op
+			g.genExampleFile(serv)
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
+			}
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+		})
 	}
 }
 
@@ -342,20 +344,22 @@ func TestGenSnippetFile(t *testing.T) {
 			},
 		},
 	} {
-		g.reset()
-		g.opts = &tst.options
-		defaultHost := "bigquerymigration.googleapis.com"
-		g.snippetMetadata.AddService(serv.GetName(), defaultHost)
-		err := g.genSnippetFile(serv, serv.Method[0])
-		if err != nil {
-			t.Fatal(err)
-		}
-		g.commit(filepath.Join("cloud.google.com/go", "internal", "generated", "snippets", "bigquery", "main.go"), "main")
-		if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-			t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
-		}
-		got := *g.resp.File[0].Content + *g.resp.File[1].Content
-		txtdiff.Diff(t, tst.tstName, got, filepath.Join("testdata", tst.tstName+".want"))
+		t.Run(tst.tstName, func(t *testing.T) {
+			g.reset()
+			g.opts = &tst.options
+			defaultHost := "bigquerymigration.googleapis.com"
+			g.snippetMetadata.AddService(serv.GetName(), defaultHost)
+			err := g.genSnippetFile(serv, serv.Method[0])
+			if err != nil {
+				t.Fatal(err)
+			}
+			g.commit(filepath.Join("cloud.google.com/go", "internal", "generated", "snippets", "bigquery", "main.go"), "main")
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
+			}
+			got := *g.resp.File[0].Content + *g.resp.File[1].Content
+			txtdiff.Diff(t, got, filepath.Join("testdata", tst.tstName+".want"))
+		})
 	}
 }
 
