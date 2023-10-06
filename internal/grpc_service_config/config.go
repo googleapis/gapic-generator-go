@@ -18,7 +18,6 @@ import (
 	"io"
 	"log"
 
-	"github.com/golang/protobuf/ptypes"
 	duration "github.com/golang/protobuf/ptypes/duration"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -121,12 +120,10 @@ func (c Config) Timeout(s, m string) (int64, bool) {
 
 // ToMillis returns the given Duration as milliseconds.
 func ToMillis(d *duration.Duration) int64 {
-	dur, err := ptypes.Duration(d)
-	if err != nil {
+	if err := d.CheckValid(); err != nil {
 		log.Panic("Error converting durationpb to Duration ", err)
 	}
-
-	return dur.Milliseconds()
+	return d.AsDuration().Milliseconds()
 }
 
 // RequestLimit returns the request limit in bytes and a presence flag for the
