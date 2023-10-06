@@ -32,7 +32,8 @@ import (
 	"google.golang.org/genproto/googleapis/cloud/extendedops"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -696,7 +697,7 @@ func TestGenRestMethod(t *testing.T) {
 			s: opS,
 		},
 		descInfo: pbinfo.Info{
-			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+			ParentFile: map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
 				op:           f,
 				opS:          f,
 				opRPC:        f,

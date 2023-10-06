@@ -33,7 +33,9 @@ import (
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/types/descriptorpb"
 	duration "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/pluginpb"
 )
@@ -797,7 +799,7 @@ func TestIsLRO(t *testing.T) {
 	}
 
 	var g generator
-	g.descInfo.ParentFile = map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+	g.descInfo.ParentFile = map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
 		lroGetOp: {
 			Package: proto.String("google.longrunning"),
 		},
@@ -1181,7 +1183,7 @@ func TestReturnType(t *testing.T) {
 			diregapic: true,
 		},
 		descInfo: pbinfo.Info{
-			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+			ParentFile: map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
 				op:  f,
 				foo: f,
 			},
