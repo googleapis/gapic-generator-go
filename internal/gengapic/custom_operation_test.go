@@ -25,7 +25,8 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/cloud/extendedops"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestCustomOpProtoName(t *testing.T) {
@@ -40,7 +41,7 @@ func TestCustomOpProtoName(t *testing.T) {
 			},
 		},
 		descInfo: pbinfo.Info{
-			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+			ParentFile: map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
 				op: {
 					Package: proto.String(pkg),
 				},
@@ -65,7 +66,7 @@ func TestCustomPointerTyp(t *testing.T) {
 			},
 		},
 		descInfo: pbinfo.Info{
-			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+			ParentFile: map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
 				op: {
 					Package: proto.String("google.cloud.foo.v1"),
 					Options: &descriptor.FileOptions{
@@ -235,7 +236,7 @@ func TestCustomOperationType(t *testing.T) {
 			},
 		},
 		descInfo: pbinfo.Info{
-			ParentFile: map[protoiface.MessageV1]*descriptor.FileDescriptorProto{
+			ParentFile: map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
 				op:        f,
 				fooOpServ: f,
 				getInput:  f,

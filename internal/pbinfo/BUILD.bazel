@@ -12,6 +12,7 @@ go_library(
         "//internal/errors",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//proto",
     ],
 )
 
