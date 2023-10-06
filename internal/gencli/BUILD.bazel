@@ -14,7 +14,6 @@ go_library(
     importpath = "github.com/googleapis/gapic-generator-go/internal/gencli",
     visibility = ["//:__subpackages__"],
     deps = [
-        "//internal/errors",
         "//internal/pbinfo",
         "//internal/printer",
         "@com_github_golang_protobuf//proto:go_default_library",

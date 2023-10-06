@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -109,7 +108,7 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 	for _, m := range methods {
 		g.methodDoc(m, serv)
 		if err := g.genRESTMethod(servName, serv, m); err != nil {
-			return errors.E(err, "method: %s", m.GetName())
+			return fmt.Errorf("error generating method %q: %v", m.GetName(), err)
 		}
 		g.addMetadataMethod(serv.GetName(), "rest", m.GetName())
 	}
@@ -574,7 +573,7 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
-		return errors.E(nil, "method has no http info: %s", m.GetName())
+		return fmt.Errorf("method has no http info: %s", m.GetName())
 	}
 
 	inType := g.descInfo.Type[m.GetInputType()]
@@ -776,7 +775,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 		return err
 	}
 	if info == nil {
-		return errors.E(nil, "method has no http info: %s", m.GetName())
+		return fmt.Errorf("method has no http info: %q", m.GetName())
 	}
 
 	verb := strings.ToUpper(info.verb)
@@ -881,7 +880,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
-		return errors.E(nil, "method has no http info: %s", m.GetName())
+		return fmt.Errorf("method has no http info: %s", m.GetName())
 	}
 
 	lowcaseServName := lowcaseRestClientName(servName)
@@ -1003,7 +1002,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
-		return errors.E(nil, "method has no http info: %s", m.GetName())
+		return fmt.Errorf("method has no http info: %s", m.GetName())
 	}
 
 	inType := g.descInfo.Type[m.GetInputType()]
@@ -1082,7 +1081,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
-		return errors.E(nil, "method has no http info: %s", m.GetName())
+		return fmt.Errorf("method has no http info: %s", m.GetName())
 	}
 
 	inType := g.descInfo.Type[m.GetInputType()]

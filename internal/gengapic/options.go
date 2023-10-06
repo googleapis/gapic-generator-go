@@ -15,12 +15,11 @@
 package gengapic
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 )
 
 type transport int
@@ -30,7 +29,7 @@ const (
 	rest
 )
 
-const paramError = "need parameter in format: go-gapic-package=client/import/path;packageName"
+var errInvalidParam = errors.New("need parameter in format: go-gapic-package=client/import/path;packageName")
 
 type options struct {
 	pkgPath           string
@@ -72,7 +71,7 @@ func parseOptions(parameter *string) (*options, error) {
 	opts := options{}
 
 	if parameter == nil {
-		return nil, errors.E(nil, "empty options parameter")
+		return nil, fmt.Errorf("empty options parameter")
 	}
 
 	// parse plugin params, ignoring unknown values
@@ -100,12 +99,12 @@ func parseOptions(parameter *string) (*options, error) {
 
 		e := strings.IndexByte(s, '=')
 		if e < 0 {
-			return nil, errors.E(nil, "invalid plugin option format, must be key=value: %s", s)
+			return nil, fmt.Errorf("invalid plugin option format, must be key=value: %q", s)
 		}
 
 		key, val := s[:e], s[e+1:]
 		if val == "" {
-			return nil, errors.E(nil, "invalid plugin option value, missing value in key=value: %s", s)
+			return nil, fmt.Errorf("invalid plugin option value, missing value in key=value: %q", s)
 		}
 
 		switch key {
@@ -113,7 +112,7 @@ func parseOptions(parameter *string) (*options, error) {
 			p := strings.IndexByte(s, ';')
 
 			if p < 0 {
-				return nil, errors.E(nil, paramError)
+				return nil, errInvalidParam
 			}
 
 			opts.pkgPath = s[e+1 : p]
@@ -141,7 +140,7 @@ func parseOptions(parameter *string) (*options, error) {
 				case "rest":
 					transports[rest] = true
 				default:
-					return nil, errors.E(nil, "invalid transport option: %s", t)
+					return nil, fmt.Errorf("invalid transport option: %q", t)
 				}
 			}
 			for t := range transports {
@@ -164,12 +163,12 @@ func parseOptions(parameter *string) (*options, error) {
 	}
 
 	if opts.pkgPath == "" || opts.pkgName == "" || opts.outDir == "" {
-		return nil, errors.E(nil, paramError)
+		return nil, errInvalidParam
 	}
 
 	if opts.modulePrefix != "" {
 		if !strings.HasPrefix(opts.outDir, opts.modulePrefix) {
-			return nil, errors.E(nil, "go-gapic-package %q does not match prefix %q", opts.outDir, opts.modulePrefix)
+			return nil, fmt.Errorf("go-gapic-package %q does not match prefix %q", opts.outDir, opts.modulePrefix)
 		}
 		opts.outDir = strings.TrimPrefix(opts.outDir, opts.modulePrefix+"/")
 	}

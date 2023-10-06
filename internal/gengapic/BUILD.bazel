@@ -27,7 +27,6 @@ go_library(
     importpath = "github.com/googleapis/gapic-generator-go/internal/gengapic",
     visibility = ["//:__subpackages__"],
     deps = [
-        "//internal/errors",
         "//internal/grpc_service_config",
         "//internal/license",
         "//internal/pbinfo",

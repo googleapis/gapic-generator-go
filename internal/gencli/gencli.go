@@ -26,7 +26,6 @@ import (
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/googleapis/gapic-generator-go/internal/errors"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -638,7 +637,7 @@ func getImport(m desc.Descriptor) (*pbinfo.ImportSpec, error) {
 
 	// the below logic is copied from pbinfo.NameSpec()
 	if pkg == "" {
-		return &pbinfo.ImportSpec{}, errors.E(nil, "can't determine import path for %v, file %q missing `option go_package`", m.GetName(), m.GetFile().GetName())
+		return &pbinfo.ImportSpec{}, fmt.Errorf("can't determine import path for %q, file %q missing `option go_package`", m.GetName(), m.GetFile().GetName())
 	}
 
 	if p := strings.IndexByte(pkg, ';'); p >= 0 {
