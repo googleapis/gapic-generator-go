@@ -58,7 +58,7 @@ func (f *Flag) GenFlag() string {
 	if f.IsEnum() {
 		tStr = "string"
 	}
-	fType := strings.Title(tStr)
+	fType := toTitle(tStr)
 
 	if f.Repeated {
 		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
