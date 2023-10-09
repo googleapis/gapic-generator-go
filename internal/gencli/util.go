@@ -20,6 +20,8 @@ import (
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/jhump/protoreflect/desc"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -73,7 +75,7 @@ func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 func title(name string) string {
 	split := strings.Split(name, "_")
 	for i, s := range split {
-		split[i] = strings.Title(s)
+		split[i] = toTitle(s)
 	}
 
 	return strings.Join(split, "")
@@ -82,10 +84,14 @@ func title(name string) string {
 // does not remove underscores
 func dotToCamel(name string) (s string) {
 	for _, tkn := range strings.Split(name, ".") {
-		s += strings.Title(tkn)
+		s += toTitle(tkn)
 	}
 
 	return
+}
+
+func toTitle(str string) string {
+	return cases.Title(language.AmericanEnglish, cases.NoLower).String(str)
 }
 
 func oneofTypeName(field, inputMsgType string, flag *Flag) string {

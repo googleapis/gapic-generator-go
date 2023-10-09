@@ -4,8 +4,8 @@ go_library(
     name = "txtdiff",
     srcs = ["diff.go"],
     importpath = "github.com/googleapis/gapic-generator-go/internal/txtdiff",
+    visibility = ["//:__subpackages__"],
     deps = [
         "@com_github_google_go_cmp//cmp",
     ],
-    visibility = ["//:__subpackages__"],
 )
