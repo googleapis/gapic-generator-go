@@ -20,6 +20,8 @@ jobs:
     - name: Install golint
       run: go install golang.org/x/lint/golint@latest
       if: ${{ always() }}
+    - name: Staticcheck
+      uses: dominikh/staticcheck-action@v1.3.0
     - name: Lint
       # Exclude all of the grpc_service_config package (it is generated).
       run: golint -set_exit_status $(go list ./... | grep -v 'grpc_service_config') > golint.txt
