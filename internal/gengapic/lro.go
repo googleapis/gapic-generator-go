@@ -68,6 +68,10 @@ func (g *generator) lroCall(servName string, m *descriptorpb.MethodDescriptorPro
 	return nil
 }
 
+// genOperationBuilders generates the name-based builder methods for each
+// known RPC-specific wrapper type used in the service that the serice client
+// needs to expose. These builders will construct an operation wrapper given
+// only the operation name.
 func (g *generator) genOperationBuilders(s *descriptorpb.ServiceDescriptorProto, servName string) error {
 	methods := s.GetMethod()
 	sort.Slice(methods, func(i, j int) bool {
@@ -84,6 +88,8 @@ func (g *generator) genOperationBuilders(s *descriptorpb.ServiceDescriptorProto,
 	return nil
 }
 
+// genOperationBuilder generates the code for the builder method specific to a
+// given method's operation wrapper.
 func (g *generator) genOperationBuilder(servName string, m *descriptorpb.MethodDescriptorProto) error {
 	protoPkg := g.descInfo.ParentFile[m].GetPackage()
 	ow := g.aux.methodToWrapper[m]

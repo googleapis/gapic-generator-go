@@ -32,6 +32,7 @@ type auxTypes struct {
 	// Map of RPC descriptor to assigned operationWrapper.
 	methodToWrapper map[*descriptorpb.MethodDescriptorProto]operationWrapper
 
+	// RPC-specific operation wrapper types by wrapper name e.g. CreateFooOperation.
 	opWrappers map[string]operationWrapper
 
 	// "List" of iterator types. We use these to generate FooIterator returned by paging methods.
@@ -42,12 +43,27 @@ type auxTypes struct {
 	customOp *customOp
 }
 
+// operationWrapper is a simple data type representing an RPC-specific
+// longrunning operation. These are collected to ensure only one of any
+// operation wrapper is generated, and to generate them all in a single
+// file, aux.go, within the client package.
 type operationWrapper struct {
-	name                       string
-	response, metadata         *descriptorpb.DescriptorProto
+	// name is the Go type name of the wrapper-to-be e.g. CreateFooOperation.
+	name string
+
+	// response and metadata are the message descriptors of the types decalared
+	// in the RPC google.longrunning.operation_info extension.
+	response, metadata *descriptorpb.DescriptorProto
+
+	// responseName and metadataName are the fully qualified names of the
+	// response and metadata protobuf message types e.g. google.protobuf.Empty.
 	responseName, metadataName protoreflect.FullName
 }
 
+// genAuxFile generates the singular aux.go file, and sometimes the
+// operations.go file when working with a custom operation type. The
+// aux.go file contains all of the operation wrapper types and the
+// iterator types that are used throughout the client package.
 func (g *generator) genAuxFile() error {
 	if g.aux.customOp != nil {
 		if err := g.customOperationType(); err != nil {
@@ -71,6 +87,8 @@ func (g *generator) genAuxFile() error {
 	return nil
 }
 
+// genOperations generates all of code for the the operation wrappers
+// collected by the generator while traversing the input protos.
 func (g *generator) genOperations() error {
 	// Sort operation wrappers-to-generate by type
 	// name to avoid spurious regenerations created
@@ -90,6 +108,8 @@ func (g *generator) genOperations() error {
 	return nil
 }
 
+// genIterators generates all of code for the the iterator wrappers
+// collected by the generator while traversing the input protos.
 func (g *generator) genIterators() error {
 	// Sort iterators to generate by type name to
 	// avoid spurious regenerations created by
@@ -108,6 +128,11 @@ func (g *generator) genIterators() error {
 	return nil
 }
 
+// wrapperExists determines if the given wrapper is already known to the
+// collection, and validates that, in the event of a name collision, the
+// wrappers have the same response/metadata types allowing for the single
+// definition to shared. If they do not share types by collide in name,
+// an error is returned.
 func (a auxTypes) wrapperExists(ow operationWrapper) (bool, error) {
 	ew, exists := a.opWrappers[ow.name]
 	if !exists {
@@ -125,6 +150,9 @@ func (a auxTypes) wrapperExists(ow operationWrapper) (bool, error) {
 	return true, nil
 }
 
+// maybeAddOperationWrapper must only be given method descriptors of known
+// LRO-based methods. It will attempt to load the operation_info response and
+// metadata types, and add it to the collection if it is valid to do so.
 func (g *generator) maybeAddOperationWrapper(m *descriptorpb.MethodDescriptorProto) error {
 	if !proto.HasExtension(m.GetOptions(), longrunning.E_OperationInfo) {
 		return fmt.Errorf("%s missing google.longrunning.operation_info", m.GetName())
@@ -196,6 +224,9 @@ func (g *generator) maybeAddOperationWrapper(m *descriptorpb.MethodDescriptorPro
 	return nil
 }
 
+// genOperationWrapperType generates the code for the given operation wrapper
+// type. The response and metadata type import specs must be resolvable to do
+// this.
 func (g *generator) genOperationWrapperType(ow operationWrapper) error {
 	p := g.pt.Printf
 	hasREST := containsTransport(g.opts.transports, rest)
