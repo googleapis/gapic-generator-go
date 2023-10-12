@@ -52,7 +52,9 @@ func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, serv
 func (g *generator) genGRPCMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	// Check if the RPC returns google.longrunning.Operation.
 	if g.isLRO(m) {
-		g.aux.lros[m] = true
+		if err := g.maybeAddOperationWrapper(m); err != nil {
+			return err
+		}
 		return g.lroCall(servName, m)
 	}
 

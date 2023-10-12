@@ -19,7 +19,6 @@ import (
 	"net/url"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -35,7 +34,7 @@ const (
 	emptyValue = "google.protobuf.Empty"
 	// protoc puts a dot in front of name, signaling that the name is fully qualified.
 	emptyType               = "." + emptyValue
-	lroType                 = ".google.longrunning.Operation"
+	operationType           = ".google.longrunning.Operation"
 	httpBodyType            = ".google.api.HttpBody"
 	alpha                   = "alpha"
 	beta                    = "beta"
@@ -151,12 +150,9 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 		})
 	}
 
-	if g.aux.customOp != nil {
-		g.reset()
-		if err := g.customOperationType(); err != nil {
-			return &g.resp, err
-		}
-		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
+	g.reset()
+	if err := g.genAuxFile(); err != nil {
+		return &g.resp, err
 	}
 
 	return &g.resp, nil
@@ -201,60 +197,7 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 		}
 	}
 
-	// g.aux.lros is a map (set)
-	// so that we generate types at most once,
-	// but we want a deterministic order to prevent
-	// spurious regenerations.
-	var lros []*descriptor.MethodDescriptorProto
-	for m := range g.aux.lros {
-		lros = append(lros, m)
-	}
-	sort.Slice(lros, func(i, j int) bool {
-		return lros[i].GetName() < lros[j].GetName()
-	})
-	for _, m := range lros {
-		if err := g.lroType(servName, serv, m); err != nil {
-			return err
-		}
-	}
-
-	// clear LRO types between services
-	g.aux.lros = map[*descriptor.MethodDescriptorProto]bool{}
-
-	var iters []*iterType
-	for _, iter := range g.aux.iters {
-		// skip iterators that have already been generated in this package
-		//
-		// TODO(ndietz): investigate generating auxiliary types in a
-		// separate file in the same package to avoid keeping this state
-		if iter.generated {
-			continue
-		}
-
-		iter.generated = true
-		iters = append(iters, iter)
-	}
-	sort.Slice(iters, func(i, j int) bool {
-		return iters[i].iterTypeName < iters[j].iterTypeName
-	})
-	for _, iter := range iters {
-		g.pagingIter(iter)
-	}
-
-	return nil
-}
-
-// auxTypes gathers details of types we need to generate along with the client
-type auxTypes struct {
-	// List of LRO methods. For each method "Foo", we use this to create the "FooOperation" type.
-	lros map[*descriptor.MethodDescriptorProto]bool
-
-	// "List" of iterator types. We use these to generate FooIterator returned by paging methods.
-	// Since multiple methods can page over the same type, we dedupe by the name of the iterator,
-	// which is in turn determined by the element type name.
-	iters map[string]*iterType
-
-	customOp *customOp
+	return g.genOperationBuilders(serv, servName)
 }
 
 func (g *generator) getFormattedValue(m *descriptor.MethodDescriptorProto, field string, accessor string) (string, error) {
@@ -569,7 +512,7 @@ func (g *generator) codesnippet(s string) {
 // isLRO determines if a given Method is a longrunning operation, ignoring
 // those defined by the longrunning proto package.
 func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
-	return m.GetOutputType() == lroType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
+	return m.GetOutputType() == operationType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
 }
 
 func (g *generator) isPaginated(m *descriptor.MethodDescriptorProto) bool {

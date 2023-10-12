@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"fmt"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -502,22 +501,8 @@ func TestGenGRPCMethods(t *testing.T) {
 			if err := g.genGRPCMethods(serv, "Foo"); err != nil {
 				t.Fatal(err)
 			}
-
-			var lros []*descriptor.MethodDescriptorProto
-			for m := range g.aux.lros {
-				lros = append(lros, m)
-			}
-			sort.Slice(lros, func(i, j int) bool {
-				return lros[i].GetName() < lros[j].GetName()
-			})
-			for _, m := range lros {
-				if err := g.lroType("MyService", serv, m); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			for _, iter := range g.aux.iters {
-				g.pagingIter(iter)
+			if err := g.genOperationBuilders(serv, "MyService"); err != nil {
+				t.Fatal(err)
 			}
 
 			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
@@ -648,12 +633,15 @@ func TestMethodDoc(t *testing.T) {
 	}
 }
 
-func TestGenLRO(t *testing.T) {
+func TestGenOperationBuilders(t *testing.T) {
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
 	}
 	outputType := &descriptor.DescriptorProto{
 		Name: proto.String("OutputType"),
+	}
+	metadataType := &descriptor.DescriptorProto{
+		Name: proto.String("MetadataType"),
 	}
 
 	file := &descriptor.FileDescriptorProto{
@@ -701,7 +689,7 @@ func TestGenLRO(t *testing.T) {
 
 	commonTypes(&g)
 	for _, typ := range []*descriptor.DescriptorProto{
-		inputType, outputType,
+		inputType, outputType, metadataType,
 	} {
 		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
 		g.descInfo.ParentFile[typ] = file
@@ -711,12 +699,14 @@ func TestGenLRO(t *testing.T) {
 
 	emptyLRO := &longrunning.OperationInfo{
 		ResponseType: emptyValue,
+		MetadataType: "MetadataType",
 	}
 	emptyLROOpts := &descriptor.MethodOptions{}
 	proto.SetExtension(emptyLROOpts, longrunning.E_OperationInfo, emptyLRO)
 
 	respLRO := &longrunning.OperationInfo{
 		ResponseType: "OutputType",
+		MetadataType: "MetadataType",
 	}
 	respLROOpts := &descriptor.MethodOptions{}
 	proto.SetExtension(respLROOpts, longrunning.E_OperationInfo, respLRO)
@@ -738,26 +728,18 @@ func TestGenLRO(t *testing.T) {
 		t.Run(m.GetName(), func(t *testing.T) {
 			g.pt.Reset()
 			g.descInfo.ParentElement[m] = serv
-
+			g.descInfo.ParentFile[m] = file
 			g.aux = &auxTypes{
-				lros: map[*descriptor.MethodDescriptorProto]bool{},
+				methodToWrapper: map[*descriptor.MethodDescriptorProto]operationWrapper{},
+				opWrappers:      map[string]operationWrapper{},
 			}
 
 			if err := g.genGRPCMethod("Foo", serv, m); err != nil {
 				t.Fatal(err)
 			}
 
-			var genLros []*descriptor.MethodDescriptorProto
-			for m := range g.aux.lros {
-				genLros = append(genLros, m)
-			}
-			sort.Slice(genLros, func(i, j int) bool {
-				return genLros[i].GetName() < genLros[j].GetName()
-			})
-			for _, m := range genLros {
-				if err := g.lroType("MyService", serv, m); err != nil {
-					t.Fatal(err)
-				}
+			if err := g.genOperationBuilders(serv, "MyService"); err != nil {
+				t.Fatal(err)
 			}
 
 			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_"+m.GetName()+".want"))

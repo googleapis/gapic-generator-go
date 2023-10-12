@@ -17,7 +17,6 @@ package gengapic
 import (
 	"fmt"
 	"path/filepath"
-	"sort"
 	"testing"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
@@ -630,7 +629,7 @@ func TestGenRestMethod(t *testing.T) {
 	lroRPC := &descriptor.MethodDescriptorProto{
 		Name:       proto.String("LongrunningRPC"),
 		InputType:  proto.String(foofqn),
-		OutputType: proto.String(lroType),
+		OutputType: proto.String(operationType),
 		Options:    lroRPCOpt,
 	}
 
@@ -689,8 +688,9 @@ func TestGenRestMethod(t *testing.T) {
 			customOp: &customOp{
 				message: op,
 			},
-			iters: map[string]*iterType{},
-			lros:  map[*descriptor.MethodDescriptorProto]bool{},
+			iters:           map[string]*iterType{},
+			methodToWrapper: map[*descriptor.MethodDescriptorProto]operationWrapper{},
+			opWrappers:      map[string]operationWrapper{},
 		},
 		opts: &options{},
 		customOpServices: map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
@@ -733,7 +733,7 @@ func TestGenRestMethod(t *testing.T) {
 				emptyType:      protodesc.ToDescriptorProto((&emptypb.Empty{}).ProtoReflect().Descriptor()),
 				pagedFooReqFQN: pagedFooReq,
 				pagedFooResFQN: pagedFooRes,
-				lroType:        lroDesc,
+				operationType:  lroDesc,
 				httpBodyType:   httpBodyDesc,
 				updateReqFqn:   updateReq,
 			},
@@ -841,8 +841,6 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "io"}:      true,
 				{Path: "net/url"}: true,
-				{Path: "time"}:    true,
-				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}:                       true,
 				{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}: true,
 			},
 		},
@@ -899,17 +897,8 @@ func TestGenRestMethod(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			var genLros []*descriptor.MethodDescriptorProto
-			for m := range g.aux.lros {
-				genLros = append(genLros, m)
-			}
-			sort.Slice(genLros, func(i, j int) bool {
-				return genLros[i].GetName() < genLros[j].GetName()
-			})
-			for _, m := range genLros {
-				if err := g.lroType("Foo", s, m); err != nil {
-					t.Error(err)
-				}
+			if err := g.genOperationBuilders(s, "Foo"); err != nil {
+				t.Error(err)
 			}
 
 			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
@@ -918,7 +907,8 @@ func TestGenRestMethod(t *testing.T) {
 
 			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
 			g.reset()
-			g.aux.lros = make(map[*descriptor.MethodDescriptorProto]bool)
+			g.aux.methodToWrapper = make(map[*descriptor.MethodDescriptorProto]operationWrapper)
+			g.aux.opWrappers = make(map[string]operationWrapper)
 		})
 	}
 }
