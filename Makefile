@@ -45,4 +45,4 @@ clean:
 	rm -f showcase/showcase_grpc_service_config.json
 	rm -f showcase/compliance_suite.json
 	rm -f showcase/showcase_v1beta1.yaml
-	cd showcase; git restore go.mod go.sum
+	git restore showcase/go.mod showcase/go.sum
