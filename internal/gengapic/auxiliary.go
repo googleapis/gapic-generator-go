@@ -60,19 +60,10 @@ type operationWrapper struct {
 	responseName, metadataName protoreflect.FullName
 }
 
-// genAuxFile generates the singular aux.go file, and sometimes the
-// operations.go file when working with a custom operation type. The
-// aux.go file contains all of the operation wrapper types and the
-// iterator types that are used throughout the client package.
+// genAuxFile generates the singular aux.go file. This file contains all of the
+// operation wrapper and iterator types that are used throughout the client
+// package.
 func (g *generator) genAuxFile() error {
-	if g.aux.customOp != nil {
-		if err := g.customOperationType(); err != nil {
-			return err
-		}
-		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
-		g.reset()
-	}
-
 	if err := g.genOperations(); err != nil {
 		return err
 	}
