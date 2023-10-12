@@ -65,6 +65,7 @@ go_library(
 go_test(
     name = "gengapic_test",
     srcs = [
+        "auxiliary_test.go",
         "client_init_test.go",
         "custom_operation_test.go",
         "doc_file_test.go",
