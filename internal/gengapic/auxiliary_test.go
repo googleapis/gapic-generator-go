@@ -106,16 +106,16 @@ func TestWrapperExists(t *testing.T) {
 			}
 			got, gotErr := a.wrapperExists(tC.target)
 			if tC.want != got {
-				t.Errorf("wrapperExists(%+v): expected %v, got %v, with existing: %+v", tC.target, tC.want, got, tC.existing)
+				t.Errorf("wrapperExists(%+v): got %v, want %v, with existing: %+v", tC.target, got, tC.want, tC.existing)
 			}
 			if tC.wantErrStr == "" && gotErr != nil {
-				t.Errorf("wrapperExists(%+v): expected no error, got %v, with existing: %+v", tC.target, gotErr, tC.existing)
+				t.Errorf("wrapperExists(%+v): got error %v, want no error, with existing: %+v", tC.target, gotErr, tC.existing)
 			}
 			if tC.wantErrStr != "" && gotErr == nil {
-				t.Errorf("wrapperExists(%+v): expected an error, got none, with existing: %+v", tC.target, tC.existing)
+				t.Errorf("wrapperExists(%+v): got no error, want an error with %q, with existing: %+v", tC.target, tC.wantErrStr, tC.existing)
 			}
 			if tC.wantErrStr != "" && gotErr != nil && !strings.Contains(gotErr.Error(), tC.wantErrStr) {
-				t.Errorf("wrapperExists(%+v): expected %q, got %q, with existing: %+v", tC.target, tC.wantErrStr, gotErr.Error(), tC.existing)
+				t.Errorf("wrapperExists(%+v): got %q, want %q, with existing: %+v", tC.target, gotErr.Error(), tC.wantErrStr, tC.existing)
 			}
 		})
 	}
@@ -333,9 +333,9 @@ func TestMaybeAddOperationWrapper(t *testing.T) {
 			if tC.wantErrStr == "" && err != nil {
 				t.Errorf("maybeAddOperationWrapper(%+v): unexpected error %v", m, err)
 			} else if tC.wantErrStr != "" && err == nil {
-				t.Errorf("maybeAddOperationWrapper(%+v): expected %q, got no error, with existing %+v", m, tC.wantErrStr, tC.existing)
+				t.Errorf("maybeAddOperationWrapper(%+v): got no error, want %q, with existing %+v", m, tC.wantErrStr, tC.existing)
 			} else if tC.wantErrStr != "" && err != nil && !strings.Contains(err.Error(), tC.wantErrStr) {
-				t.Errorf("maybeAddOperationWrapper(%+v): expected %q, got %q, with existing %+v", m, tC.wantErrStr, err.Error(), tC.existing)
+				t.Errorf("maybeAddOperationWrapper(%+v): got %q, want %q, with existing %+v", m, err.Error(), tC.wantErrStr, tC.existing)
 			} else if diff := cmp.Diff(g.aux.opWrappers, tC.want, cmp.Comparer(proto.Equal), cmp.AllowUnexported(operationWrapper{})); diff != "" {
 				t.Errorf("maybeAddOperationWrapper(%+v): got(-),want(+)\n%s", m, diff)
 			}

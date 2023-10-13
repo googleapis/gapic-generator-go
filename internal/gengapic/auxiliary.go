@@ -40,6 +40,10 @@ type auxTypes struct {
 	// which is in turn determined by the element type name.
 	iters map[string]*iterType
 
+	// customOp represents a custom long running operation implementation, one
+	// that does not use the common google.longrunning.Operations service or
+	// design pattern. This is only seen in the earliest of Cloud APIs i.e. GCE,
+	// and some non-Cloud services.
 	customOp *customOp
 }
 
