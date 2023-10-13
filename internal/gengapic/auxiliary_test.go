@@ -445,3 +445,41 @@ func TestGenIterators(t *testing.T) {
 
 	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "gen_iterators.want"))
 }
+
+func TestSortOperationWrapperMap(t *testing.T) {
+	in := map[string]operationWrapper{
+		"FooOperation":   {name: "FooOperation"},
+		"ZzzzzOperation": {name: "ZzzzzOperation"},
+		"BarOperation":   {name: "BarOperation"},
+		"AaaaaOperation": {name: "AaaaaOperation"},
+	}
+	want := []operationWrapper{
+		{name: "AaaaaOperation"},
+		{name: "BarOperation"},
+		{name: "FooOperation"},
+		{name: "ZzzzzOperation"},
+	}
+	got := sortOperationWrapperMap(in)
+	if diff := cmp.Diff(got, want, cmp.AllowUnexported(operationWrapper{})); diff != "" {
+		t.Errorf("sortOperationWrapperMap: got(-),want(+):\n%s", diff)
+	}
+}
+
+func TestSortIteratorMap(t *testing.T) {
+	in := map[string]*iterType{
+		"FooIterator":   {iterTypeName: "FooIterator"},
+		"ZzzzzIterator": {iterTypeName: "ZzzzzIterator"},
+		"BarIterator":   {iterTypeName: "BarIterator"},
+		"AaaaaIterator": {iterTypeName: "AaaaaIterator"},
+	}
+	want := []*iterType{
+		{iterTypeName: "AaaaaIterator"},
+		{iterTypeName: "BarIterator"},
+		{iterTypeName: "FooIterator"},
+		{iterTypeName: "ZzzzzIterator"},
+	}
+	got := sortIteratorMap(in)
+	if diff := cmp.Diff(got, want, cmp.AllowUnexported(iterType{})); diff != "" {
+		t.Errorf("sortIteratorMap: got(-),want(+):\n%s", diff)
+	}
+}

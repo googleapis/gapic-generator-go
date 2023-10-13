@@ -88,13 +88,7 @@ func (g *generator) genOperations() error {
 	// Sort operation wrappers-to-generate by type
 	// name to avoid spurious regenerations created
 	// by non-deterministic map traversal order.
-	var wrappers []operationWrapper
-	for _, ow := range g.aux.opWrappers {
-		wrappers = append(wrappers, ow)
-	}
-	sort.Slice(wrappers, func(i, j int) bool {
-		return wrappers[i].name < wrappers[j].name
-	})
+	wrappers := sortOperationWrapperMap(g.aux.opWrappers)
 	for _, ow := range wrappers {
 		if err := g.genOperationWrapperType(ow); err != nil {
 			return err
@@ -103,24 +97,42 @@ func (g *generator) genOperations() error {
 	return nil
 }
 
+// sortOperationWrapperMap sorts the map of operation wrapper types by name.
+func sortOperationWrapperMap(m map[string]operationWrapper) []operationWrapper {
+	var wrappers []operationWrapper
+	for _, ow := range m {
+		wrappers = append(wrappers, ow)
+	}
+	sort.Slice(wrappers, func(i, j int) bool {
+		return wrappers[i].name < wrappers[j].name
+	})
+	return wrappers
+}
+
 // genIterators generates all of code for the the iterator wrappers
 // collected by the generator while traversing the input protos.
 func (g *generator) genIterators() error {
 	// Sort iterators to generate by type name to
 	// avoid spurious regenerations created by
 	// non-deterministic map traversal order.
-	var iters []*iterType
-	for _, iter := range g.aux.iters {
-		iters = append(iters, iter)
-	}
-	sort.Slice(iters, func(i, j int) bool {
-		return iters[i].iterTypeName < iters[j].iterTypeName
-	})
+	iters := sortIteratorMap(g.aux.iters)
 	for _, iter := range iters {
 		g.pagingIter(iter)
 	}
 
 	return nil
+}
+
+// sortIteratorMap sorts the map of iterator types by iterTypeName.
+func sortIteratorMap(m map[string]*iterType) []*iterType {
+	var iters []*iterType
+	for _, iter := range m {
+		iters = append(iters, iter)
+	}
+	sort.Slice(iters, func(i, j int) bool {
+		return iters[i].iterTypeName < iters[j].iterTypeName
+	})
+	return iters
 }
 
 // wrapperExists determines if the given wrapper is already known to the
