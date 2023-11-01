@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.1](https://github.com/googleapis/gapic-generator-go/compare/v0.39.0...v0.39.1) (2023-11-01)
+
+
+### Bug Fixes
+
+* **gengapic:** Ensure input type imported ([#1434](https://github.com/googleapis/gapic-generator-go/issues/1434)) ([f6be536](https://github.com/googleapis/gapic-generator-go/commit/f6be536fff68c698a52f370d99b73f6dd133b272))
+
 ## [0.39.0](https://github.com/googleapis/gapic-generator-go/compare/v0.38.2...v0.39.0) (2023-11-01)
 
 
