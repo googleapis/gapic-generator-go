@@ -541,7 +541,9 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) *httpInfo {
 // If the generated method requires an auxiliary type, it is added to aux.
 func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
 	if g.isLRO(m) {
-		g.aux.lros[m] = true
+		if err := g.maybeAddOperationWrapper(m); err != nil {
+			return err
+		}
 		return g.lroRESTCall(servName, m)
 	}
 

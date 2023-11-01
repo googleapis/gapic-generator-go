@@ -96,8 +96,9 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.customOpServices = map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{}
 	g.aux = &auxTypes{
-		iters: map[string]*iterType{},
-		lros:  map[*descriptor.MethodDescriptorProto]bool{},
+		iters:           map[string]*iterType{},
+		methodToWrapper: map[*descriptor.MethodDescriptorProto]operationWrapper{},
+		opWrappers:      map[string]operationWrapper{},
 	}
 
 	opts, err := parseOptions(req.Parameter)

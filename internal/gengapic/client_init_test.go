@@ -504,32 +504,6 @@ func TestClientInit(t *testing.T) {
 				return extendedops.E_OperationService, opS.GetName()
 			},
 		},
-		{
-			tstName: "lro_client_conflict",
-			mixins: mixins{
-				"google.longrunning.Operations": operationsMethods(),
-			},
-			servName:  "Foo",
-			serv:      servLRO,
-			parameter: proto.String("go-gapic-package=path;mypackage"),
-			imports: map[pbinfo.ImportSpec]bool{
-				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                     true,
-				{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}: true,
-				{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}:                     true,
-				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                         true,
-				{Path: "context"}:                      true,
-				{Path: "google.golang.org/api/option"}: true,
-				{Path: "google.golang.org/grpc"}:       true,
-			},
-			wantNumSnps: 6,
-			setExt: func() (protoreflect.ExtensionType, interface{}) {
-				return annotations.E_Http, &annotations.HttpRule{
-					Pattern: &annotations.HttpRule_Post{
-						Post: "/v1beta1/{parent=projects/*/locations/*/featureGroups/*}/features",
-					},
-				}
-			},
-		},
 	} {
 		t.Run(tst.tstName, func(t *testing.T) {
 			setExt := tst.setExt

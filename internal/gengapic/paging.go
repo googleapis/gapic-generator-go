@@ -29,7 +29,6 @@ type iterType struct {
 	// If the elem type is a message, elemImports contains pbinfo.ImportSpec for the type.
 	// Otherwise, len(elemImports)==0.
 	elemImports []pbinfo.ImportSpec
-	generated   bool
 }
 
 // iterTypeOf deduces iterType from a field to be iterated over.
@@ -384,4 +383,9 @@ func (g *generator) pagingIter(pt *iterType) {
 	p("  return b")
 	p("}")
 	p("")
+
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
+	for _, spec := range pt.elemImports {
+		g.imports[spec] = true
+	}
 }
