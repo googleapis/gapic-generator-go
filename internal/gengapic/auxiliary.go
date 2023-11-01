@@ -151,7 +151,7 @@ func (a auxTypes) wrapperExists(ow operationWrapper) (bool, error) {
 	}
 
 	if ow.metadataName != ew.metadataName {
-		return true, fmt.Errorf("duplicate operation wrapper types %q have mismatched metadata_types: %s v. %s", ow.name, ew.metadataName, ow.responseName)
+		return true, fmt.Errorf("duplicate operation wrapper types %q have mismatched metadata_types: %s v. %s", ow.name, ew.metadataName, ow.metadataName)
 	}
 
 	return true, nil
