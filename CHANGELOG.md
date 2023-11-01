@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.0](https://github.com/googleapis/gapic-generator-go/compare/v0.38.2...v0.39.0) (2023-11-01)
+
+
+### Features
+
+* **internal/gengapic:** Move operations & iterators to aux.go ([#1428](https://github.com/googleapis/gapic-generator-go/issues/1428)) ([e8ad272](https://github.com/googleapis/gapic-generator-go/commit/e8ad27239eca2cb09623812e1bb0bf88f5f7a5c1))
+
 ## [0.38.2](https://github.com/googleapis/gapic-generator-go/compare/v0.38.1...v0.38.2) (2023-09-22)
 
 
