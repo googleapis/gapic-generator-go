@@ -89,6 +89,7 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 		if err != nil {
 			return err
 		}
+		g.imports[inSpec] = true
 		if m.GetOutputType() == emptyType {
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) error",
 				m.GetName(),
