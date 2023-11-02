@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.2](https://github.com/googleapis/gapic-generator-go/compare/v0.39.1...v0.39.2) (2023-11-02)
+
+
+### Bug Fixes
+
+* **gengapic:** Fix generator reset ordering ([#1436](https://github.com/googleapis/gapic-generator-go/issues/1436)) ([8d64d03](https://github.com/googleapis/gapic-generator-go/commit/8d64d03a37f22ce17cdbe4906c74cc874e2ee56b))
+
 ## [0.39.1](https://github.com/googleapis/gapic-generator-go/compare/v0.39.0...v0.39.1) (2023-11-01)
 
 
