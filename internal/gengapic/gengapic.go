@@ -151,11 +151,11 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	}
 
 	if g.aux.customOp != nil {
+		g.reset()
 		if err := g.customOperationType(); err != nil {
 			return &g.resp, err
 		}
 		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
-		g.reset()
 	}
 
 	g.reset()
