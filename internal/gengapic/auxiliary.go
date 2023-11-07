@@ -50,7 +50,7 @@ type auxTypes struct {
 // operationWrapper is a simple data type representing an RPC-specific
 // longrunning operation. These are collected to ensure only one of any
 // operation wrapper is generated, and to generate them all in a single
-// file, aux.go, within the client package.
+// file, auxiliary.go, within the client package.
 type operationWrapper struct {
 	// name is the Go type name of the wrapper-to-be e.g. CreateFooOperation.
 	name string
@@ -64,7 +64,7 @@ type operationWrapper struct {
 	responseName, metadataName protoreflect.FullName
 }
 
-// genAuxFile generates the singular aux.go file. This file contains all of the
+// genAuxFile generates the singular auxiliary.go file. This file contains all of the
 // operation wrapper and iterator types that are used throughout the client
 // package.
 func (g *generator) genAuxFile() error {
@@ -76,7 +76,7 @@ func (g *generator) genAuxFile() error {
 		return err
 	}
 
-	g.commit(filepath.Join(g.opts.outDir, "aux.go"), g.opts.pkgName)
+	g.commit(filepath.Join(g.opts.outDir, "auxiliary.go"), g.opts.pkgName)
 	g.reset()
 
 	return nil
