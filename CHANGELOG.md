@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.3](https://github.com/googleapis/gapic-generator-go/compare/v0.39.2...v0.39.3) (2023-11-07)
+
+
+### Bug Fixes
+
+* **gengapic:** Rename file aux to auxiliary ([#1440](https://github.com/googleapis/gapic-generator-go/issues/1440)) ([9c0fbd5](https://github.com/googleapis/gapic-generator-go/commit/9c0fbd58ac0d2d278973877ee690230cf135fc38))
+
 ## [0.39.2](https://github.com/googleapis/gapic-generator-go/compare/v0.39.1...v0.39.2) (2023-11-02)
 
 
