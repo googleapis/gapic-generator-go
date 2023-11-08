@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.4](https://github.com/googleapis/gapic-generator-go/compare/v0.39.3...v0.39.4) (2023-11-08)
+
+
+### Bug Fixes
+
+* **gencli:** Title case dot delimited segments ([#1442](https://github.com/googleapis/gapic-generator-go/issues/1442)) ([a1d372c](https://github.com/googleapis/gapic-generator-go/commit/a1d372c88fc5a26cd61df0efa57611cefb23ac22))
+
 ## [0.39.3](https://github.com/googleapis/gapic-generator-go/compare/v0.39.2...v0.39.3) (2023-11-07)
 
 
