@@ -71,11 +71,16 @@ func putImport(imports map[string]*pbinfo.ImportSpec, pkg *pbinfo.ImportSpec) {
 	imports[key] = pkg
 }
 
-// does not remove dot
+// does not remove dot, but does split on it,
+// title-casing each segment before rejoining.
 func title(name string) string {
 	split := strings.Split(name, "_")
 	for i, s := range split {
-		split[i] = toTitle(s)
+		dotSplit := strings.Split(s, ".")
+		for j, ds := range dotSplit {
+			dotSplit[j] = toTitle(ds)
+		}
+		split[i] = strings.Join(dotSplit, ".")
 	}
 
 	return strings.Join(split, "")

@@ -35,6 +35,7 @@ go_test(
         "flag_test.go",
         "root_file_test.go",
         "service_file_test.go",
+        "util_test.go",
     ],
     data = glob(["testdata/**"]),
     embed = [":gencli"],
