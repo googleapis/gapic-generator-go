@@ -6,17 +6,17 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.6.0
-	github.com/jhump/protoreflect v1.15.3
+	github.com/jhump/protoreflect v1.15.4
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
 	golang.org/x/text v0.14.0
-	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f
-	google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/genproto v0.0.0-20231127180814-3a041ad873d4
+	google.golang.org/genproto/googleapis/api v0.0.0-20231127180814-3a041ad873d4
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4
+	google.golang.org/protobuf v1.31.1-0.20231027082548-f4a6c1f6e5c1
 )
 
 require (
-	github.com/bufbuild/protocompile v0.6.0 // indirect
+	github.com/bufbuild/protocompile v0.7.1 // indirect
 	gitlab.com/golang-commonmark/html v0.0.0-20191124015941-a22733972181 // indirect
 	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20191124015652-932350d1cb84 // indirect
