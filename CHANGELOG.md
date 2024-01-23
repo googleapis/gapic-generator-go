@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.40.0](https://github.com/googleapis/gapic-generator-go/compare/v0.39.4...v0.40.0) (2024-01-23)
+
+
+### Features
+
+* **gengapic:** Add universe domain support ([#1452](https://github.com/googleapis/gapic-generator-go/issues/1452)) ([c72b650](https://github.com/googleapis/gapic-generator-go/commit/c72b650af246b5db4d30a6730c943cde103936a7))
+
 ## [0.39.4](https://github.com/googleapis/gapic-generator-go/compare/v0.39.3...v0.39.4) (2023-11-08)
 
 
