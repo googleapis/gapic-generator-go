@@ -22,6 +22,11 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
+const (
+	googleDefaultUniverse     = "googleapis.com"
+	universeDomainPlaceholder = "UNIVERSE_DOMAIN"
+)
+
 func (g *generator) clientHook(servName string) {
 	p := g.printf
 
@@ -383,6 +388,21 @@ func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servNam
 	}
 
 	return nil
+}
+
+// generateDefaultEndpointTemplate returns the default endpoint with the
+// Google Default Universe (googleapis.com) replaced with the placeholder
+// UNIVERSE_DOMAIN for universe domain substitution.
+//
+// We need to apply the following type of transformation:
+// 1. pubsub.googleapis.com to pubsub.UNIVERSE_DOMAIN
+// 2. pubsub.sandbox.googleapis.com to pubsub.sandbox.UNIVERSE_DOMAIN
+//
+// This function is needed because the default endpoint template is currently
+// not part of the service proto. In the future, we should update the
+// service proto to include a new "google.api.default_endpoint_template" option.
+func generateDefaultEndpointTemplate(defaultEndpoint string) string {
+	return strings.Replace(defaultEndpoint, googleDefaultUniverse, universeDomainPlaceholder, 1)
 }
 
 // generateDefaultMTLSEndpoint attempts to derive the mTLS version of the

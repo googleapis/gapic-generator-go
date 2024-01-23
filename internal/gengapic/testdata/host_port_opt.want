@@ -16,7 +16,9 @@ type BarCallOptions struct {
 func defaultBarGRPCClientOptions() []option.ClientOption {
 	return []option.ClientOption{
 		internaloption.WithDefaultEndpoint("foo.googleapis.com:1234"),
+		internaloption.WithDefaultEndpointTemplate("foo.UNIVERSE_DOMAIN:1234"),
 		internaloption.WithDefaultMTLSEndpoint("foo.mtls.googleapis.com:1234"),
+		internaloption.WithDefaultUniverseDomain("googleapis.com"),
 		internaloption.WithDefaultAudience("https://foo.googleapis.com/"),
 		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
 		internaloption.EnableJwtWithScope(),
