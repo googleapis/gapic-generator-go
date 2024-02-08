@@ -104,6 +104,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
+	g.initializeAutoPopulatedFields(servName, m)
 	g.appendCallOpts(m)
 
 	p("var resp *%s", retTyp)
@@ -142,6 +143,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptor.MethodDesc
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
 	g.insertRequestHeaders(m, grpc)
+	g.initializeAutoPopulatedFields(servName, m)
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")

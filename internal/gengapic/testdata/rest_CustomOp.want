@@ -9,6 +9,9 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 	if req != nil && req.Other != nil {
 		params.Add("other", fmt.Sprintf("%v", req.GetOther()))
 	}
+	if req != nil && req.RequestId != nil {
+		params.Add("requestId", fmt.Sprintf("%v", req.GetRequestId()))
+	}
 	params.Add("size", fmt.Sprintf("%v", req.GetSize()))
 
 	baseUrl.RawQuery = params.Encode()

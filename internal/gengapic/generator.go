@@ -28,11 +28,13 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 type generator struct {
@@ -301,4 +303,46 @@ func (g *generator) nestedName(nested pbinfo.ProtoType) string {
 	}
 
 	return name
+}
+
+// autoPopulatedFields returns an array of snake-case MethodDescriptorProto
+// input field names that are specified for auto-population per the following
+// restrictions:
+//
+// * The field is a top-level string field of a unary method's request message.
+// * The field is not annotated with google.api.field_behavior = REQUIRED.
+// * The field name is listed in google.api.publishing.method_settings.auto_populated_fields.
+// * The field is annotated with google.api.field_info.format = UUID4.
+func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) []string {
+	var apfs []string
+	// Find the service config's AutoPopulatedFields entry by method name.
+	for _, s := range g.serviceConfig.GetPublishing().GetMethodSettings() {
+		if s.GetSelector() == g.fqn(m) {
+			apfs = s.AutoPopulatedFields
+			break
+		}
+	}
+	inType := g.descInfo.Type[*m.InputType].(*descriptor.DescriptorProto)
+	var validated []string
+	for _, apf := range apfs {
+		var field *descriptorpb.FieldDescriptorProto
+		// Find the input's FieldDescriptorProto by AutoPopulatedField name.
+		for _, f := range inType.GetField() {
+			if f.GetName() == apf {
+				field = f
+				break
+			}
+		}
+		// Do nothing and continue iterating unless all conditions above are met.
+		switch {
+		case field == nil:
+		case field.GetType() != fieldTypeString:
+		case field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REQUIRED:
+		case field.GetOptions() == nil:
+		case proto.GetExtension(field.GetOptions(), annotations.E_FieldInfo).(*annotations.FieldInfo) == nil:
+		case proto.GetExtension(field.GetOptions(), annotations.E_FieldInfo).(*annotations.FieldInfo).Format == annotations.FieldInfo_UUID4:
+			validated = append(validated, field.GetName())
+		}
+	}
+	return validated
 }

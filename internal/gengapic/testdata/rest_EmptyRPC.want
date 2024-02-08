@@ -1,4 +1,7 @@
 func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...gax.CallOption) error {
+	if req != nil && req.RequestId == "" {
+		req.RequestId = uuid.New().String()
+	}
 	baseUrl, err := url.Parse(c.endpoint)
 	if err != nil {
 		return err
@@ -6,6 +9,9 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	baseUrl.Path += fmt.Sprintf("/v1/foo/%v", req.GetOther())
 
 	params := url.Values{}
+	if req != nil && req.RequestId != nil {
+		params.Add("requestId", fmt.Sprintf("%v", req.GetRequestId()))
+	}
 	params.Add("size", fmt.Sprintf("%v", req.GetSize()))
 
 	baseUrl.RawQuery = params.Encode()
