@@ -188,10 +188,11 @@ func TestGenGRPCMethods(t *testing.T) {
 				TypeName: proto.String(".my.pkg.InputType.NestedEnum"),
 			},
 			{
-				Name:    proto.String("request_id"),
-				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				Options: optsUUID4,
+				Name:           proto.String("request_id"),
+				Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Proto3Optional: proto.Bool(true),
+				Options:        optsUUID4,
 			},
 		},
 		EnumType: []*descriptor.EnumDescriptorProto{

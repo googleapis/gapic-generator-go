@@ -363,11 +363,17 @@ func (g *generator) initializeAutoPopulatedFields(servName string, m *descriptor
 	if len(apfs) == 0 {
 		return
 	}
+	inType := g.descInfo.Type[*m.InputType].(*descriptor.DescriptorProto)
 	g.imports[pbinfo.ImportSpec{Path: "github.com/google/uuid"}] = true
 	for _, apf := range apfs {
-		apf = snakeToCamel(apf)
-		p("if req != nil && req.%s == nil {", apf)
-		p("  req.%s = uuid.New().String()", apf)
+		if isOptional(inType, apf) {
+			// Type will be *string if field has explicit presence.
+			p("if req != nil && req.%s == nil {", snakeToCamel(apf))
+		} else {
+			// Type will be string if field does not have explicit presence.
+			p("if req != nil && req.%s == \"\" {", snakeToCamel(apf))
+		}
+		p("  req.%s = uuid.NewString()", snakeToCamel(apf))
 		p("}")
 	}
 }
