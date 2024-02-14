@@ -366,7 +366,7 @@ func (g *generator) initializeAutoPopulatedFields(servName string, m *descriptor
 	g.imports[pbinfo.ImportSpec{Path: "github.com/google/uuid"}] = true
 	for _, apf := range apfs {
 		apf = snakeToCamel(apf)
-		p("if req != nil && req.%s == \"\" {", apf)
+		p("if req != nil && req.%s == nil {", apf)
 		p("  req.%s = uuid.New().String()", apf)
 		p("}")
 	}

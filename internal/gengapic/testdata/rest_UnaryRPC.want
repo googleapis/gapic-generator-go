@@ -1,5 +1,5 @@
 func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...gax.CallOption) (*foopb.Foo, error) {
-	if req != nil && req.RequestId == "" {
+	if req != nil && req.RequestId == nil {
 		req.RequestId = uuid.New().String()
 	}
 	m := protojson.MarshalOptions{AllowPartial: true, UseEnumNumbers: true}
