@@ -358,22 +358,22 @@ func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t 
 // the client. Values automatically populated this way must be reused for
 // retries of the same request.
 func (g *generator) initializeAutoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) {
-	p := g.printf
 	apfs := g.autoPopulatedFields(servName, m)
 	if len(apfs) == 0 {
 		return
 	}
-	inType := g.descInfo.Type[*m.InputType].(*descriptor.DescriptorProto)
 	g.imports[pbinfo.ImportSpec{Path: "github.com/google/uuid"}] = true
+	p := g.printf
 	for _, apf := range apfs {
-		if isOptional(inType, apf) {
+		f := snakeToCamel(apf.GetName())
+		if apf.GetProto3Optional() {
 			// Type will be *string if field has explicit presence.
-			p("if req != nil && req.%s == nil {", snakeToCamel(apf))
+			p("if req != nil && req.%s == nil {", f)
 		} else {
 			// Type will be string if field does not have explicit presence.
-			p("if req != nil && req.%s == \"\" {", snakeToCamel(apf))
+			p("if req != nil && req.%s == \"\" {", f)
 		}
-		p("  req.%s = uuid.NewString()", snakeToCamel(apf))
+		p("  req.%s = uuid.NewString()", f)
 		p("}")
 	}
 }

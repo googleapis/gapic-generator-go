@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
@@ -35,10 +34,11 @@ func TestAutoPopulatedFields(t *testing.T) {
 		Name: proto.String("InputType"),
 		Field: []*descriptor.FieldDescriptorProto{
 			{
-				Name:    proto.String("request_id"),
-				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				Options: optsUUID4,
+				Name:           proto.String("request_id"),
+				Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Proto3Optional: proto.Bool(true),
+				Options:        optsUUID4,
 			},
 			{
 				Name:  proto.String("invalid_auto_populated_not_in_serviceconfig"),
@@ -123,8 +123,13 @@ func TestAutoPopulatedFields(t *testing.T) {
 	serv.Method = []*descriptor.MethodDescriptorProto{m}
 
 	got := g.autoPopulatedFields(serv.GetName(), m)
-	want := []string{"request_id"}
-	if diff := cmp.Diff(got, want); diff != "" {
-		t.Errorf("got(-),want(+):\n%s", diff)
+	if want := 1; len(got) != want {
+		t.Errorf("len(got) = %d, want: %d, got: %v", len(got), want, got)
+	}
+	if want := "request_id"; got[0].GetName() != want {
+		t.Errorf("got[0].GetName() = %s, want: %s", got[0].GetName(), want)
+	}
+	if !got[0].GetProto3Optional() {
+		t.Error("got[0].GetProto3Optional() = false, want: true")
 	}
 }

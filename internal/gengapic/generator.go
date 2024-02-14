@@ -305,15 +305,15 @@ func (g *generator) nestedName(nested pbinfo.ProtoType) string {
 	return name
 }
 
-// autoPopulatedFields returns an array of snake-case MethodDescriptorProto
-// input field names that are specified for auto-population per the following
-// restrictions:
+// autoPopulatedFields returns an array of FieldDescriptorProto pointers for the
+// given MethodDescriptorProto that are specified for auto-population per the
+// following restrictions:
 //
 // * The field is a top-level string field of a unary method's request message.
 // * The field is not annotated with google.api.field_behavior = REQUIRED.
 // * The field name is listed in google.api.publishing.method_settings.auto_populated_fields.
 // * The field is annotated with google.api.field_info.format = UUID4.
-func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) []string {
+func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) []*descriptor.FieldDescriptorProto {
 	var apfs []string
 	// Find the service config's AutoPopulatedFields entry by method name.
 	for _, s := range g.serviceConfig.GetPublishing().GetMethodSettings() {
@@ -323,7 +323,7 @@ func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDes
 		}
 	}
 	inType := g.descInfo.Type[*m.InputType].(*descriptor.DescriptorProto)
-	var validated []string
+	var validated []*descriptor.FieldDescriptorProto
 	for _, apf := range apfs {
 		var field *descriptorpb.FieldDescriptorProto
 		// Find the input's FieldDescriptorProto by AutoPopulatedField name.
@@ -340,7 +340,7 @@ func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDes
 		case field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REQUIRED:
 		case field.GetOptions() == nil:
 		case proto.GetExtension(field.GetOptions(), annotations.E_FieldInfo).(*annotations.FieldInfo).GetFormat() == annotations.FieldInfo_UUID4:
-			validated = append(validated, field.GetName())
+			validated = append(validated, field)
 		}
 	}
 	return validated
