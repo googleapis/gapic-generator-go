@@ -34,7 +34,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
-	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 type generator struct {
@@ -325,20 +324,12 @@ func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDes
 	inType := g.descInfo.Type[*m.InputType].(*descriptor.DescriptorProto)
 	var validated []*descriptor.FieldDescriptorProto
 	for _, apf := range apfs {
-		var field *descriptorpb.FieldDescriptorProto
-		// Find the input's FieldDescriptorProto by AutoPopulatedField name.
-		for _, f := range inType.GetField() {
-			if f.GetName() == apf {
-				field = f
-				break
-			}
-		}
+		field := getField(inType, apf)
 		// Do nothing and continue iterating unless all conditions above are met.
 		switch {
 		case field == nil:
 		case field.GetType() != fieldTypeString:
-		case field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REQUIRED:
-		case field.GetOptions() == nil:
+		case isRequired(field):
 		case proto.GetExtension(field.GetOptions(), annotations.E_FieldInfo).(*annotations.FieldInfo).GetFormat() == annotations.FieldInfo_UUID4:
 			validated = append(validated, field)
 		}

@@ -28,8 +28,14 @@ import (
 func TestAutoPopulatedFields(t *testing.T) {
 	optsUUID4 := &descriptorpb.FieldOptions{}
 	proto.SetExtension(optsUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
+
 	optsIPV4 := &descriptorpb.FieldOptions{}
 	proto.SetExtension(optsIPV4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_IPV4})
+
+	optsRequiredAndUUID4 := &descriptorpb.FieldOptions{}
+	proto.SetExtension(optsRequiredAndUUID4, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_REQUIRED})
+	proto.SetExtension(optsRequiredAndUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
+
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -54,7 +60,7 @@ func TestAutoPopulatedFields(t *testing.T) {
 				Name:    proto.String("invalid_auto_populated_required"),
 				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
 				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_REQUIRED),
-				Options: optsUUID4,
+				Options: optsRequiredAndUUID4,
 			},
 			{
 				Name:    proto.String("invalid_auto_populated_int"),
