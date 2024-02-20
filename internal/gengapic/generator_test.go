@@ -18,10 +18,12 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -36,16 +38,17 @@ func TestAutoPopulatedFields(t *testing.T) {
 	proto.SetExtension(optsRequiredAndUUID4, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_REQUIRED})
 	proto.SetExtension(optsRequiredAndUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
 
+	requestIDField := &descriptor.FieldDescriptorProto{
+		Name:           proto.String("request_id"),
+		Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+		Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+		Proto3Optional: proto.Bool(true),
+		Options:        optsUUID4,
+	}
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
 		Field: []*descriptor.FieldDescriptorProto{
-			{
-				Name:           proto.String("request_id"),
-				Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-				Proto3Optional: proto.Bool(true),
-				Options:        optsUUID4,
-			},
+			requestIDField,
 			{
 				Name:  proto.String("invalid_auto_populated_not_in_serviceconfig"),
 				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
@@ -129,10 +132,9 @@ func TestAutoPopulatedFields(t *testing.T) {
 	serv.Method = []*descriptor.MethodDescriptorProto{m}
 
 	got := g.autoPopulatedFields(serv.GetName(), m)
-	if want := 1; len(got) != want {
-		t.Errorf("len(got) = %d, want: %d, got: %v", len(got), want, got)
-	}
-	if want := "request_id"; got[0].GetName() != want {
-		t.Errorf("got[0].GetName() = %s, want: %s", got[0].GetName(), want)
+
+	want := []*descriptorpb.FieldDescriptorProto{requestIDField}
+	if diff := cmp.Diff(got, want, protocmp.Transform()); diff != "" {
+		t.Errorf("got(-),want(+):\n%s", diff)
 	}
 }
