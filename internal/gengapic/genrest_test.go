@@ -449,10 +449,18 @@ func TestGenRestMethod(t *testing.T) {
 		Type:           descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Proto3Optional: proto.Bool(true),
 	}
+	infoOpts := &descriptorpb.FieldOptions{}
+	proto.SetExtension(infoOpts, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
+	requestIDField := &descriptor.FieldDescriptorProto{
+		Name:           proto.String("request_id"),
+		Type:           descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Proto3Optional: proto.Bool(true),
+		Options:        infoOpts,
+	}
 
 	foo := &descriptor.DescriptorProto{
 		Name:  proto.String("Foo"),
-		Field: []*descriptor.FieldDescriptorProto{sizeField, otherField},
+		Field: []*descriptor.FieldDescriptorProto{sizeField, otherField, requestIDField},
 	}
 	foofqn := fmt.Sprintf(".%s.Foo", pkg)
 
@@ -764,9 +772,10 @@ func TestGenRestMethod(t *testing.T) {
 			method:  emptyRPC,
 			options: &options{},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}: true,
-				{Path: "google.golang.org/api/googleapi"}:                        true,
-				{Path: "net/url"}:                                                true,
+				{Path: "fmt"}:                             true,
+				{Path: "github.com/google/uuid"}:          true,
+				{Path: "google.golang.org/api/googleapi"}: true,
+				{Path: "net/url"}:                         true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
@@ -775,8 +784,9 @@ func TestGenRestMethod(t *testing.T) {
 			method:  unaryRPC,
 			options: &options{restNumericEnum: true},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "bytes"}: true,
-				{Path: "fmt"}:   true,
+				{Path: "bytes"}:                  true,
+				{Path: "fmt"}:                    true,
+				{Path: "github.com/google/uuid"}: true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "io"}: true,
 				{Path: "google.golang.org/api/googleapi"}: true,
@@ -887,6 +897,22 @@ func TestGenRestMethod(t *testing.T) {
 							Selector: "google.longrunning.Operations.GetOperation",
 							Pattern: &annotations.HttpRule_Get{
 								Get: "/v1beta1/{name=projects/*/locations/*/operations/*}",
+							},
+						},
+					},
+				},
+				Publishing: &annotations.Publishing{
+					MethodSettings: []*annotations.MethodSettings{
+						{
+							Selector: "google.cloud.foo.v1.FooService.UnaryRPC",
+							AutoPopulatedFields: []string{
+								"request_id",
+							},
+						},
+						{
+							Selector: "google.cloud.foo.v1.FooService.EmptyRPC",
+							AutoPopulatedFields: []string{
+								"request_id",
 							},
 						},
 					},

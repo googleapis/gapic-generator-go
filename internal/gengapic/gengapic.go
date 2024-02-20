@@ -348,6 +348,37 @@ func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t 
 	}
 }
 
+// insertAutoPopulatedFields generates the conditional initialization of any
+// default-value request fields (for the given method) that are specified for
+// auto-population by autoPopulatedFields.
+//
+// If the field value is not equal to default value at the time of sending the
+// request, implying it was set by the user, or if the field has explicit
+// presence and is set by the user, the field must not be auto-populated by
+// the client. Values automatically populated this way must be reused for
+// retries of the same request.
+func (g *generator) initializeAutoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) {
+	apfs := g.autoPopulatedFields(servName, m)
+	if len(apfs) == 0 {
+		return
+	}
+	g.imports[pbinfo.ImportSpec{Path: "github.com/google/uuid"}] = true
+	p := g.printf
+	for _, apf := range apfs {
+		f := buildAccessor(apf.GetName(), true)
+		if apf.GetProto3Optional() {
+			// Type will be *string if field has explicit presence.
+			p("if req != nil && req%s == nil {", f)
+			p("  req%s = proto.String(uuid.NewString())", f)
+		} else {
+			// Type will be string if field does not have explicit presence.
+			p(`if req != nil && req%s == "" {`, buildAccessor(apf.GetName(), false))
+			p("  req%s = uuid.NewString()", f)
+		}
+		p("}")
+	}
+}
+
 func buildAccessor(field string, rawFinal bool) string {
 	// Corner case if passed the result of strings.Join on an empty slice.
 	if field == "" {

@@ -1020,6 +1020,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
+	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines
@@ -1113,6 +1114,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 
+	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(dovs): handle cancellation, metadata, osv.
 	// TODO(dovs): handle http headers
 	// TODO(dovs): handle deadlines?

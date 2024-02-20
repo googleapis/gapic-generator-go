@@ -110,15 +110,21 @@ func grpcClientField(reducedServName string) string {
 	return lowerFirst(reducedServName + "Client")
 }
 
+// getField returns a FieldDescriptorProto pointer if the target
+// DescriptorProto has the given field, otherwise it returns nil.
+func getField(m *descriptor.DescriptorProto, field string) *descriptor.FieldDescriptorProto {
+	for _, f := range m.GetField() {
+		if f.GetName() == field {
+			return f
+		}
+	}
+	return nil
+}
+
 // hasField returns true if the target DescriptorProto has the given field,
 // otherwise it returns false.
 func hasField(m *descriptor.DescriptorProto, field string) bool {
-	for _, f := range m.GetField() {
-		if f.GetName() == field {
-			return true
-		}
-	}
-	return false
+	return getField(m, field) != nil
 }
 
 // hasMethod reports if the given service defines an RPC with the same name as

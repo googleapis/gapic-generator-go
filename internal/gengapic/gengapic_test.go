@@ -29,6 +29,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	metadatapb "google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -149,6 +150,9 @@ func TestGenGRPCMethods(t *testing.T) {
 		Name: proto.String("NestedEnum"),
 	}
 
+	optsUUID4 := &descriptorpb.FieldOptions{}
+	proto.SetExtension(optsUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
+
 	inputType := &descriptor.DescriptorProto{
 		Name: proto.String("InputType"),
 		Field: []*descriptor.FieldDescriptorProto{
@@ -182,6 +186,19 @@ func TestGenGRPCMethods(t *testing.T) {
 				Name:     proto.String("nested_enum"),
 				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
 				TypeName: proto.String(".my.pkg.InputType.NestedEnum"),
+			},
+			{
+				Name:           proto.String("request_id"),
+				Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Proto3Optional: proto.Bool(true),
+				Options:        optsUUID4,
+			},
+			{
+				Name:    proto.String("non_proto3optional_request_id"),
+				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Options: optsUUID4,
 			},
 		},
 		EnumType: []*descriptor.EnumDescriptorProto{
@@ -321,6 +338,27 @@ func TestGenGRPCMethods(t *testing.T) {
 		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.imports = map[pbinfo.ImportSpec]bool{}
+
+	g.serviceConfig = &serviceconfig.Service{
+		Publishing: &annotations.Publishing{
+			MethodSettings: []*annotations.MethodSettings{
+				{
+					Selector: "my.pkg.Foo.GetEmptyThing",
+					AutoPopulatedFields: []string{
+						"request_id",
+					},
+				},
+				{
+					Selector: "my.pkg.Foo.GetOneThing",
+					AutoPopulatedFields: []string{
+						"request_id",
+						"non_proto3optional_request_id",
+					},
+				},
+			},
+		},
+	}
+
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
 			{
@@ -371,6 +409,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                            true,
+				{Path: "github.com/google/uuid"}:         true,
 				{Path: "net/url"}:                        true,
 				{Name: "mypackagepb", Path: "mypackage"}: true,
 			},
@@ -384,6 +423,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                            true,
+				{Path: "github.com/google/uuid"}:         true,
 				{Path: "net/url"}:                        true,
 				{Name: "mypackagepb", Path: "mypackage"}: true,
 			},

@@ -28,6 +28,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -301,4 +302,38 @@ func (g *generator) nestedName(nested pbinfo.ProtoType) string {
 	}
 
 	return name
+}
+
+// autoPopulatedFields returns an array of FieldDescriptorProto pointers for the
+// given MethodDescriptorProto that are specified for auto-population per the
+// following restrictions:
+//
+// * The field is a top-level string field of a unary method's request message.
+// * The field is not annotated with google.api.field_behavior = REQUIRED.
+// * The field name is listed in google.api.publishing.method_settings.auto_populated_fields.
+// * The field is annotated with google.api.field_info.format = UUID4.
+func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) []*descriptor.FieldDescriptorProto {
+	var apfs []string
+	// Find the service config's AutoPopulatedFields entry by method name.
+	mfqn := g.fqn(m)
+	for _, s := range g.serviceConfig.GetPublishing().GetMethodSettings() {
+		if s.GetSelector() == mfqn {
+			apfs = s.AutoPopulatedFields
+			break
+		}
+	}
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	var validated []*descriptor.FieldDescriptorProto
+	for _, apf := range apfs {
+		field := getField(inType, apf)
+		// Do nothing and continue iterating unless all conditions above are met.
+		switch {
+		case field == nil:
+		case field.GetType() != fieldTypeString:
+		case isRequired(field):
+		case proto.GetExtension(field.GetOptions(), annotations.E_FieldInfo).(*annotations.FieldInfo).GetFormat() == annotations.FieldInfo_UUID4:
+			validated = append(validated, field)
+		}
+	}
+	return validated
 }
