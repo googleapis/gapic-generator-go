@@ -315,8 +315,8 @@ func (g *generator) nestedName(nested pbinfo.ProtoType) string {
 func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) []*descriptor.FieldDescriptorProto {
 	var apfs []string
 	// Find the service config's AutoPopulatedFields entry by method name.
+	mfqn := g.fqn(m)
 	for _, s := range g.serviceConfig.GetPublishing().GetMethodSettings() {
-		mfqn := g.fqn(m)
 		if s.GetSelector() == mfqn {
 			apfs = s.AutoPopulatedFields
 			break
