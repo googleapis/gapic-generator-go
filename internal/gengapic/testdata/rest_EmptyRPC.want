@@ -1,5 +1,5 @@
 func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...gax.CallOption) error {
-	if req != nil && req.GetRequestId() == nil {
+	if req != nil && req.RequestId == nil {
 		req.RequestId = proto.String(uuid.NewString())
 	}
 	baseUrl, err := url.Parse(c.endpoint)
