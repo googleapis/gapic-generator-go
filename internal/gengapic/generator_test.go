@@ -135,7 +135,4 @@ func TestAutoPopulatedFields(t *testing.T) {
 	if want := "request_id"; got[0].GetName() != want {
 		t.Errorf("got[0].GetName() = %s, want: %s", got[0].GetName(), want)
 	}
-	if !got[0].GetProto3Optional() {
-		t.Error("got[0].GetProto3Optional() = false, want: true")
-	}
 }

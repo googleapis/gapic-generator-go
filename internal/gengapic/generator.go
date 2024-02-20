@@ -316,12 +316,13 @@ func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDes
 	var apfs []string
 	// Find the service config's AutoPopulatedFields entry by method name.
 	for _, s := range g.serviceConfig.GetPublishing().GetMethodSettings() {
-		if s.GetSelector() == g.fqn(m) {
+		mfqn := g.fqn(m)
+		if s.GetSelector() == mfqn {
 			apfs = s.AutoPopulatedFields
 			break
 		}
 	}
-	inType := g.descInfo.Type[*m.InputType].(*descriptor.DescriptorProto)
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
 	var validated []*descriptor.FieldDescriptorProto
 	for _, apf := range apfs {
 		field := getField(inType, apf)

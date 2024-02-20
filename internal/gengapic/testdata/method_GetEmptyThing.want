@@ -3,8 +3,8 @@ func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.Inpu
 
 	hds = append(c.xGoogHeaders, hds...)
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
-	if req != nil && req.RequestId == nil {
-		req.RequestId = uuid.NewString()
+	if req != nil && req.GetRequestId() == nil {
+		req.RequestId = proto.String(uuid.NewString())
 	}
 	opts = append((*c.CallOptions).GetEmptyThing[0:len((*c.CallOptions).GetEmptyThing):len((*c.CallOptions).GetEmptyThing)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {

@@ -365,15 +365,17 @@ func (g *generator) initializeAutoPopulatedFields(servName string, m *descriptor
 	g.imports[pbinfo.ImportSpec{Path: "github.com/google/uuid"}] = true
 	p := g.printf
 	for _, apf := range apfs {
-		f := snakeToCamel(apf.GetName())
+		getF := buildAccessor(apf.GetName(), false)
+		f := buildAccessor(apf.GetName(), true)
 		if apf.GetProto3Optional() {
 			// Type will be *string if field has explicit presence.
-			p("if req != nil && req.%s == nil {", f)
+			p("if req != nil && req%s == nil {", getF)
+			p("  req%s = proto.String(uuid.NewString())", f)
 		} else {
 			// Type will be string if field does not have explicit presence.
-			p("if req != nil && req.%s == \"\" {", f)
+			p(`if req != nil && req%s == "" {`, getF)
+			p("  req%s = uuid.NewString()", f)
 		}
-		p("  req.%s = uuid.NewString()", f)
 		p("}")
 	}
 }
