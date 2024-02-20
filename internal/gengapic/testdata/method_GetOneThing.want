@@ -6,6 +6,9 @@ func (c *fooGRPCClient) GetOneThing(ctx context.Context, req *mypackagepb.InputT
 	if req != nil && req.RequestId == nil {
 		req.RequestId = proto.String(uuid.NewString())
 	}
+	if req != nil && req.GetNonProto3optionalRequestId() == "" {
+		req.NonProto3optionalRequestId = uuid.NewString()
+	}
 	opts = append((*c.CallOptions).GetOneThing[0:len((*c.CallOptions).GetOneThing):len((*c.CallOptions).GetOneThing)], opts...)
 	var resp *mypackagepb.OutputType
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {

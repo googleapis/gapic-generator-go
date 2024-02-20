@@ -194,6 +194,12 @@ func TestGenGRPCMethods(t *testing.T) {
 				Proto3Optional: proto.Bool(true),
 				Options:        optsUUID4,
 			},
+			{
+				Name:    proto.String("non_proto3optional_request_id"),
+				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Options: optsUUID4,
+			},
 		},
 		EnumType: []*descriptor.EnumDescriptorProto{
 			nestedEnum,
@@ -346,6 +352,7 @@ func TestGenGRPCMethods(t *testing.T) {
 					Selector: "my.pkg.Foo.GetOneThing",
 					AutoPopulatedFields: []string{
 						"request_id",
+						"non_proto3optional_request_id",
 					},
 				},
 			},
