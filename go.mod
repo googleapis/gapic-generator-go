@@ -9,9 +9,9 @@ require (
 	github.com/jhump/protoreflect v1.15.6
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
 	golang.org/x/text v0.14.0
-	google.golang.org/genproto v0.0.0-20240205150955-31a09d347014
-	google.golang.org/genproto/googleapis/api v0.0.0-20240205150955-31a09d347014
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014
+	google.golang.org/genproto v0.0.0-20240221002015-b0ce06bbee7c
+	google.golang.org/genproto/googleapis/api v0.0.0-20240221002015-b0ce06bbee7c
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240221002015-b0ce06bbee7c
 	google.golang.org/protobuf v1.32.0
 )
 
@@ -23,7 +23,7 @@ require (
 	gitlab.com/golang-commonmark/puny v0.0.0-20191124015043-9f83538fa04f // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
-	google.golang.org/grpc v1.61.0 // indirect
+	google.golang.org/grpc v1.61.1 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
 
