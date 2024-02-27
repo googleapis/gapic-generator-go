@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.0](https://github.com/googleapis/gapic-generator-go/compare/v0.40.0...v0.41.0) (2024-02-27)
+
+
+### Features
+
+* **gengapic:** Add support for AutoPopulatedFields UUID4 ([#1460](https://github.com/googleapis/gapic-generator-go/issues/1460)) ([2f3b7b9](https://github.com/googleapis/gapic-generator-go/commit/2f3b7b99c41b1a4083af215fb75658fcf3c4d30e))
+
 ## [0.40.0](https://github.com/googleapis/gapic-generator-go/compare/v0.39.4...v0.40.0) (2024-01-23)
 
 
