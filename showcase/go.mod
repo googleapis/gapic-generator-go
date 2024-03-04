@@ -9,8 +9,8 @@ require (
 	github.com/googleapis/gapic-showcase v0.31.0
 	github.com/googleapis/gax-go/v2 v2.12.2
 	google.golang.org/api v0.167.0
-	google.golang.org/genproto v0.0.0-20240221002015-b0ce06bbee7c
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240221002015-b0ce06bbee7c
+	google.golang.org/genproto v0.0.0-20240228224816-df926f6c8641
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240228224816-df926f6c8641
 	google.golang.org/grpc v1.61.1
 	google.golang.org/protobuf v1.32.0
 )
