@@ -138,6 +138,11 @@ func ExampleFooClient_GetManyThings() {
 		}
 		// TODO: Use resp.
 		_ = resp
+
+		// TODO: Use the underlying response message.
+		// Only populated after first call to Next().
+		// Not safe for concurrent access.
+		_ = it.Response.(*mypackagepb.PageOutputType)
 	}
 }
 
@@ -292,6 +297,11 @@ func ExampleFooClient_ListLocations() {
 		}
 		// TODO: Use resp.
 		_ = resp
+
+		// TODO: Use the underlying response message.
+		// Only populated after first call to Next().
+		// Not safe for concurrent access.
+		_ = it.Response.(*locationpb.ListLocationsResponse)
 	}
 }
 
@@ -423,6 +433,11 @@ func ExampleFooClient_ListOperations() {
 		}
 		// TODO: Use resp.
 		_ = resp
+
+		// TODO: Use the underlying response message.
+		// Only populated after first call to Next().
+		// Not safe for concurrent access.
+		_ = it.Response.(*longrunningpb.ListOperationsResponse)
 	}
 }
 

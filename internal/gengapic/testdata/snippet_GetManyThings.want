@@ -26,6 +26,11 @@ func main() {
 		}
 		// TODO: Use resp.
 		_ = resp
+
+		// TODO: Use the underlying response message.
+		// Only populated after first call to Next().
+		// Not safe for concurrent access.
+		_ = it.Response.(*mypackagepb.PageOutputType)
 	}
 }
 

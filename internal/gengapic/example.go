@@ -147,7 +147,9 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 		return err
 	}
 	if pf != nil {
-		g.examplePagingCall(m)
+		if err := g.examplePagingCall(m); err != nil {
+			return err
+		}
 	} else if g.isLRO(m) || g.isCustomOp(m, httpInfo) {
 		g.exampleLROCall(m)
 	} else if *m.OutputType == emptyType {
@@ -211,10 +213,20 @@ func (g *generator) exampleEmptyCall(m *descriptor.MethodDescriptorProto) {
 	p("}")
 }
 
-func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
+func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) error {
+	outType := g.descInfo.Type[m.GetOutputType()]
+	if outType == nil {
+		return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetOutputType())
+	}
+
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+
 	p := g.printf
 
-	p("it := c.%s(ctx, req)", *m.Name)
+	p("it := c.%s(ctx, req)", m.GetName())
 	p("for {")
 	p("  resp, err := it.Next()")
 	p("  if err == iterator.Done {")
@@ -225,9 +237,16 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) {
 	p("  }")
 	p("  // TODO: Use resp.")
 	p("  _ = resp")
+	p("")
+	p("  // TODO: Use the underlying response message.")
+	p("  // Only populated after first call to Next().")
+	p("  // Not safe for concurrent access.")
+	p("  _ = it.Response.(*%s.%s)", outSpec.Name, outType.GetName())
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
+	g.imports[outSpec] = true
+	return nil
 }
 
 func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType pbinfo.ProtoType, inSpec pbinfo.ImportSpec) {
