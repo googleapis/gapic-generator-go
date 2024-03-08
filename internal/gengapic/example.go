@@ -238,9 +238,10 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) error
 	p("  // TODO: Use resp.")
 	p("  _ = resp")
 	p("")
-	p("  // TODO: Use the underlying response message.")
-	p("  // Only populated after first call to Next().")
-	p("  // Not safe for concurrent access.")
+	p("  // If you need to access the underlying RPC response,")
+	p("  // you can do so by casting the `Response` as below.")
+	p("  // Otherwise, remove this line. Only populated after")
+	p("  // first call to Next(). Not safe for concurrent access.")
 	p("  _ = it.Response.(*%s.%s)", outSpec.Name, outType.GetName())
 	p("}")
 
