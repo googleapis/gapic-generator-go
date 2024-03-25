@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.1](https://github.com/googleapis/gapic-generator-go/compare/v0.41.0...v0.41.1) (2024-03-25)
+
+
+### Bug Fixes
+
+* **internal/gengapic:** Add iter response access example ([#1468](https://github.com/googleapis/gapic-generator-go/issues/1468)) ([02e6c65](https://github.com/googleapis/gapic-generator-go/commit/02e6c65e2df34e5bcb1c85460a2a422db971d843))
+
 ## [0.41.0](https://github.com/googleapis/gapic-generator-go/compare/v0.40.0...v0.41.0) (2024-02-27)
 
 
