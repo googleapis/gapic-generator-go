@@ -45,7 +45,8 @@ curl -L -O https://github.com/googleapis/gapic-showcase/releases/download/v$SHOW
 
 protoc \
 	--experimental_allow_proto3_optional \
-	--go_out=plugins=grpc:./gen \
+	--go_out ./gen \
+	--go-grpc_out ./gen \
 	--go_gapic_out ./gen \
 	--go_gapic_opt 'transport=rest+grpc' \
 	--go_gapic_opt 'rest-numeric-enums' \
