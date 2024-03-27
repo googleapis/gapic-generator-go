@@ -19,9 +19,9 @@ import (
 	"log"
 	"os"
 
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/gencli"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var genReq plugin.CodeGeneratorRequest
+	var genReq pluginpb.CodeGeneratorRequest
 	if err := proto.Unmarshal(reqBytes, &genReq); err != nil {
 		log.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		genResp.Error = proto.String(err.Error())
 	}
-	genResp.SupportedFeatures = proto.Uint64(uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
+	genResp.SupportedFeatures = proto.Uint64(uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
 
 	outBytes, err := proto.Marshal(genResp)
 	if err != nil {
