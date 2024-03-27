@@ -4,7 +4,6 @@ require (
 	cloud.google.com/go/iam v1.1.7
 	cloud.google.com/go/longrunning v0.5.6
 	github.com/ghodss/yaml v1.0.0
-	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
 	github.com/jhump/protoreflect v1.15.6
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
@@ -17,6 +16,7 @@ require (
 
 require (
 	github.com/bufbuild/protocompile v0.8.0 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	gitlab.com/golang-commonmark/html v0.0.0-20191124015941-a22733972181 // indirect
 	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20191124015652-932350d1cb84 // indirect

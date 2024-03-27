@@ -20,8 +20,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -35,9 +33,11 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/apipb"
 	duration "google.golang.org/protobuf/types/known/durationpb"
 	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 func TestClientHook(t *testing.T) {
@@ -134,14 +134,14 @@ func TestClientOpt(t *testing.T) {
 		grpcConf: grpcConf,
 	}
 
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
-		Method: []*descriptor.MethodDescriptorProto{
-			{Name: proto.String("Zip"), Options: &descriptor.MethodOptions{}},
-			{Name: proto.String("Zap"), Options: &descriptor.MethodOptions{}},
+		Method: []*descriptorpb.MethodDescriptorProto{
+			{Name: proto.String("Zip"), Options: &descriptorpb.MethodOptions{}},
+			{Name: proto.String("Zap"), Options: &descriptorpb.MethodOptions{}},
 			{Name: proto.String("Smack")},
 		},
-		Options: &descriptor.ServiceOptions{},
+		Options: &descriptorpb.ServiceOptions{},
 	}
 	proto.SetExtension(serv.Options, annotations.E_DefaultHost, "foo.googleapis.com")
 
@@ -157,36 +157,36 @@ func TestClientOpt(t *testing.T) {
 		},
 	})
 
-	servHostPort := &descriptor.ServiceDescriptorProto{
+	servHostPort := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("ServHostPort"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{Name: proto.String("Smack")},
 		},
-		Options: &descriptor.ServiceOptions{},
+		Options: &descriptorpb.ServiceOptions{},
 	}
 	proto.SetExtension(servHostPort.Options, annotations.E_DefaultHost, "foo.googleapis.com:1234")
 
-	servIAMOverride := &descriptor.ServiceDescriptorProto{
+	servIAMOverride := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("ServIamOverride"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{Name: proto.String("GetIamPolicy")},
 			{Name: proto.String("SetIamPolicy")},
 			{Name: proto.String("TestIamPermissions")},
 		},
-		Options: &descriptor.ServiceOptions{},
+		Options: &descriptorpb.ServiceOptions{},
 	}
 	proto.SetExtension(servIAMOverride.Options, annotations.E_DefaultHost, "foo.googleapis.com:1234")
 
-	f := &descriptor.FileDescriptorProto{
+	f := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("bar"),
-		Service: []*descriptor.ServiceDescriptorProto{serv, servHostPort, servIAMOverride},
+		Service: []*descriptorpb.ServiceDescriptorProto{serv, servHostPort, servIAMOverride},
 	}
 	files := append(g.getMixinFiles(), f)
 	g.descInfo = pbinfo.Of(files)
 
 	for _, tst := range []struct {
 		tstName, servName string
-		serv              *descriptor.ServiceDescriptorProto
+		serv              *descriptorpb.ServiceDescriptorProto
 		hasOverride       bool
 		imports           map[pbinfo.ImportSpec]bool
 	}{
@@ -259,7 +259,7 @@ func TestClientOpt(t *testing.T) {
 }
 
 func TestServiceDoc(t *testing.T) {
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("MyService"),
 	}
 
@@ -300,7 +300,7 @@ func TestServiceDoc(t *testing.T) {
 		},
 	} {
 		g.comments[serv] = tst.in
-		serv.Options = &descriptor.ServiceOptions{
+		serv.Options = &descriptorpb.ServiceOptions{
 			Deprecated: proto.Bool(tst.deprecated),
 		}
 		g.pt.Reset()
@@ -316,56 +316,56 @@ func TestClientInit(t *testing.T) {
 	g.apiName = "Awesome Foo API"
 	g.imports = map[pbinfo.ImportSpec]bool{}
 
-	cop := &descriptor.DescriptorProto{
+	cop := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
 
-	servPlain := &descriptor.ServiceDescriptorProto{
+	servPlain := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{
 				Name:       proto.String("Zip"),
 				InputType:  proto.String(".mypackage.Bar"),
 				OutputType: proto.String(".mypackage.Foo"),
-				Options:    &descriptor.MethodOptions{},
+				Options:    &descriptorpb.MethodOptions{},
 			},
 		},
 	}
-	servLRO := &descriptor.ServiceDescriptorProto{
+	servLRO := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{
 				Name:       proto.String("Zip"),
 				InputType:  proto.String(".mypackage.Bar"),
 				OutputType: proto.String(".google.longrunning.Operation"),
-				Options:    &descriptor.MethodOptions{},
+				Options:    &descriptorpb.MethodOptions{},
 			},
 		},
 	}
-	servDeprecated := &descriptor.ServiceDescriptorProto{
+	servDeprecated := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{
 				Name:       proto.String("Zip"),
 				InputType:  proto.String(".mypackage.Bar"),
 				OutputType: proto.String(".mypackage.Foo"),
-				Options:    &descriptor.MethodOptions{},
+				Options:    &descriptorpb.MethodOptions{},
 			},
 		},
-		Options: &descriptor.ServiceOptions{
+		Options: &descriptorpb.ServiceOptions{
 			Deprecated: proto.Bool(true),
 		},
 	}
 
-	opS := &descriptor.ServiceDescriptorProto{
+	opS := &descriptorpb.ServiceDescriptorProto{
 		Name:   proto.String("FooOperationService"),
-		Method: []*descriptor.MethodDescriptorProto{},
+		Method: []*descriptorpb.MethodDescriptorProto{},
 	}
 
-	customOpOpts := &descriptor.MethodOptions{}
-	servCustomOp := &descriptor.ServiceDescriptorProto{
+	customOpOpts := &descriptorpb.MethodOptions{}
+	servCustomOp := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{
 				Name:       proto.String("Zip"),
 				InputType:  proto.String(".mypackage.Bar"),
@@ -374,7 +374,7 @@ func TestClientInit(t *testing.T) {
 			},
 		},
 	}
-	for _, s := range []*descriptor.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
+	for _, s := range []*descriptorpb.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
 		proto.SetExtension(s.Method[0].GetOptions(), annotations.E_Http, &annotations.HttpRule{
 			Pattern: &annotations.HttpRule_Get{
 				Get: "/zip",
@@ -386,8 +386,8 @@ func TestClientInit(t *testing.T) {
 		tstName      string
 		servName     string
 		mixins       mixins
-		serv         *descriptor.ServiceDescriptorProto
-		customOpServ *descriptor.ServiceDescriptorProto
+		serv         *descriptorpb.ServiceDescriptorProto
+		customOpServ *descriptorpb.ServiceDescriptorProto
 		parameter    *string
 		imports      map[pbinfo.ImportSpec]bool
 		wantNumSnps  int
@@ -523,13 +523,13 @@ func TestClientInit(t *testing.T) {
 			ext, value := setExt()
 			proto.SetExtension(tst.serv.Method[0].GetOptions(), ext, value)
 
-			fds := append(mixinDescriptors(), &descriptor.FileDescriptorProto{
+			fds := append(mixinDescriptors(), &descriptorpb.FileDescriptorProto{
 				Package: proto.String("mypackage"),
-				Options: &descriptor.FileOptions{
+				Options: &descriptorpb.FileOptions{
 					GoPackage: proto.String("github.com/googleapis/mypackage/v1"),
 				},
-				Service: []*descriptor.ServiceDescriptorProto{tst.serv, tst.customOpServ},
-				MessageType: []*descriptor.DescriptorProto{
+				Service: []*descriptorpb.ServiceDescriptorProto{tst.serv, tst.customOpServ},
+				MessageType: []*descriptorpb.DescriptorProto{
 					{
 						Name: proto.String("Bar"),
 					},
@@ -539,7 +539,7 @@ func TestClientInit(t *testing.T) {
 					cop,
 				},
 			})
-			request := plugin.CodeGeneratorRequest{
+			request := pluginpb.CodeGeneratorRequest{
 				Parameter: tst.parameter,
 				ProtoFile: fds,
 			}
@@ -561,7 +561,7 @@ func TestClientInit(t *testing.T) {
 				message: cop,
 			}
 			if tst.customOpServ != nil {
-				g.customOpServices = map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
+				g.customOpServices = map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{
 					tst.serv: tst.customOpServ,
 				}
 			}
@@ -630,8 +630,8 @@ func TestGenerateDefaultAudience(t *testing.T) {
 }
 
 // mixinDescriptors is used for testing purposes only.
-func mixinDescriptors() []*descriptor.FileDescriptorProto {
-	files := []*descriptor.FileDescriptorProto{}
+func mixinDescriptors() []*descriptorpb.FileDescriptorProto {
+	files := []*descriptorpb.FileDescriptorProto{}
 	for _, fds := range mixinFiles {
 		files = append(files, fds...)
 	}

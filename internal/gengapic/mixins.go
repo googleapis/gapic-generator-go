@@ -21,12 +21,12 @@ import (
 
 	iam "cloud.google.com/go/iam/apiv1/iampb"
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/cloud/location"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func init() {
@@ -35,13 +35,13 @@ func init() {
 
 var apiVersionRegexp = regexp.MustCompile(`v\d+[a-z]*\d*[a-z]*\d*`)
 
-var mixinFiles map[string][]*descriptor.FileDescriptorProto
+var mixinFiles map[string][]*descriptorpb.FileDescriptorProto
 
-type mixins map[string][]*descriptor.MethodDescriptorProto
+type mixins map[string][]*descriptorpb.MethodDescriptorProto
 
 // initMixinFiles allows test code to re-initialize the mixinFiles global.
 func initMixinFiles() {
-	mixinFiles = map[string][]*descriptor.FileDescriptorProto{
+	mixinFiles = map[string][]*descriptorpb.FileDescriptorProto{
 		"google.cloud.location.Locations": {
 			protodesc.ToFileDescriptorProto(location.File_google_cloud_location_locations_proto),
 		},
@@ -72,9 +72,9 @@ func (g *generator) collectMixins() {
 // http.rules section. The MethodDescriptorProto.options are overwritten with
 // that same google.api.http binding. Furthermore, a basic leading comment is
 // defined for the method to be generated.
-func (g *generator) collectMixinMethods(api string) []*descriptor.MethodDescriptorProto {
-	methods := map[string]*descriptor.MethodDescriptorProto{}
-	methodsToGenerate := []*descriptor.MethodDescriptorProto{}
+func (g *generator) collectMixinMethods(api string) []*descriptorpb.MethodDescriptorProto {
+	methods := map[string]*descriptorpb.MethodDescriptorProto{}
+	methodsToGenerate := []*descriptorpb.MethodDescriptorProto{}
 
 	// Note: Triple nested loops are nasty, but this is tightly bound and really
 	// the only way to traverse proto descriptors that are backed by slices.
@@ -117,8 +117,8 @@ func (g *generator) collectMixinMethods(api string) []*descriptor.MethodDescript
 
 // getMixinFiles returns a set of file descriptors for the APIs configured to be
 // mixed in.
-func (g *generator) getMixinFiles() []*descriptor.FileDescriptorProto {
-	files := []*descriptor.FileDescriptorProto{}
+func (g *generator) getMixinFiles() []*descriptorpb.FileDescriptorProto {
+	files := []*descriptorpb.FileDescriptorProto{}
 	for key := range g.mixins {
 		files = append(files, mixinFiles[key]...)
 	}
@@ -127,8 +127,8 @@ func (g *generator) getMixinFiles() []*descriptor.FileDescriptorProto {
 
 // getMixinMethods is a convenience method to collect the method descriptors of
 // those methods to be generated based on if they should be included or not.
-func (g *generator) getMixinMethods() []*descriptor.MethodDescriptorProto {
-	methods := []*descriptor.MethodDescriptorProto{}
+func (g *generator) getMixinMethods() []*descriptorpb.MethodDescriptorProto {
+	methods := []*descriptorpb.MethodDescriptorProto{}
 	if g.hasLocationMixin() {
 		methods = append(methods, g.mixins["google.cloud.location.Locations"]...)
 	}
@@ -210,7 +210,7 @@ func (g *generator) hasLocationMixin() bool {
 // IAMPolicy RPC and sets the hasIAMpolicyOverrides generator flag if so. If set
 // to true, the IAMPolicy mixin will not be generated on any service client. This
 // is for backwards compatibility with existing IAMPolicy redefinitions.
-func (g *generator) checkIAMPolicyOverrides(servs []*descriptor.ServiceDescriptorProto) {
+func (g *generator) checkIAMPolicyOverrides(servs []*descriptorpb.ServiceDescriptorProto) {
 	iam, hasMixin := g.mixins["google.iam.v1.IAMPolicy"]
 	if !hasMixin {
 		return

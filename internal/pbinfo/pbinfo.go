@@ -20,8 +20,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // ProtoType represents a type in protobuf descriptors.
@@ -37,7 +37,7 @@ type ProtoType interface {
 type Info struct {
 	// Maps services and messages to the file containing them,
 	// so we can figure out the import.
-	ParentFile map[proto.Message]*descriptor.FileDescriptorProto
+	ParentFile map[proto.Message]*descriptorpb.FileDescriptorProto
 
 	// NOTE(pongad): ParentElement and sub-types are only used in samples.
 	// They are added in the shared package because they share a lot of similarities
@@ -52,7 +52,7 @@ type Info struct {
 	Type map[string]ProtoType
 
 	// Maps service names to their descriptors.
-	Serv map[string]*descriptor.ServiceDescriptorProto
+	Serv map[string]*descriptorpb.ServiceDescriptorProto
 
 	// PkgOverrides is file-to-import mapping used to override the
 	// go_package option in the given proto file.
@@ -60,12 +60,12 @@ type Info struct {
 }
 
 // Of creates Info from given protobuf files.
-func Of(files []*descriptor.FileDescriptorProto) Info {
+func Of(files []*descriptorpb.FileDescriptorProto) Info {
 	info := Info{
-		ParentFile:    map[proto.Message]*descriptor.FileDescriptorProto{},
+		ParentFile:    map[proto.Message]*descriptorpb.FileDescriptorProto{},
 		ParentElement: map[ProtoType]ProtoType{},
 		Type:          map[string]ProtoType{},
-		Serv:          map[string]*descriptor.ServiceDescriptorProto{},
+		Serv:          map[string]*descriptorpb.ServiceDescriptorProto{},
 		PkgOverrides:  map[string]string{},
 	}
 
@@ -104,7 +104,7 @@ func Of(files []*descriptor.FileDescriptorProto) Info {
 	return info
 }
 
-func addMessage(typMap map[string]ProtoType, parentMap map[ProtoType]ProtoType, prefix string, msg, parentMsg *descriptor.DescriptorProto) {
+func addMessage(typMap map[string]ProtoType, parentMap map[ProtoType]ProtoType, prefix string, msg, parentMsg *descriptorpb.DescriptorProto) {
 	fullName := prefix + "." + msg.GetName()
 	typMap[fullName] = msg
 	if parentMsg != nil {

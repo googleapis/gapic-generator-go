@@ -14,23 +14,23 @@
 
 package pbinfo
 
-import "github.com/golang/protobuf/protoc-gen-go/descriptor"
+import "google.golang.org/protobuf/types/descriptorpb"
 
 // GoTypeForPrim maps protobuf primitive types to Go primitive types.
-var GoTypeForPrim = map[descriptor.FieldDescriptorProto_Type]string{
-	descriptor.FieldDescriptorProto_TYPE_DOUBLE:   "float64",
-	descriptor.FieldDescriptorProto_TYPE_FLOAT:    "float32",
-	descriptor.FieldDescriptorProto_TYPE_INT64:    "int64",
-	descriptor.FieldDescriptorProto_TYPE_UINT64:   "uint64",
-	descriptor.FieldDescriptorProto_TYPE_INT32:    "int32",
-	descriptor.FieldDescriptorProto_TYPE_FIXED64:  "uint64",
-	descriptor.FieldDescriptorProto_TYPE_FIXED32:  "uint32",
-	descriptor.FieldDescriptorProto_TYPE_BOOL:     "bool",
-	descriptor.FieldDescriptorProto_TYPE_STRING:   "string",
-	descriptor.FieldDescriptorProto_TYPE_BYTES:    "[]byte",
-	descriptor.FieldDescriptorProto_TYPE_UINT32:   "uint32",
-	descriptor.FieldDescriptorProto_TYPE_SFIXED32: "int32",
-	descriptor.FieldDescriptorProto_TYPE_SFIXED64: "int64",
-	descriptor.FieldDescriptorProto_TYPE_SINT32:   "int32",
-	descriptor.FieldDescriptorProto_TYPE_SINT64:   "int64",
+var GoTypeForPrim = map[descriptorpb.FieldDescriptorProto_Type]string{
+	descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:   "float64",
+	descriptorpb.FieldDescriptorProto_TYPE_FLOAT:    "float32",
+	descriptorpb.FieldDescriptorProto_TYPE_INT64:    "int64",
+	descriptorpb.FieldDescriptorProto_TYPE_UINT64:   "uint64",
+	descriptorpb.FieldDescriptorProto_TYPE_INT32:    "int32",
+	descriptorpb.FieldDescriptorProto_TYPE_FIXED64:  "uint64",
+	descriptorpb.FieldDescriptorProto_TYPE_FIXED32:  "uint32",
+	descriptorpb.FieldDescriptorProto_TYPE_BOOL:     "bool",
+	descriptorpb.FieldDescriptorProto_TYPE_STRING:   "string",
+	descriptorpb.FieldDescriptorProto_TYPE_BYTES:    "[]byte",
+	descriptorpb.FieldDescriptorProto_TYPE_UINT32:   "uint32",
+	descriptorpb.FieldDescriptorProto_TYPE_SFIXED32: "int32",
+	descriptorpb.FieldDescriptorProto_TYPE_SFIXED64: "int64",
+	descriptorpb.FieldDescriptorProto_TYPE_SINT32:   "int32",
+	descriptorpb.FieldDescriptorProto_TYPE_SINT64:   "int64",
 }
