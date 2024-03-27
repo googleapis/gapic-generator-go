@@ -18,8 +18,8 @@ import (
 	"io"
 	"log"
 
-	duration "github.com/golang/protobuf/ptypes/duration"
 	"google.golang.org/protobuf/encoding/protojson"
+	duration "google.golang.org/protobuf/types/known/durationpb"
 )
 
 // Config represents parsed mapping of the gRPC ServiceConfig contents

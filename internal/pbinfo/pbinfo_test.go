@@ -17,7 +17,6 @@ package pbinfo
 import (
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
@@ -36,14 +35,14 @@ func TestNameSpec(t *testing.T) {
 		Name: proto.String("AnotherMessage"),
 	}
 	file := &descriptorpb.FileDescriptorProto{
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("path.to/pb/foo;foo"),
 		},
 		MessageType: []*descriptorpb.DescriptorProto{msg},
 	}
 	anotherFile := &descriptorpb.FileDescriptorProto{
 		Name: proto.String("bar.proto"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("path.to/pb/bar;bar"),
 		},
 		MessageType: []*descriptorpb.DescriptorProto{anotherMsg},
