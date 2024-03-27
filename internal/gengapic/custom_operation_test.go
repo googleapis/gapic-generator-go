@@ -19,7 +19,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
@@ -31,7 +30,7 @@ import (
 
 func TestCustomOpProtoName(t *testing.T) {
 	pkg := "google.cloud.foo.v1"
-	op := &descriptor.DescriptorProto{
+	op := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
 	g := &generator{
@@ -56,7 +55,7 @@ func TestCustomOpProtoName(t *testing.T) {
 }
 
 func TestCustomPointerTyp(t *testing.T) {
-	op := &descriptor.DescriptorProto{
+	op := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
 	g := &generator{
@@ -69,7 +68,7 @@ func TestCustomPointerTyp(t *testing.T) {
 			ParentFile: map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
 				op: {
 					Package: proto.String("google.cloud.foo.v1"),
-					Options: &descriptor.FileOptions{
+					Options: &descriptorpb.FileOptions{
 						GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
 					},
 				},
@@ -87,30 +86,30 @@ func TestCustomPointerTyp(t *testing.T) {
 }
 
 func TestCustomOpInit(t *testing.T) {
-	op := &descriptor.DescriptorProto{
+	op := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
-	projFieldOpts := &descriptor.FieldOptions{}
+	projFieldOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(projFieldOpts, extendedops.E_OperationRequestField, "project")
-	projField := &descriptor.FieldDescriptorProto{
+	projField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("request_project"),
 		Options: projFieldOpts,
 	}
-	zoneFieldOpts := &descriptor.FieldOptions{}
+	zoneFieldOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(zoneFieldOpts, extendedops.E_OperationRequestField, "zone")
-	zoneField := &descriptor.FieldDescriptorProto{
+	zoneField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("request_zone"),
 		Options: zoneFieldOpts,
 	}
-	req := &descriptor.DescriptorProto{
-		Field: []*descriptor.FieldDescriptorProto{projField, zoneField},
+	req := &descriptorpb.DescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{projField, zoneField},
 	}
-	opServ := &descriptor.ServiceDescriptorProto{Name: proto.String("FooOperationService")}
+	opServ := &descriptorpb.ServiceDescriptorProto{Name: proto.String("FooOperationService")}
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
 				message: op,
-				pollingParams: map[*descriptor.ServiceDescriptorProto][]string{
+				pollingParams: map[*descriptorpb.ServiceDescriptorProto][]string{
 					opServ: {"project", "zone"},
 				},
 			},
@@ -122,49 +121,49 @@ func TestCustomOpInit(t *testing.T) {
 }
 
 func TestCustomOperationType(t *testing.T) {
-	errorType := &descriptor.DescriptorProto{
+	errorType := &descriptorpb.DescriptorProto{
 		Name: proto.String("Error"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("nested"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 		},
 	}
-	errorField := &descriptor.FieldDescriptorProto{
+	errorField := &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("error"),
-		Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+		Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 		TypeName: proto.String("Error"),
 	}
 
-	errorCodeOpts := &descriptor.FieldOptions{}
+	errorCodeOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(errorCodeOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_ERROR_CODE)
-	errorCodeField := &descriptor.FieldDescriptorProto{
+	errorCodeField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("http_error_status_code"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type:    descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Options: errorCodeOpts,
 	}
 
-	errorMessageOpts := &descriptor.FieldOptions{}
+	errorMessageOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(errorMessageOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_ERROR_MESSAGE)
-	errorMessageField := &descriptor.FieldDescriptorProto{
+	errorMessageField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("http_error_message"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type:    descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Options: errorMessageOpts,
 	}
 
-	nameOpts := &descriptor.FieldOptions{}
+	nameOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(nameOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_NAME)
-	nameField := &descriptor.FieldDescriptorProto{
+	nameField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("name"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type:    descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Options: nameOpts,
 	}
 
-	statusEnum := &descriptor.EnumDescriptorProto{
+	statusEnum := &descriptorpb.EnumDescriptorProto{
 		Name: proto.String("Status"),
-		Value: []*descriptor.EnumValueDescriptorProto{
+		Value: []*descriptorpb.EnumValueDescriptorProto{
 			{
 				Name:   proto.String("DONE"),
 				Number: proto.Int32(0),
@@ -172,44 +171,44 @@ func TestCustomOperationType(t *testing.T) {
 		},
 	}
 
-	statusOpts := &descriptor.FieldOptions{}
+	statusOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(statusOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_STATUS)
-	statusEnumField := &descriptor.FieldDescriptorProto{
+	statusEnumField := &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("status"),
-		Type:     descriptor.FieldDescriptorProto_TYPE_ENUM.Enum(),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum(),
 		TypeName: proto.String(".google.cloud.foo.v1.Operation.Status"),
 		Options:  statusOpts,
 	}
 
-	statusBoolField := &descriptor.FieldDescriptorProto{
+	statusBoolField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("status"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_BOOL.Enum(),
+		Type:    descriptorpb.FieldDescriptorProto_TYPE_BOOL.Enum(),
 		Options: statusOpts,
 	}
 
-	op := &descriptor.DescriptorProto{
+	op := &descriptorpb.DescriptorProto{
 		Name:     proto.String("Operation"),
-		EnumType: []*descriptor.EnumDescriptorProto{statusEnum},
+		EnumType: []*descriptorpb.EnumDescriptorProto{statusEnum},
 	}
 
-	inNameOpts := &descriptor.FieldOptions{}
+	inNameOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(inNameOpts, extendedops.E_OperationResponseField, nameField.GetName())
-	inNameField := &descriptor.FieldDescriptorProto{
+	inNameField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("operation"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type:    descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Options: inNameOpts,
 	}
 
-	getOpts := &descriptor.MethodOptions{}
+	getOpts := &descriptorpb.MethodOptions{}
 	proto.SetExtension(getOpts, extendedops.E_OperationPollingMethod, true)
-	getInput := &descriptor.DescriptorProto{
+	getInput := &descriptorpb.DescriptorProto{
 		Name:  proto.String("GetFooOperationRequest"),
-		Field: []*descriptor.FieldDescriptorProto{inNameField},
+		Field: []*descriptorpb.FieldDescriptorProto{inNameField},
 	}
 
-	fooOpServ := &descriptor.ServiceDescriptorProto{
+	fooOpServ := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("FooOperationsService"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{
 				Name:      proto.String("Get"),
 				InputType: proto.String(".google.cloud.foo.v1.GetFooOperationRequest"),
@@ -218,19 +217,19 @@ func TestCustomOperationType(t *testing.T) {
 		},
 	}
 
-	f := &descriptor.FileDescriptorProto{
+	f := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("google.cloud.foo.v1"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
 		},
-		Service: []*descriptor.ServiceDescriptorProto{fooOpServ},
+		Service: []*descriptorpb.ServiceDescriptorProto{fooOpServ},
 	}
 	g := &generator{
 		aux: &auxTypes{
 			customOp: &customOp{
 				message: op,
-				handles: []*descriptor.ServiceDescriptorProto{fooOpServ},
-				pollingParams: map[*descriptor.ServiceDescriptorProto][]string{
+				handles: []*descriptorpb.ServiceDescriptorProto{fooOpServ},
+				pollingParams: map[*descriptorpb.ServiceDescriptorProto][]string{
 					fooOpServ: {"project", "zone"},
 				},
 			},
@@ -254,7 +253,7 @@ func TestCustomOperationType(t *testing.T) {
 	}
 	for _, tst := range []struct {
 		name       string
-		st         *descriptor.FieldDescriptorProto
+		st         *descriptorpb.FieldDescriptorProto
 		errorField bool
 	}{
 		{
@@ -268,7 +267,7 @@ func TestCustomOperationType(t *testing.T) {
 		},
 	} {
 		t.Run(tst.name, func(t *testing.T) {
-			op.Field = []*descriptor.FieldDescriptorProto{errorCodeField, errorMessageField, nameField, tst.st}
+			op.Field = []*descriptorpb.FieldDescriptorProto{errorCodeField, errorMessageField, nameField, tst.st}
 			if tst.errorField {
 				op.Field = append(op.Field, errorField)
 			}

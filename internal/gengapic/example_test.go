@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
@@ -27,6 +26,7 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/apipb"
 )
 
@@ -49,50 +49,50 @@ func TestExample(t *testing.T) {
 		},
 	}
 
-	inputType := &descriptor.DescriptorProto{
+	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
 	}
-	outputType := &descriptor.DescriptorProto{
+	outputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("OutputType"),
 	}
 
-	pageInputType := &descriptor.DescriptorProto{
+	pageInputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageInputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("page_size"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
 				Name:  proto.String("page_token"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 		},
 	}
-	pageOutputType := &descriptor.DescriptorProto{
+	pageOutputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageOutputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("next_page_token"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
 				Name:  proto.String("items"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_REPEATED),
 			},
 		},
 	}
 
-	cop := &descriptor.DescriptorProto{
+	cop := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
 
-	file := &descriptor.FileDescriptorProto{
-		Options: &descriptor.FileOptions{
+	file := &descriptorpb.FileDescriptorProto{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
 		Package: proto.String("my.pkg"),
@@ -101,16 +101,16 @@ func TestExample(t *testing.T) {
 	emptyLRO := &longrunning.OperationInfo{
 		ResponseType: emptyValue,
 	}
-	emptyLROOpts := &descriptor.MethodOptions{}
+	emptyLROOpts := &descriptorpb.MethodOptions{}
 	proto.SetExtension(emptyLROOpts, longrunning.E_OperationInfo, emptyLRO)
 
 	respLRO := &longrunning.OperationInfo{
 		ResponseType: "my.pkg.OutputType",
 	}
-	respLROOpts := &descriptor.MethodOptions{}
+	respLROOpts := &descriptorpb.MethodOptions{}
 	proto.SetExtension(respLROOpts, longrunning.E_OperationInfo, respLRO)
 
-	customOpOpts := &descriptor.MethodOptions{}
+	customOpOpts := &descriptorpb.MethodOptions{}
 	proto.SetExtension(customOpOpts, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/customOp",
@@ -118,16 +118,16 @@ func TestExample(t *testing.T) {
 	})
 
 	commonTypes(&g)
-	for _, typ := range []*descriptor.DescriptorProto{
+	for _, typ := range []*descriptorpb.DescriptorProto{
 		inputType, outputType, pageInputType, pageOutputType, cop,
 	} {
 		g.descInfo.Type[".my.pkg."+typ.GetName()] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{
 				Name:       proto.String("GetEmptyThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
@@ -293,32 +293,32 @@ func TestGenSnippetFile(t *testing.T) {
 	pkgName := "bigquerymigration"
 	g.snippetMetadata = snippets.NewMetadata(protoPkg, libPkg, pkgName)
 
-	inputType := &descriptor.DescriptorProto{
+	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("CreateMigrationWorkflowRequest"),
 	}
-	outputType := &descriptor.DescriptorProto{
+	outputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("MigrationWorkflow"),
 	}
 
-	file := &descriptor.FileDescriptorProto{
-		Options: &descriptor.FileOptions{
+	file := &descriptorpb.FileDescriptorProto{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("cloud.google.com/go/bigquery/migration/apiv2/migrationpb"),
 		},
 		Package: proto.String(protoPkg),
 	}
 
-	files := []*descriptor.FileDescriptorProto{}
+	files := []*descriptorpb.FileDescriptorProto{}
 	g.descInfo = pbinfo.Of(files)
-	for _, typ := range []*descriptor.DescriptorProto{
+	for _, typ := range []*descriptorpb.DescriptorProto{
 		inputType, outputType,
 	} {
 		g.descInfo.Type[".google.cloud.bigquery.migration.v2."+typ.GetName()] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("MigrationService"),
-		Method: []*descriptor.MethodDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{
 				Name:       proto.String("CreateMigrationWorkflow"),
 				InputType:  proto.String(".google.cloud.bigquery.migration.v2.CreateMigrationWorkflowRequest"),
@@ -364,15 +364,15 @@ func TestGenSnippetFile(t *testing.T) {
 }
 
 func commonTypes(g *generator) {
-	empty := &descriptor.DescriptorProto{
+	empty := &descriptorpb.DescriptorProto{
 		Name: proto.String("Empty"),
 	}
-	emptyFile := &descriptor.FileDescriptorProto{
+	emptyFile := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("google.protobuf"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("google.golang.org/protobuf/types/known/emptypb"),
 		},
-		MessageType: []*descriptor.DescriptorProto{empty},
+		MessageType: []*descriptorpb.DescriptorProto{empty},
 	}
 
 	files := append(g.getMixinFiles(), emptyFile)
