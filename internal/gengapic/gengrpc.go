@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func lowcaseGRPCClientName(servName string) string {
@@ -34,7 +34,7 @@ func lowcaseGRPCClientName(servName string) string {
 	return lowerFirst(servName + "GRPCClient")
 }
 
-func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) genGRPCMethods(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
@@ -49,7 +49,7 @@ func (g *generator) genGRPCMethods(serv *descriptor.ServiceDescriptorProto, serv
 
 // genGRPCMethod generates a single method from a client. m must be a method declared in serv.
 // If the generated method requires an auxillary type, it is added to aux.
-func (g *generator) genGRPCMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) genGRPCMethod(servName string, serv *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	// Check if the RPC returns google.longrunning.Operation.
 	if g.isLRO(m) {
 		if err := g.maybeAddOperationWrapper(m); err != nil {
@@ -83,7 +83,7 @@ func (g *generator) genGRPCMethod(servName string, serv *descriptor.ServiceDescr
 	}
 }
 
-func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescriptorProto) error {
 	inType := g.descInfo.Type[*m.InputType]
 	outType := g.descInfo.Type[*m.OutputType]
 
@@ -127,7 +127,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptor.MethodDescripto
 	return nil
 }
 
-func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDescriptorProto) error {
 	inType := g.descInfo.Type[*m.InputType]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
@@ -159,13 +159,13 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptor.MethodDesc
 	return nil
 }
 
-func (g *generator) grpcStubCall(method *descriptor.MethodDescriptorProto) string {
+func (g *generator) grpcStubCall(method *descriptorpb.MethodDescriptorProto) string {
 	service := g.descInfo.ParentElement[method]
 	stub := pbinfo.ReduceServName(service.GetName(), g.opts.pkgName)
 	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(stub), method.GetName())
 }
 
-func (g *generator) grpcClientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
 	// defaultClientOptions
@@ -198,7 +198,7 @@ func (g *generator) grpcClientOptions(serv *descriptor.ServiceDescriptorProto, s
 	return nil
 }
 
-func (g *generator) grpcCallOptions(serv *descriptor.ServiceDescriptorProto, servName string) {
+func (g *generator) grpcCallOptions(serv *descriptorpb.ServiceDescriptorProto, servName string) {
 	p := g.printf
 
 	// defaultCallOptions
@@ -259,7 +259,7 @@ func (g *generator) grpcCallOptions(serv *descriptor.ServiceDescriptorProto, ser
 	p("")
 }
 
-func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
 	// We DON'T want to export the transport layers.
@@ -304,7 +304,7 @@ func (g *generator) grpcClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.grpcClientUtilities(serv, servName, imp, hasRPCForLRO)
 }
 
-func (g *generator) grpcClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
 	clientName := camelToSnake(serv.GetName())

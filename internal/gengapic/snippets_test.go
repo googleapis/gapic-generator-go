@@ -19,12 +19,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestSnippetsOutDir(t *testing.T) {
@@ -56,54 +56,54 @@ func TestSnippetsOutDir(t *testing.T) {
 }
 
 func TestGenAndCommitSnippets(t *testing.T) {
-	inputType := &descriptor.DescriptorProto{
+	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("biz"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_DOUBLE),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_DOUBLE),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 		},
 	}
-	outputType := &descriptor.DescriptorProto{
+	outputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("OutputType"),
 	}
-	pageInputType := &descriptor.DescriptorProto{
+	pageInputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageInputType"),
-		Field: append(inputType.GetField(), &descriptor.FieldDescriptorProto{
+		Field: append(inputType.GetField(), &descriptorpb.FieldDescriptorProto{
 			Name:  proto.String("page_size"),
-			Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-			Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-		}, &descriptor.FieldDescriptorProto{
+			Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
+			Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
+		}, &descriptorpb.FieldDescriptorProto{
 			Name:  proto.String("page_token"),
-			Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-			Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+			Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 		}),
 	}
-	paginatedField := &descriptor.FieldDescriptorProto{
+	paginatedField := &descriptorpb.FieldDescriptorProto{
 		Name:  proto.String("items"),
-		Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-		Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+		Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+		Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_REPEATED),
 	}
-	pageOutputType := &descriptor.DescriptorProto{
+	pageOutputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageOutputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("next_page_token"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			paginatedField,
 		},
 	}
-	file := &descriptor.FileDescriptorProto{
+	file := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("my.pkg"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
 	}
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 	}
 
@@ -134,11 +134,11 @@ func TestGenAndCommitSnippets(t *testing.T) {
 
 	for _, tst := range []struct {
 		wantNil bool
-		m       *descriptor.MethodDescriptorProto
+		m       *descriptorpb.MethodDescriptorProto
 		imports map[pbinfo.ImportSpec]bool
 	}{
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetEmptyThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
 				OutputType: proto.String(emptyType),
@@ -150,7 +150,7 @@ func TestGenAndCommitSnippets(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetOneThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
 				OutputType: proto.String(".my.pkg.OutputType"),
@@ -162,7 +162,7 @@ func TestGenAndCommitSnippets(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetManyThings"),
 				InputType:  proto.String(".my.pkg.PageInputType"),
 				OutputType: proto.String(".my.pkg.PageOutputType"),
@@ -177,7 +177,7 @@ func TestGenAndCommitSnippets(t *testing.T) {
 		{
 			// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODOs.
 			wantNil: true,
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:            proto.String("ServerThings"),
 				InputType:       proto.String(".my.pkg.InputType"),
 				OutputType:      proto.String(".my.pkg.OutputType"),
@@ -188,7 +188,7 @@ func TestGenAndCommitSnippets(t *testing.T) {
 		{
 			// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODOs.
 			wantNil: true,
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:            proto.String("ClientThings"),
 				InputType:       proto.String(".my.pkg.InputType"),
 				OutputType:      proto.String(".my.pkg.OutputType"),
@@ -197,7 +197,7 @@ func TestGenAndCommitSnippets(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:            proto.String("BidiThings"),
 				InputType:       proto.String(".my.pkg.InputType"),
 				OutputType:      proto.String(".my.pkg.OutputType"),
@@ -215,7 +215,7 @@ func TestGenAndCommitSnippets(t *testing.T) {
 		t.Run(tst.m.GetName(), func(t *testing.T) {
 			g.reset()
 			g.descInfo.ParentElement[tst.m] = serv
-			serv.Method = []*descriptor.MethodDescriptorProto{
+			serv.Method = []*descriptorpb.MethodDescriptorProto{
 				tst.m,
 			}
 			g.aux = &auxTypes{
