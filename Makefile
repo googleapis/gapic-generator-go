@@ -26,9 +26,9 @@ install:
 
 update-bazel-repos:
 	bazelisk run //:gazelle -- update-repos -from_file=go.mod -prune -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
-	sed -i "s/    \"go_repository\",//g" repositories.bzl
+	sed -i ''  "s/    \"go_repository\",//g" repositories.bzl
 	bazelisk run //:gazelle -- update-repos -from_file=showcase/go.mod -to_macro=repositories.bzl%com_googleapis_gapic_generator_go_repositories
-	sed -i  "s/    \"go_repository\",//g" repositories.bzl
+	sed -i ''  "s/    \"go_repository\",//g" repositories.bzl
 
 gazelle:
 	bazelisk run //:gazelle
