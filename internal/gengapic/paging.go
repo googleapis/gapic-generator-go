@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // iterType describes iterators used by paging RPCs.
@@ -34,11 +34,11 @@ type iterType struct {
 // iterTypeOf deduces iterType from a field to be iterated over.
 // elemField should be the "resource" of a paginating RPC.
 // TODO(dovs): augment with paged map iterators
-func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*iterType, error) {
+func (g *generator) iterTypeOf(elemField *descriptorpb.FieldDescriptorProto) (*iterType, error) {
 	var pt iterType
 
 	switch t := *elemField.Type; {
-	case t == descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+	case t == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
 		eType := g.descInfo.Type[elemField.GetTypeName()]
 
 		imp, err := g.descInfo.ImportSpec(eType)
@@ -50,7 +50,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 		// to match the generated Go type name.
 		typeName := g.nestedName(eType)
 
-		eMsg, ok := eType.(*descriptor.DescriptorProto)
+		eMsg, ok := eType.(*descriptorpb.DescriptorProto)
 		if !ok {
 			return nil, fmt.Errorf("cannot find message type %q, malformed descriptor", eType)
 		}
@@ -61,7 +61,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 		pt.iterTypeName = typeName + "Iterator"
 
 		if eMsg.GetOptions().GetMapEntry() {
-			var valueField *descriptor.FieldDescriptorProto
+			var valueField *descriptorpb.FieldDescriptorProto
 			for _, f := range eMsg.GetField() {
 				if f.GetName() == "value" {
 					valueField = f
@@ -74,7 +74,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 
 			// The most common case is mapping to messages,
 			// but check in case it's a primitive.
-			if valueField.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+			if valueField.GetType() == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
 				vType := g.descInfo.Type[valueField.GetTypeName()]
 				n, imp, err := g.descInfo.NameSpec(vType)
 				if err != nil {
@@ -92,10 +92,10 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 
 		pt.elemImports = []pbinfo.ImportSpec{imp}
 
-	case t == descriptor.FieldDescriptorProto_TYPE_ENUM:
+	case t == descriptorpb.FieldDescriptorProto_TYPE_ENUM:
 		log.Panic("iterating enum not supported yet")
 
-	case t == descriptor.FieldDescriptorProto_TYPE_BYTES:
+	case t == descriptorpb.FieldDescriptorProto_TYPE_BYTES:
 		pt.elemTypeName = "[]byte"
 		pt.iterTypeName = "BytesIterator"
 
@@ -120,7 +120,7 @@ func (g *generator) iterTypeOf(elemField *descriptor.FieldDescriptorProto) (*ite
 // and the "num elements" field that tells the server the maximum number of elements to return per page.
 // Makes particular allowance for diregapic idioms: maps can be paginated over,
 // and either 'page_size' XOR 'max_results' are allowable fields in the request.
-func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeatedField, pageSizeField *descriptor.FieldDescriptorProto, e error) {
+func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repeatedField, pageSizeField *descriptorpb.FieldDescriptorProto, e error) {
 	// TODO: remove this once the next version of the Talent API is published.
 	//
 	// This is a workaround to disable auto-pagination for specifc RPCs in
@@ -141,7 +141,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	if inType == nil {
 		return nil, nil, fmt.Errorf("expected %q to be message type, found %T", m.GetInputType(), inType)
 	}
-	inMsg, ok := inType.(*descriptor.DescriptorProto)
+	inMsg, ok := inType.(*descriptorpb.DescriptorProto)
 	if !ok {
 		return nil, nil, fmt.Errorf("cannot find message type %q, malformed descriptor", m.GetInputType())
 	}
@@ -150,14 +150,14 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	if outType == nil {
 		return nil, nil, fmt.Errorf("expected %q to be message type, found %T", m.GetOutputType(), outType)
 	}
-	outMsg, ok := outType.(*descriptor.DescriptorProto)
+	outMsg, ok := outType.(*descriptorpb.DescriptorProto)
 	if !ok {
 		return nil, nil, fmt.Errorf("cannot find message type %q, malformed descriptor", m.GetOutputType())
 	}
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		isInt32 := f.GetType() == descriptor.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptor.FieldDescriptorProto_TYPE_UINT32
+		isInt32 := f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_UINT32
 		if (f.GetName() == "page_size" || f.GetName() == "max_results") && isInt32 {
 			if pageSizeField != nil {
 				return nil, nil, fmt.Errorf("found both page_size and max_results fields in message %q", m.GetInputType())
@@ -166,7 +166,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 			continue
 		}
 
-		hasPageToken = hasPageToken || (f.GetName() == "page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)
+		hasPageToken = hasPageToken || (f.GetName() == "page_token" && f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_STRING)
 	}
 
 	if !hasPageToken || pageSizeField == nil {
@@ -176,7 +176,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 
 	hasNextPageToken := false
 	for _, f := range outMsg.GetField() {
-		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+		if f.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
 
 			if repeatedField != nil {
 				// Multiple repeated fields are tacitly okay as long as the
@@ -192,7 +192,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 			repeatedField = f
 		}
 
-		hasNextPageToken = hasNextPageToken || (f.GetName() == "next_page_token" && f.GetType() == descriptor.FieldDescriptorProto_TYPE_STRING)
+		hasNextPageToken = hasNextPageToken || (f.GetName() == "next_page_token" && f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_STRING)
 	}
 
 	if !hasNextPageToken || repeatedField == nil {
@@ -202,7 +202,7 @@ func (g *generator) getPagingFields(m *descriptor.MethodDescriptorProto) (repeat
 	return repeatedField, pageSizeField, nil
 }
 
-func (g *generator) maybeSortMapPage(elemField *descriptor.FieldDescriptorProto, pt *iterType) string {
+func (g *generator) maybeSortMapPage(elemField *descriptorpb.FieldDescriptorProto, pt *iterType) string {
 	p := g.printf
 
 	repeatedField, elems := fmt.Sprintf("resp%s", fieldGetter(elemField.GetName())), ""
@@ -241,7 +241,7 @@ func (g *generator) makeFetchAndIterUpdate(pageSizeFieldName string) {
 	p("return it")
 }
 
-func (g *generator) internalFetchSetup(outType *descriptor.DescriptorProto, outSpec pbinfo.ImportSpec, tok, pageSizeFieldName, max, ps string) {
+func (g *generator) internalFetchSetup(outType *descriptorpb.DescriptorProto, outSpec pbinfo.ImportSpec, tok, pageSizeFieldName, max, ps string) {
 	p := g.printf
 
 	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
@@ -255,9 +255,9 @@ func (g *generator) internalFetchSetup(outType *descriptor.DescriptorProto, outS
 	p("  }")
 }
 
-func (g *generator) pagingCall(servName string, m *descriptor.MethodDescriptorProto, elemField, pageSize *descriptor.FieldDescriptorProto, pt *iterType) error {
-	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
-	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
+func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptorProto, elemField, pageSize *descriptorpb.FieldDescriptorProto, pt *iterType) error {
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptorpb.DescriptorProto)
+	outType := g.descInfo.Type[m.GetOutputType()].(*descriptorpb.DescriptorProto)
 
 	// We DON'T want to export the transport layers.
 	lowcaseServName := lowerFirst(servName + "GRPCClient")

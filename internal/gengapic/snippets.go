@@ -19,13 +19,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 // newSnippetsMetadata initializes the model that will collect snippet metadata.
@@ -39,7 +38,7 @@ func (g *generator) newSnippetsMetadata(protoPkg string) *snippets.SnippetMetada
 
 // addSnippetsMetadataDoc sets the documentation for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
-func (g *generator) addSnippetsMetadataDoc(m *descriptor.MethodDescriptorProto, servName, doc string) {
+func (g *generator) addSnippetsMetadataDoc(m *descriptorpb.MethodDescriptorProto, servName, doc string) {
 	if g.opts.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
@@ -49,7 +48,7 @@ func (g *generator) addSnippetsMetadataDoc(m *descriptor.MethodDescriptorProto, 
 
 // addSnippetsMetadataParams sets the parameters for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
-func (g *generator) addSnippetsMetadataParams(m *descriptor.MethodDescriptorProto, servName, requestType string) {
+func (g *generator) addSnippetsMetadataParams(m *descriptorpb.MethodDescriptorProto, servName, requestType string) {
 	if g.opts.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
@@ -59,7 +58,7 @@ func (g *generator) addSnippetsMetadataParams(m *descriptor.MethodDescriptorProt
 
 // addSnippetsMetadataResult sets the result type for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
-func (g *generator) addSnippetsMetadataResult(m *descriptor.MethodDescriptorProto, servName, resultType string) {
+func (g *generator) addSnippetsMetadataResult(m *descriptorpb.MethodDescriptorProto, servName, resultType string) {
 	if g.opts.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
@@ -69,7 +68,7 @@ func (g *generator) addSnippetsMetadataResult(m *descriptor.MethodDescriptorProt
 
 // genAndCommitSnippets generates and commits a snippet file for each method in a client.
 // Does nothing and returns nil if opts.omitSnippets is true.
-func (g *generator) genAndCommitSnippets(s *descriptor.ServiceDescriptorProto) error {
+func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto) error {
 	if g.opts.omitSnippets {
 		return nil
 	}
@@ -94,7 +93,7 @@ func (g *generator) genAndCommitSnippets(s *descriptor.ServiceDescriptorProto) e
 		// Get the original proto namespace for the method (different from `s` only for mixins).
 		f := g.descInfo.ParentFile[m]
 		// Get the original proto service for the method (different from `s` only for mixins).
-		methodServ := (g.descInfo.ParentElement[m]).(*descriptor.ServiceDescriptorProto)
+		methodServ := (g.descInfo.ParentElement[m]).(*descriptorpb.ServiceDescriptorProto)
 		lineCount := g.commit(filepath.Join(g.snippetsOutDir(), clientName, m.GetName(), "main.go"), "main")
 		g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
 	}
@@ -102,7 +101,7 @@ func (g *generator) genAndCommitSnippets(s *descriptor.ServiceDescriptorProto) e
 }
 
 // genSnippetFile generates a single RPC snippet by leveraging exampleMethodBody in gengapic/example.go.
-func (g *generator) genSnippetFile(s *descriptor.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
+func (g *generator) genSnippetFile(s *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	regionTag := g.snippetMetadata.RegionTag(s.GetName(), m.GetName())
 	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
 	pkgName := g.opts.pkgName
@@ -131,7 +130,7 @@ func (g *generator) genAndCommitSnippetMetadata(protoPkg string) error {
 		return err
 	}
 	file := filepath.Join(g.snippetsOutDir(), fmt.Sprintf("snippet_metadata.%s.json", protoPkg))
-	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+	g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
 		Name:    proto.String(file),
 		Content: proto.String(string(json[:])),
 	})

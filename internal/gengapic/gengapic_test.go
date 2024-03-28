@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -132,127 +131,127 @@ func TestGRPCClientField(t *testing.T) {
 // TODO(chrisdsmith): Expand this test to invoke Gen (or at least gen) in gengapic.go,
 // otherwise move it to gengrpc_test.go. (genGRPCMethods was extracted to gengrpc.go on 2021-05-04.)
 func TestGenGRPCMethods(t *testing.T) {
-	extra := &descriptor.DescriptorProto{
+	extra := &descriptorpb.DescriptorProto{
 		Name: proto.String("ExtraMessage"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("nested"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 		},
 	}
 
-	topLevelEnum := &descriptor.EnumDescriptorProto{
+	topLevelEnum := &descriptorpb.EnumDescriptorProto{
 		Name: proto.String("TopLevelEnum"),
 	}
-	nestedEnum := &descriptor.EnumDescriptorProto{
+	nestedEnum := &descriptorpb.EnumDescriptorProto{
 		Name: proto.String("NestedEnum"),
 	}
 
 	optsUUID4 := &descriptorpb.FieldOptions{}
 	proto.SetExtension(optsUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
 
-	inputType := &descriptor.DescriptorProto{
+	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("other"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
 				Name:  proto.String("another"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
 				Name:  proto.String("biz"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_DOUBLE),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_DOUBLE),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
 				Name:     proto.String("field_name"),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
-				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
+				Label:    labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 				TypeName: proto.String(".my.pkg.ExtraMessage"),
 			},
 			{
 				Name:     proto.String("top_level_enum"),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_ENUM),
 				TypeName: proto.String(".my.pkg.TopLevelEnum"),
 			},
 			{
 				Name:     proto.String("nested_enum"),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_ENUM),
 				TypeName: proto.String(".my.pkg.InputType.NestedEnum"),
 			},
 			{
 				Name:           proto.String("request_id"),
-				Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:           typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label:          labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 				Proto3Optional: proto.Bool(true),
 				Options:        optsUUID4,
 			},
 			{
 				Name:    proto.String("non_proto3optional_request_id"),
-				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:    typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label:   labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 				Options: optsUUID4,
 			},
 		},
-		EnumType: []*descriptor.EnumDescriptorProto{
+		EnumType: []*descriptorpb.EnumDescriptorProto{
 			nestedEnum,
 		},
 	}
-	outputType := &descriptor.DescriptorProto{
+	outputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("OutputType"),
 	}
 
-	pageInputType := &descriptor.DescriptorProto{
+	pageInputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageInputType"),
-		Field: append(inputType.GetField(), &descriptor.FieldDescriptorProto{
+		Field: append(inputType.GetField(), &descriptorpb.FieldDescriptorProto{
 			Name:  proto.String("page_size"),
-			Type:  typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-			Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
-		}, &descriptor.FieldDescriptorProto{
+			Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
+			Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
+		}, &descriptorpb.FieldDescriptorProto{
 			Name:  proto.String("page_token"),
-			Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-			Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+			Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 		}),
 	}
-	pageInputTypeOptional := &descriptor.DescriptorProto{
+	pageInputTypeOptional := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageInputTypeOptional"),
-		Field: append(inputType.GetField(), &descriptor.FieldDescriptorProto{
+		Field: append(inputType.GetField(), &descriptorpb.FieldDescriptorProto{
 			Name:           proto.String("page_size"),
-			Type:           typep(descriptor.FieldDescriptorProto_TYPE_INT32),
-			Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			Type:           typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
+			Label:          labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			Proto3Optional: proto.Bool(true),
-		}, &descriptor.FieldDescriptorProto{
+		}, &descriptorpb.FieldDescriptorProto{
 			Name:           proto.String("page_token"),
-			Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-			Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+			Type:           typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+			Label:          labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			Proto3Optional: proto.Bool(true),
 		}),
 	}
-	paginatedField := &descriptor.FieldDescriptorProto{
+	paginatedField := &descriptorpb.FieldDescriptorProto{
 		Name:  proto.String("items"),
-		Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-		Label: labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
+		Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+		Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_REPEATED),
 	}
-	pageOutputType := &descriptor.DescriptorProto{
+	pageOutputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageOutputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:  proto.String("next_page_token"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			paginatedField,
 		},
 	}
 
-	opts := &descriptor.MethodOptions{}
+	opts := &descriptorpb.MethodOptions{}
 	ext := &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: "/v1/{field_name.nested=projects/*/foo/*}/bars/{other=bar/*/baz/*}/buz",
@@ -277,7 +276,7 @@ func TestGenGRPCMethods(t *testing.T) {
 	}
 	proto.SetExtension(opts, annotations.E_Http, ext)
 
-	optsGetAnotherThing := &descriptor.MethodOptions{}
+	optsGetAnotherThing := &descriptorpb.MethodOptions{}
 	extGetAnotherThing := &annotations.RoutingRule{
 		RoutingParameters: []*annotations.RoutingParameter{
 			{
@@ -311,17 +310,17 @@ func TestGenGRPCMethods(t *testing.T) {
 	}
 	proto.SetExtension(optsGetAnotherThing, annotations.E_Routing, extGetAnotherThing)
 
-	optsGetManyOtherThings := &descriptor.MethodOptions{}
+	optsGetManyOtherThings := &descriptorpb.MethodOptions{}
 	extGetManyOtherThings := &annotations.RoutingRule{}
 	proto.SetExtension(optsGetManyOtherThings, annotations.E_Routing, extGetManyOtherThings)
 
-	file := &descriptor.FileDescriptorProto{
+	file := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("my.pkg"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
 	}
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 	}
 
@@ -397,11 +396,11 @@ func TestGenGRPCMethods(t *testing.T) {
 	g.descInfo.Type[n] = nestedEnum
 
 	for _, tst := range []struct {
-		m       *descriptor.MethodDescriptorProto
+		m       *descriptorpb.MethodDescriptorProto
 		imports map[pbinfo.ImportSpec]bool
 	}{
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetEmptyThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
 				OutputType: proto.String(emptyType),
@@ -415,7 +414,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetOneThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
 				OutputType: proto.String(".my.pkg.OutputType"),
@@ -429,7 +428,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetManyThings"),
 				InputType:  proto.String(".my.pkg.PageInputType"),
 				OutputType: proto.String(".my.pkg.PageOutputType"),
@@ -444,7 +443,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetManyThingsOptional"),
 				InputType:  proto.String(".my.pkg.PageInputTypeOptional"),
 				OutputType: proto.String(".my.pkg.PageOutputType"),
@@ -459,7 +458,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:            proto.String("ServerThings"),
 				InputType:       proto.String(".my.pkg.InputType"),
 				OutputType:      proto.String(".my.pkg.OutputType"),
@@ -473,7 +472,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:            proto.String("ClientThings"),
 				InputType:       proto.String(".my.pkg.InputType"),
 				OutputType:      proto.String(".my.pkg.OutputType"),
@@ -485,7 +484,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 		},
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:            proto.String("BidiThings"),
 				InputType:       proto.String(".my.pkg.InputType"),
 				OutputType:      proto.String(".my.pkg.OutputType"),
@@ -499,7 +498,7 @@ func TestGenGRPCMethods(t *testing.T) {
 		},
 		// Test for dynamic routing header annotations.
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetAnotherThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
 				OutputType: proto.String(".my.pkg.OutputType"),
@@ -515,7 +514,7 @@ func TestGenGRPCMethods(t *testing.T) {
 		},
 		// Test for empty dynamic routing annotation, so no headers should be sent.
 		{
-			m: &descriptor.MethodDescriptorProto{
+			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetManyOtherThings"),
 				InputType:  proto.String(".my.pkg.PageInputType"),
 				OutputType: proto.String(".my.pkg.PageOutputType"),
@@ -531,7 +530,7 @@ func TestGenGRPCMethods(t *testing.T) {
 		t.Run(tst.m.GetName(), func(t *testing.T) {
 			g.reset()
 			g.descInfo.ParentElement[tst.m] = serv
-			serv.Method = []*descriptor.MethodDescriptorProto{
+			serv.Method = []*descriptorpb.MethodDescriptorProto{
 				tst.m,
 			}
 
@@ -590,10 +589,10 @@ func TestContainsDeprecated(t *testing.T) {
 func TestMethodDoc(t *testing.T) {
 	servName := "Foo"
 	methodName := "MyMethod"
-	m := &descriptor.MethodDescriptorProto{
+	m := &descriptorpb.MethodDescriptorProto{
 		Name: proto.String(methodName),
 	}
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String(servName),
 	}
 
@@ -649,7 +648,7 @@ func TestMethodDoc(t *testing.T) {
 		sm.AddMethod(servName, methodName, "mypackage", servName, 50)
 		g.snippetMetadata = sm
 		g.comments[m] = tst.in
-		m.Options = &descriptor.MethodOptions{
+		m.Options = &descriptorpb.MethodOptions{
 			Deprecated: proto.Bool(tst.deprecated),
 		}
 		m.ClientStreaming = proto.Bool(tst.clientStreaming)
@@ -674,23 +673,23 @@ func TestMethodDoc(t *testing.T) {
 }
 
 func TestGenOperationBuilders(t *testing.T) {
-	inputType := &descriptor.DescriptorProto{
+	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
 	}
-	outputType := &descriptor.DescriptorProto{
+	outputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("OutputType"),
 	}
-	metadataType := &descriptor.DescriptorProto{
+	metadataType := &descriptorpb.DescriptorProto{
 		Name: proto.String("MetadataType"),
 	}
 
-	file := &descriptor.FileDescriptorProto{
+	file := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("my.pkg"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
 	}
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 	}
 
@@ -728,7 +727,7 @@ func TestGenOperationBuilders(t *testing.T) {
 	}
 
 	commonTypes(&g)
-	for _, typ := range []*descriptor.DescriptorProto{
+	for _, typ := range []*descriptorpb.DescriptorProto{
 		inputType, outputType, metadataType,
 	} {
 		g.descInfo.Type[".my.pkg."+*typ.Name] = typ
@@ -741,17 +740,17 @@ func TestGenOperationBuilders(t *testing.T) {
 		ResponseType: emptyValue,
 		MetadataType: "MetadataType",
 	}
-	emptyLROOpts := &descriptor.MethodOptions{}
+	emptyLROOpts := &descriptorpb.MethodOptions{}
 	proto.SetExtension(emptyLROOpts, longrunning.E_OperationInfo, emptyLRO)
 
 	respLRO := &longrunning.OperationInfo{
 		ResponseType: "OutputType",
 		MetadataType: "MetadataType",
 	}
-	respLROOpts := &descriptor.MethodOptions{}
+	respLROOpts := &descriptorpb.MethodOptions{}
 	proto.SetExtension(respLROOpts, longrunning.E_OperationInfo, respLRO)
 
-	for _, m := range []*descriptor.MethodDescriptorProto{
+	for _, m := range []*descriptorpb.MethodDescriptorProto{
 		{
 			Name:       proto.String("EmptyLRO"),
 			InputType:  proto.String(".my.pkg.InputType"),
@@ -770,7 +769,7 @@ func TestGenOperationBuilders(t *testing.T) {
 			g.descInfo.ParentElement[m] = serv
 			g.descInfo.ParentFile[m] = file
 			g.aux = &auxTypes{
-				methodToWrapper: map[*descriptor.MethodDescriptorProto]operationWrapper{},
+				methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
 				opWrappers:      map[string]operationWrapper{},
 			}
 
@@ -810,12 +809,12 @@ func Test_buildAccessor(t *testing.T) {
 }
 
 func TestIsLRO(t *testing.T) {
-	lroGetOp := &descriptor.MethodDescriptorProto{
+	lroGetOp := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("GetOperation"),
 		OutputType: proto.String(".google.longrunning.Operation"),
 	}
 
-	actualLRO := &descriptor.MethodDescriptorProto{
+	actualLRO := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("SuperLongRPC"),
 		OutputType: proto.String(".google.longrunning.Operation"),
 	}
@@ -831,7 +830,7 @@ func TestIsLRO(t *testing.T) {
 	}
 
 	for _, tst := range []struct {
-		in   *descriptor.MethodDescriptorProto
+		in   *descriptorpb.MethodDescriptorProto
 		want bool
 	}{
 		{lroGetOp, false},
@@ -875,9 +874,9 @@ func Test_parseImplicitRequestHeaders(t *testing.T) {
 			{"{bar.bar_bar456", "bar.bar_bar456"},
 		}},
 	} {
-		m := &descriptor.MethodDescriptorProto{}
+		m := &descriptorpb.MethodDescriptorProto{}
 		if tst.pattern != "" {
-			m.Options = &descriptor.MethodOptions{}
+			m.Options = &descriptorpb.MethodOptions{}
 
 			setHTTPOption(m.Options, tst.pattern)
 		}
@@ -891,22 +890,22 @@ func Test_parseImplicitRequestHeaders(t *testing.T) {
 }
 
 func Test_ContainsDynamicRequestHeaders(t *testing.T) {
-	methodNoRule := &descriptor.MethodDescriptorProto{
+	methodNoRule := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("MethodNoRule"),
 		InputType:  proto.String(".my.pkg.InputType"),
 		OutputType: proto.String(".google.longrunning.Operation"),
-		Options:    &descriptor.MethodOptions{},
+		Options:    &descriptorpb.MethodOptions{},
 	}
 	proto.SetExtension(methodNoRule.GetOptions(), annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/operations",
 		},
 	})
-	methodOneRule := &descriptor.MethodDescriptorProto{
+	methodOneRule := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("MethodOneRule"),
 		InputType:  proto.String(".my.pkg.InputType"),
 		OutputType: proto.String(".google.longrunning.Operation"),
-		Options:    &descriptor.MethodOptions{},
+		Options:    &descriptorpb.MethodOptions{},
 	}
 	extRoutingOneRule := &annotations.RoutingRule{
 		RoutingParameters: []*annotations.RoutingParameter{
@@ -922,8 +921,8 @@ func Test_ContainsDynamicRequestHeaders(t *testing.T) {
 			Post: "/v1/operations",
 		},
 	})
-	methodEmptyRule := &descriptor.MethodDescriptorProto{
-		Options: &descriptor.MethodOptions{},
+	methodEmptyRule := &descriptorpb.MethodDescriptorProto{
+		Options: &descriptorpb.MethodOptions{},
 	}
 	extRoutingEmptyRule := &annotations.RoutingRule{
 		RoutingParameters: []*annotations.RoutingParameter{
@@ -931,8 +930,8 @@ func Test_ContainsDynamicRequestHeaders(t *testing.T) {
 		},
 	}
 	proto.SetExtension(methodEmptyRule.GetOptions(), annotations.E_Routing, extRoutingEmptyRule)
-	methodMultipleRules := &descriptor.MethodDescriptorProto{
-		Options: &descriptor.MethodOptions{},
+	methodMultipleRules := &descriptorpb.MethodDescriptorProto{
+		Options: &descriptorpb.MethodOptions{},
 	}
 	extRoutingMultipleRules := &annotations.RoutingRule{
 		RoutingParameters: []*annotations.RoutingParameter{
@@ -952,7 +951,7 @@ func Test_ContainsDynamicRequestHeaders(t *testing.T) {
 	proto.SetExtension(methodMultipleRules.GetOptions(), annotations.E_Routing, extRoutingMultipleRules)
 	for _, tst := range []struct {
 		want   bool
-		method *descriptor.MethodDescriptorProto
+		method *descriptorpb.MethodDescriptorProto
 	}{
 		{
 			method: methodOneRule,
@@ -979,52 +978,52 @@ func Test_ContainsDynamicRequestHeaders(t *testing.T) {
 }
 
 func Test_lookupField(t *testing.T) {
-	topLevelEnum := &descriptor.EnumDescriptorProto{
+	topLevelEnum := &descriptorpb.EnumDescriptorProto{
 		Name: proto.String("TopLevelEnum"),
 	}
 
-	extra := &descriptor.DescriptorProto{
+	extra := &descriptorpb.DescriptorProto{
 		Name: proto.String("ExtraMessage"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name: proto.String("leaf"),
-				Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Type: typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
 			},
 		},
 	}
 
-	inputType := &descriptor.DescriptorProto{
+	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name: proto.String("str"),
-				Type: typep(descriptor.FieldDescriptorProto_TYPE_STRING),
+				Type: typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
 			},
 			{
 				Name: proto.String("bool"),
-				Type: typep(descriptor.FieldDescriptorProto_TYPE_BOOL),
+				Type: typep(descriptorpb.FieldDescriptorProto_TYPE_BOOL),
 			},
 			{
 				Name: proto.String("int"),
-				Type: typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type: typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 			{
 				Name: proto.String("double"),
-				Type: typep(descriptor.FieldDescriptorProto_TYPE_DOUBLE),
+				Type: typep(descriptorpb.FieldDescriptorProto_TYPE_DOUBLE),
 			},
 			{
 				Name:     proto.String("msg"),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String("ExtraMessage"),
 			},
 			{
 				Name:     proto.String("top_level_enum"),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_ENUM),
 				TypeName: proto.String("TopLevelEnum"),
 			},
 			{
 				Name:     proto.String("nested_enum"),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_ENUM),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_ENUM),
 				TypeName: proto.String("NestedEnum"),
 			},
 		},
@@ -1039,43 +1038,43 @@ func Test_lookupField(t *testing.T) {
 
 	for _, tst := range []struct {
 		name, msg, field string
-		want             descriptor.FieldDescriptorProto_Type
+		want             descriptorpb.FieldDescriptorProto_Type
 	}{
 		{
 			name:  "string",
 			msg:   "InputType",
 			field: "str",
-			want:  descriptor.FieldDescriptorProto_TYPE_STRING,
+			want:  descriptorpb.FieldDescriptorProto_TYPE_STRING,
 		},
 		{
 			name:  "boolean",
 			msg:   "InputType",
 			field: "bool",
-			want:  descriptor.FieldDescriptorProto_TYPE_BOOL,
+			want:  descriptorpb.FieldDescriptorProto_TYPE_BOOL,
 		},
 		{
 			name:  "integer",
 			msg:   "InputType",
 			field: "int",
-			want:  descriptor.FieldDescriptorProto_TYPE_INT32,
+			want:  descriptorpb.FieldDescriptorProto_TYPE_INT32,
 		},
 		{
 			name:  "double",
 			msg:   "InputType",
 			field: "double",
-			want:  descriptor.FieldDescriptorProto_TYPE_DOUBLE,
+			want:  descriptorpb.FieldDescriptorProto_TYPE_DOUBLE,
 		},
 		{
 			name:  "nested field",
 			msg:   "InputType",
 			field: "msg.leaf",
-			want:  descriptor.FieldDescriptorProto_TYPE_STRING,
+			want:  descriptorpb.FieldDescriptorProto_TYPE_STRING,
 		},
 		{
 			name:  "top level enum",
 			msg:   "InputType",
 			field: "top_level_enum",
-			want:  descriptor.FieldDescriptorProto_TYPE_ENUM,
+			want:  descriptorpb.FieldDescriptorProto_TYPE_ENUM,
 		},
 	} {
 		got := g.lookupField(tst.msg, tst.field)
@@ -1087,36 +1086,36 @@ func Test_lookupField(t *testing.T) {
 }
 
 func TestGRPCStubCall(t *testing.T) {
-	getFoo := &descriptor.MethodDescriptorProto{
+	getFoo := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("GetFoo"),
 		InputType:  proto.String("google.protobuf.Empty"),
 		OutputType: proto.String("google.protobuf.Empty"),
 	}
-	getBar := &descriptor.MethodDescriptorProto{
+	getBar := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("GetBar"),
 		InputType:  proto.String("google.protobuf.Empty"),
 		OutputType: proto.String("google.protobuf.Empty"),
 	}
-	foo := &descriptor.FileDescriptorProto{
+	foo := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("google.foo.v1"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("google.golang.org/genproto/googleapis/foo/v1"),
 		},
 		Dependency: []string{"google.protobuf.Empty"},
-		Service: []*descriptor.ServiceDescriptorProto{
+		Service: []*descriptorpb.ServiceDescriptorProto{
 			{
 				Name:   proto.String("FooService"),
-				Method: []*descriptor.MethodDescriptorProto{getFoo},
+				Method: []*descriptorpb.MethodDescriptorProto{getFoo},
 			},
 			{
 				Name:   proto.String("BarService"),
-				Method: []*descriptor.MethodDescriptorProto{getBar},
+				Method: []*descriptorpb.MethodDescriptorProto{getBar},
 			},
 		},
 	}
 	var g generator
 	err := g.init(&pluginpb.CodeGeneratorRequest{
-		ProtoFile: []*descriptor.FileDescriptorProto{foo},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{foo},
 		Parameter: proto.String("go-gapic-package=cloud.google.com/go/foo/apiv1;foo"),
 	})
 	if err != nil {
@@ -1125,7 +1124,7 @@ func TestGRPCStubCall(t *testing.T) {
 
 	for _, tst := range []struct {
 		name, want string
-		in         *descriptor.MethodDescriptorProto
+		in         *descriptorpb.MethodDescriptorProto
 	}{
 		{
 			name: "foo.FooService.GetFoo",
@@ -1146,52 +1145,52 @@ func TestGRPCStubCall(t *testing.T) {
 }
 
 func TestReturnType(t *testing.T) {
-	op := &descriptor.DescriptorProto{
+	op := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
 	}
-	foo := &descriptor.DescriptorProto{
+	foo := &descriptorpb.DescriptorProto{
 		Name: proto.String("Foo"),
 	}
-	com := &descriptor.MethodDescriptorProto{
+	com := &descriptorpb.MethodDescriptorProto{
 		OutputType: proto.String(".google.cloud.foo.v1.Operation"),
-		Options:    &descriptor.MethodOptions{},
+		Options:    &descriptorpb.MethodOptions{},
 	}
 	proto.SetExtension(com.GetOptions(), annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/operations",
 		},
 	})
-	reg := &descriptor.MethodDescriptorProto{
+	reg := &descriptorpb.MethodDescriptorProto{
 		OutputType: proto.String(".google.cloud.foo.v1.Foo"),
-		Options:    &descriptor.MethodOptions{},
+		Options:    &descriptorpb.MethodOptions{},
 	}
 	proto.SetExtension(reg.GetOptions(), annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/operations",
 		},
 	})
-	get := &descriptor.MethodDescriptorProto{
+	get := &descriptorpb.MethodDescriptorProto{
 		OutputType: proto.String(".google.cloud.foo.v1.Operation"),
-		Options:    &descriptor.MethodOptions{},
+		Options:    &descriptorpb.MethodOptions{},
 	}
 	proto.SetExtension(get.GetOptions(), annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: "/v1/operations",
 		},
 	})
-	wait := &descriptor.MethodDescriptorProto{
+	wait := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("Wait"),
 		OutputType: proto.String(".google.cloud.foo.v1.Operation"),
-		Options:    &descriptor.MethodOptions{},
+		Options:    &descriptorpb.MethodOptions{},
 	}
 	proto.SetExtension(wait.GetOptions(), annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/operations",
 		},
 	})
-	f := &descriptor.FileDescriptorProto{
+	f := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("google.cloud.foo.v1"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
 		},
 	}
@@ -1218,7 +1217,7 @@ func TestReturnType(t *testing.T) {
 
 	for _, tst := range []struct {
 		name, want string
-		method     *descriptor.MethodDescriptorProto
+		method     *descriptorpb.MethodDescriptorProto
 	}{
 		{
 			name:   "custom_operation",
@@ -1252,52 +1251,52 @@ func TestReturnType(t *testing.T) {
 }
 
 func TestCollectServices(t *testing.T) {
-	libraryServ := &descriptor.ServiceDescriptorProto{
+	libraryServ := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Library"),
 	}
-	library := &descriptor.FileDescriptorProto{
+	library := &descriptorpb.FileDescriptorProto{
 		Name: proto.String("google/cloud/library/v1/library.proto"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("cloud.google.com/go/library/apiv1/librarypb;librarypb"),
 		},
-		Service: []*descriptor.ServiceDescriptorProto{libraryServ},
+		Service: []*descriptorpb.ServiceDescriptorProto{libraryServ},
 	}
 
 	for _, tst := range []struct {
 		name, goPkgPath string
 		toGen           []string
-		fileSet         []*descriptor.FileDescriptorProto
-		want            []*descriptor.ServiceDescriptorProto
+		fileSet         []*descriptorpb.FileDescriptorProto
+		want            []*descriptorpb.ServiceDescriptorProto
 	}{
 		{
 			name:      "simple",
 			goPkgPath: "cloud.google.com/go/library/apiv1",
 			toGen:     []string{library.GetName()},
-			fileSet:   []*descriptor.FileDescriptorProto{library},
-			want:      []*descriptor.ServiceDescriptorProto{libraryServ},
+			fileSet:   []*descriptorpb.FileDescriptorProto{library},
+			want:      []*descriptorpb.ServiceDescriptorProto{libraryServ},
 		},
 		{
 			name:      "ignore-mixins",
 			goPkgPath: "cloud.google.com/go/library/apiv1",
 			toGen:     []string{library.GetName()},
-			fileSet: []*descriptor.FileDescriptorProto{
+			fileSet: []*descriptorpb.FileDescriptorProto{
 				library,
 				mixinFiles["google.longrunning.Operations"][0],
 				mixinFiles["google.iam.v1.IAMPolicy"][0],
 				mixinFiles["google.cloud.location.Locations"][0],
 			},
-			want: []*descriptor.ServiceDescriptorProto{libraryServ},
+			want: []*descriptorpb.ServiceDescriptorProto{libraryServ},
 		},
 		{
 			name:      "include-iam-mixin",
 			goPkgPath: "cloud.google.com/go/iam/apiv1",
 			toGen:     []string{mixinFiles["google.iam.v1.IAMPolicy"][0].GetName()},
-			fileSet: []*descriptor.FileDescriptorProto{
+			fileSet: []*descriptorpb.FileDescriptorProto{
 				mixinFiles["google.longrunning.Operations"][0],
 				mixinFiles["google.iam.v1.IAMPolicy"][0],
 				mixinFiles["google.cloud.location.Locations"][0],
 			},
-			want: []*descriptor.ServiceDescriptorProto{mixinFiles["google.iam.v1.IAMPolicy"][0].GetService()[0]},
+			want: []*descriptorpb.ServiceDescriptorProto{mixinFiles["google.iam.v1.IAMPolicy"][0].GetService()[0]},
 		},
 	} {
 		g := &generator{opts: &options{pkgPath: tst.goPkgPath}}
@@ -1311,7 +1310,7 @@ func TestCollectServices(t *testing.T) {
 	}
 }
 
-func setHTTPOption(o *descriptor.MethodOptions, pattern string) {
+func setHTTPOption(o *descriptorpb.MethodOptions, pattern string) {
 	proto.SetExtension(o, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: pattern,

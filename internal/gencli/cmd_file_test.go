@@ -18,9 +18,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestCommandFile(t *testing.T) {
@@ -46,7 +46,7 @@ func TestCommandFile(t *testing.T) {
 		Flags: []*Flag{
 			&Flag{
 				Name:      "task",
-				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				Required:  true,
 				FieldName: "Task",
 				VarName:   "CreateTodoInput",
@@ -56,14 +56,14 @@ func TestCommandFile(t *testing.T) {
 				Name:      "done",
 				FieldName: "Done",
 				VarName:   "CreateTodoInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_BOOL,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_BOOL,
 				Usage:     "task completion status",
 				Optional:  true,
 			},
 			&Flag{
 				Name:          "priority",
 				FieldName:     "Priority",
-				Type:          descriptor.FieldDescriptorProto_TYPE_ENUM,
+				Type:          descriptorpb.FieldDescriptorProto_TYPE_ENUM,
 				Usage:         "importance of the task",
 				Message:       "Priority",
 				MessageImport: pbinfo.ImportSpec{Name: "todopb"},
@@ -93,7 +93,7 @@ func TestCommandFile(t *testing.T) {
 				Name:      "id",
 				FieldName: "Id",
 				VarName:   "StartTodoInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_INT32,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_INT32,
 				Required:  true,
 				Usage:     "task to start",
 			},
@@ -134,7 +134,7 @@ func TestCommandFile(t *testing.T) {
 				Name:      "id",
 				FieldName: "Id",
 				VarName:   "WatchTodoInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_INT32,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_INT32,
 				Required:  true,
 				Usage:     "task to watch",
 			},

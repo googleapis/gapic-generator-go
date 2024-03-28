@@ -15,8 +15,8 @@
 package gengapic
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -54,7 +54,7 @@ var wellKnownStringTypes = []string{
 	".google.protobuf.BytesValue",
 }
 
-var wellKnownTypeFiles = []*descriptor.FileDescriptorProto{
+var wellKnownTypeFiles = []*descriptorpb.FileDescriptorProto{
 	protodesc.ToFileDescriptorProto(emptypb.File_google_protobuf_empty_proto),
 	protodesc.ToFileDescriptorProto(anypb.File_google_protobuf_any_proto),
 	protodesc.ToFileDescriptorProto(structpb.File_google_protobuf_struct_proto),

@@ -18,21 +18,21 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/cloud/extendedops"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // customOp represents a custom operation type for long running operations.
 type customOp struct {
-	message       *descriptor.DescriptorProto
-	handles       []*descriptor.ServiceDescriptorProto
-	pollingParams map[*descriptor.ServiceDescriptorProto][]string
+	message       *descriptorpb.DescriptorProto
+	handles       []*descriptorpb.ServiceDescriptorProto
+	pollingParams map[*descriptorpb.ServiceDescriptorProto][]string
 }
 
 // isCustomOp determines if the given method should return a custom operation wrapper.
-func (g *generator) isCustomOp(m *descriptor.MethodDescriptorProto, info *httpInfo) bool {
+func (g *generator) isCustomOp(m *descriptorpb.MethodDescriptorProto, info *httpInfo) bool {
 	return g.opts.diregapic && // Generator in DIREGAPIC mode.
 		g.aux.customOp != nil && // API Defines a custom operation.
 		m.GetOutputType() == g.customOpProtoName() && // Method returns the custom operation.
@@ -69,7 +69,7 @@ func (g *generator) customOpPointerType() (string, error) {
 // customOpInit builds a string containing the Go code for initializing the
 // operation wrapper type with the Go identifier for a variable that is the
 // proto-defined operation type.
-func (g *generator) customOpInit(rspVar, reqVar, opVar string, req *descriptor.DescriptorProto, s *descriptor.ServiceDescriptorProto) {
+func (g *generator) customOpInit(rspVar, reqVar, opVar string, req *descriptorpb.DescriptorProto, s *descriptorpb.ServiceDescriptorProto) {
 	h := handleName(s.GetName(), g.opts.pkgName)
 	opName := g.aux.customOp.message.GetName()
 	pt := g.pt.Printf
@@ -204,7 +204,7 @@ func (g *generator) customOperationType() error {
 
 		// Look up polling method and its input.
 		poll := operationPollingMethod(handle)
-		pollReq := g.descInfo.Type[poll.GetInputType()].(*descriptor.DescriptorProto)
+		pollReq := g.descInfo.Type[poll.GetInputType()].(*descriptorpb.DescriptorProto)
 		pollNameField := operationResponseField(pollReq, opNameField.GetName())
 		// Look up the fields for error code and error message.
 		errorCodeField := operationField(op.message, extendedops.OperationResponseMapping_ERROR_CODE)
@@ -274,9 +274,9 @@ func (g *generator) customOperationType() error {
 // to the service that owns the method(s) declaring it, as well as collects the set of
 // operation services for handle generation, and maps the polling request parameters to
 // that same operation service descriptor.
-func (g *generator) loadCustomOpServices(servs []*descriptor.ServiceDescriptorProto) {
+func (g *generator) loadCustomOpServices(servs []*descriptorpb.ServiceDescriptorProto) {
 	handles := g.aux.customOp.handles
-	pollingParams := map[*descriptor.ServiceDescriptorProto][]string{}
+	pollingParams := map[*descriptorpb.ServiceDescriptorProto][]string{}
 	for _, serv := range servs {
 		for _, meth := range serv.GetMethod() {
 			if opServ := g.customOpService(meth); opServ != nil {
@@ -295,7 +295,7 @@ func (g *generator) loadCustomOpServices(servs []*descriptor.ServiceDescriptorPr
 
 // customOpService loads the ServiceDescriptorProto for the google.cloud.operation_service
 // named on the given method.
-func (g *generator) customOpService(m *descriptor.MethodDescriptorProto) *descriptor.ServiceDescriptorProto {
+func (g *generator) customOpService(m *descriptorpb.MethodDescriptorProto) *descriptorpb.ServiceDescriptorProto {
 	opServName := proto.GetExtension(m.GetOptions(), extendedops.E_OperationService).(string)
 	if opServName == "" {
 		return nil
@@ -309,9 +309,9 @@ func (g *generator) customOpService(m *descriptor.MethodDescriptorProto) *descri
 
 // customOpStatusCheck constructs a return statement that checks if the operation's Status
 // field indicates it is done.
-func (g *generator) customOpStatusCheck(st *descriptor.FieldDescriptorProto) string {
+func (g *generator) customOpStatusCheck(st *descriptorpb.FieldDescriptorProto) string {
 	ret := fmt.Sprintf("return o.Proto()%s", fieldGetter(st.GetName()))
-	if st.GetType() == descriptor.FieldDescriptorProto_TYPE_ENUM {
+	if st.GetType() == descriptorpb.FieldDescriptorProto_TYPE_ENUM {
 		done := g.customOpStatusEnumDone()
 		ret = fmt.Sprintf("%s == %s", ret, done)
 	}
@@ -342,7 +342,7 @@ func (g *generator) customOpStatusEnumDone() string {
 
 // operationField is a helper for loading the target google.cloud.operation_field annotation value
 // if present on a field in the given message.
-func operationField(m *descriptor.DescriptorProto, target extendedops.OperationResponseMapping) *descriptor.FieldDescriptorProto {
+func operationField(m *descriptorpb.DescriptorProto, target extendedops.OperationResponseMapping) *descriptorpb.FieldDescriptorProto {
 	for _, f := range m.GetField() {
 		mapping := proto.GetExtension(f.GetOptions(), extendedops.E_OperationField).(extendedops.OperationResponseMapping)
 		if mapping == target {
@@ -354,7 +354,7 @@ func operationField(m *descriptor.DescriptorProto, target extendedops.OperationR
 
 // operationResponseField is a helper for finding the message field that declares the target field name
 // in the google.cloud.operation_response_field annotation.
-func operationResponseField(m *descriptor.DescriptorProto, target string) *descriptor.FieldDescriptorProto {
+func operationResponseField(m *descriptorpb.DescriptorProto, target string) *descriptorpb.FieldDescriptorProto {
 	for _, f := range m.GetField() {
 		mapping := proto.GetExtension(f.GetOptions(), extendedops.E_OperationResponseField).(string)
 		if mapping == target {
@@ -365,7 +365,7 @@ func operationResponseField(m *descriptor.DescriptorProto, target string) *descr
 }
 
 // operationRequestField is a helper for extracting the operation_request_field annotation from a field.
-func operationRequestField(f *descriptor.FieldDescriptorProto) (string, bool) {
+func operationRequestField(f *descriptorpb.FieldDescriptorProto) (string, bool) {
 	mapping := proto.GetExtension(f.GetOptions(), extendedops.E_OperationRequestField).(string)
 	if mapping != "" {
 		return mapping, true
@@ -375,7 +375,7 @@ func operationRequestField(f *descriptor.FieldDescriptorProto) (string, bool) {
 }
 
 // operationPollingMethod is a helper for finding the operation service RPC annotated with operation_polling_method.
-func operationPollingMethod(s *descriptor.ServiceDescriptorProto) *descriptor.MethodDescriptorProto {
+func operationPollingMethod(s *descriptorpb.ServiceDescriptorProto) *descriptorpb.MethodDescriptorProto {
 	for _, m := range s.GetMethod() {
 		if proto.GetExtension(m.GetOptions(), extendedops.E_OperationPollingMethod).(bool) {
 			return m
@@ -389,7 +389,7 @@ func operationPollingMethod(s *descriptor.ServiceDescriptorProto) *descriptor.Me
 // based on which are annotated in an initiating RPC's request message with operation_request_field and that
 // are also marked as required on the polling request message. Specifically, this weeds out the parent_id field
 // of the GlobalOrganizationOperations polling params.
-func (g *generator) pollingRequestParameters(m *descriptor.MethodDescriptorProto, opServ *descriptor.ServiceDescriptorProto) []string {
+func (g *generator) pollingRequestParameters(m *descriptorpb.MethodDescriptorProto, opServ *descriptorpb.ServiceDescriptorProto) []string {
 	var params []string
 	poll := operationPollingMethod(opServ)
 	if poll == nil {
@@ -397,7 +397,7 @@ func (g *generator) pollingRequestParameters(m *descriptor.MethodDescriptorProto
 	}
 	pollReqName := poll.GetInputType()
 
-	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptorpb.DescriptorProto)
 
 	for _, f := range inType.GetField() {
 

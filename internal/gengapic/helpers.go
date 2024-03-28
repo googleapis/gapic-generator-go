@@ -20,9 +20,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func lowerFirst(s string) string {
@@ -83,7 +83,7 @@ func snakeToCamel(s string) string {
 
 // isOptional returns true if the named Field in the given Message
 // is proto3_optional.
-func isOptional(m *descriptor.DescriptorProto, n string) bool {
+func isOptional(m *descriptorpb.DescriptorProto, n string) bool {
 	for _, f := range m.GetField() {
 		if f.GetName() == n {
 			return f.GetProto3Optional()
@@ -112,7 +112,7 @@ func grpcClientField(reducedServName string) string {
 
 // getField returns a FieldDescriptorProto pointer if the target
 // DescriptorProto has the given field, otherwise it returns nil.
-func getField(m *descriptor.DescriptorProto, field string) *descriptor.FieldDescriptorProto {
+func getField(m *descriptorpb.DescriptorProto, field string) *descriptorpb.FieldDescriptorProto {
 	for _, f := range m.GetField() {
 		if f.GetName() == field {
 			return f
@@ -123,13 +123,13 @@ func getField(m *descriptor.DescriptorProto, field string) *descriptor.FieldDesc
 
 // hasField returns true if the target DescriptorProto has the given field,
 // otherwise it returns false.
-func hasField(m *descriptor.DescriptorProto, field string) bool {
+func hasField(m *descriptorpb.DescriptorProto, field string) bool {
 	return getField(m, field) != nil
 }
 
 // hasMethod reports if the given service defines an RPC with the same name as
 // the given simple method name.
-func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
+func hasMethod(service *descriptorpb.ServiceDescriptorProto, method string) bool {
 	for _, m := range service.GetMethod() {
 		if m.GetName() == method {
 			return true
@@ -141,7 +141,7 @@ func hasMethod(service *descriptor.ServiceDescriptorProto, method string) bool {
 
 // hasRESTMethod reports if there is at least one RPC on the Service that
 // has a gRPC-HTTP transcoding, or REST, annotation on it.
-func hasRESTMethod(service *descriptor.ServiceDescriptorProto) bool {
+func hasRESTMethod(service *descriptorpb.ServiceDescriptorProto) bool {
 	for _, m := range service.GetMethod() {
 		eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
 		if h := eHTTP.(*annotations.HttpRule); h.GetPattern() != nil {
@@ -153,7 +153,7 @@ func hasRESTMethod(service *descriptor.ServiceDescriptorProto) bool {
 }
 
 // getMethod returns the MethodDescriptorProto for the given service RPC and simple method name.
-func getMethod(service *descriptor.ServiceDescriptorProto, method string) *descriptor.MethodDescriptorProto {
+func getMethod(service *descriptorpb.ServiceDescriptorProto, method string) *descriptorpb.MethodDescriptorProto {
 	for _, m := range service.GetMethod() {
 		if m.GetName() == method {
 			return m
@@ -177,7 +177,7 @@ func containsTransport(t []transport, tr transport) bool {
 
 // containsService determines if a set of services contains a specific service,
 // by simple name.
-func containsService(s []*descriptor.ServiceDescriptorProto, srv *descriptor.ServiceDescriptorProto) bool {
+func containsService(s []*descriptorpb.ServiceDescriptorProto, srv *descriptorpb.ServiceDescriptorProto) bool {
 	for _, x := range s {
 		if x.GetName() == srv.GetName() {
 			return true
@@ -188,7 +188,7 @@ func containsService(s []*descriptor.ServiceDescriptorProto, srv *descriptor.Ser
 }
 
 // isRequired returns if a field is annotated as REQUIRED or not.
-func isRequired(field *descriptor.FieldDescriptorProto) bool {
+func isRequired(field *descriptorpb.FieldDescriptorProto) bool {
 	if field.GetOptions() == nil {
 		return false
 	}

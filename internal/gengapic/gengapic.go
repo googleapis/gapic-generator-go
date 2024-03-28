@@ -22,12 +22,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 const (
@@ -40,19 +40,19 @@ const (
 	beta                    = "beta"
 	deprecated              = "deprecated"
 	disableDeadlinesVar     = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
-	fieldTypeBool           = descriptor.FieldDescriptorProto_TYPE_BOOL
-	fieldTypeString         = descriptor.FieldDescriptorProto_TYPE_STRING
-	fieldTypeBytes          = descriptor.FieldDescriptorProto_TYPE_BYTES
-	fieldTypeMessage        = descriptor.FieldDescriptorProto_TYPE_MESSAGE
-	fieldLabelRepeated      = descriptor.FieldDescriptorProto_LABEL_REPEATED
+	fieldTypeBool           = descriptorpb.FieldDescriptorProto_TYPE_BOOL
+	fieldTypeString         = descriptorpb.FieldDescriptorProto_TYPE_STRING
+	fieldTypeBytes          = descriptorpb.FieldDescriptorProto_TYPE_BYTES
+	fieldTypeMessage        = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
+	fieldLabelRepeated      = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
 	defaultPollInitialDelay = "time.Second" // 1 second
 	defaultPollMaxDelay     = "time.Minute" // 1 minute
 )
 
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)
 
-// Gen is the entry point for GAPIC generation via the protoc plugin.
-func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+// Gen is the entry point for GAPIC generation via the protoc pluginpb.
+func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
 	var g generator
 	if err := g.init(genReq); err != nil {
 		return &g.resp, err
@@ -74,9 +74,9 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 
 	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.diregapic && ok {
 		g.aux.customOp = &customOp{
-			message:       op.(*descriptor.DescriptorProto),
-			handles:       []*descriptor.ServiceDescriptorProto{},
-			pollingParams: map[*descriptor.ServiceDescriptorProto][]string{}}
+			message:       op.(*descriptorpb.DescriptorProto),
+			handles:       []*descriptorpb.ServiceDescriptorProto{},
+			pollingParams: map[*descriptorpb.ServiceDescriptorProto][]string{}}
 		g.loadCustomOpServices(genServs)
 	}
 
@@ -136,7 +136,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	serv := genServs[0]
 
 	g.genDocFile(time.Now().Year(), scopes, serv)
-	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+	g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(g.opts.outDir, "doc.go")),
 		Content: proto.String(g.pt.String()),
 	})
@@ -144,7 +144,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 	if g.opts.metadata {
 		g.reset()
 		g.genGapicMetadataFile()
-		g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+		g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
 			Name:    proto.String(filepath.Join(g.opts.outDir, "gapic_metadata.json")),
 			Content: proto.String(g.pt.String()),
 		})
@@ -167,7 +167,7 @@ func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, er
 }
 
 // Collects the proto services to generate GAPICs for from the CodeGeneratorRequest.
-func (g *generator) collectServices(genReq *plugin.CodeGeneratorRequest) (genServs []*descriptor.ServiceDescriptorProto) {
+func (g *generator) collectServices(genReq *pluginpb.CodeGeneratorRequest) (genServs []*descriptorpb.ServiceDescriptorProto) {
 	for _, f := range genReq.GetProtoFile() {
 		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
 			continue
@@ -181,7 +181,7 @@ func (g *generator) collectServices(genReq *plugin.CodeGeneratorRequest) (genSer
 }
 
 // gen generates client for the given service.
-func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
+func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
 
 	g.clientHook(servName)
@@ -208,24 +208,24 @@ func (g *generator) gen(serv *descriptor.ServiceDescriptorProto) error {
 	return g.genOperationBuilders(serv, servName)
 }
 
-func (g *generator) getFormattedValue(m *descriptor.MethodDescriptorProto, field string, accessor string) (string, error) {
+func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, field string, accessor string) (string, error) {
 	f := g.lookupField(m.GetInputType(), field)
 	value := ""
 	// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
 	switch f.GetType() {
-	case descriptor.FieldDescriptorProto_TYPE_STRING:
+	case descriptorpb.FieldDescriptorProto_TYPE_STRING:
 		value = fmt.Sprintf("url.QueryEscape(%s)", accessor)
-	case descriptor.FieldDescriptorProto_TYPE_DOUBLE:
+	case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:
 		// Double and float are handled the same way.
 		fallthrough
-	case descriptor.FieldDescriptorProto_TYPE_FLOAT:
+	case descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
 		// Format the floating point value with mode 'g' to allow for
 		// exponent formatting when necessary, and decimal when adequate.
 		// QueryEscape the resulting string in case there is a '+' in the
 		// exponent.
 		// See golang.org/pkg/fmt for more information on formatting.
 		value = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
-	case descriptor.FieldDescriptorProto_TYPE_ENUM:
+	case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
 		en := g.descInfo.Type[f.GetTypeName()]
 
 		n, imp, err := g.descInfo.NameSpec(en)
@@ -246,7 +246,7 @@ func (g *generator) getFormattedValue(m *descriptor.MethodDescriptorProto, field
 	return value, nil
 }
 
-func (g *generator) insertImplicitRequestHeaders(m *descriptor.MethodDescriptorProto, headers [][]string) error {
+func (g *generator) insertImplicitRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string) error {
 	if len(headers) == 0 {
 		return nil
 	}
@@ -275,7 +275,7 @@ func (g *generator) insertImplicitRequestHeaders(m *descriptor.MethodDescriptorP
 	return nil
 }
 
-func (g *generator) insertDynamicRequestHeaders(m *descriptor.MethodDescriptorProto, headers [][]string) error {
+func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string) error {
 	if len(headers) == 0 {
 		return nil
 	}
@@ -307,7 +307,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptor.MethodDescriptorPr
 	return nil
 }
 
-func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t transport) {
+func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, t transport) {
 	p := g.printf
 	// Implicit headers are parsed from the google.api.http annotations and are a default
 	// behavior for generators per https://google.aip.dev/client-libraries/4222.
@@ -357,7 +357,7 @@ func (g *generator) insertRequestHeaders(m *descriptor.MethodDescriptorProto, t 
 // presence and is set by the user, the field must not be auto-populated by
 // the client. Values automatically populated this way must be reused for
 // retries of the same request.
-func (g *generator) initializeAutoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) {
+func (g *generator) initializeAutoPopulatedFields(servName string, m *descriptorpb.MethodDescriptorProto) {
 	apfs := g.autoPopulatedFields(servName, m)
 	if len(apfs) == 0 {
 		return
@@ -422,8 +422,8 @@ func directAccess(field string) string {
 	return buildAccessor(field, true)
 }
 
-func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescriptorProto {
-	var desc *descriptor.FieldDescriptorProto
+func (g *generator) lookupField(msgName, field string) *descriptorpb.FieldDescriptorProto {
+	var desc *descriptorpb.FieldDescriptorProto
 	msg := g.descInfo.Type[msgName]
 
 	// If the message doesn't exist, fail cleanly.
@@ -431,7 +431,7 @@ func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescript
 		return desc
 	}
 
-	msgProto := msg.(*descriptor.DescriptorProto)
+	msgProto := msg.(*descriptorpb.DescriptorProto)
 	msgFields := msgProto.GetField()
 
 	// Split the key name for nested fields, and traverse the message chain.
@@ -444,9 +444,9 @@ func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescript
 
 				// Search the nested message for the next segment of the
 				// nested field chain.
-				if f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
 					msg = g.descInfo.Type[f.GetTypeName()]
-					msgProto = msg.(*descriptor.DescriptorProto)
+					msgProto = msg.(*descriptorpb.DescriptorProto)
 					msgFields = msgProto.GetField()
 				}
 				break
@@ -456,7 +456,7 @@ func (g *generator) lookupField(msgName, field string) *descriptor.FieldDescript
 	return desc
 }
 
-func (g *generator) appendCallOpts(m *descriptor.MethodDescriptorProto) {
+func (g *generator) appendCallOpts(m *descriptorpb.MethodDescriptorProto) {
 	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "(*c.CallOptions)."+*m.Name)
 }
 
@@ -470,7 +470,7 @@ func containsDeprecated(com string) bool {
 	return false
 }
 
-func (g *generator) methodDoc(m *descriptor.MethodDescriptorProto, serv *descriptor.ServiceDescriptorProto) {
+func (g *generator) methodDoc(m *descriptorpb.MethodDescriptorProto, serv *descriptorpb.ServiceDescriptorProto) {
 	com := g.comments[m]
 
 	// If there's no comment and the method is not deprecated, adding method name is just confusing.
@@ -550,11 +550,11 @@ func (g *generator) codesnippet(s string) {
 
 // isLRO determines if a given Method is a longrunning operation, ignoring
 // those defined by the longrunning proto package.
-func (g *generator) isLRO(m *descriptor.MethodDescriptorProto) bool {
+func (g *generator) isLRO(m *descriptorpb.MethodDescriptorProto) bool {
 	return m.GetOutputType() == operationType && g.descInfo.ParentFile[m].GetPackage() != "google.longrunning"
 }
 
-func (g *generator) isPaginated(m *descriptor.MethodDescriptorProto) bool {
+func (g *generator) isPaginated(m *descriptorpb.MethodDescriptorProto) bool {
 	pf, _, err := g.getPagingFields(m)
 	if err != nil {
 		return false
@@ -563,7 +563,7 @@ func (g *generator) isPaginated(m *descriptor.MethodDescriptorProto) bool {
 	return pf != nil
 }
 
-func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, error) {
+func (g *generator) returnType(m *descriptorpb.MethodDescriptorProto) (string, error) {
 	outType := g.descInfo.Type[m.GetOutputType()]
 	outSpec, err := g.descInfo.ImportSpec(outType)
 	if err != nil {
@@ -583,7 +583,7 @@ func (g *generator) returnType(m *descriptor.MethodDescriptorProto) (string, err
 	return retTyp, nil
 }
 
-func parseImplicitRequestHeaders(m *descriptor.MethodDescriptorProto) [][]string {
+func parseImplicitRequestHeaders(m *descriptorpb.MethodDescriptorProto) [][]string {
 	var matches [][]string
 
 	eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
@@ -618,12 +618,12 @@ func parseImplicitRequestHeaders(m *descriptor.MethodDescriptorProto) [][]string
 }
 
 // Determine whether routing annotation exists
-func dynamicRequestHeadersExist(m *descriptor.MethodDescriptorProto) bool {
+func dynamicRequestHeadersExist(m *descriptorpb.MethodDescriptorProto) bool {
 	return proto.HasExtension(m.GetOptions(), annotations.E_Routing)
 }
 
 // Parse routing annotations to be used as request headers
-func parseDynamicRequestHeaders(m *descriptor.MethodDescriptorProto) [][]string {
+func parseDynamicRequestHeaders(m *descriptorpb.MethodDescriptorProto) [][]string {
 	var matches [][]string
 
 	reqHeaders := proto.GetExtension(m.GetOptions(), annotations.E_Routing)

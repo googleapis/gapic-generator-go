@@ -17,7 +17,7 @@ package gencli
 import (
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestGenFlag(t *testing.T) {
@@ -30,7 +30,7 @@ func TestGenFlag(t *testing.T) {
 				Name:      "field",
 				FieldName: "Field",
 				VarName:   "ClientInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				Usage:     "this is the usage",
 			},
 			want: `StringVar(&ClientInput.Field, "field", "", "this is the usage")`,
@@ -40,7 +40,7 @@ func TestGenFlag(t *testing.T) {
 				Name:      "field",
 				FieldName: "Field",
 				VarName:   "ClientInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_BOOL,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_BOOL,
 				Usage:     "this is the usage",
 			},
 			want: `BoolVar(&ClientInput.Field, "field", false, "this is the usage")`,
@@ -50,7 +50,7 @@ func TestGenFlag(t *testing.T) {
 				Name:      "field",
 				FieldName: "Field",
 				VarName:   "ClientInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_INT32,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_INT32,
 				Usage:     "this is the usage",
 			},
 			want: `Int32Var(&ClientInput.Field, "field", 0, "this is the usage")`,
@@ -60,7 +60,7 @@ func TestGenFlag(t *testing.T) {
 				Name:      "field",
 				FieldName: "Field",
 				VarName:   "ClientInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_FLOAT,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_FLOAT,
 				Usage:     "this is the usage",
 			},
 			want: `Float32Var(&ClientInput.Field, "field", 0.0, "this is the usage")`,
@@ -70,7 +70,7 @@ func TestGenFlag(t *testing.T) {
 				Name:      "field",
 				FieldName: "Field",
 				VarName:   "ClientInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_DOUBLE,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_DOUBLE,
 				Usage:     "this is the usage",
 			},
 			want: `Float64Var(&ClientInput.Field, "field", 0.0, "this is the usage")`,
@@ -80,7 +80,7 @@ func TestGenFlag(t *testing.T) {
 				Name:      "field",
 				FieldName: "Field",
 				VarName:   "ClientInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_BYTES,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_BYTES,
 				Usage:     "this is the usage",
 			},
 			want: `BytesHexVar(&ClientInput.Field, "field", []byte{}, "this is the usage")`,
@@ -90,7 +90,7 @@ func TestGenFlag(t *testing.T) {
 				Name:      "field",
 				FieldName: "Field",
 				VarName:   "ClientInput",
-				Type:      descriptor.FieldDescriptorProto_TYPE_STRING,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				Usage:     "this is the usage",
 				Repeated:  true,
 			},
@@ -100,7 +100,7 @@ func TestGenFlag(t *testing.T) {
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
-				Type:      descriptor.FieldDescriptorProto_TYPE_MESSAGE,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
 				Usage:     "this is the usage",
 				Repeated:  true,
 				VarName:   "ClientInputField",
@@ -111,7 +111,7 @@ func TestGenFlag(t *testing.T) {
 			f: &Flag{
 				Name:      "field",
 				FieldName: "Field",
-				Type:      descriptor.FieldDescriptorProto_TYPE_ENUM,
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_ENUM,
 				Usage:     "this is the usage",
 				VarName:   "ClientInputField",
 			},
@@ -121,7 +121,7 @@ func TestGenFlag(t *testing.T) {
 			f: &Flag{
 				Name:         "oneof.field",
 				FieldName:    "Field",
-				Type:         descriptor.FieldDescriptorProto_TYPE_STRING,
+				Type:         descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				Usage:        "this is the usage",
 				VarName:      "ClientInputOneofField",
 				IsOneOfField: true,
@@ -132,7 +132,7 @@ func TestGenFlag(t *testing.T) {
 			f: &Flag{
 				Name:    "oneof_selector",
 				VarName: "ClientInputOneofSelector",
-				Type:    descriptor.FieldDescriptorProto_TYPE_STRING,
+				Type:    descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				Usage:   "this is the usage",
 				OneOfs:  map[string]*Flag{"test": &Flag{}},
 			},
@@ -151,11 +151,11 @@ func TestIsMessage(t *testing.T) {
 		want bool
 	}{
 		{
-			f:    &Flag{Type: descriptor.FieldDescriptorProto_TYPE_MESSAGE},
+			f:    &Flag{Type: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE},
 			want: true,
 		},
 		{
-			f:    &Flag{Type: descriptor.FieldDescriptorProto_TYPE_STRING},
+			f:    &Flag{Type: descriptorpb.FieldDescriptorProto_TYPE_STRING},
 			want: false,
 		},
 	} {
@@ -171,11 +171,11 @@ func TestIsEnum(t *testing.T) {
 		want bool
 	}{
 		{
-			f:    &Flag{Type: descriptor.FieldDescriptorProto_TYPE_ENUM},
+			f:    &Flag{Type: descriptorpb.FieldDescriptorProto_TYPE_ENUM},
 			want: true,
 		},
 		{
-			f:    &Flag{Type: descriptor.FieldDescriptorProto_TYPE_STRING},
+			f:    &Flag{Type: descriptorpb.FieldDescriptorProto_TYPE_STRING},
 			want: false,
 		},
 	} {

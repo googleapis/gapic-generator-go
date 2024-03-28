@@ -17,10 +17,10 @@
 
 package gengapic
 
-import plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+import "google.golang.org/protobuf/types/pluginpb"
 
 func Fuzz(data []byte) int {
-	var genReq plugin.CodeGeneratorRequest
+	var genReq pluginpb.CodeGeneratorRequest
 	if err := genReq.Unmarshal(data); err != nil {
 		// -1: don't include these in corpus even if they create new coverage.
 		// We're not interested in bytes that don't deserialize properly.

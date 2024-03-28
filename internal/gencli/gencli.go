@@ -24,12 +24,12 @@ import (
 	"github.com/jhump/protoreflect/desc"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 const (
@@ -77,7 +77,7 @@ type NestedMessage struct {
 }
 
 // Gen is the main entry point for code generation of a command line utility
-func Gen(genReq *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
 	var g gcli
 
 	err := g.init(genReq)
@@ -102,7 +102,7 @@ type gcli struct {
 	protos      map[string]*desc.FileDescriptor
 	imports     map[string]*pbinfo.ImportSpec
 	pt          printer.P
-	response    plugin.CodeGeneratorResponse
+	response    pluginpb.CodeGeneratorResponse
 	root        string
 	services    []*desc.ServiceDescriptor
 	subcommands map[string][]*Command
@@ -110,7 +110,7 @@ type gcli struct {
 	gapicName   string
 }
 
-func (g *gcli) init(req *plugin.CodeGeneratorRequest) error {
+func (g *gcli) init(req *pluginpb.CodeGeneratorRequest) error {
 	var err error
 
 	g.comments = make(map[proto.Message]string)
@@ -239,7 +239,7 @@ func (g *gcli) genCommands() {
 					}
 
 					// primitive repeated type
-					if fType := f.GetType(); fType != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+					if fType := f.GetType(); fType != descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
 						cmd.OutputMessageType = pbinfo.GoTypeForPrim[fType]
 						g.subcommands[srv.GetName()] = append(g.subcommands[srv.GetName()], &cmd)
 						putImport(cmd.Imports, &pbinfo.ImportSpec{
@@ -322,7 +322,7 @@ func (g *gcli) buildOneOfSelectors(cmd *Command, msg *desc.MessageDescriptor, pr
 
 		flag := Flag{
 			Name:     prefix + field.GetName(),
-			Type:     descriptor.FieldDescriptorProto_TYPE_STRING,
+			Type:     descriptorpb.FieldDescriptorProto_TYPE_STRING,
 			OneOfs:   make(map[string]*Flag),
 			Required: true,
 			Usage:    buildOneOfUsage(field),
@@ -349,7 +349,7 @@ func (g *gcli) buildOneOfFlag(cmd *Command, msg *desc.MessageDescriptor, field *
 	flag := Flag{
 		Name:          oneOfPrefix + field.GetName(),
 		Type:          field.GetType(),
-		Repeated:      field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+		Repeated:      field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED,
 		IsOneOfField:  true,
 		IsNested:      isNested,
 		OneOfSelector: prefix + oneOfField,
@@ -477,7 +477,7 @@ func (g *gcli) buildFieldFlags(cmd *Command, msg *desc.MessageDescriptor, parent
 			FieldName:    title(prefix + field.GetName()),
 			Type:         field.GetType(),
 			IsMap:        field.IsMap(),
-			Repeated:     field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+			Repeated:     field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED,
 			IsOneOfField: isOneOf,
 			IsNested:     isInNested,
 			Usage:        toShortUsage(sanitizeComment(field.GetSourceInfo().GetLeadingComments())),
@@ -670,7 +670,7 @@ func (g *gcli) addImport(cmd *Command, m desc.Descriptor) (*pbinfo.ImportSpec, e
 }
 
 func (g *gcli) addGoFile(name string) {
-	file := &plugin.CodeGeneratorResponse_File{
+	file := &pluginpb.CodeGeneratorResponse_File{
 		Name:    proto.String(name),
 		Content: proto.String(g.pt.String()),
 	}

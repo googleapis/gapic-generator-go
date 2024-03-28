@@ -19,12 +19,12 @@ import (
 	"strings"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func (g *generator) genExampleFile(serv *descriptor.ServiceDescriptorProto) error {
+func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.opts.pkgName
 	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
 
@@ -78,7 +78,7 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 }
 
-func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) exampleMethod(pkgName, servName string, m *descriptorpb.MethodDescriptorProto) error {
 	if m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(pongad): implement this correctly.
 		return nil
@@ -96,7 +96,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptor.Method
 	return nil
 }
 
-func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptorpb.MethodDescriptorProto) error {
 	if m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(pongad): implement this correctly.
 		return nil
@@ -163,7 +163,7 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 	return nil
 }
 
-func (g *generator) exampleLROCall(m *descriptor.MethodDescriptorProto) {
+func (g *generator) exampleLROCall(m *descriptorpb.MethodDescriptorProto) {
 	p := g.printf
 	retVars := "resp, err :="
 
@@ -193,7 +193,7 @@ func (g *generator) exampleLROCall(m *descriptor.MethodDescriptorProto) {
 	}
 }
 
-func (g *generator) exampleUnaryCall(m *descriptor.MethodDescriptorProto) {
+func (g *generator) exampleUnaryCall(m *descriptorpb.MethodDescriptorProto) {
 	p := g.printf
 
 	p("resp, err := c.%s(ctx, req)", *m.Name)
@@ -204,7 +204,7 @@ func (g *generator) exampleUnaryCall(m *descriptor.MethodDescriptorProto) {
 	p("_ = resp")
 }
 
-func (g *generator) exampleEmptyCall(m *descriptor.MethodDescriptorProto) {
+func (g *generator) exampleEmptyCall(m *descriptorpb.MethodDescriptorProto) {
 	p := g.printf
 
 	p("err = c.%s(ctx, req)", *m.Name)
@@ -213,7 +213,7 @@ func (g *generator) exampleEmptyCall(m *descriptor.MethodDescriptorProto) {
 	p("}")
 }
 
-func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) error {
+func (g *generator) examplePagingCall(m *descriptorpb.MethodDescriptorProto) error {
 	outType := g.descInfo.Type[m.GetOutputType()]
 	if outType == nil {
 		return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetOutputType())
@@ -250,7 +250,7 @@ func (g *generator) examplePagingCall(m *descriptor.MethodDescriptorProto) error
 	return nil
 }
 
-func (g *generator) exampleBidiCall(m *descriptor.MethodDescriptorProto, inType pbinfo.ProtoType, inSpec pbinfo.ImportSpec) {
+func (g *generator) exampleBidiCall(m *descriptorpb.MethodDescriptorProto, inType pbinfo.ProtoType, inSpec pbinfo.ImportSpec) {
 	p := g.printf
 
 	p("stream, err := c.%s(ctx)", m.GetName())

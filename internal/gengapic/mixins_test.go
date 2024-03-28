@@ -17,12 +17,12 @@ package gengapic
 import (
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/apipb"
 )
 
@@ -168,19 +168,19 @@ func TestCheckIAMPolicyOverrides(t *testing.T) {
 	g := &generator{
 		mixins: make(mixins),
 	}
-	serv := &descriptor.ServiceDescriptorProto{
-		Method: []*descriptor.MethodDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{Name: proto.String("ListFoos")},
 			{Name: proto.String("GetFoo")},
 		},
 	}
-	other := &descriptor.ServiceDescriptorProto{
-		Method: []*descriptor.MethodDescriptorProto{
+	other := &descriptorpb.ServiceDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{Name: proto.String("ListBars")},
 			{Name: proto.String("GetBar")},
 		},
 	}
-	servs := []*descriptor.ServiceDescriptorProto{serv, other}
+	servs := []*descriptorpb.ServiceDescriptorProto{serv, other}
 	var want bool
 	g.checkIAMPolicyOverrides(servs)
 	if got := g.hasIAMPolicyOverrides; !cmp.Equal(got, want) {
@@ -189,7 +189,7 @@ func TestCheckIAMPolicyOverrides(t *testing.T) {
 
 	want = true
 	g.mixins["google.iam.v1.IAMPolicy"] = iamPolicyMethods()
-	serv.Method = append(serv.Method, &descriptor.MethodDescriptorProto{Name: proto.String("GetIamPolicy")})
+	serv.Method = append(serv.Method, &descriptorpb.MethodDescriptorProto{Name: proto.String("GetIamPolicy")})
 	g.checkIAMPolicyOverrides(servs)
 	if got := g.hasIAMPolicyOverrides; !cmp.Equal(got, want) {
 		t.Errorf("TestCheckIAMPolicyOverrides wanted %v but got %v", want, got)
@@ -363,16 +363,16 @@ func TestIncludeMixinInputFile(t *testing.T) {
 }
 
 // locationMethods is just used for testing.
-func locationMethods() []*descriptor.MethodDescriptorProto {
+func locationMethods() []*descriptorpb.MethodDescriptorProto {
 	return mixinFiles["google.cloud.location.Locations"][0].GetService()[0].GetMethod()
 }
 
 // iamPolicyMethods is just used for testing.
-func iamPolicyMethods() []*descriptor.MethodDescriptorProto {
+func iamPolicyMethods() []*descriptorpb.MethodDescriptorProto {
 	return mixinFiles["google.iam.v1.IAMPolicy"][0].GetService()[0].GetMethod()
 }
 
 // operationsMethods is just used for testing.
-func operationsMethods() []*descriptor.MethodDescriptorProto {
+func operationsMethods() []*descriptorpb.MethodDescriptorProto {
 	return mixinFiles["google.longrunning.Operations"][0].GetService()[0].GetMethod()
 }

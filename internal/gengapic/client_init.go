@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 const (
@@ -34,7 +34,7 @@ func (g *generator) clientHook(servName string) {
 	p("")
 }
 
-func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) clientOptions(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
 	// CallOptions struct
@@ -70,7 +70,7 @@ func (g *generator) clientOptions(serv *descriptor.ServiceDescriptorProto, servN
 	return nil
 }
 
-func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
 	p("// internal%sClient is an interface that defines the methods available from %s.", servName, g.apiName)
@@ -152,7 +152,7 @@ func (g *generator) internalClientIntfInit(serv *descriptor.ServiceDescriptorPro
 }
 
 // serviceDoc is a helper function similar to methodDoc that includes a deprecation notice for deprecated services.
-func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
+func (g *generator) serviceDoc(serv *descriptorpb.ServiceDescriptorProto) {
 	com := g.comments[serv]
 
 	// If there's no comment and the service is not deprecated, return.
@@ -179,7 +179,7 @@ func (g *generator) serviceDoc(serv *descriptor.ServiceDescriptorProto) {
 	g.comment(com)
 }
 
-func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
+func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
 
 	// client struct
@@ -237,7 +237,7 @@ func (g *generator) clientInit(serv *descriptor.ServiceDescriptorProto, servName
 	}
 }
 
-func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto, serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
 	clientTypeName := fmt.Sprintf("%sClient", servName)
@@ -355,7 +355,7 @@ func (g *generator) genClientWrapperMethod(m *descriptor.MethodDescriptorProto, 
 
 }
 
-func (g *generator) makeClients(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	var hasLRO bool
 	for _, m := range serv.GetMethod() {
 		if g.isLRO(m) {
