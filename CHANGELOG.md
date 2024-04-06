@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.2](https://github.com/googleapis/gapic-generator-go/compare/v0.41.1...v0.41.2) (2024-04-06)
+
+
+### Bug Fixes
+
+* **bazel:** Add missing otel deps & resolve patches ([#1482](https://github.com/googleapis/gapic-generator-go/issues/1482)) ([1f9fa36](https://github.com/googleapis/gapic-generator-go/commit/1f9fa3611328e57d6a5a9b2c8db4e4017e0c92c5))
+
 ## [0.41.1](https://github.com/googleapis/gapic-generator-go/compare/v0.41.0...v0.41.1) (2024-03-25)
 
 
