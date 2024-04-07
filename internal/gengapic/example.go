@@ -138,6 +138,11 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptor.Me
 		p("")
 		p("req := &%s.%s{", inSpec.Name, inType.GetName())
 		p("  // TODO: Fill request struct fields.")
+		p("  // ")
+		p("  // The resource name (either the Parent or Name field) should")
+		p("  // be in the format `projects/<Project ID>` or")
+		p("  // `projects/<Project ID>/locations/<Location ID>`")
+		p("  // ")
 		p("  // See https://pkg.go.dev/%s#%s.", inSpec.Path, inType.GetName())
 		p("}")
 	}
