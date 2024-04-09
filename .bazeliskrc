@@ -1,0 +1,3 @@
+# See https://github.com/bazelbuild/bazelisk
+# Should match https://github.com/googleapis/googleapis/blob/master/.bazeliskrc
+USE_BAZEL_VERSION=6.3.0
