@@ -29,12 +29,7 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 protobuf_deps()
 
 http_archive(
-    # go_googleapis is used instead of com_google_googleapis in order to override
-    # the dependency on github.com/googleapis/googleapis defined by rules_go
-    # that is named go_googleapis. googleapis already has all of the necessary
-    # rules, so using the rules_go patched version isn't necessary and it lags in
-    # freshness which would require dependency overrides anyways.
-    name = "go_googleapis",
+    name = "com_google_googleapis",
     # Use `master` because googleapis isn't semantically versioned and the protos
     # this repo cares about (the annotation definitions) do not have breaking
     # changes, so we can live on HEAD. Pinning to commit is cumbersome to maintain.
@@ -42,7 +37,7 @@ http_archive(
     urls = ["https://github.com/googleapis/googleapis/archive/master.tar.gz"],
 )
 
-load("@go_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
 switched_rules_by_language(name = "com_google_googleapis_imports", go = True, grpc = True)
 
 http_archive(
