@@ -32,7 +32,6 @@ update-bazel-repos:
 
 gazelle:
 	bazelisk run //:gazelle
-	sed -i '' "s/extendedops_go_proto/extended_operations_go_proto/g" internal/gengapic/BUILD.bazel
 
 clean:
 	rm -rf testdata
