@@ -87,13 +87,14 @@ jobs:
         apidiff -incompatible pkg.latest github.com/googleapis/gapic-showcase/client > diff.txt && cat diff.txt && ! [ -s diff.txt ]
   bazel-build:
     runs-on: ubuntu-latest
-    env:
-      USE_BAZEL_VERSION: 6.0.0
-    container: gcr.io/gapic-images/googleapis:latest
-    # Dockerfile for this image: https://github.com/googleapis/googleapis-discovery/blob/master/Dockerfile
     steps:
     - uses: actions/checkout@v4
-    - name: Run bazel build
-      run: bazelisk build '//...'
-    - name: Run bazel test
-      run: bazelisk test '//...'
+    - uses: bazel-contrib/setup-bazel@0.8.1
+      with:
+        # Avoid downloading Bazel every time.
+        bazelisk-cache: true
+        # Store build cache per workflow.
+        disk-cache: ${{ github.workflow }}
+        # Share repository cache between workflows.
+        repository-cache: true
+    - run: bazelisk test '//...'
