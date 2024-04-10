@@ -118,6 +118,9 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/ghodss/yaml",
         sum = "h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=",
         version = "v1.0.0",
+        build_directives = [
+            "gazelle:resolve go go gopkg.in/yaml.v2 @in_gopkg_yaml_v2//:go_default_library",
+        ],
     )
     go_repository(
         name = "com_github_go_logr_logr",
@@ -213,6 +216,11 @@ def com_googleapis_gapic_generator_go_repositories():
         name = "com_github_googleapis_gax_go_v2",
         importpath = "github.com/googleapis/gax-go/v2",
         sum = "h1:mhN09QQW1jEWeMF74zGR81R30z4VJzjZsfkUhuHF+DA=",
+        build_directives = [
+            "gazelle:resolve go google.golang.org/genproto/googleapis/rpc/errdetails @org_golang_google_genproto_googleapis_rpc//errdetails",
+            "gazelle:resolve proto go google/rpc/code.proto @com_google_googleapis//google/rpc:code_go_proto",
+            "gazelle:resolve proto proto google/rpc/code.proto @com_google_googleapis//google/rpc:code_proto",
+        ],
         version = "v2.12.2",
     )
     go_repository(
@@ -397,6 +405,9 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "gitlab.com/golang-commonmark/linkify",
         sum = "h1:oYrL81N608MLZhma3ruL8qTM4xcpYECGut8KSxRY59g=",
         version = "v0.0.0-20191026162114-a0c2df6c8f82",
+        build_directives = [
+            "gazelle:resolve go go golang.org/x/text/unicode/rangetable @org_golang_x_text//unicode/rangetable:go_default_library",
+        ],
     )
     go_repository(
         name = "com_gitlab_golang_commonmark_markdown",

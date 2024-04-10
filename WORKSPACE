@@ -29,12 +29,7 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 protobuf_deps()
 
 http_archive(
-    # go_googleapis is used instead of com_google_googleapis in order to override
-    # the dependency on github.com/googleapis/googleapis defined by rules_go
-    # that is named go_googleapis. googleapis already has all of the necessary
-    # rules, so using the rules_go patched version isn't necessary and it lags in
-    # freshness which would require dependency overrides anyways.
-    name = "go_googleapis",
+    name = "com_google_googleapis",
     # Use `master` because googleapis isn't semantically versioned and the protos
     # this repo cares about (the annotation definitions) do not have breaking
     # changes, so we can live on HEAD. Pinning to commit is cumbersome to maintain.
@@ -42,24 +37,24 @@ http_archive(
     urls = ["https://github.com/googleapis/googleapis/archive/master.tar.gz"],
 )
 
-load("@go_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
 switched_rules_by_language(name = "com_google_googleapis_imports", go = True, grpc = True)
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "6734a719993b1ba4ebe9806e853864395a8d3968ad27f9dd759c196b3eb3abe8",
+    sha256 = "80a98277ad1311dacd837f9b16db62887702e9f1d1c4c9f796d0121a46c8e184",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.45.1/rules_go-v0.45.1.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.45.1/rules_go-v0.45.1.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.46.0/rules_go-v0.46.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.46.0/rules_go-v0.46.0.zip",
     ],
 )
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "b8b6d75de6e4bf7c41b7737b183523085f56283f6db929b86c5e7e1f09cf59c9",
+    sha256 = "75df288c4b31c81eb50f51e2e14f4763cb7548daae126817247064637fd9ea62",
     urls = [
-        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.31.1/bazel-gazelle-v0.31.1.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.31.1/bazel-gazelle-v0.31.1.tar.gz",
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.36.0/bazel-gazelle-v0.36.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.36.0/bazel-gazelle-v0.36.0.tar.gz",
     ],
 )
 

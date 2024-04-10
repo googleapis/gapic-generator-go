@@ -32,9 +32,6 @@ update-bazel-repos:
 
 gazelle:
 	bazelisk run //:gazelle
-	sed -i '' "s/extendedops_go_proto/extended_operations_go_proto/g" internal/gengapic/BUILD.bazel
-	sed -i '' "s/@com_github_golang_protobuf\/\/protoc-gen-go\/plugin/@io_bazel_rules_go\/\/proto\/wkt:compiler_plugin_go_proto/g" cmd/protoc-gen-go_gapic/BUILD
-	sed -i '' "s/@com_github_golang_protobuf\/\/protoc-gen-go\/plugin/@io_bazel_rules_go\/\/proto\/wkt:compiler_plugin_go_proto/g" cmd/protoc-gen-go_cli/BUILD.bazel
 
 clean:
 	rm -rf testdata
