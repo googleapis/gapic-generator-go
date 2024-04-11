@@ -1,4 +1,4 @@
 func (c *fooRESTClient) ClientStreamRPC(ctx context.Context, opts ...gax.CallOption) (foopb.FooService_ClientStreamRPCClient, error) {
-	return nil, fmt.Errorf("ClientStreamRPC not yet supported for REST clients")
+	return nil, errors.New("ClientStreamRPC not yet supported for REST clients")
 }
 

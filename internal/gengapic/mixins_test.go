@@ -283,7 +283,7 @@ func TestGetOperationPathOverride(t *testing.T) {
 			want: "/v2/%s",
 			http: &annotations.Http{
 				Rules: []*annotations.HttpRule{
-					&annotations.HttpRule{
+					{
 						Selector: "google.longrunning.Operations.GetOperation",
 						Pattern: &annotations.HttpRule_Get{
 							Get: "/v2/{operation=projects/*/locations/*/operations/*}",
