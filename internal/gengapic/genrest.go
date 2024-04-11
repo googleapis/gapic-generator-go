@@ -706,7 +706,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("")
 	p("func (c *%s) CloseSend() error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
+	p(`  return errors.New("this method is not implemented for a server-stream")`)
 	p("}")
 	p("")
 	p("func (c *%s) Context() context.Context {", streamClient)
@@ -715,17 +715,17 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("")
 	p("func (c *%s) SendMsg(m interface{}) error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
+	p(`  return errors.New("this method is not implemented for a server-stream")`)
 	p("}")
 	p("")
 	p("func (c *%s) RecvMsg(m interface{}) error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p(`  return fmt.Errorf("this method is not implemented, use Recv")`)
+	p(`  return errors.New("this method is not implemented, use Recv")`)
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "errors"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 
 	return nil
@@ -748,12 +748,12 @@ func (g *generator) noRequestStreamRESTCall(servName string, s *descriptorpb.Ser
 
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	p(`  return nil, fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
+	p(`  return nil, errors.New("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "errors"}] = true
 
 	return nil
 }
@@ -775,9 +775,6 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 		return err
 	}
 	info := getHTTPInfo(m)
-	if err != nil {
-		return err
-	}
 	if info == nil {
 		return fmt.Errorf("method has no http info: %q", m.GetName())
 	}

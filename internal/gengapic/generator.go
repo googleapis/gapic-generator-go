@@ -312,7 +312,7 @@ func (g *generator) nestedName(nested pbinfo.ProtoType) string {
 // * The field is not annotated with google.api.field_behavior = REQUIRED.
 // * The field name is listed in google.api.publishing.method_settings.auto_populated_fields.
 // * The field is annotated with google.api.field_info.format = UUID4.
-func (g *generator) autoPopulatedFields(servName string, m *descriptorpb.MethodDescriptorProto) []*descriptorpb.FieldDescriptorProto {
+func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescriptorProto) []*descriptorpb.FieldDescriptorProto {
 	var apfs []string
 	// Find the service config's AutoPopulatedFields entry by method name.
 	mfqn := g.fqn(m)

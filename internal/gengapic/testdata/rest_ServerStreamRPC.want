@@ -90,7 +90,7 @@ func (c *serverStreamRPCRESTClient) Trailer() metadata.MD {
 
 func (c *serverStreamRPCRESTClient) CloseSend() error {
 	// This is a no-op to fulfill the interface.
-	return fmt.Errorf("this method is not implemented for a server-stream")
+	return errors.New("this method is not implemented for a server-stream")
 }
 
 func (c *serverStreamRPCRESTClient) Context() context.Context {
@@ -99,11 +99,11 @@ func (c *serverStreamRPCRESTClient) Context() context.Context {
 
 func (c *serverStreamRPCRESTClient) SendMsg(m interface{}) error {
 	// This is a no-op to fulfill the interface.
-	return fmt.Errorf("this method is not implemented for a server-stream")
+	return errors.New("this method is not implemented for a server-stream")
 }
 
 func (c *serverStreamRPCRESTClient) RecvMsg(m interface{}) error {
 	// This is a no-op to fulfill the interface.
-	return fmt.Errorf("this method is not implemented, use Recv")
+	return errors.New("this method is not implemented, use Recv")
 }
 
