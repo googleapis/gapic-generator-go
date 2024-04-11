@@ -819,6 +819,7 @@ func TestGenRestMethod(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}:   true,
 				{Path: "context"}: true,
+				{Path: "errors"}:  true,
 				{Path: "fmt"}:     true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Path: "net/url"}:                                                true,
@@ -835,7 +836,7 @@ func TestGenRestMethod(t *testing.T) {
 			options: &options{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}: true,
-				{Path: "fmt"}:     true,
+				{Path: "errors"}:  true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
