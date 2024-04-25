@@ -330,7 +330,10 @@ func TestClientInit(t *testing.T) {
 				Options:    &descriptorpb.MethodOptions{},
 			},
 		},
+		Options: &descriptorpb.ServiceOptions{},
 	}
+	proto.SetExtension(servPlain.Options, annotations.E_ApiVersion, "v1_20240425")
+
 	servLRO := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptorpb.MethodDescriptorProto{
@@ -341,7 +344,10 @@ func TestClientInit(t *testing.T) {
 				Options:    &descriptorpb.MethodOptions{},
 			},
 		},
+		Options: &descriptorpb.ServiceOptions{},
 	}
+	proto.SetExtension(servLRO.Options, annotations.E_ApiVersion, "v1_20240425")
+
 	servDeprecated := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 		Method: []*descriptorpb.MethodDescriptorProto{
