@@ -197,8 +197,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_googleapis_gapic_showcase",
         importpath = "github.com/googleapis/gapic-showcase",
-        sum = "h1:+nXpQFt4JH06W90VVA4Z07K9azdMpFZ0qxP4OeSNnHg=",
-        version = "v0.33.0",
+        sum = "h1:+O3ZkmqNAeHasBt9kGEXNcBILY5J5+Khu2vEonwWqXE=",
+        version = "v0.34.0",
     )
     go_repository(
         name = "com_github_googleapis_gax_go_v2",
@@ -495,14 +495,14 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_google_cloud_go_auth",
         importpath = "cloud.google.com/go/auth",
-        sum = "h1:gmxNJs4YZYcw6YvKRtVBaF2fyUE6UrWPyzU8jHvYfmI=",
-        version = "v0.2.2",
+        sum = "h1:PRyzEpGfx/Z9e8+lHsbkoUVXD0gnu4MNmm7Gp8TQNIs=",
+        version = "v0.3.0",
     )
     go_repository(
         name = "com_google_cloud_go_auth_oauth2adapt",
         importpath = "cloud.google.com/go/auth/oauth2adapt",
-        sum = "h1:VSPmMmUlT8CkIZ2PzD9AlLN+R3+D1clXMWHHa6vG/Ag=",
-        version = "v0.2.1",
+        sum = "h1:+TTV8aXpjeChS9M+aTtN/TjdQnzJvmzKFt//oWu7HX4=",
+        version = "v0.2.2",
     )
     go_repository(
         name = "com_google_cloud_go_automl",
@@ -1236,8 +1236,8 @@ def com_googleapis_gapic_generator_go_repositories():
             "gazelle:resolve go go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc @io_opentelemetry_go_contrib_instrumentation_google_golang_org_grpc_otelgrpc//:go_default_library",
         ],
         importpath = "google.golang.org/api",
-        sum = "h1:dHj1/yv5Dm/eQTXiP9hNCRT3xzJHWXeNdRq29XbMxoE=",
-        version = "v0.176.0",
+        sum = "h1:DJSXnV6An+NhJ1J+GWtoF2nHEuqB1VNoTfnIbjNvwD4=",
+        version = "v0.176.1",
     )
     go_repository(
         name = "org_golang_google_appengine",
