@@ -145,6 +145,18 @@ func TestEchoHeader(t *testing.T) {
 	}
 }
 
+// Test gRPC trailers for required headers.
+func TestEchoTrailers(t *testing.T) {
+	defer check(t)
+	req := &showcasepb.EchoRequest{Header: "potato"}
+	mdForTrailers := metadata.New(map[string]string{})
+	echo.Echo(context.Background(), req, gax.WithGRPCOptions(grpc.Trailer(&mdForTrailers)))
+	apiVersion := mdForTrailers.Get("x-goog-api-version")
+	if len(apiVersion) < 1 || apiVersion[0] == "" {
+		t.Error("Echo() x-goog-api-version header not present or empty")
+	}
+}
+
 func TestEchoHeaderREST(t *testing.T) {
 	defer check(t)
 	for _, tst := range []struct {
