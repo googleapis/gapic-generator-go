@@ -375,6 +375,8 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("}")
 	p("")
 
+	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
+
 	// setGoogleClientInfo method
 	p("// setGoogleClientInfo sets the name and version of the application in")
 	p("// the `x-goog-api-client` header passed on each request. Intended for")
@@ -382,7 +384,12 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("func (c *%s) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
 	p(`  kv := append([]string{"gl-go", gax.GoVersion}, keyval...)`)
 	p(`  kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)`)
-	p(`  c.xGoogHeaders = []string{"x-goog-api-client", gax.XGoogHeader(kv...)}`)
+	p(`  c.xGoogHeaders = []string{`)
+	p(`    "x-goog-api-client", gax.XGoogHeader(kv...),`)
+	if apiVersion != "" {
+		p(`    "x-goog-api-version", %q,`, apiVersion)
+	}
+	p("  }")
 	p("}")
 	p("")
 
