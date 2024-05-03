@@ -47,7 +47,7 @@ var restClientOpts = []option.ClientOption{
 func TestMain(m *testing.M) {
 	flag.Parse()
 
-	conn, err := grpc.Dial("localhost:7469", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:7469", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
