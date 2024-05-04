@@ -24,6 +24,7 @@ import (
 	showcase "github.com/googleapis/gapic-showcase/client"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func init() {
