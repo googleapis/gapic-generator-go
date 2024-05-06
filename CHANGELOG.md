@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.42.0](https://github.com/googleapis/gapic-generator-go/compare/v0.41.3...v0.42.0) (2024-05-06)
+
+
+### Features
+
+* **gengapic:** Add x-goog-api-version header ([#1498](https://github.com/googleapis/gapic-generator-go/issues/1498)) ([9e22b2c](https://github.com/googleapis/gapic-generator-go/commit/9e22b2c073129eb8ff0746db44d3c5abe16a0751))
+
+
+### Bug Fixes
+
+* **gencli:** Don't generate grpc.WithInsecure ([#1503](https://github.com/googleapis/gapic-generator-go/issues/1503)) ([27f02ea](https://github.com/googleapis/gapic-generator-go/commit/27f02ea30caa2199c1e2c5570781d2f25aaab40a))
+
 ## [0.41.3](https://github.com/googleapis/gapic-generator-go/compare/v0.41.2...v0.41.3) (2024-04-11)
 
 
