@@ -34,6 +34,7 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"golang.org/x/oauth2"
 	{{ range $key, $pkg := .Imports}}
 	{{ $pkg.Name }} "{{ $pkg.Path }}"
@@ -89,7 +90,7 @@ var {{ $serviceCmdVar }} = &cobra.Command{
 				return fmt.Errorf("Missing address to use with insecure connection")
 			}
 
-			conn, err := grpc.Dial(address, grpc.WithInsecure())
+			conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
 				return err
 			}
