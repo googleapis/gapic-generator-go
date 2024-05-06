@@ -17,38 +17,38 @@ package pbinfo
 import (
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestNameSpec(t *testing.T) {
 	t.Parallel()
 
-	subMsg := &descriptor.DescriptorProto{
+	subMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("SubMessage"),
 	}
-	msg := &descriptor.DescriptorProto{
+	msg := &descriptorpb.DescriptorProto{
 		Name:       proto.String("Message"),
-		NestedType: []*descriptor.DescriptorProto{subMsg},
+		NestedType: []*descriptorpb.DescriptorProto{subMsg},
 	}
-	anotherMsg := &descriptor.DescriptorProto{
+	anotherMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("AnotherMessage"),
 	}
-	file := &descriptor.FileDescriptorProto{
-		Options: &descriptor.FileOptions{
+	file := &descriptorpb.FileDescriptorProto{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("path.to/pb/foo;foo"),
 		},
-		MessageType: []*descriptor.DescriptorProto{msg},
+		MessageType: []*descriptorpb.DescriptorProto{msg},
 	}
-	anotherFile := &descriptor.FileDescriptorProto{
+	anotherFile := &descriptorpb.FileDescriptorProto{
 		Name: proto.String("bar.proto"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("path.to/pb/bar;bar"),
 		},
-		MessageType: []*descriptor.DescriptorProto{anotherMsg},
+		MessageType: []*descriptorpb.DescriptorProto{anotherMsg},
 	}
 
-	info := Of([]*descriptor.FileDescriptorProto{file, anotherFile})
+	info := Of([]*descriptorpb.FileDescriptorProto{file, anotherFile})
 	info.PkgOverrides = map[string]string{
 		anotherFile.GetName(): "path.to/pb/foo;foo",
 	}

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.41.3](https://github.com/googleapis/gapic-generator-go/compare/v0.41.2...v0.41.3) (2024-04-11)
+
+
+### Bug Fixes
+
+* **bazel:** Upgrade rules_go & gazelle to drop go_googleapis shading ([#1486](https://github.com/googleapis/gapic-generator-go/issues/1486)) ([7fdb7aa](https://github.com/googleapis/gapic-generator-go/commit/7fdb7aa68038bac0f65b8d6bb90b098b88fbb81a))
+* Refactor codebase to protobuf-go v2 ([#1489](https://github.com/googleapis/gapic-generator-go/issues/1489)) ([e84b5ef](https://github.com/googleapis/gapic-generator-go/commit/e84b5ef2669849eeb30d8925bee3b15524bcc521))
+
+
+### Performance Improvements
+
+* Use errors.New when possible ([#1490](https://github.com/googleapis/gapic-generator-go/issues/1490)) ([c1fd44c](https://github.com/googleapis/gapic-generator-go/commit/c1fd44ceb367d9e4cf43864b34b1cc39c4138a61))
+
 ## [0.41.2](https://github.com/googleapis/gapic-generator-go/compare/v0.41.1...v0.41.2) (2024-04-06)
 
 

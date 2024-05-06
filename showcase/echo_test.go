@@ -145,6 +145,18 @@ func TestEchoHeader(t *testing.T) {
 	}
 }
 
+// Test gRPC trailers for required headers.
+func TestEchoTrailers(t *testing.T) {
+	defer check(t)
+	req := &showcasepb.EchoRequest{Header: "potato"}
+	mdForTrailers := metadata.New(map[string]string{})
+	echo.Echo(context.Background(), req, gax.WithGRPCOptions(grpc.Trailer(&mdForTrailers)))
+	apiVersion := mdForTrailers.Get("x-goog-api-version")
+	if len(apiVersion) < 1 || apiVersion[0] == "" {
+		t.Error("Echo() x-goog-api-version header not present or empty")
+	}
+}
+
 func TestEchoHeaderREST(t *testing.T) {
 	defer check(t)
 	for _, tst := range []struct {
@@ -199,15 +211,22 @@ func TestXGoogeHeaders(t *testing.T) {
 	info := y.FieldByName("xGoogHeaders")
 
 	var goVersion string
+	var apiVersion string
 	vals := make([]string, 0)
 	for i := 0; i < info.Len(); i++ {
 		key := info.Index(i)
 		// Only check for the client info set by the generated setGoogleClientInfo()
-		if key.String() != "x-goog-api-client" {
-			continue
+		if key.String() == "x-goog-api-client" {
+			vals = append(vals, info.Index(i+1).String())
+		}
+		if key.String() == "x-goog-api-version" {
+			apiVersion = info.Index(i + 1).String()
 		}
 
-		vals = append(vals, info.Index(i+1).String())
+	}
+
+	if apiVersion == "" {
+		t.Error("expected x-goog-api-version to be present and non-empty")
 	}
 
 	for i := 0; goVersion == "" || i < len(vals); i++ {

@@ -9,8 +9,8 @@ go_library(
     importpath = "github.com/googleapis/gapic-generator-go/internal/pbinfo",
     visibility = ["//:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/descriptorpb",
     ],
 )
 
@@ -19,7 +19,7 @@ go_test(
     srcs = ["pbinfo_test.go"],
     embed = [":pbinfo"],
     deps = [
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/descriptorpb",
     ],
 )

@@ -14,12 +14,12 @@
 
 package gengapic
 
-import "github.com/golang/protobuf/protoc-gen-go/descriptor"
+import "google.golang.org/protobuf/types/descriptorpb"
 
-func typep(typ descriptor.FieldDescriptorProto_Type) *descriptor.FieldDescriptorProto_Type {
+func typep(typ descriptorpb.FieldDescriptorProto_Type) *descriptorpb.FieldDescriptorProto_Type {
 	return &typ
 }
 
-func labelp(lbl descriptor.FieldDescriptorProto_Label) *descriptor.FieldDescriptorProto_Label {
+func labelp(lbl descriptorpb.FieldDescriptorProto_Label) *descriptorpb.FieldDescriptorProto_Label {
 	return &lbl
 }

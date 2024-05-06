@@ -17,11 +17,11 @@ package gengapic
 import (
 	"fmt"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // Used for both bidi and client streaming.
-func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) noRequestStreamCall(servName string, s *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	p := g.printf
 
 	servSpec, err := g.descInfo.ImportSpec(s)
@@ -55,7 +55,7 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptor.ServiceDe
 	return nil
 }
 
-func (g *generator) serverStreamCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) serverStreamCall(servName string, s *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	inType := g.descInfo.Type[*m.InputType]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)

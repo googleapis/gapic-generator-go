@@ -21,8 +21,6 @@ import (
 	"time"
 
 	"github.com/ghodss/yaml"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -34,6 +32,8 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 type generator struct {
@@ -45,7 +45,7 @@ type generator struct {
 	// Maps proto elements to their comments
 	comments map[protoiface.MessageV1]string
 
-	resp plugin.CodeGeneratorResponse
+	resp pluginpb.CodeGeneratorResponse
 
 	// Comments to appear after the license header and before the package declaration.
 	headerComments printer.P
@@ -81,10 +81,10 @@ type generator struct {
 
 	// customOpServices is a map of service descriptors with methods that create custom operations
 	// to the service descriptors of the custom operation services that manage those custom operation instances.
-	customOpServices map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto
+	customOpServices map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto
 }
 
-func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
+func (g *generator) init(req *pluginpb.CodeGeneratorRequest) error {
 	g.metadata = &metadata.GapicMetadata{
 		Schema:   "1.0",
 		Language: "go",
@@ -95,10 +95,10 @@ func (g *generator) init(req *plugin.CodeGeneratorRequest) error {
 	g.mixins = make(mixins)
 	g.comments = map[protoiface.MessageV1]string{}
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.customOpServices = map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{}
+	g.customOpServices = map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{}
 	g.aux = &auxTypes{
 		iters:           map[string]*iterType{},
-		methodToWrapper: map[*descriptor.MethodDescriptorProto]operationWrapper{},
+		methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
 		opWrappers:      map[string]operationWrapper{},
 	}
 
@@ -243,7 +243,7 @@ func (g *generator) commit(fileName, pkgName string) int {
 	}
 	header.WriteString(")\n\n")
 	lineCount := len(strings.Split(header.String(), "\n"))
-	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+	g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
 		Name:    &fileName,
 		Content: proto.String(header.String()),
 	})
@@ -262,7 +262,7 @@ func (g *generator) commit(fileName, pkgName string) int {
 		}
 	}
 
-	g.resp.File = append(g.resp.File, &plugin.CodeGeneratorResponse_File{
+	g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
 		Content: proto.String(body),
 	})
 
@@ -281,7 +281,7 @@ func (g *generator) reset() {
 // but omits the leading ".". For example, google.foo.v1.FooMessage.
 func (g *generator) fqn(p pbinfo.ProtoType) string {
 	// Base case. Use proto package instead of relative file name.
-	if f, isFile := p.(*descriptor.FileDescriptorProto); isFile {
+	if f, isFile := p.(*descriptorpb.FileDescriptorProto); isFile {
 		return f.GetPackage()
 	}
 
@@ -312,7 +312,7 @@ func (g *generator) nestedName(nested pbinfo.ProtoType) string {
 // * The field is not annotated with google.api.field_behavior = REQUIRED.
 // * The field name is listed in google.api.publishing.method_settings.auto_populated_fields.
 // * The field is annotated with google.api.field_info.format = UUID4.
-func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDescriptorProto) []*descriptor.FieldDescriptorProto {
+func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescriptorProto) []*descriptorpb.FieldDescriptorProto {
 	var apfs []string
 	// Find the service config's AutoPopulatedFields entry by method name.
 	mfqn := g.fqn(m)
@@ -322,8 +322,8 @@ func (g *generator) autoPopulatedFields(servName string, m *descriptor.MethodDes
 			break
 		}
 	}
-	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
-	var validated []*descriptor.FieldDescriptorProto
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptorpb.DescriptorProto)
+	var validated []*descriptorpb.FieldDescriptorProto
 	for _, apf := range apfs {
 		field := getField(inType, apf)
 		// Do nothing and continue iterating unless all conditions above are met.

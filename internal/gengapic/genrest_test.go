@@ -20,8 +20,6 @@ import (
 	"testing"
 
 	longrunning "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
@@ -34,28 +32,29 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 // Note: the fields parameter contains the names of _all_ the request message's fields,
 // not just those that are path or query params.
-func setupMethod(g *generator, url, body string, fields []string) (*descriptor.MethodDescriptorProto, error) {
-	msg := &descriptor.DescriptorProto{
+func setupMethod(g *generator, url, body string, fields []string) (*descriptorpb.MethodDescriptorProto, error) {
+	msg := &descriptorpb.DescriptorProto{
 		Name: proto.String("IdentifyRequest"),
 	}
 	for i, name := range fields {
 		j := int32(i)
 		msg.Field = append(msg.GetField(),
-			&descriptor.FieldDescriptorProto{
+			&descriptorpb.FieldDescriptorProto{
 				Name:   proto.String(name),
 				Number: &j,
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 		)
 	}
-	mthd := &descriptor.MethodDescriptorProto{
+	mthd := &descriptorpb.MethodDescriptorProto{
 		Name:      proto.String("Identify"),
 		InputType: proto.String(".identify.IdentifyRequest"),
-		Options:   &descriptor.MethodOptions{},
+		Options:   &descriptorpb.MethodOptions{},
 	}
 
 	// Just use Get for everything and assume parsing general verbs is tested elsewhere.
@@ -66,21 +65,21 @@ func setupMethod(g *generator, url, body string, fields []string) (*descriptor.M
 		},
 	})
 
-	srv := &descriptor.ServiceDescriptorProto{
+	srv := &descriptorpb.ServiceDescriptorProto{
 		Name:    proto.String("IdentifyMolluscService"),
-		Method:  []*descriptor.MethodDescriptorProto{mthd},
-		Options: &descriptor.ServiceOptions{},
+		Method:  []*descriptorpb.MethodDescriptorProto{mthd},
+		Options: &descriptorpb.ServiceOptions{},
 	}
 	proto.SetExtension(srv.GetOptions(), annotations.E_DefaultHost, "linnaean.taxonomy.com")
 
-	fds := []*descriptor.FileDescriptorProto{
+	fds := []*descriptorpb.FileDescriptorProto{
 		{
 			Package:     proto.String("identify"),
-			Service:     []*descriptor.ServiceDescriptorProto{srv},
-			MessageType: []*descriptor.DescriptorProto{msg},
+			Service:     []*descriptorpb.ServiceDescriptorProto{srv},
+			MessageType: []*descriptorpb.DescriptorProto{msg},
 		},
 	}
-	req := plugin.CodeGeneratorRequest{
+	req := pluginpb.CodeGeneratorRequest{
 		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 		ProtoFile: fds,
 	}
@@ -100,28 +99,28 @@ func TestPathParams(t *testing.T) {
 		body     string
 		url      string
 		fields   []string
-		expected map[string]*descriptor.FieldDescriptorProto
+		expected map[string]*descriptorpb.FieldDescriptorProto
 	}{
 		{
 			name:     "no_params",
 			url:      "/kingdom",
 			fields:   []string{"name", "mass_kg"},
-			expected: map[string]*descriptor.FieldDescriptorProto{},
+			expected: map[string]*descriptorpb.FieldDescriptorProto{},
 		},
 		{
 			name:   "params_subset_of_fields",
 			url:    "/kingdom/{kingdom}/phylum/{phylum}",
 			fields: []string{"name", "mass_kg", "kingdom", "phylum"},
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"kingdom": {
 					Name:   proto.String("kingdom"),
 					Number: proto.Int32(int32(2)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 				},
 				"phylum": {
 					Name:   proto.String("phylum"),
 					Number: proto.Int32(int32(3)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
@@ -129,17 +128,17 @@ func TestPathParams(t *testing.T) {
 			name:     "disjoint_fields_and_params",
 			url:      "/kingdom/{kingdom}",
 			fields:   []string{"name", "mass_kg"},
-			expected: map[string]*descriptor.FieldDescriptorProto{},
+			expected: map[string]*descriptorpb.FieldDescriptorProto{},
 		},
 		{
 			name:   "params_and_fields_intersect",
 			url:    "/kingdom/{kingdom}/phylum/{phylum}",
 			fields: []string{"name", "mass_kg", "kingdom"},
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"kingdom": {
 					Name:   proto.String("kingdom"),
 					Number: proto.Int32(int32(2)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
@@ -147,16 +146,16 @@ func TestPathParams(t *testing.T) {
 			name:   "fields_subset_of_params",
 			url:    "/kingdom/{kingdom}/phylum/{phylum}/class/{class}",
 			fields: []string{"kingdom", "phylum"},
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"kingdom": {
 					Name:   proto.String("kingdom"),
 					Number: proto.Int32(int32(0)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 				},
 				"phylum": {
 					Name:   proto.String("phylum"),
 					Number: proto.Int32(int32(1)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
@@ -183,30 +182,30 @@ func TestQueryParams(t *testing.T) {
 		body     string
 		url      string
 		fields   []string
-		expected map[string]*descriptor.FieldDescriptorProto
+		expected map[string]*descriptorpb.FieldDescriptorProto
 	}{
 		{
 			name:     "all_params_are_path",
 			url:      "/kingdom/{kingdom}",
 			fields:   []string{"kingdom"},
-			expected: map[string]*descriptor.FieldDescriptorProto{},
+			expected: map[string]*descriptorpb.FieldDescriptorProto{},
 		},
 		{
 			name:     "no_fields",
 			url:      "/kingdom/{kingdom}",
 			fields:   []string{},
-			expected: map[string]*descriptor.FieldDescriptorProto{},
+			expected: map[string]*descriptorpb.FieldDescriptorProto{},
 		},
 		{
 			name:   "no_path_params",
 			body:   "guess",
 			url:    "/kingdom",
 			fields: []string{"mass_kg", "guess"},
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"mass_kg": {
 					Name:   proto.String("mass_kg"),
 					Number: proto.Int32(int32(0)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
@@ -215,11 +214,11 @@ func TestQueryParams(t *testing.T) {
 			body:   "guess",
 			url:    "/kingdom/{kingdom}/phylum/{phylum}",
 			fields: []string{"kingdom", "phylum", "mass_kg", "guess"},
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"mass_kg": {
 					Name:   proto.String("mass_kg"),
 					Number: proto.Int32(int32(2)),
-					Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+					Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 				},
 			},
 		},
@@ -242,119 +241,119 @@ func TestLeafFields(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.opts = &options{transports: []transport{rest}}
 
-	basicMsg := &descriptor.DescriptorProto{
+	basicMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("Clam"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(0)),
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 			{
 				Name:   proto.String("saltwater_p"),
 				Number: proto.Int32(int32(1)),
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_BOOL),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_BOOL),
 			},
 		},
 	}
 
-	innermostMsg := &descriptor.DescriptorProto{
+	innermostMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("Chromatophore"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:   proto.String("color_code"),
 				Number: proto.Int32(int32(0)),
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 		},
 	}
-	nestedMsg := &descriptor.DescriptorProto{
+	nestedMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("Mantle"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(0)),
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 			{
 				Name:     proto.String("chromatophore"),
 				Number:   proto.Int32(int32(1)),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".animalia.mollusca.Chromatophore"),
 			},
 		},
 	}
-	complexMsg := &descriptor.DescriptorProto{
+	complexMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("Squid"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:   proto.String("length_m"),
 				Number: proto.Int32(int32(0)),
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 			{
 				Name:     proto.String("mantle"),
 				Number:   proto.Int32(int32(1)),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".animalia.mollusca.Mantle"),
 			},
 		},
 	}
 
-	recursiveMsg := &descriptor.DescriptorProto{
+	recursiveMsg := &descriptorpb.DescriptorProto{
 		// Usually it's turtles all the way down, but here it's whelks
 		Name: proto.String("Whelk"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(0)),
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 			{
 				Name:     proto.String("whelk"),
 				Number:   proto.Int32(int32(1)),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".animalia.mollusca.Whelk"),
 			},
 		},
 	}
 
-	overarchingMsg := &descriptor.DescriptorProto{
+	overarchingMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("Trawl"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:     proto.String("clams"),
 				Number:   proto.Int32(int32(0)),
-				Label:    labelp(descriptor.FieldDescriptorProto_LABEL_REPEATED),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				Label:    labelp(descriptorpb.FieldDescriptorProto_LABEL_REPEATED),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".animalia.mollusca"),
 			},
 			{
 				Name:   proto.String("mass_kg"),
 				Number: proto.Int32(int32(1)),
-				Type:   typep(descriptor.FieldDescriptorProto_TYPE_INT32),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
 			},
 		},
 	}
 
-	wellKnownMsg := &descriptor.DescriptorProto{
+	wellKnownMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("Update"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:     proto.String("update_mask"),
 				Number:   proto.Int32(int32(0)),
-				Type:     typep(descriptor.FieldDescriptorProto_TYPE_MESSAGE),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				TypeName: proto.String(".google.protobuf.FieldMask"),
 			},
 		},
 	}
 
-	file := &descriptor.FileDescriptorProto{
+	file := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("animalia.mollusca"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
-		MessageType: []*descriptor.DescriptorProto{
+		MessageType: []*descriptorpb.DescriptorProto{
 			basicMsg,
 			innermostMsg,
 			nestedMsg,
@@ -364,22 +363,22 @@ func TestLeafFields(t *testing.T) {
 			wellKnownMsg,
 		},
 	}
-	req := plugin.CodeGeneratorRequest{
+	req := pluginpb.CodeGeneratorRequest{
 		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
-		ProtoFile: []*descriptor.FileDescriptorProto{file},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{file},
 	}
 	g.init(&req)
 
 	for _, tst := range []struct {
 		name           string
-		msg            *descriptor.DescriptorProto
-		expected       map[string]*descriptor.FieldDescriptorProto
-		excludedFields []*descriptor.FieldDescriptorProto
+		msg            *descriptorpb.DescriptorProto
+		expected       map[string]*descriptorpb.FieldDescriptorProto
+		excludedFields []*descriptorpb.FieldDescriptorProto
 	}{
 		{
 			name: "basic_message_test",
 			msg:  basicMsg,
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"mass_kg":     basicMsg.GetField()[0],
 				"saltwater_p": basicMsg.GetField()[1],
 			},
@@ -387,7 +386,7 @@ func TestLeafFields(t *testing.T) {
 		{
 			name: "complex_message_test",
 			msg:  complexMsg,
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"length_m":                        complexMsg.GetField()[0],
 				"mantle.mass_kg":                  nestedMsg.GetField()[0],
 				"mantle.chromatophore.color_code": innermostMsg.GetField()[0],
@@ -396,18 +395,18 @@ func TestLeafFields(t *testing.T) {
 		{
 			name: "excluded_message_test",
 			msg:  complexMsg,
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"length_m":       complexMsg.GetField()[0],
 				"mantle.mass_kg": nestedMsg.GetField()[0],
 			},
-			excludedFields: []*descriptor.FieldDescriptorProto{
+			excludedFields: []*descriptorpb.FieldDescriptorProto{
 				nestedMsg.GetField()[1],
 			},
 		},
 		{
 			name: "recursive_message_test",
 			msg:  recursiveMsg,
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"mass_kg":       recursiveMsg.GetField()[0],
 				"whelk.mass_kg": recursiveMsg.GetField()[0],
 			},
@@ -415,14 +414,14 @@ func TestLeafFields(t *testing.T) {
 		{
 			name: "repeated_message_test",
 			msg:  overarchingMsg,
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"mass_kg": overarchingMsg.GetField()[1],
 			},
 		},
 		{
 			name: "well_known_message_test",
 			msg:  wellKnownMsg,
-			expected: map[string]*descriptor.FieldDescriptorProto{
+			expected: map[string]*descriptorpb.FieldDescriptorProto{
 				"update_mask": wellKnownMsg.GetField()[0],
 			},
 		},
@@ -437,110 +436,110 @@ func TestLeafFields(t *testing.T) {
 func TestGenRestMethod(t *testing.T) {
 	pkg := "google.cloud.foo.v1"
 
-	sizeOpts := &descriptor.FieldOptions{}
+	sizeOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(sizeOpts, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_REQUIRED})
-	sizeField := &descriptor.FieldDescriptorProto{
+	sizeField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("size"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_INT32.Enum(),
+		Type:    descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(),
 		Options: sizeOpts,
 	}
-	otherField := &descriptor.FieldDescriptorProto{
+	otherField := &descriptorpb.FieldDescriptorProto{
 		Name:           proto.String("other"),
-		Type:           descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type:           descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Proto3Optional: proto.Bool(true),
 	}
 	infoOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(infoOpts, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
-	requestIDField := &descriptor.FieldDescriptorProto{
+	requestIDField := &descriptorpb.FieldDescriptorProto{
 		Name:           proto.String("request_id"),
-		Type:           descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type:           descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Proto3Optional: proto.Bool(true),
 		Options:        infoOpts,
 	}
 
-	foo := &descriptor.DescriptorProto{
+	foo := &descriptorpb.DescriptorProto{
 		Name:  proto.String("Foo"),
-		Field: []*descriptor.FieldDescriptorProto{sizeField, otherField, requestIDField},
+		Field: []*descriptorpb.FieldDescriptorProto{sizeField, otherField, requestIDField},
 	}
 	foofqn := fmt.Sprintf(".%s.Foo", pkg)
 
-	pageSizeField := &descriptor.FieldDescriptorProto{
+	pageSizeField := &descriptorpb.FieldDescriptorProto{
 		Name: proto.String("page_size"),
-		Type: descriptor.FieldDescriptorProto_TYPE_INT32.Enum(),
+		Type: descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(),
 	}
-	pageTokenField := &descriptor.FieldDescriptorProto{
+	pageTokenField := &descriptorpb.FieldDescriptorProto{
 		Name: proto.String("page_token"),
-		Type: descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 	}
-	pagedFooReq := &descriptor.DescriptorProto{
+	pagedFooReq := &descriptorpb.DescriptorProto{
 		Name:  proto.String("PagedFooRequest"),
-		Field: []*descriptor.FieldDescriptorProto{pageSizeField, pageTokenField},
+		Field: []*descriptorpb.FieldDescriptorProto{pageSizeField, pageTokenField},
 	}
 	pagedFooReqFQN := fmt.Sprintf(".%s.PagedFooRequest", pkg)
 
-	foosField := &descriptor.FieldDescriptorProto{
+	foosField := &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("foos"),
-		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 		TypeName: proto.String(foofqn),
-		Label:    descriptor.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+		Label:    descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(),
 	}
-	nextPageTokenField := &descriptor.FieldDescriptorProto{
+	nextPageTokenField := &descriptorpb.FieldDescriptorProto{
 		Name: proto.String("next_page_token"),
-		Type: descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 	}
-	pagedFooRes := &descriptor.DescriptorProto{
+	pagedFooRes := &descriptorpb.DescriptorProto{
 		Name:  proto.String("PagedFooResponse"),
-		Field: []*descriptor.FieldDescriptorProto{foosField, nextPageTokenField},
+		Field: []*descriptorpb.FieldDescriptorProto{foosField, nextPageTokenField},
 	}
 	pagedFooResFQN := fmt.Sprintf(".%s.PagedFooResponse", pkg)
 
-	fooField := &descriptor.FieldDescriptorProto{
+	fooField := &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("foo"),
-		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 		TypeName: proto.String(foofqn),
 	}
 
-	maskField := &descriptor.FieldDescriptorProto{
+	maskField := &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("update_mask"),
 		JsonName: proto.String("updateMask"),
-		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 		TypeName: proto.String(".google.protobuf.FieldMask"),
 	}
 
-	repeatedPrimField := &descriptor.FieldDescriptorProto{
+	repeatedPrimField := &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("primitives"),
-		Type:     descriptor.FieldDescriptorProto_TYPE_STRING.Enum().Enum(),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum().Enum(),
 		TypeName: proto.String(foofqn),
-		Label:    descriptor.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+		Label:    descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(),
 	}
 
-	numericWrapperField := &descriptor.FieldDescriptorProto{
+	numericWrapperField := &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("numeric_wrapper"),
-		Type:     descriptor.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 		JsonName: proto.String("numericWrapper"),
 		TypeName: proto.String(".google.protobuf.DoubleValue"),
 	}
 
-	updateReq := &descriptor.DescriptorProto{
+	updateReq := &descriptorpb.DescriptorProto{
 		Name:  proto.String("UpdateRequest"),
-		Field: []*descriptor.FieldDescriptorProto{fooField, maskField, repeatedPrimField, numericWrapperField},
+		Field: []*descriptorpb.FieldDescriptorProto{fooField, maskField, repeatedPrimField, numericWrapperField},
 	}
 	updateReqFqn := fmt.Sprintf(".%s.UpdateRequest", pkg)
 
-	nameOpts := &descriptor.FieldOptions{}
+	nameOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(nameOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_NAME)
-	nameField := &descriptor.FieldDescriptorProto{
+	nameField := &descriptorpb.FieldDescriptorProto{
 		Name:    proto.String("name"),
-		Type:    descriptor.FieldDescriptorProto_TYPE_STRING.Enum(),
+		Type:    descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Options: nameOpts,
 	}
-	op := &descriptor.DescriptorProto{
+	op := &descriptorpb.DescriptorProto{
 		Name:  proto.String("Operation"),
-		Field: []*descriptor.FieldDescriptorProto{nameField},
+		Field: []*descriptorpb.FieldDescriptorProto{nameField},
 	}
 	opfqn := fmt.Sprintf(".%s.Operation", pkg)
 
-	opRPCOpt := &descriptor.MethodOptions{}
+	opRPCOpt := &descriptorpb.MethodOptions{}
 	proto.SetExtension(opRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/foo",
@@ -548,28 +547,28 @@ func TestGenRestMethod(t *testing.T) {
 	})
 	proto.SetExtension(opRPCOpt, extendedops.E_OperationService, "FooOperationService")
 
-	opRPC := &descriptor.MethodDescriptorProto{
+	opRPC := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("CustomOp"),
 		InputType:  proto.String(foofqn),
 		OutputType: proto.String(opfqn),
 		Options:    opRPCOpt,
 	}
 
-	emptyRPCOpt := &descriptor.MethodOptions{}
+	emptyRPCOpt := &descriptorpb.MethodOptions{}
 	proto.SetExtension(emptyRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Delete{
 			Delete: "/v1/foo/{other=*}",
 		},
 	})
 
-	emptyRPC := &descriptor.MethodDescriptorProto{
+	emptyRPC := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("EmptyRPC"),
 		InputType:  proto.String(foofqn),
 		OutputType: proto.String(emptyType),
 		Options:    emptyRPCOpt,
 	}
 
-	unaryRPCOpt := &descriptor.MethodOptions{}
+	unaryRPCOpt := &descriptorpb.MethodOptions{}
 	proto.SetExtension(unaryRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/foo",
@@ -582,28 +581,28 @@ func TestGenRestMethod(t *testing.T) {
 		},
 	})
 
-	unaryRPC := &descriptor.MethodDescriptorProto{
+	unaryRPC := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("UnaryRPC"),
 		InputType:  proto.String(foofqn),
 		OutputType: proto.String(foofqn),
 		Options:    unaryRPCOpt,
 	}
 
-	pagingRPCOpt := &descriptor.MethodOptions{}
+	pagingRPCOpt := &descriptorpb.MethodOptions{}
 	proto.SetExtension(pagingRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
 			Get: "/v1/foo",
 		},
 	})
 
-	pagingRPC := &descriptor.MethodDescriptorProto{
+	pagingRPC := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("PagingRPC"),
 		InputType:  proto.String(pagedFooReqFQN),
 		OutputType: proto.String(pagedFooResFQN),
 		Options:    pagingRPCOpt,
 	}
 
-	serverStreamRPC := &descriptor.MethodDescriptorProto{
+	serverStreamRPC := &descriptorpb.MethodDescriptorProto{
 		Name:            proto.String("ServerStreamRPC"),
 		InputType:       proto.String(foofqn),
 		OutputType:      proto.String(foofqn),
@@ -612,7 +611,7 @@ func TestGenRestMethod(t *testing.T) {
 		Options: unaryRPCOpt,
 	}
 
-	clientStreamRPC := &descriptor.MethodDescriptorProto{
+	clientStreamRPC := &descriptorpb.MethodDescriptorProto{
 		Name:            proto.String("ClientStreamRPC"),
 		InputType:       proto.String(foofqn),
 		OutputType:      proto.String(foofqn),
@@ -621,7 +620,7 @@ func TestGenRestMethod(t *testing.T) {
 		Options: unaryRPCOpt,
 	}
 
-	lroRPCOpt := &descriptor.MethodOptions{}
+	lroRPCOpt := &descriptorpb.MethodOptions{}
 	proto.SetExtension(lroRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/foo",
@@ -634,7 +633,7 @@ func TestGenRestMethod(t *testing.T) {
 		MetadataType: foofqn[1:],
 	})
 	lroDesc := protodesc.ToDescriptorProto((&longrunning.Operation{}).ProtoReflect().Descriptor())
-	lroRPC := &descriptor.MethodDescriptorProto{
+	lroRPC := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("LongrunningRPC"),
 		InputType:  proto.String(foofqn),
 		OutputType: proto.String(operationType),
@@ -642,7 +641,7 @@ func TestGenRestMethod(t *testing.T) {
 	}
 
 	httpBodyDesc := protodesc.ToDescriptorProto((&httpbody.HttpBody{}).ProtoReflect().Descriptor())
-	httpBodyRPCOpt := &descriptor.MethodOptions{}
+	httpBodyRPCOpt := &descriptorpb.MethodOptions{}
 	proto.SetExtension(httpBodyRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/foo",
@@ -654,14 +653,14 @@ func TestGenRestMethod(t *testing.T) {
 			{Field: "other"},
 		},
 	})
-	httpBodyRPC := &descriptor.MethodDescriptorProto{
+	httpBodyRPC := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("HttpBodyRPC"),
 		InputType:  proto.String(foofqn),
 		OutputType: proto.String(httpBodyType),
 		Options:    httpBodyRPCOpt,
 	}
 
-	updateRPCOpt := &descriptor.MethodOptions{}
+	updateRPCOpt := &descriptorpb.MethodOptions{}
 	proto.SetExtension(updateRPCOpt, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Post{
 			Post: "/v1/foo",
@@ -669,26 +668,26 @@ func TestGenRestMethod(t *testing.T) {
 		Body: "foo",
 	})
 
-	updateRPC := &descriptor.MethodDescriptorProto{
+	updateRPC := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("UpdateRPC"),
 		InputType:  proto.String(updateReqFqn),
 		OutputType: proto.String(foofqn),
 		Options:    updateRPCOpt,
 	}
 
-	s := &descriptor.ServiceDescriptorProto{
+	s := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("FooService"),
 	}
-	opS := &descriptor.ServiceDescriptorProto{
+	opS := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("FooOperationService"),
 	}
 
-	f := &descriptor.FileDescriptorProto{
+	f := &descriptorpb.FileDescriptorProto{
 		Package: proto.String(pkg),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("google.golang.org/genproto/cloud/foo/v1;foo"),
 		},
-		Service: []*descriptor.ServiceDescriptorProto{s, opS},
+		Service: []*descriptorpb.ServiceDescriptorProto{s, opS},
 	}
 
 	g := &generator{
@@ -697,11 +696,11 @@ func TestGenRestMethod(t *testing.T) {
 				message: op,
 			},
 			iters:           map[string]*iterType{},
-			methodToWrapper: map[*descriptor.MethodDescriptorProto]operationWrapper{},
+			methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
 			opWrappers:      map[string]operationWrapper{},
 		},
 		opts: &options{},
-		customOpServices: map[*descriptor.ServiceDescriptorProto]*descriptor.ServiceDescriptorProto{
+		customOpServices: map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{
 			s: opS,
 		},
 		descInfo: pbinfo.Info{
@@ -750,7 +749,7 @@ func TestGenRestMethod(t *testing.T) {
 
 	for _, tst := range []struct {
 		name    string
-		method  *descriptor.MethodDescriptorProto
+		method  *descriptorpb.MethodDescriptorProto
 		options *options
 		imports map[pbinfo.ImportSpec]bool
 	}{
@@ -819,6 +818,7 @@ func TestGenRestMethod(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}:   true,
 				{Path: "context"}: true,
+				{Path: "errors"}:  true,
 				{Path: "fmt"}:     true,
 				{Path: "google.golang.org/api/googleapi"}:                        true,
 				{Path: "net/url"}:                                                true,
@@ -835,7 +835,7 @@ func TestGenRestMethod(t *testing.T) {
 			options: &options{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}: true,
-				{Path: "fmt"}:     true,
+				{Path: "errors"}:  true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 			},
 		},
@@ -887,7 +887,7 @@ func TestGenRestMethod(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tst.name), func(t *testing.T) {
-			s.Method = []*descriptor.MethodDescriptorProto{tst.method}
+			s.Method = []*descriptorpb.MethodDescriptorProto{tst.method}
 			g.opts = tst.options
 			g.imports = make(map[pbinfo.ImportSpec]bool)
 			g.serviceConfig = &serviceconfig.Service{
@@ -933,7 +933,7 @@ func TestGenRestMethod(t *testing.T) {
 
 			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
 			g.reset()
-			g.aux.methodToWrapper = make(map[*descriptor.MethodDescriptorProto]operationWrapper)
+			g.aux.methodToWrapper = make(map[*descriptorpb.MethodDescriptorProto]operationWrapper)
 			g.aux.opWrappers = make(map[string]operationWrapper)
 		})
 	}

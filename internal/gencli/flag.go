@@ -20,15 +20,15 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/jhump/protoreflect/desc"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // Flag is used to represent fields as flags
 type Flag struct {
 	Name          string
-	Type          descriptor.FieldDescriptorProto_Type
+	Type          descriptorpb.FieldDescriptorProto_Type
 	Message       string
 	Repeated      bool
 	Required      bool
@@ -61,7 +61,7 @@ func (f *Flag) GenFlag() string {
 	fType := toTitle(tStr)
 
 	if f.Repeated {
-		if f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+		if f.Type == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
 			// repeated Messages are entered as JSON strings and unmarshaled into the Message type later
 			return fmt.Sprintf(`StringArrayVar(&%s, "%s", []string{}, "%s")`, f.VarName, f.Name, f.Usage)
 		}
@@ -111,17 +111,17 @@ func (f *Flag) GenFlag() string {
 
 // IsMessage is a template helper that reports if the flag is a message type
 func (f *Flag) IsMessage() bool {
-	return f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE
+	return f.Type == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
 }
 
 // IsEnum is a template helper that reports if the flag is of an enum type
 func (f *Flag) IsEnum() bool {
-	return f.Type == descriptor.FieldDescriptorProto_TYPE_ENUM
+	return f.Type == descriptorpb.FieldDescriptorProto_TYPE_ENUM
 }
 
 // IsBytes is a helper that reports if the flag is of a type bytes
 func (f *Flag) IsBytes() bool {
-	return f.Type == descriptor.FieldDescriptorProto_TYPE_BYTES
+	return f.Type == descriptorpb.FieldDescriptorProto_TYPE_BYTES
 }
 
 // EnumFieldAccess constructs the input message field accessor for an enum

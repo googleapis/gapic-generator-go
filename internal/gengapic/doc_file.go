@@ -18,19 +18,19 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // genDocFile generates doc.go
 //
 // Since it's the only file that needs to write package documentation and canonical import,
 // it does not use g.commit().
-func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.ServiceDescriptorProto) {
+func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.ServiceDescriptorProto) {
 	p := g.printf
 
 	p(license.Apache, year)
@@ -159,7 +159,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptor.Servi
 	p("}")
 }
 
-func collectScopes(servs []*descriptor.ServiceDescriptorProto) []string {
+func collectScopes(servs []*descriptorpb.ServiceDescriptorProto) []string {
 	scopeSet := map[string]bool{}
 	for _, s := range servs {
 		eOauthScopes := proto.GetExtension(s.Options, annotations.E_OauthScopes)

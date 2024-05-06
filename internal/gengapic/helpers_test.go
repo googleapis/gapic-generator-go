@@ -17,7 +17,6 @@ package gengapic
 import (
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
@@ -87,8 +86,8 @@ func TestUpperFirst(t *testing.T) {
 }
 
 func TestIsOptional(t *testing.T) {
-	msg := &descriptor.DescriptorProto{
-		Field: []*descriptor.FieldDescriptorProto{
+	msg := &descriptorpb.DescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:           proto.String("opt"),
 				Proto3Optional: proto.Bool(true),
@@ -145,8 +144,8 @@ func TestStrContains(t *testing.T) {
 }
 
 func TestHasField(t *testing.T) {
-	msg := &descriptor.DescriptorProto{
-		Field: []*descriptor.FieldDescriptorProto{
+	msg := &descriptorpb.DescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			{Name: proto.String("foo")},
 			{Name: proto.String("bar")},
 		},
@@ -165,8 +164,8 @@ func TestHasField(t *testing.T) {
 }
 
 func TestHasMethod(t *testing.T) {
-	serv := &descriptor.ServiceDescriptorProto{
-		Method: []*descriptor.MethodDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Method: []*descriptorpb.MethodDescriptorProto{
 			{Name: proto.String("ListFoos")},
 			{Name: proto.String("GetFoo")},
 			{Name: proto.String("CreateFoo")},
@@ -193,7 +192,7 @@ func TestIsRequired(t *testing.T) {
 	proto.SetExtension(notReq, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_INPUT_ONLY})
 
 	for _, tst := range []struct {
-		opts *descriptor.FieldOptions
+		opts *descriptorpb.FieldOptions
 		want bool
 	}{
 		{
@@ -207,7 +206,7 @@ func TestIsRequired(t *testing.T) {
 			opts: nil,
 		},
 	} {
-		if got := isRequired(&descriptor.FieldDescriptorProto{Options: tst.opts}); got != tst.want {
+		if got := isRequired(&descriptorpb.FieldDescriptorProto{Options: tst.opts}); got != tst.want {
 			t.Errorf("isRequired(%q) = got %v, want %v", tst.opts, got, tst.want)
 		}
 	}
@@ -301,12 +300,12 @@ func TestHasRESTMethod(t *testing.T) {
 		{"has_rest_method", true},
 		{"does_not_have_rest_method", false},
 	} {
-		opts := &descriptor.MethodOptions{}
+		opts := &descriptorpb.MethodOptions{}
 		if tst.want {
 			proto.SetExtension(opts, annotations.E_Http, &annotations.HttpRule{Pattern: &annotations.HttpRule_Get{Get: "/foo"}})
 		}
-		s := &descriptor.ServiceDescriptorProto{
-			Method: []*descriptor.MethodDescriptorProto{
+		s := &descriptorpb.ServiceDescriptorProto{
+			Method: []*descriptorpb.MethodDescriptorProto{
 				{Options: opts},
 			},
 		}

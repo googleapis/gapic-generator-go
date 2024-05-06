@@ -17,7 +17,6 @@ package gengapic
 import (
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -38,57 +37,57 @@ func TestAutoPopulatedFields(t *testing.T) {
 	proto.SetExtension(optsRequiredAndUUID4, annotations.E_FieldBehavior, []annotations.FieldBehavior{annotations.FieldBehavior_REQUIRED})
 	proto.SetExtension(optsRequiredAndUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
 
-	requestIDField := &descriptor.FieldDescriptorProto{
+	requestIDField := &descriptorpb.FieldDescriptorProto{
 		Name:           proto.String("request_id"),
-		Type:           typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-		Label:          labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+		Type:           typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+		Label:          labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 		Proto3Optional: proto.Bool(true),
 		Options:        optsUUID4,
 	}
-	inputType := &descriptor.DescriptorProto{
+	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
-		Field: []*descriptor.FieldDescriptorProto{
+		Field: []*descriptorpb.FieldDescriptorProto{
 			requestIDField,
 			{
 				Name:  proto.String("invalid_auto_populated_not_in_serviceconfig"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
 				Name:  proto.String("invalid_auto_populated_no_annotation"),
-				Type:  typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 			},
 			{
 				Name:    proto.String("invalid_auto_populated_required"),
-				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_REQUIRED),
+				Type:    typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label:   labelp(descriptorpb.FieldDescriptorProto_LABEL_REQUIRED),
 				Options: optsRequiredAndUUID4,
 			},
 			{
 				Name:    proto.String("invalid_auto_populated_int"),
-				Type:    typep(descriptor.FieldDescriptorProto_TYPE_INT64),
-				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:    typep(descriptorpb.FieldDescriptorProto_TYPE_INT64),
+				Label:   labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 				Options: optsUUID4,
 			},
 			{
 				Name:    proto.String("invalid_auto_populated_ipv4"),
-				Type:    typep(descriptor.FieldDescriptorProto_TYPE_STRING),
-				Label:   labelp(descriptor.FieldDescriptorProto_LABEL_OPTIONAL),
+				Type:    typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label:   labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
 				Options: optsIPV4,
 			},
 		},
 	}
-	outputType := &descriptor.DescriptorProto{
+	outputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("OutputType"),
 	}
-	file := &descriptor.FileDescriptorProto{
+	file := &descriptorpb.FileDescriptorProto{
 		Package: proto.String("my.pkg"),
-		Options: &descriptor.FileOptions{
+		Options: &descriptorpb.FileOptions{
 			GoPackage: proto.String("mypackage"),
 		},
 	}
-	serv := &descriptor.ServiceDescriptorProto{
+	serv := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
 	}
 
@@ -122,14 +121,14 @@ func TestAutoPopulatedFields(t *testing.T) {
 	g.descInfo.ParentFile[outputType] = file
 	g.descInfo.ParentFile[serv] = file
 
-	m := &descriptor.MethodDescriptorProto{
+	m := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("GetOneThing"),
 		InputType:  proto.String(".my.pkg.InputType"),
 		OutputType: proto.String(".my.pkg.OutputType"),
-		Options:    &descriptor.MethodOptions{},
+		Options:    &descriptorpb.MethodOptions{},
 	}
 	g.descInfo.ParentElement[m] = serv
-	serv.Method = []*descriptor.MethodDescriptorProto{m}
+	serv.Method = []*descriptorpb.MethodDescriptorProto{m}
 
 	got := g.autoPopulatedFields(serv.GetName(), m)
 

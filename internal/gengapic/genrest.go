@@ -21,12 +21,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 var httpPatternVarRegex = regexp.MustCompile(`{([a-zA-Z0-9_.]+?)(=[^{}]+)?}`)
@@ -60,7 +60,7 @@ func lowcaseRestClientName(servName string) string {
 	return lowerFirst(servName + "RESTClient")
 }
 
-func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
+func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 
@@ -100,7 +100,7 @@ func (g *generator) restClientInit(serv *descriptor.ServiceDescriptorProto, serv
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
 }
 
-func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, servName string) error {
+func (g *generator) genRESTMethods(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "rest", servName)
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
@@ -116,7 +116,7 @@ func (g *generator) genRESTMethods(serv *descriptor.ServiceDescriptorProto, serv
 	return nil
 }
 
-func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, servName string) {
+func (g *generator) restClientOptions(serv *descriptorpb.ServiceDescriptorProto, servName string) {
 	if !proto.HasExtension(serv.GetOptions(), annotations.E_DefaultHost) {
 		// Not an error, just doesn't apply to us.
 		return
@@ -141,7 +141,7 @@ func (g *generator) restClientOptions(serv *descriptor.ServiceDescriptorProto, s
 	p("}")
 }
 
-func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
+func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 	clientName := camelToSnake(serv.GetName())
@@ -199,6 +199,8 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 
 	g.restClientOptions(serv, servName)
 
+	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
+
 	// setGoogleClientInfo method
 	p("// setGoogleClientInfo sets the name and version of the application in")
 	p("// the `x-goog-api-client` header passed on each request. Intended for")
@@ -206,7 +208,12 @@ func (g *generator) restClientUtilities(serv *descriptor.ServiceDescriptorProto,
 	p("func (c *%s) setGoogleClientInfo(keyval ...string) {", lowcaseServName)
 	p(`  kv := append([]string{"gl-go", gax.GoVersion}, keyval...)`)
 	p(`  kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "rest", "UNKNOWN")`)
-	p(`  c.xGoogHeaders = []string{"x-goog-api-client", gax.XGoogHeader(kv...)}`)
+	p(`  c.xGoogHeaders = []string{`)
+	p(`    "x-goog-api-client", gax.XGoogHeader(kv...),`)
+	if apiVersion != "" {
+		p(`    "x-goog-api-version", %q,`, apiVersion)
+	}
+	p("  }")
 	p("}")
 	p("")
 
@@ -237,8 +244,8 @@ type httpInfo struct {
 	verb, url, body string
 }
 
-func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
-	pathParams := map[string]*descriptor.FieldDescriptorProto{}
+func (g *generator) pathParams(m *descriptorpb.MethodDescriptorProto) map[string]*descriptorpb.FieldDescriptorProto {
+	pathParams := map[string]*descriptorpb.FieldDescriptorProto{}
 	info := getHTTPInfo(m)
 	if info == nil {
 		return pathParams
@@ -261,8 +268,8 @@ func (g *generator) pathParams(m *descriptor.MethodDescriptorProto) map[string]*
 	return pathParams
 }
 
-func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
-	queryParams := map[string]*descriptor.FieldDescriptorProto{}
+func (g *generator) queryParams(m *descriptorpb.MethodDescriptorProto) map[string]*descriptorpb.FieldDescriptorProto {
+	queryParams := map[string]*descriptorpb.FieldDescriptorProto{}
 	info := getHTTPInfo(m)
 	if info == nil {
 		return queryParams
@@ -274,9 +281,9 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 
 	pathParams := g.pathParams(m)
 	// Minor hack: we want to make sure that the body parameter is NOT a query parameter.
-	pathParams[info.body] = &descriptor.FieldDescriptorProto{}
+	pathParams[info.body] = &descriptorpb.FieldDescriptorProto{}
 
-	request := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	request := g.descInfo.Type[m.GetInputType()].(*descriptorpb.DescriptorProto)
 	// Body parameters are fields present in the request body.
 	// This may be the request message itself or a subfield.
 	// Body parameters are not valid query parameters,
@@ -312,11 +319,11 @@ func (g *generator) queryParams(m *descriptor.MethodDescriptorProto) map[string]
 //	}
 //
 // The one entry would be
-// "squid.mantle.mass_kg": *descriptor.FieldDescriptorProto...
-func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...*descriptor.FieldDescriptorProto) map[string]*descriptor.FieldDescriptorProto {
-	pathsToLeafs := map[string]*descriptor.FieldDescriptorProto{}
+// "squid.mantle.mass_kg": *descriptorpb.FieldDescriptorProto...
+func (g *generator) getLeafs(msg *descriptorpb.DescriptorProto, excludedFields ...*descriptorpb.FieldDescriptorProto) map[string]*descriptorpb.FieldDescriptorProto {
+	pathsToLeafs := map[string]*descriptorpb.FieldDescriptorProto{}
 
-	contains := func(fields []*descriptor.FieldDescriptorProto, field *descriptor.FieldDescriptorProto) bool {
+	contains := func(fields []*descriptorpb.FieldDescriptorProto, field *descriptorpb.FieldDescriptorProto) bool {
 		for _, f := range fields {
 			if field == f {
 				return true
@@ -327,9 +334,9 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 
 	// We need to declare and define this function in two steps
 	// so that we can use it recursively.
-	var recurse func([]*descriptor.FieldDescriptorProto, *descriptor.DescriptorProto)
+	var recurse func([]*descriptorpb.FieldDescriptorProto, *descriptorpb.DescriptorProto)
 
-	handleLeaf := func(field *descriptor.FieldDescriptorProto, stack []*descriptor.FieldDescriptorProto) {
+	handleLeaf := func(field *descriptorpb.FieldDescriptorProto, stack []*descriptorpb.FieldDescriptorProto) {
 		elts := []string{}
 		for _, f := range stack {
 			elts = append(elts, f.GetName())
@@ -339,8 +346,8 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 		pathsToLeafs[key] = field
 	}
 
-	handleMsg := func(field *descriptor.FieldDescriptorProto, stack []*descriptor.FieldDescriptorProto) {
-		if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+	handleMsg := func(field *descriptorpb.FieldDescriptorProto, stack []*descriptorpb.FieldDescriptorProto) {
+		if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
 			// Repeated message fields must not be mapped because no
 			// client library can support such complicated mappings.
 			// https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#grpc-transcoding
@@ -354,13 +361,13 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 			return
 		}
 
-		subMsg := g.descInfo.Type[field.GetTypeName()].(*descriptor.DescriptorProto)
+		subMsg := g.descInfo.Type[field.GetTypeName()].(*descriptorpb.DescriptorProto)
 		recurse(append(stack, field), subMsg)
 	}
 
 	recurse = func(
-		stack []*descriptor.FieldDescriptorProto,
-		m *descriptor.DescriptorProto,
+		stack []*descriptorpb.FieldDescriptorProto,
+		m *descriptorpb.DescriptorProto,
 	) {
 		for _, field := range m.GetField() {
 			if field.GetType() == fieldTypeMessage && !strContains(wellKnownTypeNames, field.GetTypeName()) {
@@ -371,11 +378,11 @@ func (g *generator) getLeafs(msg *descriptor.DescriptorProto, excludedFields ...
 		}
 	}
 
-	recurse([]*descriptor.FieldDescriptorProto{}, msg)
+	recurse([]*descriptorpb.FieldDescriptorProto{}, msg)
 	return pathsToLeafs
 }
 
-func (g *generator) generateQueryString(m *descriptor.MethodDescriptorProto) {
+func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 	p := g.printf
 	queryParams := g.queryParams(m)
 
@@ -508,7 +515,7 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 	p("")
 }
 
-func getHTTPInfo(m *descriptor.MethodDescriptorProto) *httpInfo {
+func getHTTPInfo(m *descriptorpb.MethodDescriptorProto) *httpInfo {
 	if m == nil || m.GetOptions() == nil {
 		return nil
 	}
@@ -541,7 +548,7 @@ func getHTTPInfo(m *descriptor.MethodDescriptorProto) *httpInfo {
 
 // genRESTMethod generates a single method from a client. m must be a method declared in serv.
 // If the generated method requires an auxiliary type, it is added to aux.
-func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) genRESTMethod(servName string, serv *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	if g.isLRO(m) {
 		if err := g.maybeAddOperationWrapper(m); err != nil {
 			return err
@@ -574,7 +581,7 @@ func (g *generator) genRESTMethod(servName string, serv *descriptor.ServiceDescr
 	}
 }
 
-func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
 		return fmt.Errorf("method has no http info: %s", m.GetName())
@@ -706,7 +713,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	p("")
 	p("func (c *%s) CloseSend() error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
+	p(`  return errors.New("this method is not implemented for a server-stream")`)
 	p("}")
 	p("")
 	p("func (c *%s) Context() context.Context {", streamClient)
@@ -715,23 +722,23 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptor.ServiceD
 	p("")
 	p("func (c *%s) SendMsg(m interface{}) error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p(`  return fmt.Errorf("this method is not implemented for a server-stream")`)
+	p(`  return errors.New("this method is not implemented for a server-stream")`)
 	p("}")
 	p("")
 	p("func (c *%s) RecvMsg(m interface{}) error {", streamClient)
 	p("  // This is a no-op to fulfill the interface.")
-	p(`  return fmt.Errorf("this method is not implemented, use Recv")`)
+	p(`  return errors.New("this method is not implemented, use Recv")`)
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "errors"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 
 	return nil
 }
 
-func (g *generator) noRequestStreamRESTCall(servName string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) noRequestStreamRESTCall(servName string, s *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	// Streaming calls are not currently supported for REST clients,
 	// but the interface signature must be preserved.
 	// Unimplemented REST methods will always error.
@@ -748,22 +755,22 @@ func (g *generator) noRequestStreamRESTCall(servName string, s *descriptor.Servi
 
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	p(`  return nil, fmt.Errorf("%s not yet supported for REST clients")`, m.GetName())
+	p(`  return nil, errors.New("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "errors"}] = true
 
 	return nil
 }
 
-func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescriptorProto, elemField, pageSize *descriptor.FieldDescriptorProto, pt *iterType) error {
+func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescriptorProto, elemField, pageSize *descriptorpb.FieldDescriptorProto, pt *iterType) error {
 	lowcaseServName := lowcaseRestClientName(servName)
 	p := g.printf
 
-	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
-	outType := g.descInfo.Type[m.GetOutputType()].(*descriptor.DescriptorProto)
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptorpb.DescriptorProto)
+	outType := g.descInfo.Type[m.GetOutputType()].(*descriptorpb.DescriptorProto)
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
 	if err != nil {
@@ -775,9 +782,6 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 		return err
 	}
 	info := getHTTPInfo(m)
-	if err != nil {
-		return err
-	}
 	if info == nil {
 		return fmt.Errorf("method has no http info: %q", m.GetName())
 	}
@@ -881,7 +885,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptor.MethodDescript
 	return nil
 }
 
-func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
 		return fmt.Errorf("method has no http info: %s", m.GetName())
@@ -889,7 +893,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 
 	lowcaseServName := lowcaseRestClientName(servName)
 	p := g.printf
-	inType := g.descInfo.Type[m.GetInputType()].(*descriptor.DescriptorProto)
+	inType := g.descInfo.Type[m.GetInputType()].(*descriptorpb.DescriptorProto)
 	outType := g.descInfo.Type[m.GetOutputType()]
 
 	inSpec, err := g.descInfo.ImportSpec(inType)
@@ -1003,7 +1007,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptor.MethodDescriptorP
 	return nil
 }
 
-func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
 		return fmt.Errorf("method has no http info: %s", m.GetName())
@@ -1083,7 +1087,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptor.MethodDesc
 	return nil
 }
 
-func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescriptorProto) error {
+func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescriptorProto) error {
 	info := getHTTPInfo(m)
 	if info == nil {
 		return fmt.Errorf("method has no http info: %s", m.GetName())
@@ -1204,7 +1208,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptor.MethodDescripto
 	ret := "return resp, nil"
 	if isCustomOp {
 		opVar := "op"
-		g.customOpInit("resp", "req", opVar, inType.(*descriptor.DescriptorProto), g.customOpService(m))
+		g.customOpInit("resp", "req", opVar, inType.(*descriptorpb.DescriptorProto), g.customOpService(m))
 		ret = fmt.Sprintf("return %s, nil", opVar)
 	}
 	p(ret)
@@ -1230,7 +1234,7 @@ func (g *generator) protoJSONMarshaler() {
 	g.pt.Printf("m := protojson.MarshalOptions{%s}", marshalOpts)
 }
 
-func (g *generator) restCallOptions(serv *descriptor.ServiceDescriptorProto, servName string) {
+func (g *generator) restCallOptions(serv *descriptorpb.ServiceDescriptorProto, servName string) {
 	p := g.printf
 
 	// defaultCallOptions
