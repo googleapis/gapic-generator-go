@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
+	"github.com/googleapis/gapic-generator-go/internal/testing/sample"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -34,10 +35,10 @@ func TestSnippetsOutDir(t *testing.T) {
 	}{
 		{
 			opts: options{
-				outDir:  "cloud.google.com/go/video/stitcher/apiv1",
-				pkgPath: "cloud.google.com/go/video/stitcher/apiv1",
+				outDir:  sample.GoPackagePath,
+				pkgPath: sample.GoPackagePath,
 			},
-			want: "cloud.google.com/go/internal/generated/snippets/video/stitcher/apiv1",
+			want: sample.SnippetsDirectory,
 		},
 		{
 			opts: options{
