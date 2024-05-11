@@ -5,4 +5,10 @@ go_library(
     srcs = ["sample.go"],
     importpath = "github.com/googleapis/gapic-generator-go/internal/testing/sample",
     visibility = ["//:__subpackages__"],
+    deps = [
+        "@org_golang_google_genproto_googleapis_api//serviceconfig",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/descriptorpb",
+        "@org_golang_google_protobuf//types/known/apipb",
+    ],
 )

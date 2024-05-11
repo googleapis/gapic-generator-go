@@ -18,6 +18,11 @@ package sample
 
 import (
 	"fmt"
+
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/apipb"
 )
 
 const (
@@ -92,6 +97,9 @@ const (
 	// Example:
 	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L17
 	ProtoPackagePath = "google.cloud.bigquery.migration.v2"
+
+	// ProtoVersion is the major version as defined in the protofile.
+	ProtoVersion = "v2"
 )
 
 const (
@@ -126,9 +134,65 @@ const (
 	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb.
 	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L28
 	GoProtoPackagePath = "cloud.google.com/go/bigquery/migration/apiv2/migrationpb"
+
+	// GoVersion is the version used in the package path for versioning the Go
+	// module containing the package.
+	GoVersion = "apiv2"
 )
 
 // DescriptorInfoTypeName constructs the name format used by g.descInfo.Type.
 func DescriptorInfoTypeName(typ string) string {
 	return fmt.Sprintf(".%s.%s", ProtoPackagePath, typ)
+}
+
+// ServiceConfig returns service config information.
+func ServiceConfig() *serviceconfig.Service {
+	return &serviceconfig.Service{
+		Apis: []*apipb.Api{
+			{Name: ProtoServiceName},
+		},
+	}
+}
+
+// Service returns a service descriptor using the sample values.
+func Service() *descriptorpb.ServiceDescriptorProto {
+	return &descriptorpb.ServiceDescriptorProto{
+		Name: proto.String(ServiceName),
+		Method: []*descriptorpb.MethodDescriptorProto{
+			{
+				Name:       proto.String(CreateMethod),
+				InputType:  proto.String(DescriptorInfoTypeName(CreateRequest)),
+				OutputType: proto.String(DescriptorInfoTypeName(Resource)),
+			},
+			{
+				Name:       proto.String(GetMethod),
+				InputType:  proto.String(DescriptorInfoTypeName(GetRequest)),
+				OutputType: proto.String(DescriptorInfoTypeName(Resource)),
+			},
+		},
+	}
+}
+
+// InputType returns an input type for a method.
+func InputType(input string) *descriptorpb.DescriptorProto {
+	return &descriptorpb.DescriptorProto{
+		Name: proto.String(input),
+	}
+}
+
+// OutputType returns an output type for a method.
+func OutputType(output string) *descriptorpb.DescriptorProto {
+	return &descriptorpb.DescriptorProto{
+		Name: proto.String(output),
+	}
+}
+
+// File returns a proto file.
+func File() *descriptorpb.FileDescriptorProto {
+	return &descriptorpb.FileDescriptorProto{
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String(GoProtoPackagePath),
+		},
+		Package: proto.String(ProtoPackagePath),
+	}
 }
