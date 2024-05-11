@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
+	"github.com/googleapis/gapic-generator-go/internal/testing/sample"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
@@ -284,27 +285,23 @@ func TestGenSnippetFile(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.serviceConfig = &serviceconfig.Service{
 		Apis: []*apipb.Api{
-			{Name: "google.cloud.bigquery.migration.v2.MigrationService"},
+			{Name: sample.ProtoServiceName},
 		},
 	}
-
-	protoPkg := "google.cloud.bigquery.migration.v2"
-	libPkg := "cloud.google.com/go/bigquery/migration/apiv2"
-	pkgName := "bigquerymigration"
-	g.snippetMetadata = snippets.NewMetadata(protoPkg, libPkg, pkgName)
+	g.snippetMetadata = snippets.NewMetadata(sample.ProtoPackagePath, sample.GoPackagePath, sample.GoPackageName)
 
 	inputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("CreateMigrationWorkflowRequest"),
+		Name: proto.String(sample.CreateRequest),
 	}
 	outputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("MigrationWorkflow"),
+		Name: proto.String(sample.Resource),
 	}
 
 	file := &descriptorpb.FileDescriptorProto{
 		Options: &descriptorpb.FileOptions{
-			GoPackage: proto.String("cloud.google.com/go/bigquery/migration/apiv2/migrationpb"),
+			GoPackage: proto.String(sample.GoProtoPackagePath),
 		},
-		Package: proto.String(protoPkg),
+		Package: proto.String(sample.ProtoPackagePath),
 	}
 
 	files := []*descriptorpb.FileDescriptorProto{}
@@ -312,17 +309,17 @@ func TestGenSnippetFile(t *testing.T) {
 	for _, typ := range []*descriptorpb.DescriptorProto{
 		inputType, outputType,
 	} {
-		g.descInfo.Type[".google.cloud.bigquery.migration.v2."+typ.GetName()] = typ
+		g.descInfo.Type[sample.DescriptorInfoTypeName(typ.GetName())] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 
 	serv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("MigrationService"),
+		Name: proto.String(sample.ServiceName),
 		Method: []*descriptorpb.MethodDescriptorProto{
 			{
-				Name:       proto.String("CreateMigrationWorkflow"),
-				InputType:  proto.String(".google.cloud.bigquery.migration.v2.CreateMigrationWorkflowRequest"),
-				OutputType: proto.String(".google.cloud.bigquery.migration.v2.MigrationWorkflow"),
+				Name:       proto.String(sample.CreateMethod),
+				InputType:  proto.String(sample.DescriptorInfoTypeName(sample.CreateRequest)),
+				OutputType: proto.String(sample.DescriptorInfoTypeName(sample.Resource)),
 			},
 		},
 	}
@@ -340,15 +337,14 @@ func TestGenSnippetFile(t *testing.T) {
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}: true,
-				{Name: "migrationpb", Path: "cloud.google.com/go/bigquery/migration/apiv2/migrationpb"}: true,
+				{Name: sample.GoProtoPackageName, Path: sample.GoProtoPackagePath}: true,
 			},
 		},
 	} {
 		t.Run(tst.tstName, func(t *testing.T) {
 			g.reset()
 			g.opts = &tst.options
-			defaultHost := "bigquerymigration.googleapis.com"
-			g.snippetMetadata.AddService(serv.GetName(), defaultHost)
+			g.snippetMetadata.AddService(serv.GetName(), sample.ServiceURL)
 			err := g.genSnippetFile(serv, serv.Method[0])
 			if err != nil {
 				t.Fatal(err)
