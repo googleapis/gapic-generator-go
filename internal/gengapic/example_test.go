@@ -50,12 +50,8 @@ func TestExample(t *testing.T) {
 		},
 	}
 
-	inputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("InputType"),
-	}
-	outputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("OutputType"),
-	}
+	inputType := sample.InputType("InputType")
+	outputType := sample.OutputType("OutputType")
 
 	pageInputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageInputType"),

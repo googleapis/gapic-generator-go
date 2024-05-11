@@ -19,55 +19,37 @@ import (
 	"testing"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"github.com/googleapis/gapic-generator-go/internal/testing/sample"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
-	"google.golang.org/genproto/googleapis/api/serviceconfig"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestDocFile(t *testing.T) {
-	var g generator
-	g.apiName = "Awesome Foo API"
-	g.serviceConfig = &serviceconfig.Service{
-		Documentation: &serviceconfig.Documentation{
-			Summary: "The Awesome Foo API is really really awesome. It enables the use of [Foo](https://api.foo.com) with [Buz](https://api.buz.com) and [Baz](https://api.baz.com) to acclerate `bar`.",
+	g := generator{
+		apiName:       sample.ServiceTitle,
+		serviceConfig: sample.ServiceConfig(),
+		imports:       map[pbinfo.ImportSpec]bool{},
+		opts: &options{
+			pkgPath:    sample.GoPackagePath,
+			pkgName:    sample.GoPackageName,
+			transports: []transport{grpc, rest},
 		},
 	}
-	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome", transports: []transport{grpc, rest}}
-	g.imports = map[pbinfo.ImportSpec]bool{}
 
-	inputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("InputType"),
-	}
-	outputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("OutputType"),
-	}
-
-	file := &descriptorpb.FileDescriptorProto{
-		Options: &descriptorpb.FileOptions{
-			GoPackage: proto.String("mypackage"),
-		},
-	}
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
+	file := sample.File()
 
 	commonTypes(&g)
 	for _, typ := range []*descriptorpb.DescriptorProto{
 		inputType, outputType,
 	} {
-		g.descInfo.Type[".my.pkg."+typ.GetName()] = typ
+		typName := sample.DescriptorInfoTypeName(typ.GetName())
+		g.descInfo.Type[typName] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 
-	serv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("Foo"),
-		Method: []*descriptorpb.MethodDescriptorProto{
-			{
-				Name:       proto.String("GetOneThing"),
-				InputType:  proto.String(".my.pkg.InputType"),
-				OutputType: proto.String(".my.pkg.OutputType"),
-			},
-		},
-	}
-
+	serv := sample.Service()
 	for _, tst := range []struct {
 		relLvl, want string
 	}{
@@ -85,7 +67,7 @@ func TestDocFile(t *testing.T) {
 	} {
 		t.Run(tst.want, func(t *testing.T) {
 			g.opts.relLvl = tst.relLvl
-			g.genDocFile(42, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"}, serv)
+			g.genDocFile(sample.Year, []string{sample.ServiceOAuthScope}, serv)
 			txtdiff.Diff(t, g.pt.String(), tst.want)
 			g.reset()
 		})
@@ -93,41 +75,31 @@ func TestDocFile(t *testing.T) {
 }
 
 func TestDocFileEmptyService(t *testing.T) {
-	var g generator
-	g.apiName = "Awesome Bar API"
-	g.serviceConfig = &serviceconfig.Service{
-		Documentation: &serviceconfig.Documentation{
-			Summary: "The Awesome Bar API is really really awesome. It enables the use of [Foo](https://api.foo.com) with [Buz](https://api.buz.com) and [Baz](https://api.baz.com) to acclerate `bar`.",
+	g := generator{
+		apiName:       sample.ServiceTitle,
+		imports:       map[pbinfo.ImportSpec]bool{},
+		serviceConfig: sample.ServiceConfig(),
+		opts: &options{
+			pkgPath:    sample.GoPackagePath,
+			pkgName:    sample.GoPackageName,
+			transports: []transport{grpc, rest},
 		},
 	}
-	g.opts = &options{pkgPath: "path/to/awesome", pkgName: "awesome", transports: []transport{grpc}}
-	g.imports = map[pbinfo.ImportSpec]bool{}
-
-	inputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("InputType"),
-	}
-	outputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("OutputType"),
-	}
-
-	file := &descriptorpb.FileDescriptorProto{
-		Options: &descriptorpb.FileOptions{
-			GoPackage: proto.String("mypackage"),
-		},
-	}
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
+	file := sample.File()
 
 	commonTypes(&g)
 	for _, typ := range []*descriptorpb.DescriptorProto{
 		inputType, outputType,
 	} {
-		g.descInfo.Type[".my.pkg."+typ.GetName()] = typ
+		typName := sample.DescriptorInfoTypeName(typ.GetName())
+		g.descInfo.Type[typName] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 
-	serv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("Foo"),
-	}
-
+	serv := sample.Service()
+	serv.Method = nil
 	for _, tst := range []struct {
 		relLvl, want string
 	}{
@@ -149,7 +121,7 @@ func TestDocFileEmptyService(t *testing.T) {
 	} {
 		t.Run(tst.want, func(t *testing.T) {
 			g.opts.relLvl = tst.relLvl
-			g.genDocFile(43, []string{"https://foo.bar.com/auth", "https://zip.zap.com/auth"}, serv)
+			g.genDocFile(sample.Year, []string{sample.ServiceOAuthScope}, serv)
 			txtdiff.Diff(t, g.pt.String(), tst.want)
 			g.reset()
 		})
