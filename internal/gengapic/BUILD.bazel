@@ -87,6 +87,7 @@ go_test(
         "//internal/grpc_service_config",
         "//internal/pbinfo",
         "//internal/snippets",
+        "//internal/testing/sample",
         "//internal/txtdiff",
         "@com_github_google_go_cmp//cmp",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
