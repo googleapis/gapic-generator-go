@@ -92,6 +92,9 @@ const (
 	// Example:
 	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L17
 	ProtoPackagePath = "google.cloud.bigquery.migration.v2"
+
+	// ProtoVersion is the major version as defined in the protofile.
+	ProtoVersion = "v2"
 )
 
 const (
@@ -126,6 +129,10 @@ const (
 	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb.
 	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L28
 	GoProtoPackagePath = "cloud.google.com/go/bigquery/migration/apiv2/migrationpb"
+
+	// GoVersion is the version used in the package path for versioning the Go
+	// module containing the package.
+	GoVersion = "apiv2"
 )
 
 // DescriptorInfoTypeName constructs the name format used by g.descInfo.Type.
