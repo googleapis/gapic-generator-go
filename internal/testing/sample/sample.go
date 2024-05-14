@@ -29,59 +29,59 @@ const (
 	// ServiceURL is the hostname of the service.
 	//
 	// Example:
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L36
-	ServiceURL = "bigquerymigration.googleapis.com"
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/secretmanager_v1.yaml#L3
+	ServiceURL = "secretmanager.googleapis.com"
 
 	// ServiceName is the name of the service.
 	//
 	// Example:
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L35
-	ServiceName = "MigrationService"
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L46
+	ServiceName = "SecretManagerService"
 
 	// ServiceTitle is the name of the service provided in the service YAML
 	// file.
 	//
 	// Example:
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/bigquerymigration_v2.yaml#L4
-	ServiceTitle = "BigQuery Migration API"
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/secretmanager_v1.yaml#L4
+	ServiceTitle = "Secret Manager API"
 
 	// ServiceDocumentationSummary is the description of the service provided in the
 	// service YAML file.
 	//
 	// Example:
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/bigquerymigration_v2.yaml#L11
-	ServiceDocumentationSummary = "The migration service, exposing apis for migration jobs operations, and agent management."
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/secretmanager_v1.yaml#L11
+	ServiceDocumentationSummary = "Stores sensitive data such as API keys, passwords, and certificates. Provides convenience while improving security."
 
 	// ServiceOAuthScope is the OAuth 2.0 scope(s) that is needed to request
 	// access to the service's API, as defined in the service YAML file.
 	//
 	// Example:
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/bigquerymigration_v2.yaml#L24
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/secretmanager_v1.yaml#L34
 	ServiceOAuthScope = "https://www.googleapis.com/auth/cloud-platform"
 
 	// CreateMethod is the name of the RPC method for creating a resource.
 	// The same name is used for the proto RPC method and the Go method.
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb#MigrationServiceClient.CreateMigrationWorkflow
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L41
-	CreateMethod = "CreateMigrationWorkflow"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager@v1.13.0/apiv1#Client.CreateSecret
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L62
+	CreateMethod = "CreateSecret"
 
 	// CreateRequest is the name of the request for creating a resource.
 	// The same name is used for the proto message and the Go type.
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb#CreateMigrationWorkflowRequest
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L110
-	CreateRequest = "CreateMigrationWorkflowRequest"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb#CreateSecretRequest
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L330
+	CreateRequest = "CreateSecretRequest"
 
 	// GetMethod is the name of the RPC method used to fetch a resource.
 	// The same name is used for the proto RPC method and the Go method.
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb#MigrationServiceClient.GetMigrationWorkflow
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L51
-	GetMethod = "GetMigrationWorkflow"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1#Client.GetSecret
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L90
+	GetMethod = "GetSecret"
 
 	// GetRequest is the name of the request for fetching a resource.
 	// The same name is used for the proto message and the Go type.
@@ -90,9 +90,9 @@ const (
 	// reference the name of the resource (see https://aip.dev/4231#referencing-other-resources).
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb#GetMigrationWorkflowRequest
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L126
-	GetRequest = "GetMigrationWorkflowRequest"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb#GetSecretRequest
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L367
+	GetRequest = "GetSecretRequest"
 
 	// Resource is the name of the resource returned by a Get or Create request.
 	//
@@ -100,9 +100,9 @@ const (
 	// type and pattern (see https://aip.dev/4231#resource-messages).
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb#MigrationWorkflow
-	// https://github.com/googleapis/googleapis/blob/master/google/cloud/bigquery/migration/v2alpha/migration_entities.proto#L38
-	Resource = "MigrationWorkflow"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb#Secret
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/resources.proto#L40
+	Resource = "Secret"
 )
 
 const (
@@ -112,58 +112,51 @@ const (
 )
 
 const (
-	// ProtoServiceName is the fully qualified name of service.
-	//
-	// Example:
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L35.
-	ProtoServiceName = "google.cloud.bigquery.migration.v2.MigrationService"
-
 	// ProtoPackagePath is the package path of the proto file.
 	//
 	// Example:
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L17
-	ProtoPackagePath = "google.cloud.bigquery.migration.v2"
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/resources.proto#L17
+	ProtoPackagePath = "google.cloud.secretmanager.v1"
 
 	// ProtoVersion is the major version as defined in the protofile.
-	ProtoVersion = "v2"
+	ProtoVersion = "v1"
 )
 
 const (
 	// GoPackageName is the package name for the auto-generated Go package.
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2
-	GoPackageName = "migration"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1
+	GoPackageName = "secretmanager"
 
 	// GoPackagePath is the package import path for the auto-generated Go
 	// package.
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L28
-	GoPackagePath = "cloud.google.com/go/bigquery/migration/apiv2"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1
+	GoPackagePath = "cloud.google.com/go/secretmanager/apiv1"
 
 	// GoProtoPackageName is the package name of the auto-generated proto
 	// package, which is imported by package at GoPackagePath. This name is
 	// derived from the value following the ";" `go_package` in the proto file.
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L28
-	GoProtoPackageName = "migrationpb"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/resources.proto#L26
+	GoProtoPackageName = "secretmanagerpb"
 
 	// GoProtoPackagePath is the package import path of the auto-generated proto
 	// package.  This name is derived from the value before the ";"
 	// `go_package` in the proto file.
 	//
 	// Example:
-	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb.
-	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L28
-	GoProtoPackagePath = "cloud.google.com/go/bigquery/migration/apiv2/migrationpb"
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/resources.proto#L26
+	GoProtoPackagePath = "cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 
 	// GoVersion is the version used in the package path for versioning the Go
 	// module containing the package.
-	GoVersion = "apiv2"
+	GoVersion = "apiv1"
 )
 
 // DescriptorInfoTypeName constructs the name format used by g.descInfo.Type.
@@ -175,7 +168,9 @@ func DescriptorInfoTypeName(typ string) string {
 func ServiceConfig() *serviceconfig.Service {
 	return &serviceconfig.Service{
 		Apis: []*apipb.Api{
-			{Name: ProtoServiceName},
+			{
+				Name: fmt.Sprintf("%s.%s", ProtoPackagePath, ServiceName),
+			},
 		},
 		Documentation: &serviceconfig.Documentation{
 			Summary: ServiceDocumentationSummary,
