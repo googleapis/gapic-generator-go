@@ -26,12 +26,6 @@ import (
 )
 
 const (
-	// Year is the year used in the copyright header for package documentation
-	// and samples.
-	Year = 2024
-)
-
-const (
 	// ServiceURL is the hostname of the service.
 	//
 	// Example:
@@ -109,6 +103,12 @@ const (
 	// https://pkg.go.dev/cloud.google.com/go/bigquery/migration/apiv2/migrationpb#MigrationWorkflow
 	// https://github.com/googleapis/googleapis/blob/master/google/cloud/bigquery/migration/v2alpha/migration_entities.proto#L38
 	Resource = "MigrationWorkflow"
+)
+
+const (
+	// Year is the year used in the copyright header for package documentation
+	// and samples.
+	Year = 2024
 )
 
 const (
