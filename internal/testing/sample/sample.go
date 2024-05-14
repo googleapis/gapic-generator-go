@@ -159,6 +159,14 @@ const (
 	GoVersion = "apiv1"
 )
 
+const (
+	// SnippetsDirectory is the directory path containing generated snippets.
+	//
+	// Example:
+	// https://github.com/googleapis/google-cloud-go/tree/main/internal/generated/snippets/secretmanager/apiv1
+	SnippetsDirectory = "cloud.google.com/go/internal/generated/snippets/secretmanager/apiv1"
+)
+
 // DescriptorInfoTypeName constructs the name format used by g.descInfo.Type.
 func DescriptorInfoTypeName(typ string) string {
 	return fmt.Sprintf(".%s.%s", ProtoPackagePath, typ)
