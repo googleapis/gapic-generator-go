@@ -38,6 +38,27 @@ const (
 	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/migration_service.proto#L35
 	ServiceName = "MigrationService"
 
+	// ServiceTitle is the name of the service provided in the service YAML
+	// file.
+	//
+	// Example:
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/bigquerymigration_v2.yaml#L4
+	ServiceTitle = "BigQuery Migration API"
+
+	// ServiceDocumentationSummary is the description of the service provided in the
+	// service YAML file.
+	//
+	// Example:
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/bigquerymigration_v2.yaml#L11
+	ServiceDocumentationSummary = "The migration service, exposing apis for migration jobs operations, and agent management."
+
+	// ServiceOAuthScope is the OAuth 2.0 scope(s) that is needed to request
+	// access to the service's API, as defined in the service YAML file.
+	//
+	// Example:
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/bigquery/migration/v2/bigquerymigration_v2.yaml#L24
+	ServiceOAuthScope = "https://www.googleapis.com/auth/cloud-platform"
+
 	// CreateMethod is the name of the RPC method for creating a resource.
 	// The same name is used for the proto RPC method and the Go method.
 	//
@@ -85,7 +106,12 @@ const (
 )
 
 const (
+	// Year is the year used in the copyright header for package documentation
+	// and samples.
+	Year = 2024
+)
 
+const (
 	// ProtoServiceName is the fully qualified name of service.
 	//
 	// Example:
@@ -150,6 +176,9 @@ func ServiceConfig() *serviceconfig.Service {
 	return &serviceconfig.Service{
 		Apis: []*apipb.Api{
 			{Name: ProtoServiceName},
+		},
+		Documentation: &serviceconfig.Documentation{
+			Summary: ServiceDocumentationSummary,
 		},
 	}
 }
