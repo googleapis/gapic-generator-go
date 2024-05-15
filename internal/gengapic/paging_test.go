@@ -410,8 +410,6 @@ func TestPagingField(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.apiName = "Awesome API"
-	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.opts = &options{transports: []transport{rest}}
 
 	for _, tst := range []struct {
