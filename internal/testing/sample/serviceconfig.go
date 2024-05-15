@@ -32,6 +32,7 @@ func ServiceConfig() *serviceconfig.Service {
 		Title: ServiceTitle,
 		Apis: []*apipb.Api{
 			{
+				// This is a mix-in API, see https://google.aip.dev/client-libraries/4234 for more info.
 				Name: "google.cloud.location.Locations",
 			},
 			{
