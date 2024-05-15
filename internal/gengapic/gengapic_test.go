@@ -1113,8 +1113,7 @@ func TestGRPCStubCall(t *testing.T) {
 			},
 		},
 	}
-	var g generator
-	err := g.init(&pluginpb.CodeGeneratorRequest{
+	g, err := newGenerator(&pluginpb.CodeGeneratorRequest{
 		ProtoFile: []*descriptorpb.FileDescriptorProto{foo},
 		Parameter: proto.String("go-gapic-package=cloud.google.com/go/foo/apiv1;foo"),
 	})
@@ -1137,6 +1136,9 @@ func TestGRPCStubCall(t *testing.T) {
 			in:   getBar,
 		},
 	} {
+		if err != nil {
+			t.Fatal(err)
+		}
 		got := g.grpcStubCall(tst.in)
 		if diff := cmp.Diff(got, tst.want); diff != "" {
 			t.Errorf("TestGRPCStubCall(%s) got(-),want(+):\n%s", tst.name, diff)

@@ -313,9 +313,6 @@ func TestServiceDoc(t *testing.T) {
 }
 
 func TestClientInit(t *testing.T) {
-	var g generator
-	g.apiName = "Awesome Foo API"
-	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	cop := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
@@ -550,7 +547,12 @@ func TestClientInit(t *testing.T) {
 				Parameter: tst.parameter,
 				ProtoFile: fds,
 			}
-			g.init(&request)
+			g, err := newGenerator(&request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			g.apiName = "Awesome Foo API"
+			g.imports = map[pbinfo.ImportSpec]bool{}
 			g.comments = map[protoiface.MessageV1]string{
 				tst.serv:                "Foo service does stuff.",
 				tst.serv.GetMethod()[0]: "Does some stuff.",

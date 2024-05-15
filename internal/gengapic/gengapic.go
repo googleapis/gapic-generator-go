@@ -53,8 +53,8 @@ var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)
 
 // Gen is the entry point for GAPIC generation via the protoc pluginpb.
 func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
-	var g generator
-	if err := g.init(genReq); err != nil {
+	g, err := newGenerator(genReq)
+	if err != nil {
 		return &g.resp, err
 	}
 
@@ -127,8 +127,7 @@ func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 			g.opts.transports = transports
 		}
 	}
-	err := g.genAndCommitSnippetMetadata(protoPkg)
-	if err != nil {
+	if err := g.genAndCommitSnippetMetadata(protoPkg); err != nil {
 		return &g.resp, err
 	}
 	g.reset()
