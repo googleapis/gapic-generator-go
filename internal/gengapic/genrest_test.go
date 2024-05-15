@@ -161,9 +161,6 @@ func TestPathParams(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		g.apiName = "Awesome Mollusc API"
-		g.imports = map[pbinfo.ImportSpec]bool{}
-		g.opts = &options{transports: []transport{rest}}
 		if err != nil {
 			t.Errorf("test %s setup got error: %s", tst.name, err.Error())
 		}
@@ -176,10 +173,6 @@ func TestPathParams(t *testing.T) {
 }
 
 func TestQueryParams(t *testing.T) {
-	var g generator
-	g.apiName = "Awesome Mollusc API"
-	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.opts = &options{transports: []transport{rest}}
 	for _, tst := range []struct {
 		name     string
 		body     string
@@ -368,14 +361,10 @@ func TestLeafFields(t *testing.T) {
 		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 		ProtoFile: []*descriptorpb.FileDescriptorProto{file},
 	}
-
 	g, err := newGenerator(&req)
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.apiName = "Awesome Mollusc API"
-	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.opts = &options{transports: []transport{rest}}
 
 	for _, tst := range []struct {
 		name           string
