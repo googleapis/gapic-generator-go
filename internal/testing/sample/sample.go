@@ -102,6 +102,34 @@ const (
 	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/resources.proto#L40
 	Resource = "Secret"
 
+	// ListMethod is the name of the method for listing resources.
+	//
+	// Example:
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb#ListSecrets
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L52
+	ListMethod = "ListSecrets"
+
+	// ListRequest is the name of the request for listing resources.
+	//
+	// A ListRequest often contains `page_size` and `page_token` fields (see
+	// https://aip.dev/158).
+	//
+	// Example:
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb#ListSecretsRequest
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L274
+	ListRequest = "ListSecretsRequest"
+
+	// ListResponse is the name of the resource returned by a List request.
+	//
+	// A ListResponse message often contains the Resource, a `next_page_token`
+	// and sometimes a `total_size` field (https://aip.dev/158).
+	// type and pattern (see https://aip.dev/4231#resource-messages).
+	//
+	// Example:
+	// https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1/secretmanagerpb#ListSecretsResponse
+	// https://github.com/googleapis/googleapis/blob/f7df662a24c56ecaab79cb7d808fed4d2bb4981d/google/cloud/secretmanager/v1/service.proto#L304
+	ListResponse = "ListSecretsResponse"
+
 	// CreateMethodWithSettings is a fake method for the purpose of testing
 	// the method_settings functionality in the publishing YAML.
 	//
@@ -191,6 +219,11 @@ func Service() *descriptorpb.ServiceDescriptorProto {
 				Name:       proto.String(GetMethod),
 				InputType:  proto.String(DescriptorInfoTypeName(GetRequest)),
 				OutputType: proto.String(DescriptorInfoTypeName(Resource)),
+			},
+			{
+				Name:       proto.String(ListMethod),
+				InputType:  proto.String(DescriptorInfoTypeName(ListRequest)),
+				OutputType: proto.String(DescriptorInfoTypeName(ListResponse)),
 			},
 		},
 	}
