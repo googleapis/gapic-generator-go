@@ -90,27 +90,28 @@ type generator struct {
 	customOpServices map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto
 }
 
-func (g *generator) init(req *pluginpb.CodeGeneratorRequest) error {
-	g.metadata = &metadata.GapicMetadata{
-		Schema:   "1.0",
-		Language: "go",
-		Comment:  "This file maps proto services/RPCs to the corresponding library clients/methods.",
-		Services: make(map[string]*metadata.GapicMetadata_ServiceForTransport),
-	}
-
-	g.mixins = make(mixins)
-	g.comments = map[protoiface.MessageV1]string{}
-	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.customOpServices = map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{}
-	g.aux = &auxTypes{
-		iters:           map[string]*iterType{},
-		methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
-		opWrappers:      map[string]operationWrapper{},
+func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
+	g := &generator{
+		metadata: &metadata.GapicMetadata{
+			Schema:   "1.0",
+			Language: "go",
+			Comment:  "This file maps proto services/RPCs to the corresponding library clients/methods.",
+			Services: make(map[string]*metadata.GapicMetadata_ServiceForTransport),
+		},
+		mixins:           make(mixins),
+		comments:         map[protoiface.MessageV1]string{},
+		imports:          map[pbinfo.ImportSpec]bool{},
+		customOpServices: map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{},
+		aux: &auxTypes{
+			iters:           map[string]*iterType{},
+			methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
+			opWrappers:      map[string]operationWrapper{},
+		},
 	}
 
 	opts, err := parseOptions(req.Parameter)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	files := req.GetProtoFile()
 	files = append(files, wellKnownTypeFiles...)
@@ -118,24 +119,24 @@ func (g *generator) init(req *pluginpb.CodeGeneratorRequest) error {
 	if opts.serviceConfigPath != "" {
 		y, err := os.ReadFile(opts.serviceConfigPath)
 		if err != nil {
-			return fmt.Errorf("error reading service config: %v", err)
+			return nil, fmt.Errorf("error reading service config: %v", err)
 		}
 
 		j, err := yaml.YAMLToJSON(y)
 		if err != nil {
-			return fmt.Errorf("error converting YAML to JSON: %v", err)
+			return nil, fmt.Errorf("error converting YAML to JSON: %v", err)
 		}
 
 		cfg := &serviceconfig.Service{}
 		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(j, cfg); err != nil {
-			return fmt.Errorf("error unmarshaling service config: %v", err)
+			return nil, fmt.Errorf("error unmarshaling service config: %v", err)
 		}
 		g.serviceConfig = cfg
 
 		// An API Service Config will always have a `name` so if it is not populated,
 		// it's an invalid config.
 		if g.serviceConfig.GetName() == "" {
-			return fmt.Errorf("invalid API service config file %q", opts.serviceConfigPath)
+			return nil, fmt.Errorf("invalid API service config file %q", opts.serviceConfigPath)
 		}
 
 		g.collectMixins()
@@ -144,13 +145,13 @@ func (g *generator) init(req *pluginpb.CodeGeneratorRequest) error {
 	if opts.grpcConfPath != "" {
 		f, err := os.Open(opts.grpcConfPath)
 		if err != nil {
-			return fmt.Errorf("error opening gRPC service config: %v", err)
+			return nil, fmt.Errorf("error opening gRPC service config: %v", err)
 		}
 		defer f.Close()
 
 		g.grpcConf, err = conf.New(f)
 		if err != nil {
-			return fmt.Errorf("error parsing gPRC service config: %v", err)
+			return nil, fmt.Errorf("error parsing gPRC service config: %v", err)
 		}
 	}
 	g.opts = opts
@@ -184,7 +185,7 @@ func (g *generator) init(req *pluginpb.CodeGeneratorRequest) error {
 		}
 	}
 
-	return nil
+	return g, nil
 }
 
 // printf formatted-prints to sb, using the print syntax from fmt package.

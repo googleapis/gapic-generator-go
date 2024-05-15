@@ -37,7 +37,7 @@ import (
 
 // Note: the fields parameter contains the names of _all_ the request message's fields,
 // not just those that are path or query params.
-func setupMethod(g *generator, url, body string, fields []string) (*descriptorpb.MethodDescriptorProto, error) {
+func setupMethod(url, body string, fields []string) (*pluginpb.CodeGeneratorRequest, *descriptorpb.MethodDescriptorProto, error) {
 	msg := &descriptorpb.DescriptorProto{
 		Name: proto.String("IdentifyRequest"),
 	}
@@ -79,21 +79,14 @@ func setupMethod(g *generator, url, body string, fields []string) (*descriptorpb
 			MessageType: []*descriptorpb.DescriptorProto{msg},
 		},
 	}
-	req := pluginpb.CodeGeneratorRequest{
+	req := &pluginpb.CodeGeneratorRequest{
 		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 		ProtoFile: fds,
 	}
-	g.init(&req)
-
-	return mthd, nil
+	return req, mthd, nil
 }
 
 func TestPathParams(t *testing.T) {
-	var g generator
-	g.apiName = "Awesome Mollusc API"
-	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.opts = &options{transports: []transport{rest}}
-
 	for _, tst := range []struct {
 		name     string
 		body     string
@@ -160,7 +153,17 @@ func TestPathParams(t *testing.T) {
 			},
 		},
 	} {
-		mthd, err := setupMethod(&g, tst.url, tst.body, tst.fields)
+		req, mthd, err := setupMethod(tst.url, tst.body, tst.fields)
+		if err != nil {
+			t.Fatal(err)
+		}
+		g, err := newGenerator(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		g.apiName = "Awesome Mollusc API"
+		g.imports = map[pbinfo.ImportSpec]bool{}
+		g.opts = &options{transports: []transport{rest}}
 		if err != nil {
 			t.Errorf("test %s setup got error: %s", tst.name, err.Error())
 		}
@@ -223,11 +226,14 @@ func TestQueryParams(t *testing.T) {
 			},
 		},
 	} {
-		mthd, err := setupMethod(&g, tst.url, tst.body, tst.fields)
+		req, mthd, err := setupMethod(tst.url, tst.body, tst.fields)
 		if err != nil {
 			t.Errorf("test %s setup got error: %s", tst.name, err.Error())
 		}
-
+		g, err := newGenerator(req)
+		if err != nil {
+			t.Fatal(err)
+		}
 		actual := g.queryParams(mthd)
 		if diff := cmp.Diff(actual, tst.expected, cmp.Comparer(proto.Equal)); diff != "" {
 			t.Errorf("test %s, got(-),want(+):\n%s", tst.name, diff)
@@ -236,11 +242,6 @@ func TestQueryParams(t *testing.T) {
 }
 
 func TestLeafFields(t *testing.T) {
-	var g generator
-	g.apiName = "Awesome Mollusc API"
-	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.opts = &options{transports: []transport{rest}}
-
 	basicMsg := &descriptorpb.DescriptorProto{
 		Name: proto.String("Clam"),
 		Field: []*descriptorpb.FieldDescriptorProto{
@@ -367,7 +368,14 @@ func TestLeafFields(t *testing.T) {
 		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 		ProtoFile: []*descriptorpb.FileDescriptorProto{file},
 	}
-	g.init(&req)
+
+	g, err := newGenerator(&req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.apiName = "Awesome Mollusc API"
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.opts = &options{transports: []transport{rest}}
 
 	for _, tst := range []struct {
 		name           string

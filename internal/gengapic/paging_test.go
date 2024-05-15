@@ -118,12 +118,6 @@ func TestIterTypeOf(t *testing.T) {
 }
 
 func TestPagingField(t *testing.T) {
-	g := generator{
-		apiName: "Awesome API",
-		imports: map[pbinfo.ImportSpec]bool{},
-		opts:    &options{transports: []transport{rest}},
-	}
-
 	// The predicate is simple:
 	// * No streaming in the method
 	// * Request has a int32 page_size field XOR a int32 max_results field
@@ -412,7 +406,13 @@ func TestPagingField(t *testing.T) {
 		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 		ProtoFile: []*descriptorpb.FileDescriptorProto{file},
 	}
-	g.init(&req)
+	g, err := newGenerator(&req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.apiName = "Awesome API"
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.opts = &options{transports: []transport{rest}}
 
 	for _, tst := range []struct {
 		mthd      *descriptorpb.MethodDescriptorProto
