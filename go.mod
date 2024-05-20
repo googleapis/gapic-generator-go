@@ -8,9 +8,9 @@ require (
 	github.com/jhump/protoreflect v1.16.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
 	golang.org/x/text v0.15.0
-	google.golang.org/genproto v0.0.0-20240509183442-62759503f434
-	google.golang.org/genproto/googleapis/api v0.0.0-20240509183442-62759503f434
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240509183442-62759503f434
+	google.golang.org/genproto v0.0.0-20240515191416-fc5f0ca64291
+	google.golang.org/genproto/googleapis/api v0.0.0-20240515191416-fc5f0ca64291
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291
 	google.golang.org/protobuf v1.34.1
 )
 
