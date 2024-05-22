@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.43.0](https://github.com/googleapis/gapic-generator-go/compare/v0.42.0...v0.43.0) (2024-05-22)
+
+
+### Features
+
+* **gengapic:** Conditionally enable cloud.google.com/go/auth ([#1523](https://github.com/googleapis/gapic-generator-go/issues/1523)) ([f4f5cc2](https://github.com/googleapis/gapic-generator-go/commit/f4f5cc24b6ddf85ae22f56bfbe966ae5aca101e2))
+
 ## [0.42.0](https://github.com/googleapis/gapic-generator-go/compare/v0.41.3...v0.42.0) (2024-05-06)
 
 
