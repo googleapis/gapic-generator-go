@@ -36,10 +36,10 @@ import (
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
-var allowListEnableNewAuthLibrary = []string{
-	"cloudkms.googleapis.com",
-	"secretmanager.googleapis.com",
-	"showcase.googleapis.com",
+var enableNewAuthLibrary = map[string]bool{
+	"cloudkms.googleapis.com":      true,
+	"secretmanager.googleapis.com": true,
+	"showcase.googleapis.com":      true,
 }
 
 type generator struct {
@@ -88,15 +88,6 @@ type generator struct {
 	// customOpServices is a map of service descriptors with methods that create custom operations
 	// to the service descriptors of the custom operation services that manage those custom operation instances.
 	customOpServices map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto
-}
-
-func (g *generator) enableNewAuthLibrary() bool {
-	for _, s := range allowListEnableNewAuthLibrary {
-		if g.serviceConfig.GetName() == s {
-			return true
-		}
-	}
-	return false
 }
 
 func (g *generator) init(req *pluginpb.CodeGeneratorRequest) error {

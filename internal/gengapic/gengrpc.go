@@ -185,7 +185,7 @@ func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("    internaloption.EnableJwtWithScope(),")
-	if g.enableNewAuthLibrary() {
+	if _, ok := enableNewAuthLibrary[g.serviceConfig.GetName()]; ok {
 		p("internaloption.EnableNewAuthLibrary(),")
 	}
 	p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
