@@ -123,6 +123,7 @@ func TestClientOpt(t *testing.T) {
 			"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 		},
 		serviceConfig: &serviceconfig.Service{
+			Name: "showcase.googleapis.com",
 			Apis: []*apipb.Api{
 				{Name: "foo.bar.Baz"},
 				{Name: "google.iam.v1.IAMPolicy"},

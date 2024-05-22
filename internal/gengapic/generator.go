@@ -36,6 +36,12 @@ import (
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
+var enableNewAuthLibrary = map[string]bool{
+	"cloudkms.googleapis.com":      true,
+	"secretmanager.googleapis.com": true,
+	"showcase.googleapis.com":      true,
+}
+
 type generator struct {
 	pt printer.P
 

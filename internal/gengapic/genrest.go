@@ -137,6 +137,9 @@ func (g *generator) restClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultUniverseDomain(%q),", googleDefaultUniverse)
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
+	if _, ok := enableNewAuthLibrary[g.serviceConfig.GetName()]; ok {
+		p("internaloption.EnableNewAuthLibrary(),")
+	}
 	p("  }")
 	p("}")
 }
