@@ -552,7 +552,6 @@ func TestClientInit(t *testing.T) {
 				t.Fatal(err)
 			}
 			g.apiName = "Awesome Foo API"
-			g.imports = map[pbinfo.ImportSpec]bool{}
 			g.comments = map[protoiface.MessageV1]string{
 				tst.serv:                "Foo service does stuff.",
 				tst.serv.GetMethod()[0]: "Does some stuff.",
