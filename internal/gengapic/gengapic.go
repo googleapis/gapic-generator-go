@@ -64,7 +64,9 @@ func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		return &g.resp, nil
 	}
 
-	g.checkIAMPolicyOverrides(genServs)
+	if g.containsIAMPolicyOverrides(genServs) {
+		g.hasIAMPolicyOverrides = true
+	}
 
 	if g.serviceConfig != nil {
 		g.apiName = g.serviceConfig.GetTitle()
