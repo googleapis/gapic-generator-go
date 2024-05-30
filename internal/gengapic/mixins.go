@@ -206,24 +206,24 @@ func (g *generator) hasLocationMixin() bool {
 	return len(g.mixins["google.cloud.location.Locations"]) > 0 && len(g.serviceConfig.GetApis()) > 1
 }
 
-// checkIAMPolicyOverrides determines if any of the given services define an
+// containsIAMPolicyOverrides determines if any of the given services define an
 // IAMPolicy RPC and sets the hasIAMpolicyOverrides generator flag if so. If set
 // to true, the IAMPolicy mixin will not be generated on any service client. This
 // is for backwards compatibility with existing IAMPolicy redefinitions.
-func (g *generator) checkIAMPolicyOverrides(servs []*descriptorpb.ServiceDescriptorProto) {
+func (g *generator) containsIAMPolicyOverrides(servs []*descriptorpb.ServiceDescriptorProto) bool {
 	iam, hasMixin := g.mixins["google.iam.v1.IAMPolicy"]
 	if !hasMixin {
-		return
+		return false
 	}
 
 	for _, s := range servs {
 		for _, iamMethod := range iam {
 			if hasMethod(s, iamMethod.GetName()) {
-				g.hasIAMPolicyOverrides = true
-				return
+				return true
 			}
 		}
 	}
+	return false
 }
 
 // includeMixinInputFile determines if the given proto file name matches

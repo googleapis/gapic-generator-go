@@ -164,7 +164,7 @@ func TestHasIAMPolicyMixin(t *testing.T) {
 	}
 }
 
-func TestCheckIAMPolicyOverrides(t *testing.T) {
+func TestContainsIAMPolicyOverrides(t *testing.T) {
 	g := &generator{
 		mixins: make(mixins),
 	}
@@ -181,18 +181,14 @@ func TestCheckIAMPolicyOverrides(t *testing.T) {
 		},
 	}
 	servs := []*descriptorpb.ServiceDescriptorProto{serv, other}
-	var want bool
-	g.checkIAMPolicyOverrides(servs)
-	if got := g.hasIAMPolicyOverrides; !cmp.Equal(got, want) {
-		t.Errorf("TestCheckIAMPolicyOverrides wanted %v but got %v", want, got)
+	if g.containsIAMPolicyOverrides(servs) {
+		t.Errorf("TestContainsIAMPolicyOverrides = true; want = false")
 	}
 
-	want = true
 	g.mixins["google.iam.v1.IAMPolicy"] = iamPolicyMethods()
 	serv.Method = append(serv.Method, &descriptorpb.MethodDescriptorProto{Name: proto.String("GetIamPolicy")})
-	g.checkIAMPolicyOverrides(servs)
-	if got := g.hasIAMPolicyOverrides; !cmp.Equal(got, want) {
-		t.Errorf("TestCheckIAMPolicyOverrides wanted %v but got %v", want, got)
+	if !g.containsIAMPolicyOverrides(servs) {
+		t.Errorf("TestContainsIAMPolicyOverrides = false; want = true")
 	}
 }
 
