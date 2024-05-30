@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.43.1](https://github.com/googleapis/gapic-generator-go/compare/v0.43.0...v0.43.1) (2024-05-30)
+
+
+### Bug Fixes
+
+* **internal/gengapic:** Include status_go_proto gapic dependency ([#1528](https://github.com/googleapis/gapic-generator-go/issues/1528)) ([81c5c6e](https://github.com/googleapis/gapic-generator-go/commit/81c5c6ee080d13317ddf476750c1453701111015))
+
 ## [0.43.0](https://github.com/googleapis/gapic-generator-go/compare/v0.42.0...v0.43.0) (2024-05-22)
 
 
