@@ -34,13 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	genResp, err := gengapic.Gen(&genReq)
-	if err != nil {
-		genResp.Error = proto.String(err.Error())
-	}
-
-	genResp.SupportedFeatures = proto.Uint64(uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
-
+	genResp := gengapic.Gen(&genReq)
 	outBytes, err := proto.Marshal(genResp)
 	if err != nil {
 		log.Fatal(err)
