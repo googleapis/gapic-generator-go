@@ -1,0 +1,84 @@
+// Code generated. DO NOT EDIT.
+
+package main
+
+import (
+	"github.com/spf13/cobra"
+
+	"github.com/golang/protobuf/jsonpb"
+
+	"os"
+
+	todopb "github.com/googleapis/todo/generated"
+)
+
+var ListTodosInput todopb.ListTodosRequest
+
+var ListTodosFromFile string
+
+var listTodosInputPageSize int32
+
+var listTodosInputPageToken string
+
+func init() {
+	TodoServiceCmd.AddCommand(ListTodosCmd)
+
+	ListTodosCmd.Flags().Int32Var(&listTodosInputPageSize, "page_size", 10, "Default is 10. size of page to list")
+
+	ListTodosCmd.Flags().StringVar(&listTodosInputPageToken, "page_token", "", "the token from a previous page listed")
+
+	ListTodosCmd.Flags().StringVar(&ListTodosFromFile, "from_file", "", "Absolute path to JSON file containing request payload")
+
+}
+
+var ListTodosCmd = &cobra.Command{
+	Use:   "list-todos",
+	Short: "list todos",
+	Long:  "list all available todos",
+	PreRun: func(cmd *cobra.Command, args []string) {
+
+		if ListTodosFromFile == "" {
+
+		}
+
+	},
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+		in := os.Stdin
+		if ListTodosFromFile != "" {
+			in, err = os.Open(ListTodosFromFile)
+			if err != nil {
+				return err
+			}
+			defer in.Close()
+
+			err = jsonpb.Unmarshal(in, &ListTodosInput)
+			if err != nil {
+				return err
+			}
+
+		}
+
+		if Verbose {
+			printVerboseInput("Todo", "ListTodos", &ListTodosInput)
+		}
+		iter := TodoClient.ListTodos(ctx, &ListTodosInput)
+
+		// populate iterator with a page
+		_, err = iter.Next()
+		if err != nil && err != iterator.Done {
+			return err
+		}
+
+		if Verbose {
+			fmt.Print("Output: ")
+		}
+		printMessage(iter.Response)
+
+		if err == iterator.Done {
+			return nil
+		}
+
+		return err
+	},
+}

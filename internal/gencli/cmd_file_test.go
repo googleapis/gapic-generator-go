@@ -75,6 +75,42 @@ func TestCommandFile(t *testing.T) {
 		HasOptional: true,
 	}
 
+	// paged
+	listTodosCmd := &Command{
+		Service:           "Todo",
+		Method:            "ListTodos",
+		MethodCmd:         "list-todos",
+		ShortDesc:         "list todos",
+		LongDesc:          "list all available todos",
+		InputMessage:      "todopb.ListTodosRequest",
+		InputMessageVar:   "ListTodosInput",
+		OutputMessageType: "todopb.ListTodosResponse",
+		Imports: map[string]*pbinfo.ImportSpec{
+			"jsonpb": {Path: "github.com/golang/protobuf/jsonpb"},
+			"os":     {Path: "os"},
+			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+		},
+		Paged: true,
+		Flags: []*Flag{
+			&Flag{
+				Name:      "page_size",
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_INT32,
+				FieldName: "PageSize",
+				VarName:   "ListTodosInput",
+				Usage:     "size of page to list",
+				Optional:  true,
+			},
+			&Flag{
+				Name:      "page_token",
+				FieldName: "PageToken",
+				VarName:   "ListTodosInput",
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_STRING,
+				Usage:     "the token from a previous page listed",
+				Optional:  true,
+			},
+		},
+	}
+
 	// LRO
 	startTodoCmd := &Command{
 		Service:           "Todo",
@@ -171,6 +207,14 @@ func TestCommandFile(t *testing.T) {
 			cmd:        createTodoCmd,
 			name:       "create-todo",
 			goldenPath: filepath.Join("testdata", "create-todo.want"),
+		},
+		{
+			g: &gcli{
+				format: true,
+			},
+			cmd:        listTodosCmd,
+			name:       "list-todos",
+			goldenPath: filepath.Join("testdata", "list-todos.want"),
 		},
 		{
 			g: &gcli{
