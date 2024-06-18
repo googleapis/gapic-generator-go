@@ -36,10 +36,28 @@ import (
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
-var enableNewAuthLibrary = map[string]bool{
-	"cloudkms.googleapis.com":      true,
-	"secretmanager.googleapis.com": true,
-	"showcase.googleapis.com":      true,
+var enableNewAuthLibraryBlocklist = map[string]bool{
+	"generativelanguage.googleapis.com":   true,
+	"aiplatform.googleapis.com":           true,
+	"analyticshub.googleapis.com":         true,
+	"biglake.googleapis.com":              true,
+	"bigqueryconnection.googleapis.com":   true,
+	"bigquerydatapolicy.googleapis.com":   true,
+	"bigquerydatatransfer.googleapis.com": true,
+	"bigquerymigration.googleapis.com":    true,
+	"bigqueryreservation.googleapis.com":  true,
+	"bigquerystorage.googleapis.com":      true,
+	"bigtableadmin.googleapis.com":        true,
+	"bigtable.googleapis.com":             true,
+	"datastore.googleapis.com":            true,
+	"clouderrorreporting.googleapis.com":  true,
+	"firestore.googleapis.com":            true,
+	"logging.googleapis.com":              true,
+	"cloudprofiler.googleapis.com":        true,
+	"pubsub.googleapis.com":               true,
+	"pubsublite.googleapis.com":           true,
+	"spanner.googleapis.com":              true,
+	"storage.googleapis.com":              true,
 }
 
 type generator struct {
