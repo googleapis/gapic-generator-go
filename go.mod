@@ -7,11 +7,11 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/jhump/protoreflect v1.16.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
-	golang.org/x/text v0.15.0
-	google.golang.org/genproto v0.0.0-20240528155852-a33235495d66
-	google.golang.org/genproto/googleapis/api v0.0.0-20240528155852-a33235495d66
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528155852-a33235495d66
-	google.golang.org/protobuf v1.34.1
+	golang.org/x/text v0.16.0
+	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4
+	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240617180043-68d350f18fd4
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
