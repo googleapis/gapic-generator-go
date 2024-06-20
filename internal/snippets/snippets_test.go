@@ -19,65 +19,60 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/snippets/metadata"
+	"github.com/googleapis/gapic-generator-go/internal/testing/sample"
 	"google.golang.org/protobuf/proto"
 )
 
-var protoPkg = "google.cloud.bigquery.migration.v2"
-var libPkg = "cloud.google.com/go/bigquery/migration/apiv2"
-var defaultHost = "bigquerymigration.googleapis.com"
-var version = "v2"
-var pkgName = "migration"
-
 func TestNewMetadata(t *testing.T) {
-	sm := NewMetadata(protoPkg, libPkg, pkgName)
+	sm := NewMetadata(sample.ProtoPackagePath, sample.GoPackagePath, sample.GoPackageName)
 
-	if sm.protoPkg != protoPkg {
-		t.Errorf("%s: got %s want %s,", t.Name(), sm.protoPkg, protoPkg)
+	if sm.protoPkg != sample.ProtoPackagePath {
+		t.Errorf("%s: got %s want %s,", t.Name(), sm.protoPkg, sample.ProtoPackagePath)
 	}
-	if sm.libPkg != libPkg {
-		t.Errorf("%s: got %s want %s", t.Name(), sm.libPkg, libPkg)
+	if sm.libPkg != sample.GoPackagePath {
+		t.Errorf("%s: got %s want %s", t.Name(), sm.libPkg, sample.GoPackagePath)
 	}
 	if got := len(sm.protoServices); got != 0 {
 		t.Errorf("%s: got %d want empty", t.Name(), len(sm.protoServices))
 	}
-	if sm.apiVersion != version {
-		t.Errorf("%s: got %s want %s", t.Name(), sm.apiVersion, version)
+	if sm.apiVersion != sample.ProtoVersion {
+		t.Errorf("%s: got %s want %s", t.Name(), sm.apiVersion, sample.ProtoVersion)
 	}
 }
 
 func TestToMetadataJSON(t *testing.T) {
 	// Build fixture
-	sm := NewMetadata(protoPkg, libPkg, pkgName)
+	sm := NewMetadata(sample.ProtoPackagePath, sample.GoPackagePath, sample.GoPackageName)
 	regionTagStart := 18
 	regionTagEnd := 50
 	for i := 0; i < 2; i++ {
 		serviceName := fmt.Sprintf("Foo%dService", i)
 		methodName := fmt.Sprintf("Bar%dMethod", i)
-		sm.AddService(serviceName, defaultHost)
-		sm.AddMethod(serviceName, methodName, protoPkg, serviceName, regionTagEnd)
+		sm.AddService(serviceName, sample.ServiceURL)
+		sm.AddMethod(serviceName, methodName, sample.ProtoPackagePath, serviceName, regionTagEnd)
 		sm.UpdateMethodDoc(serviceName, methodName, methodName+" doc\n New line.")
 		sm.UpdateMethodResult(serviceName, methodName, "mypackage."+methodName+"Result")
 		sm.AddParams(serviceName, methodName, "mypackage."+methodName+"Request")
 	}
-
 	// Build expectation
 	want := &metadata.Index{
 		ClientLibrary: &metadata.ClientLibrary{
-			Name:     libPkg,
+			Name:     sample.GoPackagePath,
 			Version:  VersionPlaceholder,
 			Language: metadata.Language_GO,
 			Apis: []*metadata.Api{
 				{
-					Id:      protoPkg,
-					Version: "v2",
+					Id:      sample.ProtoPackagePath,
+					Version: sample.ProtoVersion,
 				},
 			},
 		},
 	}
+
 	for i := 0; i < 2; i++ {
 		snp := &metadata.Snippet{
-			RegionTag:   fmt.Sprintf("bigquerymigration_v2_generated_Foo%dService_Bar%dMethod_sync", i, i),
-			Title:       fmt.Sprintf("bigquerymigration Bar%dMethod Sample", i),
+			RegionTag:   fmt.Sprintf("secretmanager_v1_generated_Foo%dService_Bar%dMethod_sync", i, i),
+			Title:       fmt.Sprintf("secretmanager Bar%dMethod Sample", i),
 			Description: fmt.Sprintf("Bar%dMethod doc\nNew line.", i),
 			File:        fmt.Sprintf("Foo%dClient/Bar%dMethod/main.go", i, i),
 			Language:    metadata.Language_GO,
@@ -85,19 +80,19 @@ func TestToMetadataJSON(t *testing.T) {
 			Origin:      *metadata.Snippet_API_DEFINITION.Enum(),
 			ClientMethod: &metadata.ClientMethod{
 				ShortName:  fmt.Sprintf("Bar%dMethod", i),
-				FullName:   fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dClient.Bar%dMethod", i, i),
+				FullName:   fmt.Sprintf("google.cloud.secretmanager.v1.Foo%dClient.Bar%dMethod", i, i),
 				Async:      false,
 				ResultType: fmt.Sprintf("mypackage.Bar%dMethodResult", i),
 				Client: &metadata.ServiceClient{
 					ShortName: fmt.Sprintf("Foo%dClient", i),
-					FullName:  fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dClient", i),
+					FullName:  fmt.Sprintf("google.cloud.secretmanager.v1.Foo%dClient", i),
 				},
 				Method: &metadata.Method{
 					ShortName: fmt.Sprintf("Bar%dMethod", i),
-					FullName:  fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dService.Bar%dMethod", i, i),
+					FullName:  fmt.Sprintf("google.cloud.secretmanager.v1.Foo%dService.Bar%dMethod", i, i),
 					Service: &metadata.Service{
 						ShortName: fmt.Sprintf("Foo%dService", i),
-						FullName:  fmt.Sprintf("google.cloud.bigquery.migration.v2.Foo%dService", i),
+						FullName:  fmt.Sprintf("google.cloud.secretmanager.v1.Foo%dService", i),
 					},
 				},
 				Parameters: []*metadata.ClientMethod_Parameter{
@@ -142,15 +137,10 @@ func TestToMetadataJSON(t *testing.T) {
 }
 
 func TestRegionTag(t *testing.T) {
-	protoPkg := "google.cloud.bigquery.migration.v2"
-	libPkg := "google.golang.org/genproto/googleapis/cloud/bigquery/migration/v2"
-	sm := NewMetadata(protoPkg, libPkg, pkgName)
-	serviceName := "MigrationService"
-	defaultHost := "bigquerymigration.googleapis.com"
-	sm.AddService(serviceName, defaultHost)
-	methodName := "GetMigrationWorkflow"
-	want := "bigquerymigration_v2_generated_MigrationService_GetMigrationWorkflow_sync"
-	if got := sm.RegionTag(serviceName, methodName); got != want {
+	sm := NewMetadata(sample.ProtoPackagePath, sample.GoPackagePath, sample.GoPackageName)
+	sm.AddService(sample.ServiceName, sample.ServiceURL)
+	want := "secretmanager_v1_generated_SecretManagerService_GetSecret_sync"
+	if got := sm.RegionTag(sample.ServiceName, sample.GetMethod); got != want {
 		t.Errorf("%s: got %s want %s", t.Name(), got, want)
 	}
 }

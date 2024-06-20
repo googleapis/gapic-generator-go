@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.44.0](https://github.com/googleapis/gapic-generator-go/compare/v0.43.1...v0.44.0) (2024-06-18)
+
+
+### Features
+
+* **gengapic:** Enable cloud.google.com/go/auth for most clients ([#1535](https://github.com/googleapis/gapic-generator-go/issues/1535)) ([cd06f12](https://github.com/googleapis/gapic-generator-go/commit/cd06f1200328e9bd8a3ed18eaf61acdc8ae1130d))
+
+## [0.43.1](https://github.com/googleapis/gapic-generator-go/compare/v0.43.0...v0.43.1) (2024-05-30)
+
+
+### Bug Fixes
+
+* **internal/gengapic:** Include status_go_proto gapic dependency ([#1528](https://github.com/googleapis/gapic-generator-go/issues/1528)) ([81c5c6e](https://github.com/googleapis/gapic-generator-go/commit/81c5c6ee080d13317ddf476750c1453701111015))
+
+## [0.43.0](https://github.com/googleapis/gapic-generator-go/compare/v0.42.0...v0.43.0) (2024-05-22)
+
+
+### Features
+
+* **gengapic:** Conditionally enable cloud.google.com/go/auth ([#1523](https://github.com/googleapis/gapic-generator-go/issues/1523)) ([f4f5cc2](https://github.com/googleapis/gapic-generator-go/commit/f4f5cc24b6ddf85ae22f56bfbe966ae5aca101e2))
+
 ## [0.42.0](https://github.com/googleapis/gapic-generator-go/compare/v0.41.3...v0.42.0) (2024-05-06)
 
 

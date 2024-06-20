@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
+	"github.com/googleapis/gapic-generator-go/internal/testing/sample"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
@@ -49,12 +50,8 @@ func TestExample(t *testing.T) {
 		},
 	}
 
-	inputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("InputType"),
-	}
-	outputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("OutputType"),
-	}
+	inputType := sample.InputType("InputType")
+	outputType := sample.OutputType("OutputType")
 
 	pageInputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("PageInputType"),
@@ -282,83 +279,56 @@ func TestExample(t *testing.T) {
 func TestGenSnippetFile(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.serviceConfig = &serviceconfig.Service{
-		Apis: []*apipb.Api{
-			{Name: "google.cloud.bigquery.migration.v2.MigrationService"},
-		},
-	}
+	g.serviceConfig = sample.ServiceConfig()
 
-	protoPkg := "google.cloud.bigquery.migration.v2"
-	libPkg := "cloud.google.com/go/bigquery/migration/apiv2"
-	pkgName := "bigquerymigration"
-	g.snippetMetadata = snippets.NewMetadata(protoPkg, libPkg, pkgName)
+	serv := sample.Service()
+	g.snippetMetadata = snippets.NewMetadata(sample.ProtoPackagePath, sample.GoPackagePath, sample.GoPackageName)
+	g.snippetMetadata.AddService(serv.GetName(), sample.ServiceURL)
 
-	inputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("CreateMigrationWorkflowRequest"),
-	}
-	outputType := &descriptorpb.DescriptorProto{
-		Name: proto.String("MigrationWorkflow"),
-	}
-
-	file := &descriptorpb.FileDescriptorProto{
-		Options: &descriptorpb.FileOptions{
-			GoPackage: proto.String("cloud.google.com/go/bigquery/migration/apiv2/migrationpb"),
-		},
-		Package: proto.String(protoPkg),
-	}
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
 
 	files := []*descriptorpb.FileDescriptorProto{}
 	g.descInfo = pbinfo.Of(files)
+
+	file := sample.File()
 	for _, typ := range []*descriptorpb.DescriptorProto{
 		inputType, outputType,
 	} {
-		g.descInfo.Type[".google.cloud.bigquery.migration.v2."+typ.GetName()] = typ
+		g.descInfo.Type[sample.DescriptorInfoTypeName(typ.GetName())] = typ
 		g.descInfo.ParentFile[typ] = file
 	}
 
-	serv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("MigrationService"),
-		Method: []*descriptorpb.MethodDescriptorProto{
-			{
-				Name:       proto.String("CreateMigrationWorkflow"),
-				InputType:  proto.String(".google.cloud.bigquery.migration.v2.CreateMigrationWorkflowRequest"),
-				OutputType: proto.String(".google.cloud.bigquery.migration.v2.MigrationWorkflow"),
-			},
-		},
-	}
-
-	for _, tst := range []struct {
-		tstName string
+	for _, test := range []struct {
+		name    string
 		options options
 		imports map[pbinfo.ImportSpec]bool
 	}{
 		{
-			tstName: "snippet",
+			name: "snippet",
 			options: options{
-				pkgName:    "migration",
+				pkgName:    sample.GoPackageName,
 				transports: []transport{grpc, rest},
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}: true,
-				{Name: "migrationpb", Path: "cloud.google.com/go/bigquery/migration/apiv2/migrationpb"}: true,
+				{Name: sample.GoProtoPackageName, Path: sample.GoProtoPackagePath}: true,
 			},
 		},
 	} {
-		t.Run(tst.tstName, func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			g.reset()
-			g.opts = &tst.options
-			defaultHost := "bigquerymigration.googleapis.com"
-			g.snippetMetadata.AddService(serv.GetName(), defaultHost)
+			g.opts = &test.options
 			err := g.genSnippetFile(serv, serv.Method[0])
 			if err != nil {
 				t.Fatal(err)
 			}
-			g.commit(filepath.Join("cloud.google.com/go", "internal", "generated", "snippets", "bigquery", "main.go"), "main")
-			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
-				t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
+			g.commit(filepath.Join(sample.SnippetsDirectory, "main.go"), "main")
+			if diff := cmp.Diff(test.imports, g.imports); diff != "" {
+				t.Errorf("TestExample(%s) imports mismatch: (-want +got):\n%s", test.name, diff)
 			}
 			got := *g.resp.File[0].Content + *g.resp.File[1].Content
-			txtdiff.Diff(t, got, filepath.Join("testdata", tst.tstName+".want"))
+			txtdiff.Diff(t, got, filepath.Join("testdata", test.name+".want"))
 		})
 	}
 }

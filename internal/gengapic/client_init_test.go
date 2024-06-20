@@ -123,6 +123,7 @@ func TestClientOpt(t *testing.T) {
 			"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 		},
 		serviceConfig: &serviceconfig.Service{
+			Name: "showcase.googleapis.com",
 			Apis: []*apipb.Api{
 				{Name: "foo.bar.Baz"},
 				{Name: "google.iam.v1.IAMPolicy"},
@@ -312,9 +313,6 @@ func TestServiceDoc(t *testing.T) {
 }
 
 func TestClientInit(t *testing.T) {
-	var g generator
-	g.apiName = "Awesome Foo API"
-	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	cop := &descriptorpb.DescriptorProto{
 		Name: proto.String("Operation"),
@@ -549,7 +547,11 @@ func TestClientInit(t *testing.T) {
 				Parameter: tst.parameter,
 				ProtoFile: fds,
 			}
-			g.init(&request)
+			g, err := newGenerator(&request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			g.apiName = "Awesome Foo API"
 			g.comments = map[protoiface.MessageV1]string{
 				tst.serv:                "Foo service does stuff.",
 				tst.serv.GetMethod()[0]: "Does some stuff.",

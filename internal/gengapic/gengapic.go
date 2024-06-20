@@ -52,19 +52,31 @@ const (
 var headerParamRegexp = regexp.MustCompile(`{([_.a-z0-9]+)`)
 
 // Gen is the entry point for GAPIC generation via the protoc pluginpb.
-func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
-	var g generator
-	if err := g.init(genReq); err != nil {
-		return &g.resp, err
+func Gen(genReq *pluginpb.CodeGeneratorRequest) *pluginpb.CodeGeneratorResponse {
+	genResp, err := gen(genReq)
+	if err != nil {
+		genResp = &pluginpb.CodeGeneratorResponse{
+			Error: proto.String(err.Error()),
+		}
+	}
+	genResp.SupportedFeatures = proto.Uint64(uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
+	return genResp
+}
+
+func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
+	g, err := newGenerator(genReq)
+	if err != nil {
+		return nil, err
 	}
 
 	genServs := g.collectServices(genReq)
-
 	if len(genServs) == 0 {
 		return &g.resp, nil
 	}
 
-	g.checkIAMPolicyOverrides(genServs)
+	if g.containsIAMPolicyOverrides(genServs) {
+		g.hasIAMPolicyOverrides = true
+	}
 
 	if g.serviceConfig != nil {
 		g.apiName = g.serviceConfig.GetTitle()
@@ -110,7 +122,7 @@ func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 			g.opts.transports = []transport{grpc}
 		}
 		if err := g.gen(s); err != nil {
-			return &g.resp, err
+			return nil, err
 		}
 		g.commit(outFile+"_client.go", g.opts.pkgName)
 
@@ -127,9 +139,8 @@ func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 			g.opts.transports = transports
 		}
 	}
-	err := g.genAndCommitSnippetMetadata(protoPkg)
-	if err != nil {
-		return &g.resp, err
+	if err := g.genAndCommitSnippetMetadata(protoPkg); err != nil {
+		return nil, err
 	}
 	g.reset()
 	scopes := collectScopes(genServs)
@@ -153,14 +164,14 @@ func Gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	if g.aux.customOp != nil {
 		g.reset()
 		if err := g.customOperationType(); err != nil {
-			return &g.resp, err
+			return nil, err
 		}
 		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
 	}
 
 	g.reset()
 	if err := g.genAuxFile(); err != nil {
-		return &g.resp, err
+		return nil, err
 	}
 
 	return &g.resp, nil
