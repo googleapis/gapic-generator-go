@@ -414,7 +414,7 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 		// Handle well known protobuf types with special JSON encodings.
 		if strContains(wellKnownTypeNames, field.GetTypeName()) {
 			b := strings.Builder{}
-			b.WriteString(fmt.Sprintf("%s, err := protojson.Marshal(req%s)\n", field.GetJsonName(), accessor))
+			b.WriteString(fmt.Sprintf("field, err := protojson.Marshal(req%s)\n", accessor))
 			b.WriteString("if err != nil {\n")
 			if m.GetOutputType() == emptyType {
 				b.WriteString("  return err\n")
@@ -426,9 +426,9 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 			b.WriteString("}\n")
 			// Only some of the well known types will be encoded as strings, remove the wrapping quotations for those.
 			if strContains(wellKnownStringTypes, field.GetTypeName()) {
-				b.WriteString(fmt.Sprintf("params.Add(%q, string(%s[1:len(%[2]s)-1]))", key, field.GetJsonName()))
+				b.WriteString(fmt.Sprintf("params.Add(%q, string(field[1:len(field)-1]))", key))
 			} else {
-				b.WriteString(fmt.Sprintf("params.Add(%q, string(%s))", key, field.GetJsonName()))
+				b.WriteString(fmt.Sprintf("params.Add(%q, string(field))", key))
 			}
 			paramAdd = b.String()
 		} else {
