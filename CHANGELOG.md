@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.44.1](https://github.com/googleapis/gapic-generator-go/compare/v0.44.0...v0.44.1) (2024-06-20)
+
+
+### Bug Fixes
+
+* **gengapic:** Make field var name generic ([#1537](https://github.com/googleapis/gapic-generator-go/issues/1537)) ([bafae38](https://github.com/googleapis/gapic-generator-go/commit/bafae381c50a5479bc863ac2d17e3b782e3e6e7f))
+
 ## [0.44.0](https://github.com/googleapis/gapic-generator-go/compare/v0.43.1...v0.44.0) (2024-06-18)
 
 
