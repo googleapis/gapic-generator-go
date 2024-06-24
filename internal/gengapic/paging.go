@@ -31,6 +31,27 @@ type iterType struct {
 	elemImports []pbinfo.ImportSpec
 }
 
+// isPageSizeField evaluates whether a particular field is a page size field.
+// https://google.aip.dev/158 guidance is to use `page_size`, but older APIs like compute
+// and bigquery use `max_results`.  Similarly, `int32` is the expected scalar type, but
+// there's more variance here in implementations, so int32 and uint32 are allowed, as well
+// as the equivalent wrapper types.
+func isPageSizeField(f *descriptorpb.FieldDescriptorProto) bool {
+	if f.GetName() == "page_size" || f.GetName() == "max_results" {
+		// Scalar types.
+		if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_UINT32 {
+			return true
+		}
+		// Wrapper types.
+		if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
+			if f.GetTypeName() == ".google.protobuf.Int32Value" || f.GetTypeName() == ".google.protobuf.UInt32Value" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // iterTypeOf deduces iterType from a field to be iterated over.
 // elemField should be the "resource" of a paginating RPC.
 // TODO(dovs): augment with paged map iterators
@@ -157,12 +178,12 @@ func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repe
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		isInt32 := f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_UINT32
-		if (f.GetName() == "page_size" || f.GetName() == "max_results") && isInt32 {
-			if pageSizeField != nil {
-				return nil, nil, fmt.Errorf("found both page_size and max_results fields in message %q", m.GetInputType())
+		if isPageSizeField(f) {
+			if pageSizeField == nil {
+				pageSizeField = f
+			} else {
+				return nil, nil, fmt.Errorf("found multiple page size fields in message %q: %q and %q", m.GetInputType(), pageSizeField.GetName(), f.GetName())
 			}
-			pageSizeField = f
 			continue
 		}
 
