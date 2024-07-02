@@ -41,7 +41,7 @@ type iterType struct {
 // If wrapper support is allowed, the page size detection will include the
 // usage of equivalent wrapper types as well (Int32Value, UInt32Value).  This is legacy behavior
 // due to older APIs that were build prior to proto3 presence being (re)introduced.
-func isPageSizeField(f *descriptorpb.FieldDescriptorProto, wrappersAllowed bool) (is_candidate, requires_wrapper bool) {
+func isPageSizeField(f *descriptorpb.FieldDescriptorProto, wrappersAllowed bool) (isCandidate, requiresWrapper bool) {
 	if f.GetName() == "page_size" || f.GetName() == "max_results" {
 		// Scalar types.
 		if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_UINT32 {
@@ -206,11 +206,11 @@ func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repe
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		candidate, needs_wrapper := isPageSizeField(f, wrapperTypesAllowed)
+		candidate, needsWrapper := isPageSizeField(f, wrapperTypesAllowed)
 		if candidate {
 			if pageSizeField == nil {
 				pageSizeField = f
-				if needs_wrapper {
+				if needsWrapper {
 					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/types/known/wrapperspb"}] = true
 				}
 			} else {
