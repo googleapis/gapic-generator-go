@@ -60,6 +60,11 @@ var enableNewAuthLibraryBlocklist = map[string]bool{
 	"storage.googleapis.com":              true,
 }
 
+// keyed by proto package name.
+var enableWrapperTypesForPageSize = map[string]bool{
+	"google.cloud.bigquery.v2": true,
+}
+
 type generator struct {
 	pt printer.P
 

@@ -31,25 +31,29 @@ type iterType struct {
 	elemImports []pbinfo.ImportSpec
 }
 
-// isPageSizeField evaluates whether a particular field is a page size field.
+// isPageSizeField evaluates whether a particular field is a page size field, and whether this
+// field will require a dependency on wrapper types in the generator.
+//
 // https://google.aip.dev/158 guidance is to use `page_size`, but older APIs like compute
 // and bigquery use `max_results`.  Similarly, `int32` is the expected scalar type, but
 // there's more variance here in implementations, so int32 and uint32 are allowed, as well
 // as the equivalent wrapper types.
-func isPageSizeField(f *descriptorpb.FieldDescriptorProto) bool {
+func isPageSizeField(f *descriptorpb.FieldDescriptorProto, wrappersAllowed bool) (is_candidate, requires_wrapper bool) {
 	if f.GetName() == "page_size" || f.GetName() == "max_results" {
 		// Scalar types.
 		if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_INT32 || f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_UINT32 {
-			return true
+			return true, false
 		}
 		// Wrapper types.
-		if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
-			if f.GetTypeName() == ".google.protobuf.Int32Value" || f.GetTypeName() == ".google.protobuf.UInt32Value" {
-				return true
+		if wrappersAllowed {
+			if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
+				if f.GetTypeName() == ".google.protobuf.Int32Value" || f.GetTypeName() == ".google.protobuf.UInt32Value" {
+					return true, true
+				}
 			}
 		}
 	}
-	return false
+	return false, false
 }
 
 // iterTypeOf deduces iterType from a field to be iterated over.
@@ -142,20 +146,41 @@ func (g *generator) iterTypeOf(elemField *descriptorpb.FieldDescriptorProto) (*i
 // Makes particular allowance for diregapic idioms: maps can be paginated over,
 // and either 'page_size' XOR 'max_results' are allowable fields in the request.
 func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repeatedField, pageSizeField *descriptorpb.FieldDescriptorProto, e error) {
-	// TODO: remove this once the next version of the Talent API is published.
-	//
-	// This is a workaround to disable auto-pagination for specifc RPCs in
-	// Talent v4beta1. The API team will make their API non-conforming in the
-	// next version.
-	//
-	// This should not be done for any other API.
-	if g.descInfo.ParentFile[m].GetPackage() == "google.cloud.talent.v4beta1" &&
-		(m.GetName() == "SearchProfiles" || m.GetName() == "SearchJobs") {
+	// TODO: Remove this skip logic once annotation-based pagination config supercedes heuristic-based mechanisms.
+	// FR is tracked internally as b/337021569.
+	var paginationOverrides = []struct {
+		pkgName           string
+		disallowedMethods []string // methods explicitly denied from pagination
+	}{
+		{
+			pkgName:           "google.cloud.talent.v4beta1",
+			disallowedMethods: []string{"SearchProfiles", "SearchJobs"},
+		},
+		{
+			pkgName:           "google.cloud.bigquery.v2",
+			disallowedMethods: []string{"GetQueryResults"},
+		},
+	}
+
+	for _, cfg := range paginationOverrides {
+		if g.descInfo.ParentFile[m].GetPackage() == cfg.pkgName {
+			for _, skipMethod := range cfg.disallowedMethods {
+				if m.GetName() == skipMethod {
+					return nil, nil, nil
+				}
+			}
+		}
+	}
+	if m.GetClientStreaming() || m.GetServerStreaming() {
 		return nil, nil, nil
 	}
 
-	if m.GetClientStreaming() || m.GetServerStreaming() {
-		return nil, nil, nil
+	var wrapperTypesAllowed bool
+	for p, ok := range enableWrapperTypesForPageSize {
+		if g.descInfo.ParentFile[m].GetPackage() == p && ok {
+			wrapperTypesAllowed = true
+			break
+		}
 	}
 
 	inType := g.descInfo.Type[m.GetInputType()]
@@ -178,9 +203,13 @@ func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repe
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		if isPageSizeField(f) {
+		candidate, needs_wrapper := isPageSizeField(f, wrapperTypesAllowed)
+		if candidate {
 			if pageSizeField == nil {
 				pageSizeField = f
+				if needs_wrapper {
+					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/types/known/wrapperspb"}] = true
+				}
 			} else {
 				return nil, nil, fmt.Errorf("found multiple page size fields in message %q: %q and %q", m.GetInputType(), pageSizeField.GetName(), f.GetName())
 			}
@@ -243,7 +272,7 @@ func (g *generator) maybeSortMapPage(elemField *descriptorpb.FieldDescriptorProt
 	return elems
 }
 
-func (g *generator) makeFetchAndIterUpdate(pageSizeFieldName string) {
+func (g *generator) makeFetchAndIterUpdate(pageSize *descriptorpb.FieldDescriptorProto) {
 	p := g.printf
 
 	p("fetch := func(pageSize int, pageToken string) (string, error) {")
@@ -256,24 +285,47 @@ func (g *generator) makeFetchAndIterUpdate(pageSizeFieldName string) {
 	p("}")
 	p("")
 	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
-	p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
+	pageSizeFieldName := snakeToCamel(pageSize.GetName())
+	switch pageSize.GetType() {
+	case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+		p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
+	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+		p("if req.Get%s() != nil {")
+		p("  it.pageInfo.MaxSize = int(req.Get%s().GetValue())")
+		p("}")
+	}
 	p("it.pageInfo.Token = req.GetPageToken()")
 	p("")
 	p("return it")
 }
 
-func (g *generator) internalFetchSetup(outType *descriptorpb.DescriptorProto, outSpec pbinfo.ImportSpec, tok, pageSizeFieldName, max, ps string) {
+func (g *generator) internalFetchSetup(outType *descriptorpb.DescriptorProto, outSpec pbinfo.ImportSpec, pageSize *descriptorpb.FieldDescriptorProto, tok, max, ps string) {
 	p := g.printf
 
 	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p(`  if pageToken != "" {`)
 	p("    req.PageToken = %s", tok)
 	p("  }")
-	p("  if pageSize > math.MaxInt32 {")
-	p("    req.%s = %s", pageSizeFieldName, max)
-	p("  } else if pageSize != 0 {")
-	p("    req.%s = %s", pageSizeFieldName, ps)
-	p("  }")
+	pageSizeFieldName := snakeToCamel(pageSize.GetName())
+	switch pageSize.GetType() {
+	case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+		p("  if pageSize > math.MaxInt32 {")
+		p("    req.%s = %s", pageSizeFieldName, max)
+		p("  } else if pageSize != 0 {")
+		p("    req.%s = %s", pageSizeFieldName, ps)
+		p("  }")
+	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+		fmtString := "&wrapperspb.%sValue{Value: %s}"
+		targetType := "Int32"
+		if pageSize.GetTypeName() == "google.protobuf.Uint32Value" {
+			targetType = "UInt32"
+		}
+		p("  if pageSize > math.MaxInt32 {")
+		p("    req.%s = %s", pageSizeFieldName, fmt.Sprintf(fmtString, targetType, max))
+		p("  } else if pageSize != 0 {")
+		p("    req.%s = %s", pageSizeFieldName, fmt.Sprintf(fmtString, targetType, ps))
+		p("  }")
+	}
 }
 
 func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptorProto, elemField, pageSize *descriptorpb.FieldDescriptorProto, pt *iterType) error {
@@ -311,11 +363,10 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 
 	g.insertRequestHeaders(m, grpc)
 	g.appendCallOpts(m)
-	pageSizeFieldName := snakeToCamel(pageSize.GetName())
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	g.internalFetchSetup(outType, outSpec, tok, pageSizeFieldName, max, ps)
+	g.internalFetchSetup(outType, outSpec, pageSize, tok, max, ps)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
 	p("    resp, err = %s", g.grpcStubCall(m))
@@ -329,7 +380,7 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 	elems := g.maybeSortMapPage(elemField, pt)
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
-	g.makeFetchAndIterUpdate(pageSizeFieldName)
+	g.makeFetchAndIterUpdate(pageSize)
 	p("}")
 	p("")
 

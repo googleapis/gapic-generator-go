@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"maps"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -125,6 +126,15 @@ func TestPagingField(t *testing.T) {
 	// * Response has a string next_page_token field
 	// * Response has one and only one repeated or map<string, *> field
 
+	// This test manipulates the enableWrapperTypesForPageSize allowlist, so ensure we're
+	// not tainting state after test completes.
+	origAllowList := maps.Clone(enableWrapperTypesForPageSize)
+	defer func() {
+		enableWrapperTypesForPageSize = origAllowList
+	}()
+	// Clear the allowlist for this test.
+	enableWrapperTypesForPageSize = make(map[string]bool)
+
 	// Messages
 	validPageSize := &descriptorpb.DescriptorProto{
 		Name: proto.String("ValidPageSizeRequest"),
@@ -148,6 +158,38 @@ func TestPagingField(t *testing.T) {
 				Name:   proto.String("max_results"),
 				Number: proto.Int32(int32(1)),
 				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_INT32),
+			},
+			{
+				Name:   proto.String("page_token"),
+				Number: proto.Int32(int32(2)),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+			},
+		},
+	}
+	restrictedWrapperMaxResults := &descriptorpb.DescriptorProto{
+		Name: proto.String("WrapperInt32Request"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:     proto.String("max_results"),
+				Number:   proto.Int32(int32(1)),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".google.protobuf.Int32Value"),
+			},
+			{
+				Name:   proto.String("page_token"),
+				Number: proto.Int32(int32(2)),
+				Type:   typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+			},
+		},
+	}
+	restrictedWrapperMaxResultsUint32 := &descriptorpb.DescriptorProto{
+		Name: proto.String("WrapperUInt32Request"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:     proto.String("max_results"),
+				Number:   proto.Int32(int32(1)),
+				Type:     typep(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
+				TypeName: proto.String(".google.protobuf.UInt32Value"),
 			},
 			{
 				Name:   proto.String("page_token"),
@@ -330,6 +372,16 @@ func TestPagingField(t *testing.T) {
 		InputType:  proto.String(".paging.ValidPageSizeRequest"),
 		OutputType: proto.String(".paging.ValidMapResponse"),
 	}
+	restrictedPageWrapperMthd := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("RestrictedPageSize"),
+		InputType:  proto.String(".paging.WrapperInt32Request"),
+		OutputType: proto.String(".paging.ValidRepeatedResponse"),
+	}
+	restrictedPageWrapperUint32Mthd := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("RestrictedPageSize"),
+		InputType:  proto.String(".paging.WrapperUInt32Request"),
+		OutputType: proto.String(".paging.ValidRepeatedResponse"),
+	}
 	clientStreamingMthd := &descriptorpb.MethodDescriptorProto{
 		Name:            proto.String("ClientStreaming"),
 		InputType:       proto.String(".paging.ValidPageSizeRequest"),
@@ -379,6 +431,8 @@ func TestPagingField(t *testing.T) {
 			tooManyRepeated,
 			validMap,
 			validMaxResults,
+			restrictedWrapperMaxResults,
+			restrictedWrapperMaxResultsUint32,
 			validPageSize,
 			validRepeated,
 		},
@@ -397,11 +451,14 @@ func TestPagingField(t *testing.T) {
 					validPageSizeMapMthd,
 					validPageSizeMthd,
 					validPageSizeMultipleMthd,
+					restrictedPageWrapperMthd,
+					restrictedPageWrapperUint32Mthd,
 				},
 			},
 		},
 	}
 
+	// First, test using the default "paging" package.
 	req := pluginpb.CodeGeneratorRequest{
 		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 		ProtoFile: []*descriptorpb.FileDescriptorProto{file},
@@ -423,6 +480,8 @@ func TestPagingField(t *testing.T) {
 		{mthd: tooManyRepeatedMthd},
 		{mthd: noNextPageTokenMthd},
 		{mthd: noRepeatedFieldMthd},
+		{mthd: restrictedPageWrapperMthd},       // not pageable without an allowed package
+		{mthd: restrictedPageWrapperUint32Mthd}, // not pageable without an allowed package
 		{mthd: validMaxResultsRepeatedMthd, sizeField: validMaxResults.GetField()[0], iterField: validRepeated.GetField()[1]},
 		{mthd: validPageSizeMapMthd, sizeField: validPageSize.GetField()[0], iterField: validMap.GetField()[1]},
 		{mthd: validPageSizeMthd, sizeField: validPageSize.GetField()[0], iterField: validRepeated.GetField()[1]},
@@ -436,6 +495,33 @@ func TestPagingField(t *testing.T) {
 
 		if actualIter != tst.iterField {
 			t.Errorf("test %s iter field: got %s, want %s, err %v", tst.mthd.GetName(), actualIter, tst.iterField, err)
+		}
+	}
+
+	// Re-test, adding the "paging" package to the allowlist.
+	enableWrapperTypesForPageSize["paging"] = true
+	g, err = newGenerator(&req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.opts = &options{transports: []transport{rest}}
+	for _, tst := range []struct {
+		mthd      *descriptorpb.MethodDescriptorProto
+		sizeField *descriptorpb.FieldDescriptorProto // A nil field means this is not a paged method
+		iterField *descriptorpb.FieldDescriptorProto // A nil field means this is not a paged method
+	}{
+		{mthd: noRepeatedFieldMthd}, // still invalid
+		{mthd: restrictedPageWrapperMthd, sizeField: restrictedWrapperMaxResults.GetField()[0], iterField: validRepeated.GetField()[1]},
+		{mthd: restrictedPageWrapperUint32Mthd, sizeField: restrictedWrapperMaxResultsUint32.GetField()[0], iterField: validRepeated.GetField()[1]},
+		{mthd: validMaxResultsRepeatedMthd, sizeField: validMaxResults.GetField()[0], iterField: validRepeated.GetField()[1]}, // valid regardless of allowlist
+	} {
+		actualIter, actualSize, err := g.getPagingFields(tst.mthd)
+		if actualSize != tst.sizeField {
+			t.Errorf("test w/wrapper %s page size field: got %s, want %s, err %v", tst.mthd.GetName(), actualSize, tst.sizeField, err)
+		}
+
+		if actualIter != tst.iterField {
+			t.Errorf("test w/wrapper %s iter field: got %s, want %s, err %v", tst.mthd.GetName(), actualIter, tst.iterField, err)
 		}
 	}
 }
