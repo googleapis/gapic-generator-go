@@ -804,7 +804,6 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 		tok = fmt.Sprintf("proto.String(%s)", tok)
 	}
 
-	pageSizeFieldName := snakeToCamel(pageSize.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
@@ -819,7 +818,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	g.internalFetchSetup(outType, outSpec, tok, pageSizeFieldName, max, ps)
+	g.internalFetchSetup(outType, outSpec, pageSize, tok, max, ps)
 
 	if info.body != "" {
 		p("  jsonReq, err := m.Marshal(req)")
@@ -874,7 +873,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 	p("")
-	g.makeFetchAndIterUpdate(pageSizeFieldName)
+	g.makeFetchAndIterUpdate(pageSize)
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
