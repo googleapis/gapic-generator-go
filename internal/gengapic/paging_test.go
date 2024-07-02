@@ -15,7 +15,6 @@
 package gengapic
 
 import (
-	"maps"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -128,7 +127,11 @@ func TestPagingField(t *testing.T) {
 
 	// This test manipulates the enableWrapperTypesForPageSize allowlist, so ensure we're
 	// not tainting state after test completes.
-	origAllowList := maps.Clone(enableWrapperTypesForPageSize)
+	origAllowList := make(map[string]bool)
+	for k, v := range enableWrapperTypesForPageSize {
+		origAllowList[k] = v
+	}
+
 	defer func() {
 		enableWrapperTypesForPageSize = origAllowList
 	}()
