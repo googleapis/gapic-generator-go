@@ -36,8 +36,11 @@ type iterType struct {
 //
 // https://google.aip.dev/158 guidance is to use `page_size`, but older APIs like compute
 // and bigquery use `max_results`.  Similarly, `int32` is the expected scalar type, but
-// there's more variance here in implementations, so int32 and uint32 are allowed, as well
-// as the equivalent wrapper types.
+// there's more variance here in implementations, so int32 and uint32 are allowed.
+//
+// If wrapper support is allowed, the page size detection will include the
+// usage of equivalent wrapper types as well (Int32Value, UInt32Value).  This is legacy behavior
+// due to older APIs that were build prior to proto3 presence being (re)introduced.
 func isPageSizeField(f *descriptorpb.FieldDescriptorProto, wrappersAllowed bool) (is_candidate, requires_wrapper bool) {
 	if f.GetName() == "page_size" || f.GetName() == "max_results" {
 		// Scalar types.
