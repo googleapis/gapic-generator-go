@@ -438,10 +438,14 @@ func (g *generator) pagingIter(pt *iterType) {
 	}
 }
 
+// pageSizeHelper is a small utility helper for dealing with page size field access/setting
+// templates, due to the combination of types and behaviors allowed, including int32/uint32
+// with and without presence, as well as wrapper types (Int32Value, UInt32Value).
 type pageSizeHelper struct {
 	ps *descriptorpb.FieldDescriptorProto
 }
 
+// newPageSizeHelper instantiates a new helper based on the descriptor for a pagesize field.
 func newPageSizeHelper(f *descriptorpb.FieldDescriptorProto) *pageSizeHelper {
 	return &pageSizeHelper{
 		ps: f,
@@ -452,20 +456,21 @@ func (psh *pageSizeHelper) camelFieldName() string {
 	return snakeToCamel(psh.ps.GetName())
 }
 
-// helper to set MaxSize in PageInfo.
+// templating to set MaxSize in PageInfo, called from makeFetchAndIterUpdate().
 func (psh *pageSizeHelper) pageInfoMax(p func(s string, a ...interface{})) {
 	switch psh.ps.GetType() {
 	case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_UINT32:
 		p("it.pageInfo.MaxSize = int(req.Get%s())", psh.camelFieldName())
 	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
 		// Both wrapper types use a castable GetValue() field.
-		p("if req.Get%s() != nil {")
-		p("  it.pageInfo.MaxSize = int(req.Get%s().GetValue())", psh.camelFieldName())
+		p("if psVal := req.Get%s(); psVal != nil {", psh.camelFieldName())
+		p("  it.pageInfo.MaxSize = int(psVal.GetValue())")
 		p("}")
 	}
 }
 
-// helper to set pageSize value in request.
+// templating to set the page size field in a request.
+// The two expected values for setVal are "math.MaxInt32" and "pageSize".
 func (psh *pageSizeHelper) pageSizeSetter(setVal string, p func(s string, a ...interface{})) {
 	switch psh.ps.GetType() {
 	case descriptorpb.FieldDescriptorProto_TYPE_INT32:
@@ -483,9 +488,9 @@ func (psh *pageSizeHelper) pageSizeSetter(setVal string, p func(s string, a ...i
 	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
 		switch psh.ps.GetTypeName() {
 		case ".google.protobuf.Int32Value":
-			p("req.%s = &wrapperspb.Int32Value{Value: int32(%s)}", psh.camelFieldName())
+			p("req.%s = &wrapperspb.Int32Value{Value: int32(%s)}", psh.camelFieldName(), setVal)
 		case ".google.protobuf.UInt32Value":
-			p("req.%s = &wrapperspb.UInt32Value{Value: uint32(%s)}", psh.camelFieldName())
+			p("req.%s = &wrapperspb.UInt32Value{Value: uint32(%s)}", psh.camelFieldName(), setVal)
 		}
 	}
 }
