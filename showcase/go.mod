@@ -1,6 +1,6 @@
 module showcase
 
-go 1.23
+go 1.19
 
 require (
 	cloud.google.com/go v0.115.0
@@ -43,5 +43,3 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4 // indirect
 )
-
-replace github.com/googleapis/gapic-showcase => ./gen/github.com/googleapis/gapic-showcase
