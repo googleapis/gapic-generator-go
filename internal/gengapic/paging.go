@@ -288,47 +288,27 @@ func (g *generator) makeFetchAndIterUpdate(pageSize *descriptorpb.FieldDescripto
 	p("}")
 	p("")
 	p("it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)")
-	pageSizeFieldName := snakeToCamel(pageSize.GetName())
-	switch pageSize.GetType() {
-	case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_UINT32:
-		p("it.pageInfo.MaxSize = int(req.Get%s())", pageSizeFieldName)
-	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-		p("if req.Get%s() != nil {")
-		p("  it.pageInfo.MaxSize = int(req.Get%s().GetValue())")
-		p("}")
-	}
+	psh := newPageSizeHelper(pageSize)
+	psh.pageInfoMax(p)
 	p("it.pageInfo.Token = req.GetPageToken()")
 	p("")
 	p("return it")
 }
 
-func (g *generator) internalFetchSetup(outType *descriptorpb.DescriptorProto, outSpec pbinfo.ImportSpec, pageSize *descriptorpb.FieldDescriptorProto, tok, max, ps string) {
+func (g *generator) internalFetchSetup(outType *descriptorpb.DescriptorProto, outSpec pbinfo.ImportSpec, pageSize *descriptorpb.FieldDescriptorProto, tok string) {
 	p := g.printf
+	psh := newPageSizeHelper(pageSize)
 
 	p("  resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p(`  if pageToken != "" {`)
 	p("    req.PageToken = %s", tok)
 	p("  }")
-	pageSizeFieldName := snakeToCamel(pageSize.GetName())
-	switch pageSize.GetType() {
-	case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_UINT32:
-		p("  if pageSize > math.MaxInt32 {")
-		p("    req.%s = %s", pageSizeFieldName, max)
-		p("  } else if pageSize != 0 {")
-		p("    req.%s = %s", pageSizeFieldName, ps)
-		p("  }")
-	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-		fmtString := "&wrapperspb.%sValue{Value: %s}"
-		targetType := "Int32"
-		if pageSize.GetTypeName() == "google.protobuf.Uint32Value" {
-			targetType = "UInt32"
-		}
-		p("  if pageSize > math.MaxInt32 {")
-		p("    req.%s = %s", pageSizeFieldName, fmt.Sprintf(fmtString, targetType, max))
-		p("  } else if pageSize != 0 {")
-		p("    req.%s = %s", pageSizeFieldName, fmt.Sprintf(fmtString, targetType, ps))
-		p("  }")
-	}
+	p("  if pageSize > math.MaxInt32 {")
+	psh.pageSizeSetter("math.MaxInt32", p)
+	p("  } else if pageSize != 0 {")
+	psh.pageSizeSetter("pageSize", p)
+	p("  }")
+
 }
 
 func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptorProto, elemField, pageSize *descriptorpb.FieldDescriptorProto, pt *iterType) error {
@@ -348,13 +328,6 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 		return err
 	}
 
-	max := "math.MaxInt32"
-	ps := "int32(pageSize)"
-	if isOptional(inType, "page_size") {
-		max = fmt.Sprintf("proto.Int32(%s)", max)
-		ps = fmt.Sprintf("proto.Int32(%s)", ps)
-	}
-
 	tok := "pageToken"
 	if isOptional(inType, "page_token") {
 		tok = fmt.Sprintf("proto.String(%s)", tok)
@@ -369,7 +342,7 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	g.internalFetchSetup(outType, outSpec, pageSize, tok, max, ps)
+	g.internalFetchSetup(outType, outSpec, pageSize, tok)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("    var err error")
 	p("    resp, err = %s", g.grpcStubCall(m))
@@ -462,5 +435,57 @@ func (g *generator) pagingIter(pt *iterType) {
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
 	for _, spec := range pt.elemImports {
 		g.imports[spec] = true
+	}
+}
+
+type pageSizeHelper struct {
+	ps *descriptorpb.FieldDescriptorProto
+}
+
+func newPageSizeHelper(f *descriptorpb.FieldDescriptorProto) *pageSizeHelper {
+	return &pageSizeHelper{
+		ps: f,
+	}
+}
+
+func (psh *pageSizeHelper) camelFieldName() string {
+	return snakeToCamel(psh.ps.GetName())
+}
+
+// helper to set MaxSize in PageInfo.
+func (psh *pageSizeHelper) pageInfoMax(p func(s string, a ...interface{})) {
+	switch psh.ps.GetType() {
+	case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+		p("it.pageInfo.MaxSize = int(req.Get%s())", psh.camelFieldName())
+	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+		// Both wrapper types use a castable GetValue() field.
+		p("if req.Get%s() != nil {")
+		p("  it.pageInfo.MaxSize = int(req.Get%s().GetValue())", psh.camelFieldName())
+		p("}")
+	}
+}
+
+// helper to set pageSize value in request.
+func (psh *pageSizeHelper) pageSizeSetter(setVal string, p func(s string, a ...interface{})) {
+	switch psh.ps.GetType() {
+	case descriptorpb.FieldDescriptorProto_TYPE_INT32:
+		if psh.ps.GetProto3Optional() {
+			p("req.%s = proto.Int32(%s)", psh.camelFieldName(), setVal)
+		} else {
+			p("req.%s = int32(%s)", psh.camelFieldName(), setVal)
+		}
+	case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+		if psh.ps.GetProto3Optional() {
+			p("req.%s = proto.UInt32(%s)", psh.camelFieldName(), setVal)
+		} else {
+			p("req.%s = uint32(%s)", psh.camelFieldName(), setVal)
+		}
+	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+		switch psh.ps.GetTypeName() {
+		case ".google.protobuf.Int32Value":
+			p("req.%s = &wrapperspb.Int32Value{Value: int32(%s)}", psh.camelFieldName())
+		case ".google.protobuf.UInt32Value":
+			p("req.%s = &wrapperspb.UInt32Value{Value: uint32(%s)}", psh.camelFieldName())
+		}
 	}
 }

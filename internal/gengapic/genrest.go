@@ -791,14 +791,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 
 	verb := strings.ToUpper(info.verb)
 
-	max := "math.MaxInt32"
 	g.imports[pbinfo.ImportSpec{Path: "math"}] = true
-	psTyp := pbinfo.GoTypeForPrim[pageSize.GetType()]
-	ps := fmt.Sprintf("%s(pageSize)", psTyp)
-	if isOptional(inType, pageSize.GetName()) {
-		max = fmt.Sprintf("proto.%s(%s)", upperFirst(psTyp), max)
-		ps = fmt.Sprintf("proto.%s(%s)", upperFirst(psTyp), ps)
-	}
 	tok := "pageToken"
 	if isOptional(inType, "page_token") {
 		tok = fmt.Sprintf("proto.String(%s)", tok)
@@ -818,7 +811,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	g.internalFetchSetup(outType, outSpec, pageSize, tok, max, ps)
+	g.internalFetchSetup(outType, outSpec, pageSize, tok)
 
 	if info.body != "" {
 		p("  jsonReq, err := m.Marshal(req)")

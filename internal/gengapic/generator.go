@@ -60,7 +60,7 @@ var enableNewAuthLibraryBlocklist = map[string]bool{
 	"storage.googleapis.com":              true,
 }
 
-// keyed by proto package name.
+// keyed by proto package name, e.g. "google.cloud.foo.v1".
 var enableWrapperTypesForPageSize = map[string]bool{
 	"google.cloud.bigquery.v2": true,
 }
