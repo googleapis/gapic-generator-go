@@ -1,5 +1,7 @@
 module github.com/googleapis/gapic-generator-go
 
+go 1.20
+
 require (
 	cloud.google.com/go/iam v1.1.11
 	cloud.google.com/go/longrunning v0.5.10
@@ -26,5 +28,3 @@ require (
 	google.golang.org/grpc v1.64.1 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
-
-go 1.19
