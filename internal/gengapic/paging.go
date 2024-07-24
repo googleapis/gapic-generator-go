@@ -389,3 +389,20 @@ func (g *generator) pagingIter(pt *iterType) {
 		g.imports[spec] = true
 	}
 }
+
+func (g *generator) pagingIterGo123(pt *iterType) {
+	p := g.printf
+
+	p("// All returns an iterator. If an error is returned by the iterator, the")
+	p("// iterator will stop after that iteration.")
+	p("func (it *%s) All() iter.Seq2[%s, error] {", pt.iterTypeName, pt.elemTypeName)
+	p("  return iterator.RangeAdapter[%s](it.Next)", pt.elemTypeName)
+	p("}")
+	p("")
+
+	g.imports[pbinfo.ImportSpec{Path: "iter"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/iterator"}] = true
+	for _, spec := range pt.elemImports {
+		g.imports[spec] = true
+	}
+}
