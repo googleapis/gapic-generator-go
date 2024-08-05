@@ -57,6 +57,10 @@ generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/retail/apiv2;retai
 echo "Generating Apigee Connect v1 - Dual Transport, partial REGAPIC"
 generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/apigeeconnect/apiv1;apigeeconnect,transport=grpc+rest' $GOOGLEAPIS/google/cloud/apigeeconnect/v1/*.proto
 
+echo "Generating BigQuery v2 - REGAPIC, atypical list RPCs"
+generate --go_gapic_opt 'go-gapic-package=cloud.google.com/go/bigquery/apiv2;bigquery,transport=rest' $GOOGLEAPIS/google/cloud/bigquery/v2/*.proto
+
+
 echo "Generation complete"
 
 echo "Running gofmt to check for syntax errors"
