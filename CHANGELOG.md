@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.0](https://github.com/googleapis/gapic-generator-go/compare/v0.44.1...v0.45.0) (2024-07-24)
+
+
+### Features
+
+* Use new auth for storage and bigquery ([#1549](https://github.com/googleapis/gapic-generator-go/issues/1549)) ([9a45fd0](https://github.com/googleapis/gapic-generator-go/commit/9a45fd0815590fbcb52035d7a7bdb8f38f2c0ca5))
+
 ## [0.44.1](https://github.com/googleapis/gapic-generator-go/compare/v0.44.0...v0.44.1) (2024-06-20)
 
 
