@@ -1,4 +1,4 @@
-# API Client Generator for Go
+#  API Client Generator for Go
 
 ![latest release](https://img.shields.io/github/v/release/googleapis/gapic-generator-go)
 ![Go version](https://img.shields.io/github/go-mod/go-version/googleapis/gapic-generator-go)
