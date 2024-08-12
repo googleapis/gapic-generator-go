@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.115.0
 	cloud.google.com/go/iam v1.1.11
 	github.com/google/go-cmp v0.6.0
-	github.com/googleapis/gapic-showcase v0.35.1
+	github.com/googleapis/gapic-showcase v0.35.0
 	github.com/googleapis/gax-go/v2 v2.13.0
 	google.golang.org/api v0.189.0
 	google.golang.org/genproto v0.0.0-20240722135656-d784300faade
