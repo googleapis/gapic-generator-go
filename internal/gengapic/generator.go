@@ -53,6 +53,11 @@ var enableNewAuthLibraryBlocklist = map[string]bool{
 	"spanner.googleapis.com":             true,
 }
 
+// keyed by proto package name, e.g. "google.cloud.foo.v1".
+var enableWrapperTypesForPageSize = map[string]bool{
+	"google.cloud.bigquery.v2": true,
+}
+
 type generator struct {
 	pt printer.P
 
