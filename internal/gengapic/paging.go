@@ -40,7 +40,7 @@ type iterType struct {
 //
 // If wrapper support is allowed, the page size detection will include the
 // usage of equivalent wrapper types as well (Int32Value, UInt32Value).  This is legacy behavior
-// due to older APIs that were build prior to proto3 presence being (re)introduced.
+// due to older APIs that were built prior to proto3 presence being (re)introduced.
 func isPageSizeField(f *descriptorpb.FieldDescriptorProto, wrappersAllowed bool) (isCandidate, requiresWrapper bool) {
 	if f.GetName() == "page_size" || f.GetName() == "max_results" {
 		// Scalar types.
