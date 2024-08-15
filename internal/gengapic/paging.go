@@ -396,7 +396,7 @@ func (g *generator) pagingIterGo123(pt *iterType) {
 	p("// All returns an iterator. If an error is returned by the iterator, the")
 	p("// iterator will stop after that iteration.")
 	p("func (it *%s) All() iter.Seq2[%s, error] {", pt.iterTypeName, pt.elemTypeName)
-	p("  return iterator.RangeAdapter[%s](it.Next)", pt.elemTypeName)
+	p("  return iterator.RangeAdapter(it.Next)")
 	p("}")
 	p("")
 

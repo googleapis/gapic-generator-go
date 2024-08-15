@@ -1,6 +1,6 @@
 // All returns an iterator. If an error is returned by the iterator, the
 // iterator will stop after that iteration.
 func (it *FooIterator) All() iter.Seq2[*examplepb.Foo, error] {
-	return iterator.RangeAdapter[*examplepb.Foo](it.Next)
+	return iterator.RangeAdapter(it.Next)
 }
 
