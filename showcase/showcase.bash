@@ -47,6 +47,7 @@ protoc \
 	--experimental_allow_proto3_optional \
 	--go_out ./gen \
 	--go-grpc_out ./gen \
+	--go-grpc_opt=use_generic_streams_experimental=false \
 	--go_gapic_out ./gen \
 	--go_gapic_opt 'transport=rest+grpc' \
 	--go_gapic_opt 'rest-numeric-enums' \
