@@ -8,7 +8,7 @@ func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFooReques
 			req.PageToken = pageToken
 		}
 		if pageSize > math.MaxInt32 {
-			req.PageSize = int32(math.MaxInt32)
+			req.PageSize = math.MaxInt32
 		} else if pageSize != 0 {
 			req.PageSize = int32(pageSize)
 		}

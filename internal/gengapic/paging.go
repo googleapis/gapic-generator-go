@@ -334,7 +334,10 @@ func internalPageSizeSetter(p func(s string, a ...interface{}), pageSize *descri
 		if pageSize.GetProto3Optional() {
 			p("req.%s = proto.Int32(%s)", cName, setVal)
 		} else {
-			p("req.%s = int32(%s)", cName, setVal)
+			if setVal != "math.MaxInt32" {
+				setVal = fmt.Sprintf("int32(%s)", setVal)
+			}
+			p("req.%s = %s", cName, setVal)
 		}
 	case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
 		if pageSize.GetProto3Optional() {
@@ -345,7 +348,10 @@ func internalPageSizeSetter(p func(s string, a ...interface{}), pageSize *descri
 	case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
 		switch pageSize.GetTypeName() {
 		case ".google.protobuf.Int32Value":
-			p("req.%s = &wrapperspb.Int32Value{Value: int32(%s)}", cName, setVal)
+			if setVal != "math.MaxInt32" {
+				setVal = fmt.Sprintf("int32(%s)", setVal)
+			}
+			p("req.%s = &wrapperspb.Int32Value{Value: %s}", cName, setVal)
 		case ".google.protobuf.UInt32Value":
 			p("req.%s = &wrapperspb.UInt32Value{Value: uint32(%s)}", cName, setVal)
 		}
