@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.1](https://github.com/googleapis/gapic-generator-go/compare/v0.46.0...v0.46.1) (2024-08-16)
+
+
+### Bug Fixes
+
+* Add missing cast for proto optionals ([#1557](https://github.com/googleapis/gapic-generator-go/issues/1557)) ([eb6fb9f](https://github.com/googleapis/gapic-generator-go/commit/eb6fb9f7091825f34555fb65ef79035180387540))
+
 ## [0.46.0](https://github.com/googleapis/gapic-generator-go/compare/v0.45.0...v0.46.0) (2024-08-16)
 
 
