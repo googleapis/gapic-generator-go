@@ -332,7 +332,7 @@ func internalPageSizeSetter(p func(s string, a ...interface{}), pageSize *descri
 	switch pageSize.GetType() {
 	case descriptorpb.FieldDescriptorProto_TYPE_INT32:
 		if pageSize.GetProto3Optional() {
-			p("req.%s = proto.Int32(%s)", cName, setVal)
+			p("req.%s = proto.Int32(int32(%s))", cName, setVal)
 		} else {
 			if setVal != "math.MaxInt32" {
 				setVal = fmt.Sprintf("int32(%s)", setVal)
@@ -341,7 +341,7 @@ func internalPageSizeSetter(p func(s string, a ...interface{}), pageSize *descri
 		}
 	case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
 		if pageSize.GetProto3Optional() {
-			p("req.%s = proto.UInt32(%s)", cName, setVal)
+			p("req.%s = proto.UInt32(uint32(%s))", cName, setVal)
 		} else {
 			p("req.%s = uint32(%s)", cName, setVal)
 		}
