@@ -191,7 +191,7 @@ func (g *gcli) genCommands() {
 				})
 
 				putImport(cmd.Imports, &pbinfo.ImportSpec{
-					Path: "github.com/golang/protobuf/jsonpb",
+					Path: "google.golang.org/protobuf/jsonpb",
 				})
 
 				if !cmd.ClientStreaming {
