@@ -341,7 +341,7 @@ func internalPageSizeSetter(p func(s string, a ...interface{}), pageSize *descri
 		}
 	case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
 		if pageSize.GetProto3Optional() {
-			p("req.%s = proto.UInt32(uint32(%s))", cName, setVal)
+			p("req.%s = proto.Uint32(uint32(%s))", cName, setVal)
 		} else {
 			p("req.%s = uint32(%s)", cName, setVal)
 		}
