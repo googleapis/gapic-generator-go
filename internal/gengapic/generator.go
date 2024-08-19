@@ -53,6 +53,11 @@ var enableNewAuthLibraryBlocklist = map[string]bool{
 	"spanner.googleapis.com":             true,
 }
 
+// keyed by proto package name, e.g. "google.cloud.foo.v1".
+var enableWrapperTypesForPageSize = map[string]bool{
+	"google.cloud.bigquery.v2": true,
+}
+
 type generator struct {
 	pt printer.P
 
@@ -214,12 +219,19 @@ func (g *generator) printf(s string, a ...interface{}) {
 
 // TODO(chrisdsmith): Add generator_test.go with TestCommit
 
+func (g *generator) commit(fileName, pkgName string) int {
+	return g.commitWithBuildTag(fileName, pkgName, "")
+}
+
 // commit adds header, etc to current pt and returns the line length of the
 // final file output.
-func (g *generator) commit(fileName, pkgName string) int {
+func (g *generator) commitWithBuildTag(fileName, pkgName, buildTag string) int {
 	var header strings.Builder
 	fmt.Fprintf(&header, license.Apache, time.Now().Year())
 	header.WriteString(g.headerComments.String() + "\n")
+	if buildTag != "" {
+		fmt.Fprintf(&header, "//go:build %s\n\n", buildTag)
+	}
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []pbinfo.ImportSpec

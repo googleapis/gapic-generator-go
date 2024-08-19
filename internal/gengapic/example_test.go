@@ -272,6 +272,24 @@ func TestExample(t *testing.T) {
 				t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
 			}
 			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", tst.tstName+".want"))
+
+			g.reset()
+			// remove imports not used in iter example
+			delete(tst.imports, pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"})
+			delete(tst.imports, pbinfo.ImportSpec{Path: "io"})
+			delete(tst.imports, pbinfo.ImportSpec{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"})
+
+			g.opts = &tst.options
+			g.mixins = mix
+			if tst.options.diregapic {
+				g.mixins = nil
+			}
+			g.aux.customOp = tst.op
+			g.genExampleIteratorFile(serv)
+			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
+				t.Errorf("TestExample(%s): imports got(-),want(+):\n%s", tst.tstName, diff)
+			}
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", tst.tstName+"_all.want"))
 		})
 	}
 }

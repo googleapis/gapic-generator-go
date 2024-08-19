@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.46.1](https://github.com/googleapis/gapic-generator-go/compare/v0.46.0...v0.46.1) (2024-08-16)
+
+
+### Bug Fixes
+
+* Add missing cast for proto optionals ([#1557](https://github.com/googleapis/gapic-generator-go/issues/1557)) ([eb6fb9f](https://github.com/googleapis/gapic-generator-go/commit/eb6fb9f7091825f34555fb65ef79035180387540))
+
+## [0.46.0](https://github.com/googleapis/gapic-generator-go/compare/v0.45.0...v0.46.0) (2024-08-16)
+
+
+### Features
+
+* **gengapic:** Generate helpers for Go 1.23 iterators ([#1542](https://github.com/googleapis/gapic-generator-go/issues/1542)) ([d7ed683](https://github.com/googleapis/gapic-generator-go/commit/d7ed68339f7a542ec55d7cd8120b7eb8fc63fbc8))
+* Support wrapper types for autopagination ([#1541](https://github.com/googleapis/gapic-generator-go/issues/1541)) ([d10df59](https://github.com/googleapis/gapic-generator-go/commit/d10df5961ec6e8a79aed1ad2ed60a30d58ec748c))
+
 ## [0.45.0](https://github.com/googleapis/gapic-generator-go/compare/v0.44.1...v0.45.0) (2024-07-24)
 
 
