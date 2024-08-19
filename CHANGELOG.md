@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.2](https://github.com/googleapis/gapic-generator-go/compare/v0.46.1...v0.46.2) (2024-08-19)
+
+
+### Bug Fixes
+
+* Use correct function name ([#1559](https://github.com/googleapis/gapic-generator-go/issues/1559)) ([de2babb](https://github.com/googleapis/gapic-generator-go/commit/de2babb5d6ef50f1325710654e58d519811066f1))
+
 ## [0.46.1](https://github.com/googleapis/gapic-generator-go/compare/v0.46.0...v0.46.1) (2024-08-16)
 
 
