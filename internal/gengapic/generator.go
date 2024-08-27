@@ -36,23 +36,6 @@ import (
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
-var enableNewAuthLibraryBlocklist = map[string]bool{
-	"generativelanguage.googleapis.com":  true,
-	"aiplatform.googleapis.com":          true,
-	"analyticshub.googleapis.com":        true,
-	"biglake.googleapis.com":             true,
-	"bigtableadmin.googleapis.com":       true,
-	"bigtable.googleapis.com":            true,
-	"datastore.googleapis.com":           true,
-	"clouderrorreporting.googleapis.com": true,
-	"firestore.googleapis.com":           true,
-	"logging.googleapis.com":             true,
-	"cloudprofiler.googleapis.com":       true,
-	"pubsub.googleapis.com":              true,
-	"pubsublite.googleapis.com":          true,
-	"spanner.googleapis.com":             true,
-}
-
 // keyed by proto package name, e.g. "google.cloud.foo.v1".
 var enableWrapperTypesForPageSize = map[string]bool{
 	"google.cloud.bigquery.v2": true,
