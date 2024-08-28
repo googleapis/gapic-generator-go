@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.47.0](https://github.com/googleapis/gapic-generator-go/compare/v0.46.2...v0.47.0) (2024-08-28)
+
+
+### Features
+
+* **gengapic:** Move all libraries to new auth lib ([#1564](https://github.com/googleapis/gapic-generator-go/issues/1564)) ([74b6c39](https://github.com/googleapis/gapic-generator-go/commit/74b6c39e442857ee568756c0fff8bc3c68200cc7))
+
 ## [0.46.2](https://github.com/googleapis/gapic-generator-go/compare/v0.46.1...v0.46.2) (2024-08-19)
 
 
