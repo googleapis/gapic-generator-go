@@ -48,7 +48,7 @@ func (g *generator) genGRPCMethods(serv *descriptorpb.ServiceDescriptorProto, se
 }
 
 // genGRPCMethod generates a single method from a client. m must be a method declared in serv.
-// If the generated method requires an auxillary type, it is added to aux.
+// If the generated method requires an auxiliary type, it is added to aux.
 func (g *generator) genGRPCMethod(servName string, serv *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	// Check if the RPC returns google.longrunning.Operation.
 	if g.isLRO(m) {

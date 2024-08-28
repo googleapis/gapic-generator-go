@@ -163,7 +163,7 @@ func (g *generator) customOperationType() error {
 
 	// Wait
 	p("// Wait blocks until the operation is complete, polling regularly")
-	p("// after an intial period of backing off between attempts.")
+	p("// after an initial period of backing off between attempts.")
 	p("func (o *%s) Wait(ctx context.Context, opts ...gax.CallOption) error {", opName)
 	p("  bo := gax.Backoff{")
 	p("    Initial: %s,", defaultPollInitialDelay)

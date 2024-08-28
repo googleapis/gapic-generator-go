@@ -228,7 +228,7 @@ func (g *generator) exampleLROCall(m *descriptorpb.MethodDescriptorProto) {
 	opInfo := eLRO.(*longrunning.OperationInfo)
 	if opInfo.GetResponseType() == emptyValue || opInfo == nil {
 		// no new variables when this is used
-		// therefore don't attempt to delcare it
+		// therefore don't attempt to declare it
 		retVars = "err ="
 	}
 
