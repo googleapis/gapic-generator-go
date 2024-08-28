@@ -137,9 +137,7 @@ func (g *generator) restClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultUniverseDomain(%q),", googleDefaultUniverse)
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
-	if _, ok := enableNewAuthLibraryBlocklist[g.serviceConfig.GetName()]; !ok {
-		p("internaloption.EnableNewAuthLibrary(),")
-	}
+	p("    internaloption.EnableNewAuthLibrary(),")
 	p("  }")
 	p("}")
 }
@@ -791,20 +789,12 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 
 	verb := strings.ToUpper(info.verb)
 
-	max := "math.MaxInt32"
 	g.imports[pbinfo.ImportSpec{Path: "math"}] = true
-	psTyp := pbinfo.GoTypeForPrim[pageSize.GetType()]
-	ps := fmt.Sprintf("%s(pageSize)", psTyp)
-	if isOptional(inType, pageSize.GetName()) {
-		max = fmt.Sprintf("proto.%s(%s)", upperFirst(psTyp), max)
-		ps = fmt.Sprintf("proto.%s(%s)", upperFirst(psTyp), ps)
-	}
 	tok := "pageToken"
 	if isOptional(inType, "page_token") {
 		tok = fmt.Sprintf("proto.String(%s)", tok)
 	}
 
-	pageSizeFieldName := snakeToCamel(pageSize.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
@@ -819,7 +809,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
-	g.internalFetchSetup(outType, outSpec, tok, pageSizeFieldName, max, ps)
+	g.internalFetchSetup(outType, outSpec, pageSize, tok)
 
 	if info.body != "" {
 		p("  jsonReq, err := m.Marshal(req)")
@@ -874,7 +864,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("  return %s, resp.GetNextPageToken(), nil", elems)
 	p("}")
 	p("")
-	g.makeFetchAndIterUpdate(pageSizeFieldName)
+	g.makeFetchAndIterUpdate(pageSize)
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true

@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
-
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 )
 
@@ -37,7 +36,7 @@ func TestServiceFile(t *testing.T) {
 		root:   "Root",
 		format: true,
 		imports: map[string]*pbinfo.ImportSpec{
-			"test": &pbinfo.ImportSpec{Name: "proto", Path: "github.com/golang/protobuf/proto"},
+			"test": &pbinfo.ImportSpec{Name: "proto", Path: "google.golang.org/protobuf/proto"},
 		},
 		subcommands: map[string][]*Command{
 			name: []*Command{

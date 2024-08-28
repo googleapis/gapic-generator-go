@@ -40,6 +40,62 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 	return nil
 }
 
+func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
+	pkgName := g.opts.pkgName
+	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	for _, m := range methods {
+		// Don't need streaming RPCs
+		if m.GetClientStreaming() || m.GetServerStreaming() {
+			continue
+		}
+		pf, _, err := g.getPagingFields(m)
+		if err != nil {
+			return err
+		}
+		// Don't generate for non-list RPCs
+		if pf == nil {
+			continue
+		}
+
+		p := g.printf
+
+		inType := g.descInfo.Type[m.GetInputType()]
+		if inType == nil {
+			return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetInputType())
+		}
+
+		inSpec, err := g.descInfo.ImportSpec(inType)
+		if err != nil {
+			return err
+		}
+
+		g.imports[inSpec] = true
+		// Pick the first transport for simplicity. We don't need examples
+		// of each method for both transports when they have the same surface.
+		t := g.opts.transports[0]
+		s := servName
+		if t == rest {
+			s += "REST"
+		}
+		p("func Example%sClient_%s_all() {", servName, m.GetName())
+		g.exampleInitClient(pkgName, s)
+
+		p("")
+		p("req := &%s.%s{", inSpec.Name, inType.GetName())
+		p("  // TODO: Fill request struct fields.")
+		p("  // See https://pkg.go.dev/%s#%s.", inSpec.Path, inType.GetName())
+		p("}")
+
+		if err := g.examplePagingAllCall(m); err != nil {
+			return err
+		}
+		p("}")
+		p("")
+	}
+	return nil
+}
+
 func (g *generator) exampleClientFactory(pkgName, servName string) {
 	p := g.printf
 	for _, t := range g.opts.transports {
@@ -246,6 +302,30 @@ func (g *generator) examplePagingCall(m *descriptorpb.MethodDescriptorProto) err
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
+	g.imports[outSpec] = true
+	return nil
+}
+
+func (g *generator) examplePagingAllCall(m *descriptorpb.MethodDescriptorProto) error {
+	outType := g.descInfo.Type[m.GetOutputType()]
+	if outType == nil {
+		return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetOutputType())
+	}
+
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+
+	p := g.printf
+
+	p("for resp, err := range c.%s(ctx, req).All() {", m.GetName())
+	p("  if err != nil {")
+	p("    // TODO: Handle error.")
+	p("  }")
+	p("  // TODO: Use resp.")
+	p("  _ = resp")
+	p("}")
 	g.imports[outSpec] = true
 	return nil
 }
