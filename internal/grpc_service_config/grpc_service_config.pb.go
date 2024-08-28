@@ -150,7 +150,7 @@ type MethodConfig struct {
 	// compression) in bytes. This applies both to streaming and non-streaming
 	// requests.
 	//
-	// The actual value used is the minumum of the value specified here and the
+	// The actual value used is the minimum of the value specified here and the
 	// value set by the application via the gRPC client API.  If either one is
 	// not set, then the other will be used.  If neither is set, then the
 	// built-in default is used.
@@ -166,7 +166,7 @@ type MethodConfig struct {
 	// compression) in bytes. This applies both to streaming and non-streaming
 	// requests.
 	//
-	// The actual value used is the minumum of the value specified here and the
+	// The actual value used is the minimum of the value specified here and the
 	// value set by the application via the gRPC client API.  If either one is
 	// not set, then the other will be used.  If neither is set, then the
 	// built-in default is used.
