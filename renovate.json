@@ -19,6 +19,10 @@
       "matchPackagePatterns": ["io_bazel_rules_go", "bazel_gazelle"],
       "groupName": "bazel-go"
     }
-  ]
-  
+  ],
+  "force": {
+    "constraints": {
+      "go": "1.21"
+    }
+  }
 }
