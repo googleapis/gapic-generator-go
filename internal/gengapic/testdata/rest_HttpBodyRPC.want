@@ -39,6 +39,7 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "HttpBodyRPC", "request", clog.HTTPRequest(httpReq, jsonReq))
 		httpRsp, err := c.httpClient.Do(httpReq)
 		if err != nil{
 			return err
@@ -53,6 +54,7 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 		if err != nil {
 			return err
 		}
+		c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", "HttpBodyRPC", "response", clog.HTTPResponse(httpRsp, buf))
 
 		resp.Data = buf
 		if headers := httpRsp.Header; len(headers["Content-Type"]) > 0 {
