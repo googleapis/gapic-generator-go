@@ -15,7 +15,9 @@ func (c *fooGRPCClient) GetManyOtherThings(ctx context.Context, req *mypackagepb
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			var err error
+			c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "GetManyOtherThings", "request", cloggrpc.ProtoMessageRequest(ctx, req))
 			resp, err = c.fooClient.GetManyOtherThings(ctx, req, settings.GRPC...)
+			c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", "GetManyOtherThings", "response", cloggrpc.ProtoMessageResponse(req))
 			return err
 		}, opts...)
 		if err != nil {

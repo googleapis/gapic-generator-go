@@ -72,6 +72,7 @@ import (
 	"google.golang.org/api/option"
 )
 
+const serviceName = "secretmanager.googleapis.com"
 // For more information on implementing a client constructor hook, see
 // https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.
 type clientHookParams struct{}

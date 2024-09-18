@@ -33,11 +33,13 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "EmptyRPC", "request", clog.HTTPRequest(httpReq, nil))
 		httpRsp, err := c.httpClient.Do(httpReq)
 		if err != nil{
 			return err
 		}
 		defer httpRsp.Body.Close()
+		c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", "EmptyRPC", "response", clog.HTTPResponse(httpRsp, nil))
 
 		// Returns nil if there is no error, otherwise wraps
 		// the response code and body into a non-nil error

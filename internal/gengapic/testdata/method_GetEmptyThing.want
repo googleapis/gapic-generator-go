@@ -9,7 +9,9 @@ func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.Inpu
 	opts = append((*c.CallOptions).GetEmptyThing[0:len((*c.CallOptions).GetEmptyThing):len((*c.CallOptions).GetEmptyThing)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "GetEmptyThing", "request", cloggrpc.ProtoMessageRequest(ctx, req))
 		_, err = c.fooClient.GetEmptyThing(ctx, req, settings.GRPC...)
+		c.logger.Log(ctx, clog.DynamicLevel(), "api empty response", "serviceName", serviceName, "rpcName", "GetEmptyThing")
 		return err
 	}, opts...)
 	return err

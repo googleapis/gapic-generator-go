@@ -133,6 +133,8 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.Ser
 	p(")")
 	p("")
 
+	p("const serviceName = %q", g.serviceConfig.GetName())
+
 	p("// For more information on implementing a client constructor hook, see")
 	p("// https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.")
 	p("type clientHookParams struct{}")

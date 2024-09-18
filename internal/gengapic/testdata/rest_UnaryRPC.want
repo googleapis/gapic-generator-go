@@ -48,6 +48,7 @@ func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "UnaryRPC", "request", clog.HTTPRequest(httpReq, jsonReq))
 		httpRsp, err := c.httpClient.Do(httpReq)
 		if err != nil{
 			return err
@@ -62,6 +63,7 @@ func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 		if err != nil {
 			return err
 		}
+		c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", "UnaryRPC", "response", clog.HTTPResponse(httpRsp, buf))
 
 		if err := unm.Unmarshal(buf, resp); err != nil {
 			return err

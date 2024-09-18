@@ -38,6 +38,7 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "ServerStreamRPC", "request", clog.HTTPRequest(httpReq, jsonReq))
 		httpRsp, err := c.httpClient.Do(httpReq)
 		if err != nil{
 			return err
