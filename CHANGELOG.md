@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.47.1](https://github.com/googleapis/gapic-generator-go/compare/v0.47.0...v0.47.1) (2024-10-09)
+
+
+### Bug Fixes
+
+* **internal/gencli:** Revert broken migration to protobuf-go v2 in gencli ([#1573](https://github.com/googleapis/gapic-generator-go/issues/1573)) ([ece235a](https://github.com/googleapis/gapic-generator-go/commit/ece235a8b2aa96680e78906d0dacf409bd4deec9))
+
 ## [0.47.0](https://github.com/googleapis/gapic-generator-go/compare/v0.46.2...v0.47.0) (2024-08-28)
 
 
