@@ -321,7 +321,7 @@ func (g *generator) examplePagingAllCall(m *descriptorpb.MethodDescriptorProto) 
 
 	p("for resp, err := range c.%s(ctx, req).All() {", m.GetName())
 	p("  if err != nil {")
-	p("    // TODO: Handle error.")
+	p("    // TODO: Handle error and break/return/continue. Iteration will stop after any error.")
 	p("  }")
 	p("  // TODO: Use resp.")
 	p("  _ = resp")
