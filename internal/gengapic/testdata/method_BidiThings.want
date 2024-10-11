@@ -4,7 +4,9 @@ func (c *fooGRPCClient) BidiThings(ctx context.Context, opts ...gax.CallOption) 
 	opts = append((*c.CallOptions).BidiThings[0:len((*c.CallOptions).BidiThings):len((*c.CallOptions).BidiThings)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "BidiThings", "request", cloggrpc.ProtoMessageRequest(ctx, req))
 		resp, err = c.fooClient.BidiThings(ctx, settings.GRPC...)
+		c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", "BidiThings", "response", cloggrpc.ProtoMessageResponse(req))
 		return err
 	}, opts...)
 	if err != nil {

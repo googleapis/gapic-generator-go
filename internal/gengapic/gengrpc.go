@@ -110,7 +110,9 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 	p("var resp *%s", retTyp)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", %q, "request", cloggrpc.ProtoMessageRequest(ctx, req))`, m.GetName())
 	p("  resp, err = %s", g.grpcStubCall(m))
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", %q, "response", cloggrpc.ProtoMessageResponse(req))`, m.GetName())
 	p("  return err")
 	p("}, opts...)")
 	p("if err != nil {")
@@ -147,7 +149,9 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", %q, "request", cloggrpc.ProtoMessageRequest(ctx, req))`, m.GetName())
 	p("  _, err = %s", g.grpcStubCall(m))
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api empty response", "serviceName", serviceName, "rpcName", %q)`, m.GetName())
 	p("  return err")
 	p("}, opts...)")
 	p("return err")
@@ -295,10 +299,15 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 
 	p("// The x-goog-* metadata to be sent with each request.")
 	p("xGoogHeaders []string")
+	p("")
+	p("logger *slog.Logger")
 
 	p("}")
 	p("")
 
+	g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/clog"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/clog/cloggrpc"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
 	g.imports[imp] = true
 

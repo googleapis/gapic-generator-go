@@ -4,7 +4,9 @@ func (c *fooGRPCClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "EmptyLRO", "request", cloggrpc.ProtoMessageRequest(ctx, req))
 		resp, err = c.fooClient.EmptyLRO(ctx, req, settings.GRPC...)
+		c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", "EmptyLRO", "response", cloggrpc.ProtoMessageResponse(req))
 		return err
 	}, opts...)
 	if err != nil {
