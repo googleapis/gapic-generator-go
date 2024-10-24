@@ -7,7 +7,9 @@ func (c *fooGRPCClient) ServerThings(ctx context.Context, req *mypackagepb.Input
 	var resp mypackagepb.Foo_ServerThingsClient
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
+		c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", "ServerThings", "request", cloggrpc.ProtoMessageRequest(ctx, req))
 		resp, err = c.fooClient.ServerThings(ctx, req, settings.GRPC...)
+		c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", "ServerThings", "response", cloggrpc.ProtoMessageResponse(req))
 		return err
 	}, opts...)
 	if err != nil {

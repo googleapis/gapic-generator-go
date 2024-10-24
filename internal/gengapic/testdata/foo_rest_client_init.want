@@ -85,6 +85,8 @@ type fooRESTClient struct {
 
 	// Points back to the CallOptions field of the containing FooClient
 	CallOptions **FooCallOptions
+
+	logger *slog.Logger
 }
 
 // NewFooRESTClient creates a new foo rest client.

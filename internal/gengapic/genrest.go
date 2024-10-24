@@ -91,10 +91,14 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	p("")
 	p("  // Points back to the CallOptions field of the containing %sClient", servName)
 	p("  CallOptions **%sCallOptions", servName)
+	p("")
+	p("  logger *slog.Logger")
 	p("}")
 	p("")
 	g.restClientUtilities(serv, servName, hasRPCForLRO)
 
+	g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/clog"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
@@ -617,7 +621,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	// rest-client method
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -638,6 +642,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 		p("")
 
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
@@ -658,6 +663,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", %q, "request", clog.HTTPRequest(httpReq, %s))`, m.GetName(), logBody)
 	p("  httpRsp, err := c.httpClient.Do(httpReq)")
 	p("  if err != nil{")
 	p("   return err")
@@ -800,10 +806,12 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 
-	maybeReqBytes := "nil"
+	maybeReqBytes, logBody := "nil", "nil"
+
 	if info.body != "" {
 		g.protoJSONMarshaler()
 		maybeReqBytes = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
@@ -835,6 +843,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	// TODO: Should this http.Request use WithContext?
 	p("    httpReq.Header = headers")
 	p("")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", %q, "request", clog.HTTPRequest(httpReq, %s))`, m.GetName(), logBody)
 	p("    httpRsp, err := c.httpClient.Do(httpReq)")
 	p("    if err != nil{")
 	p(`     return err`)
@@ -849,6 +858,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("    if err != nil {")
 	p(`      return err`)
 	p("    }")
+	p(`   c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", %q, "response", clog.HTTPResponse(httpRsp, buf))`, m.GetName())
 	p("")
 	p("    if err := unm.Unmarshal(buf, resp); err != nil {")
 	p("      return err")
@@ -916,7 +926,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	// TODO(noahdietz): handle deadlines?
 	// TODO(noahdietz): handle calloptions
 
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -937,6 +947,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 		p("")
 
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
@@ -957,6 +968,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", %q, "request", clog.HTTPRequest(httpReq, %s))`, m.GetName(), logBody)
 	p("  httpRsp, err := c.httpClient.Do(httpReq)")
 	p("  if err != nil{")
 	p("   return err")
@@ -966,6 +978,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("  if err = googleapi.CheckResponse(httpRsp); err != nil {")
 	p("    return err")
 	p("  }")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", %q, "response", clog.HTTPResponse(httpRsp, buf))`, m.GetName())
 	p("")
 	p("  buf, err := io.ReadAll(httpRsp.Body)")
 	p("  if err != nil {")
@@ -1023,7 +1036,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	// TODO(dovs): handle deadlines
 	// TODO(dovs): handle call options
 
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -1044,6 +1057,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 		p("}")
 		p("")
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
@@ -1063,11 +1077,13 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", %q, "request", clog.HTTPRequest(httpReq, %s))`, m.GetName(), logBody)
 	p("  httpRsp, err := c.httpClient.Do(httpReq)")
 	p("  if err != nil{")
 	p("   return err")
 	p("  }")
 	p("  defer httpRsp.Body.Close()")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", %q, "response", clog.HTTPResponse(httpRsp, nil))`, m.GetName())
 	p("")
 	p("  // Returns nil if there is no error, otherwise wraps")
 	p("  // the response code and body into a non-nil error")
@@ -1117,7 +1133,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle calloptions
 
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -1139,6 +1155,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 		p("")
 
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
@@ -1166,6 +1183,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api request", "serviceName", serviceName, "rpcName", %q, "request", clog.HTTPRequest(httpReq, %s))`, m.GetName(), logBody)
 	p("  httpRsp, err := c.httpClient.Do(httpReq)")
 	p("  if err != nil{")
 	p("   return err")
@@ -1180,6 +1198,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p("  if err != nil {")
 	p("    return err")
 	p("  }")
+	p(`  c.logger.Log(ctx, clog.DynamicLevel(), "api response", "serviceName", serviceName, "rpcName", %q, "response", clog.HTTPResponse(httpRsp, buf))`, m.GetName())
 	p("")
 	if isHTTPBodyMessage {
 		p("resp.Data = buf")

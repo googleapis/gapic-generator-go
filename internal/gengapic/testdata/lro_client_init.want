@@ -106,6 +106,8 @@ type fooGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewFooClient creates a new foo client based on gRPC.
