@@ -37,6 +37,7 @@
 // Example usage
 //
 // To get started with this package, create a client.
+//  // go get cloud.google.com/go/secretmanager/apiv1@latest
 //  ctx := context.Background()
 //  // This snippet has been automatically generated and should be regarded as a code template only.
 //  // It will require modifications to work:
