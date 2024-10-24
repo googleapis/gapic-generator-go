@@ -37,6 +37,7 @@
 // Example usage
 //
 // To get started with this package, create a client.
+//  // go get cloud.google.com/go/secretmanager/apiv1@latest
 //  ctx := context.Background()
 //  // This snippet has been automatically generated and should be regarded as a code template only.
 //  // It will require modifications to work:
@@ -55,19 +56,8 @@
 //
 // Using the Client
 //
-// The following is an example of making an API call with the newly created client.
+// The following is an example of making an API call with the newly created client, mentioned above.
 //
-//  ctx := context.Background()
-//  // This snippet has been automatically generated and should be regarded as a code template only.
-//  // It will require modifications to work:
-//  // - It may require correct/in-range values for request initialization.
-//  // - It may require specifying regional endpoints when creating the service client as shown in:
-//  //   https://pkg.go.dev/cloud.google.com/go#hdr-Client_Options
-//  c, err := secretmanager.NewClient(ctx)
-//  if err != nil {
-//  	// TODO: Handle error.
-//  }
-//  defer c.Close()
 //
 //  req := &secretmanagerpb.CreateSecretRequest{
 //  	// TODO: Fill request struct fields.

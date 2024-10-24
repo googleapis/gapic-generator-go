@@ -87,7 +87,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.Ser
 	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
 	tmpClient := g.pt
 	g.pt = printer.P{}
-	g.exampleInitClient(g.opts.pkgName, servName)
+	g.exampleInitClientWithOpts(g.opts.pkgName, servName, true)
 	snipClient := g.pt.String()
 	g.pt = tmpClient
 	g.codesnippet(snipClient)
@@ -99,12 +99,12 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.Ser
 	if len(serv.GetMethod()) > 0 {
 		p("// Using the Client")
 		p("//")
-		p("// The following is an example of making an API call with the newly created client.")
+		p("// The following is an example of making an API call with the newly created client, mentioned above.")
 		p("//")
 		// Code block for client using the first method of the service
 		tmpMethod := g.pt
 		g.pt = printer.P{}
-		g.exampleMethodBody(g.opts.pkgName, servName, serv.GetMethod()[0])
+		g.exampleMethodBodyWithOpts(g.opts.pkgName, servName, serv.GetMethod()[0], true)
 		snipMethod := g.pt.String()
 		g.pt = tmpMethod
 		g.codesnippet(snipMethod)
