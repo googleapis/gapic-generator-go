@@ -197,13 +197,55 @@ func (in *Info) ImportSpec(e ProtoType) (ImportSpec, error) {
 	return imp, err
 }
 
+// ReduceServNameWithOverride removes redundant components from the service name
+// but with an override.
+// For example, FooServiceV2 -> Foo.
+// The returned name is used as part of longer names, like FooClient.
+// If the package name and the service name is the same,
+// ReduceServName returns empty string, so we get foo.Client instead of foo.FooClient.
+func ReduceServNameWithOverride(svc, pkg, override string) string {
+	// Use the renamed service if it matches the existing service name.
+	if override != "" {
+		return override
+	}
+	// remove trailing version
+	if p := strings.LastIndexByte(svc, 'V'); p >= 0 {
+		isVer := true
+		for _, r := range svc[p+1:] {
+			if !unicode.IsDigit(r) {
+				isVer = false
+				break
+			}
+		}
+		if isVer {
+			svc = svc[:p]
+		}
+	}
+
+	svc = strings.TrimSuffix(svc, "Service")
+	if strings.EqualFold(svc, pkg) {
+		svc = ""
+	}
+
+	// This is a special case for IAM and should not be
+	// extended to support any new API name containing
+	// an acronym.
+	//
+	// In order to avoid a breaking change for IAM
+	// clients, we must keep consistent identifier casing.
+	if strings.Contains(svc, "IAM") {
+		svc = strings.ReplaceAll(svc, "IAM", "Iam")
+	}
+
+	return svc
+}
+
 // ReduceServName removes redundant components from the service name.
 // For example, FooServiceV2 -> Foo.
 // The returned name is used as part of longer names, like FooClient.
 // If the package name and the service name is the same,
 // ReduceServName returns empty string, so we get foo.Client instead of foo.FooClient.
 func ReduceServName(svc, pkg string) string {
-	// remove trailing version
 	if p := strings.LastIndexByte(svc, 'V'); p >= 0 {
 		isVer := true
 		for _, r := range svc[p+1:] {

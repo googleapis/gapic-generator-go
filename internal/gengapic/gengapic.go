@@ -105,7 +105,9 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
-		servName := pbinfo.ReduceServName(s.GetName(), "")
+		override := g.getServiceNameOverride(s)
+		servName := pbinfo.ReduceServNameWithOverride(s.GetName(), "", override)
+		// servName := pbinfo.ReduceServName(s.GetName(), "")
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
@@ -124,6 +126,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		if err := g.gen(s); err != nil {
 			return nil, err
 		}
+
 		g.commit(outFile+"_client.go", g.opts.pkgName)
 
 		g.reset()
@@ -200,7 +203,10 @@ func (g *generator) collectServices(genReq *pluginpb.CodeGeneratorRequest) (genS
 
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
-	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
+	// If using service renaming, use that directly for the next part.
+	override := g.getServiceNameOverride(serv)
+
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.opts.pkgName, override)
 
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {

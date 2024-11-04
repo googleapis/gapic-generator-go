@@ -106,7 +106,9 @@ func TestReduceServName(t *testing.T) {
 		// IAM should be replaced with Iam
 		{"IAMCredentials", "credentials", "IamCredentials"},
 	} {
-		if got := pbinfo.ReduceServName(tst.in, tst.pkg); got != tst.want {
+		// TODO(hongalex): add test for renamed services instead of using empty map.
+		m := make(map[string]string)
+		if got := pbinfo.ReduceServName(tst.in, tst.pkg, m); got != tst.want {
 			t.Errorf("pbinfo.ReduceServName(%q, %q) = %q, want %q", tst.in, tst.pkg, got, tst.want)
 		}
 	}

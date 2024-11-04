@@ -350,3 +350,21 @@ func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescript
 	}
 	return validated
 }
+
+// getServiceNameOverride checks to see if the service has a defined service name override.
+func (g *generator) getServiceNameOverride(p pbinfo.ProtoType) string {
+	// Get the fully qualified name (e.x. google.pubsub.v1.Publisher)
+	fqn := g.fqn(p)
+	// ls := g.serviceConfig.GetPublishing().GetLibrarySettings()[0]
+	// renamedServices := ls.GetGoSettings().GetRenamedServices()
+
+	renamedServices := make(map[string]string)
+	renamedServices["google.pubsub.v1.Publisher"] = "TopicAdmin"
+	renamedServices["google.pubsub.v1.Subscriber"] = "SubscriptionAdmin"
+
+	if v, ok := renamedServices[fqn]; ok {
+		return v
+	}
+
+	return ""
+}
