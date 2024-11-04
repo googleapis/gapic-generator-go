@@ -1252,7 +1252,7 @@ func TestReturnType(t *testing.T) {
 	}
 }
 
-func TestCollectServices(t *testing.T) {
+func TestCollectServicesAndScopes(t *testing.T) {
 	libraryServ := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Library"),
 	}
@@ -1302,11 +1302,11 @@ func TestCollectServices(t *testing.T) {
 		},
 	} {
 		g := &generator{opts: &options{pkgPath: tst.goPkgPath}}
-		got := g.collectServices(&pluginpb.CodeGeneratorRequest{
+		gotServices, _ := g.collectServicesAndScopes(&pluginpb.CodeGeneratorRequest{
 			FileToGenerate: tst.toGen,
 			ProtoFile:      tst.fileSet,
 		})
-		if diff := cmp.Diff(got, tst.want, cmp.Comparer(proto.Equal)); diff != "" {
+		if diff := cmp.Diff(gotServices, tst.want, cmp.Comparer(proto.Equal)); diff != "" {
 			t.Errorf("%s: got(-),want(+):\n%s", tst.name, diff)
 		}
 	}
