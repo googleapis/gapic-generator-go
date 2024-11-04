@@ -198,11 +198,11 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 		if !g.includeMixinInputFile(f.GetName()) {
 			continue
 		}
-		servs := f.GetService()
 		// record service(s) present in each file.
 		genServs = append(genServs, f.GetService()...)
 
 		// record encountered scopes in each service.
+		servs := f.GetService()
 		for _, s := range servs {
 			eOauthScopes := proto.GetExtension(s.Options, annotations.E_OauthScopes)
 			scopes := strings.Split(eOauthScopes.(string), ",")
@@ -212,7 +212,7 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 		}
 	}
 
-	// transform scope map to list
+	// transform map to ordered list.
 	for sc := range scopeSet {
 		scopes = append(scopes, sc)
 	}
@@ -220,6 +220,9 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 	return
 }
 
+// getAndCommitSharedCode commits shared generated code that should be defined only once.
+// Currently, this includes functionality for reporting default scopes, and client constructor
+// hooks.
 func (g *generator) genAndCommitSharedCode(scopes []string) error {
 	p := g.printf
 	g.reset()
