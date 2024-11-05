@@ -102,7 +102,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	g.snippetMetadata = g.newSnippetsMetadata(protoPkg)
 
 	// generate shared code such as client hooks and scopes.
-	if err := g.genAndCommitSharedCode(scopes); err != nil {
+	if err := g.genAndCommitSharedHelpers(scopes); err != nil {
 		return &g.resp, fmt.Errorf("error generating shared code file: %v", err)
 	}
 
@@ -205,9 +205,13 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 		servs := f.GetService()
 		for _, s := range servs {
 			eOauthScopes := proto.GetExtension(s.Options, annotations.E_OauthScopes)
-			scopes := strings.Split(eOauthScopes.(string), ",")
-			for _, sc := range scopes {
-				scopeSet[sc] = true
+			if scopeStr, ok := eOauthScopes.(string); ok {
+				if len(scopeStr) > 0 {
+					scopes := strings.Split(scopeStr, ",")
+					for _, sc := range scopes {
+						scopeSet[sc] = true
+					}
+				}
 			}
 		}
 	}
@@ -220,10 +224,10 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 	return
 }
 
-// getAndCommitSharedCode commits shared generated code that should be defined only once.
-// Currently, this includes functionality for reporting default scopes, and client constructor
-// hooks.
-func (g *generator) genAndCommitSharedCode(scopes []string) error {
+// getAndCommitSharedHelpers commits shared generated code that should be defined only once.
+// Currently, this includes functionality for reporting default scopes, version information,
+// and client constructors hooks.
+func (g *generator) genAndCommitSharedHelpers(scopes []string) error {
 	p := g.printf
 	g.reset()
 	p("import (")
@@ -260,7 +264,7 @@ func (g *generator) genAndCommitSharedCode(scopes []string) error {
 		p("}")
 	}
 
-	outFile := filepath.Join(g.opts.outDir, "shared_common_code.go")
+	outFile := filepath.Join(g.opts.outDir, "shared_helpers.go")
 	g.commit(outFile, g.opts.pkgName)
 	return nil
 }

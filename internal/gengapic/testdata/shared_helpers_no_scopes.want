@@ -1,0 +1,20 @@
+import (
+	"context"
+
+	"google.golang.org/api/option"
+)
+
+// For more information on implementing a client constructor hook, see
+// https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.
+type clientHookParams struct{}
+type clientHook func(context.Context, clientHookParams) ([]option.ClientOption, error)
+
+var versionClient string
+
+func getVersionClient() string {
+	if versionClient == "" {
+		return "UNKNOWN"
+	}
+	return versionClient
+}
+
