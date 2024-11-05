@@ -355,6 +355,7 @@ func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescript
 func (g *generator) getServiceNameOverride(p pbinfo.ProtoType) string {
 	// Get the fully qualified name (e.x. google.pubsub.v1.Publisher)
 	fqn := g.fqn(p)
+	// TODO(hongalex): replace the manual map with service config
 	// ls := g.serviceConfig.GetPublishing().GetLibrarySettings()[0]
 	// renamedServices := ls.GetGoSettings().GetRenamedServices()
 

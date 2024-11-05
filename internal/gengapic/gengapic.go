@@ -125,7 +125,6 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		if err := g.gen(s); err != nil {
 			return nil, err
 		}
-
 		g.commit(outFile+"_client.go", g.opts.pkgName)
 
 		g.reset()
@@ -202,9 +201,8 @@ func (g *generator) collectServices(genReq *pluginpb.CodeGeneratorRequest) (genS
 
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
-	// If using service renaming, use that directly for the next part.
+	// If using service name overrides, use that directly for the rest of generation.
 	override := g.getServiceNameOverride(serv)
-
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.opts.pkgName, override)
 
 	g.clientHook(servName)
