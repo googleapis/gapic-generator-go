@@ -161,7 +161,8 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 
 func (g *generator) grpcStubCall(method *descriptorpb.MethodDescriptorProto) string {
 	service := g.descInfo.ParentElement[method]
-	stub := pbinfo.ReduceServName(service.GetName(), g.opts.pkgName)
+	override := g.getServiceNameOverride(service)
+	stub := pbinfo.ReduceServNameWithOverride(service.GetName(), g.opts.pkgName, override)
 	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(stub), method.GetName())
 }
 

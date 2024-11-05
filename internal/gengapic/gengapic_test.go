@@ -106,10 +106,26 @@ func TestReduceServName(t *testing.T) {
 		// IAM should be replaced with Iam
 		{"IAMCredentials", "credentials", "IamCredentials"},
 	} {
-		// TODO(hongalex): add test for renamed services instead of using empty map.
-		m := make(map[string]string)
-		if got := pbinfo.ReduceServName(tst.in, tst.pkg, m); got != tst.want {
+		if got := pbinfo.ReduceServName(tst.in, tst.pkg); got != tst.want {
 			t.Errorf("pbinfo.ReduceServName(%q, %q) = %q, want %q", tst.in, tst.pkg, got, tst.want)
+		}
+	}
+}
+
+func TestReduceServNameWithOverride(t *testing.T) {
+	for _, tst := range []struct {
+		svc, pkg, ovr, want string
+	}{
+		{"Foo", "foo", "", ""},
+		{"FooV2", "", "", "Foo"},
+		{"FooV2", "foo", "", ""},
+
+		{"Foo", "", "Bar", "Bar"},
+		{"FooServiceV2", "", "Bar", "Bar"},
+		{"FooServiceV2", "foo", "Bar", "Bar"},
+	} {
+		if got := pbinfo.ReduceServNameWithOverride(tst.svc, tst.pkg, tst.ovr); got != tst.want {
+			t.Errorf("pbinfo.ReduceServName(%q, %q, %q) = %q, want %q", tst.svc, tst.pkg, tst.ovr, got, tst.want)
 		}
 	}
 }

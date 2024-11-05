@@ -107,7 +107,6 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		// Keep the current behavior for now, but we could revisit this later.
 		override := g.getServiceNameOverride(s)
 		servName := pbinfo.ReduceServNameWithOverride(s.GetName(), "", override)
-		// servName := pbinfo.ReduceServName(s.GetName(), "")
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.opts.outDir, outFile)
 
