@@ -197,15 +197,9 @@ func (in *Info) ImportSpec(e ProtoType) (ImportSpec, error) {
 	return imp, err
 }
 
-// ReduceServNameWithOverride removes redundant components from the service name
-// but with an override if present.
-// For example, FooServiceV2 -> Foo.
-// The returned name is used as part of longer names, like FooClient.
-// If the package name and the service name is the same,
-// ReduceServName returns empty string, so we get foo.Client instead of foo.FooClient.
-// If the override argument is provided, use that directly.
+// ReduceServNameWithOverride returns the override string if present,
+// otherwise calls ReduceServName.
 func ReduceServNameWithOverride(svc, pkg, override string) string {
-	// Use the renamed service if it matches the existing service name.
 	if override != "" {
 		return override
 	}
