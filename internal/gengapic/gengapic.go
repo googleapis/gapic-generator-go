@@ -253,16 +253,14 @@ func (g *generator) genAndCommitSharedHelpers(scopes []string) error {
 	p("}")
 	p("")
 
-	if len(scopes) > 0 {
-		p("// DefaultAuthScopes reports the default set of authentication scopes to use with this package.")
-		p("func DefaultAuthScopes() []string {")
-		p("  return []string{")
-		for _, sc := range scopes {
-			p("%q,", sc)
-		}
-		p("  }")
-		p("}")
+	p("// DefaultAuthScopes reports the default set of authentication scopes to use with this package.")
+	p("func DefaultAuthScopes() []string {")
+	p("  return []string{")
+	for _, sc := range scopes {
+		p("%q,", sc)
 	}
+	p("  }")
+	p("}")
 
 	outFile := filepath.Join(g.opts.outDir, "shared_helpers.go")
 	g.commit(outFile, g.opts.pkgName)

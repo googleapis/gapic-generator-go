@@ -18,3 +18,8 @@ func getVersionClient() string {
 	return versionClient
 }
 
+// DefaultAuthScopes reports the default set of authentication scopes to use with this package.
+func DefaultAuthScopes() []string {
+	return []string{
+	}
+}
