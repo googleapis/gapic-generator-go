@@ -102,8 +102,8 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	g.snippetMetadata = g.newSnippetsMetadata(protoPkg)
 
 	// generate shared code such as client hooks and scopes.
-	if err := g.genAndCommitSharedHelpers(scopes); err != nil {
-		return &g.resp, fmt.Errorf("error generating shared code file: %v", err)
+	if err := g.genAndCommitHelpers(scopes); err != nil {
+		return &g.resp, fmt.Errorf("error generating helper file: %v", err)
 	}
 
 	for _, s := range genServs {
@@ -224,10 +224,10 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 	return
 }
 
-// getAndCommitSharedHelpers commits shared generated code that should be defined only once.
+// getAndCommitHelpers commits shared generated code that should be defined only once.
 // Currently, this includes functionality for reporting default scopes, version information,
 // and client constructors hooks.
-func (g *generator) genAndCommitSharedHelpers(scopes []string) error {
+func (g *generator) genAndCommitHelpers(scopes []string) error {
 	p := g.printf
 	g.reset()
 	p("import (")
@@ -262,7 +262,7 @@ func (g *generator) genAndCommitSharedHelpers(scopes []string) error {
 	p("  }")
 	p("}")
 
-	outFile := filepath.Join(g.opts.outDir, "shared_helpers.go")
+	outFile := filepath.Join(g.opts.outDir, "helpers.go")
 	g.commit(outFile, g.opts.pkgName)
 	return nil
 }

@@ -1321,7 +1321,7 @@ func TestCollectServicesAndScopes(t *testing.T) {
 	}
 }
 
-func TestGenAndCommentSharedHelpers(t *testing.T) {
+func TestGenAndCommentHelpers(t *testing.T) {
 	g := generator{
 		apiName:       sample.ServiceTitle,
 		imports:       map[pbinfo.ImportSpec]bool{},
@@ -1355,27 +1355,27 @@ func TestGenAndCommentSharedHelpers(t *testing.T) {
 		{
 			description: "nil",
 			scopes:      nil,
-			want:        filepath.Join("testdata", "shared_helpers_no_scopes.want"),
+			want:        filepath.Join("testdata", "helpers_no_scopes.want"),
 		},
 		{
 			description: "empty",
 			scopes:      []string{},
-			want:        filepath.Join("testdata", "shared_helpers_no_scopes.want"),
+			want:        filepath.Join("testdata", "helpers_no_scopes.want"),
 		},
 		{
 			description: "default",
 			scopes:      []string{"https://www.googleapis.com/auth/cloud-platform"},
-			want:        filepath.Join("testdata", "shared_helpers_default_scope.want"),
+			want:        filepath.Join("testdata", "helpers_default_scope.want"),
 		},
 		{
 			description: "multiple",
 			scopes:      []string{"scope-a", "scope-b", "scope-c"},
-			want:        filepath.Join("testdata", "shared_helpers_multiple_scopes.want"),
+			want:        filepath.Join("testdata", "helpers_multiple_scopes.want"),
 		},
 	} {
 		t.Run(tst.description, func(t *testing.T) {
-			if err := g.genAndCommitSharedHelpers(tst.scopes); err != nil {
-				t.Errorf("genAndCommitSharedHelpers: %v", err)
+			if err := g.genAndCommitHelpers(tst.scopes); err != nil {
+				t.Errorf("genAndCommitHelpers: %v", err)
 				return
 			}
 			txtdiff.Diff(t, g.pt.String(), tst.want)
