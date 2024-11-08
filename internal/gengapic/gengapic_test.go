@@ -112,24 +112,6 @@ func TestReduceServName(t *testing.T) {
 	}
 }
 
-func TestReduceServNameWithOverride(t *testing.T) {
-	for _, tst := range []struct {
-		svc, pkg, ovr, want string
-	}{
-		{"Foo", "foo", "", ""},
-		{"FooV2", "", "", "Foo"},
-		{"FooV2", "foo", "", ""},
-
-		{"Foo", "", "Bar", "Bar"},
-		{"FooServiceV2", "", "Bar", "Bar"},
-		{"FooServiceV2", "foo", "Bar", "Bar"},
-	} {
-		if got := pbinfo.ReduceServNameWithOverride(tst.svc, tst.pkg, tst.ovr); got != tst.want {
-			t.Errorf("pbinfo.ReduceServName(%q, %q, %q) = %q, want %q", tst.svc, tst.pkg, tst.ovr, got, tst.want)
-		}
-	}
-}
-
 func TestGRPCClientField(t *testing.T) {
 	for _, tst := range []struct {
 		in, pkg, want string
