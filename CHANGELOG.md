@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.48.0](https://github.com/googleapis/gapic-generator-go/compare/v0.47.1...v0.48.0) (2024-11-13)
+
+
+### Features
+
+* Split doc.go generation into comments and code portions ([#1579](https://github.com/googleapis/gapic-generator-go/issues/1579)) ([396b171](https://github.com/googleapis/gapic-generator-go/commit/396b171c9460573fbfbdee31b0d9ab90b8dfb407))
+
+
+### Bug Fixes
+
+* Make iterator link clickable ([#1576](https://github.com/googleapis/gapic-generator-go/issues/1576)) ([6249624](https://github.com/googleapis/gapic-generator-go/commit/624962423ddf8b57b9b0cd4138bde6bbdd491427))
+
 ## [0.47.1](https://github.com/googleapis/gapic-generator-go/compare/v0.47.0...v0.47.1) (2024-10-09)
 
 
