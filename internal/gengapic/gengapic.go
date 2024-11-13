@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -69,7 +70,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		return nil, err
 	}
 
-	genServs := g.collectServices(genReq)
+	genServs, scopes := g.collectServicesAndScopes(genReq)
 	if len(genServs) == 0 {
 		return &g.resp, nil
 	}
@@ -99,6 +100,11 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	g.metadata.LibraryPackage = g.opts.pkgPath
 	// Initialize the model that will collect snippet metadata.
 	g.snippetMetadata = g.newSnippetsMetadata(protoPkg)
+
+	// generate shared code such as client hooks and scopes.
+	if err := g.genAndCommitHelpers(scopes); err != nil {
+		return &g.resp, fmt.Errorf("error generating helper file: %v", err)
+	}
 
 	for _, s := range genServs {
 		// TODO(pongad): gapic-generator does not remove the package name here,
@@ -150,10 +156,8 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		return nil, err
 	}
 	g.reset()
-	scopes := collectScopes(genServs)
 	serv := genServs[0]
-
-	g.genDocFile(time.Now().Year(), scopes, serv)
+	g.genDocFile(time.Now().Year(), serv)
 	g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(g.opts.outDir, "doc.go")),
 		Content: proto.String(g.pt.String()),
@@ -184,8 +188,9 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	return &g.resp, nil
 }
 
-// Collects the proto services to generate GAPICs for from the CodeGeneratorRequest.
-func (g *generator) collectServices(genReq *pluginpb.CodeGeneratorRequest) (genServs []*descriptorpb.ServiceDescriptorProto) {
+// Collects the proto services and scopes to generate GAPICs for from the CodeGeneratorRequest.
+func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorRequest) (genServs []*descriptorpb.ServiceDescriptorProto, scopes []string) {
+	scopeSet := map[string]bool{}
 	for _, f := range genReq.GetProtoFile() {
 		if !strContains(genReq.GetFileToGenerate(), f.GetName()) {
 			continue
@@ -193,9 +198,73 @@ func (g *generator) collectServices(genReq *pluginpb.CodeGeneratorRequest) (genS
 		if !g.includeMixinInputFile(f.GetName()) {
 			continue
 		}
+		// record service(s) present in each file.
 		genServs = append(genServs, f.GetService()...)
+
+		// record encountered scopes in each service.
+		servs := f.GetService()
+		for _, s := range servs {
+			eOauthScopes := proto.GetExtension(s.Options, annotations.E_OauthScopes)
+			if scopeStr, ok := eOauthScopes.(string); ok {
+				if len(scopeStr) > 0 {
+					scopes := strings.Split(scopeStr, ",")
+					for _, sc := range scopes {
+						scopeSet[sc] = true
+					}
+				}
+			}
+		}
 	}
+
+	// transform map to ordered list.
+	for sc := range scopeSet {
+		scopes = append(scopes, sc)
+	}
+	sort.Strings(scopes)
 	return
+}
+
+// getAndCommitHelpers commits shared generated code that should be defined only once.
+// Currently, this includes functionality for reporting default scopes, version information,
+// and client constructors hooks.
+func (g *generator) genAndCommitHelpers(scopes []string) error {
+	p := g.printf
+	g.reset()
+	p("import (")
+	p("%s%q", "\t", "context")
+	p("")
+	p("%s%q", "\t", "google.golang.org/api/option")
+	p(")")
+	p("")
+
+	p("// For more information on implementing a client constructor hook, see")
+	p("// https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.")
+	p("type clientHookParams struct{}")
+	p("type clientHook func(context.Context, clientHookParams) ([]option.ClientOption, error)")
+	p("")
+
+	p("var versionClient string")
+	p("")
+	p("func getVersionClient() string {")
+	p(`  if versionClient == "" {`)
+	p(`    return "UNKNOWN"`)
+	p("  }")
+	p("  return versionClient")
+	p("}")
+	p("")
+
+	p("// DefaultAuthScopes reports the default set of authentication scopes to use with this package.")
+	p("func DefaultAuthScopes() []string {")
+	p("  return []string{")
+	for _, sc := range scopes {
+		p("%q,", sc)
+	}
+	p("  }")
+	p("}")
+
+	outFile := filepath.Join(g.opts.outDir, "helpers.go")
+	g.commit(outFile, g.opts.pkgName)
+	return nil
 }
 
 // gen generates client for the given service.
