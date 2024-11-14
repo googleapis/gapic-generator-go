@@ -230,12 +230,8 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 func (g *generator) genAndCommitHelpers(scopes []string) error {
 	p := g.printf
 	g.reset()
-	p("import (")
-	p("%s%q", "\t", "context")
-	p("")
-	p("%s%q", "\t", "google.golang.org/api/option")
-	p(")")
-	p("")
+	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
 
 	p("// For more information on implementing a client constructor hook, see")
 	p("// https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.")
