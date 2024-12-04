@@ -231,15 +231,8 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	p := g.printf
 	g.reset()
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog/grpclog"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
 
 	p("const serviceName = %q", g.serviceConfig.GetName())
 	p("")
@@ -269,51 +262,63 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	p("  }")
 	p("}")
 	p("")
+	if containsTransport(g.opts.transports, rest) {
+		g.imports[pbinfo.ImportSpec{Path: "io"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 
-	p("func executeHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger,	body []byte, rpc string) ([]byte, error) {")
-	p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
-	p("  resp, err := client.Do(req)")
-	p("  if err != nil{")
-	p("    return nil, err")
-	p("  }")
-	p("  defer resp.Body.Close()")
-	p("  buf, err := io.ReadAll(resp.Body)")
-	p("  if err != nil {")
-	p("    return nil, err")
-	p("  }")
-	p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", internallog.HTTPResponse(resp, buf))`)
-	p("  if err = googleapi.CheckResponse(resp); err != nil {")
-	p("    return nil, err")
-	p("  }")
-	p("  return buf, nil")
-	p("}")
-	p("")
+		p("func executeHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger,	body []byte, rpc string) ([]byte, error) {")
+		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
+		p("  resp, err := client.Do(req)")
+		p("  if err != nil{")
+		p("    return nil, err")
+		p("  }")
+		p("  defer resp.Body.Close()")
+		p("  buf, err := io.ReadAll(resp.Body)")
+		p("  if err != nil {")
+		p("    return nil, err")
+		p("  }")
+		p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", internallog.HTTPResponse(resp, buf))`)
+		p("  if err = googleapi.CheckResponse(resp); err != nil {")
+		p("    return nil, err")
+		p("  }")
+		p("  return buf, nil")
+		p("}")
+		p("")
 
-	p("func executeStreamingHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger, body []byte, rpc string) (*http.Response, error) {")
-	p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
-	p("  resp, err := client.Do(req)")
-	p("  if err != nil{")
-	p("    return nil, err")
-	p("  }")
-	p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", internallog.HTTPResponse(resp, nil))`)
-	p("  if err = googleapi.CheckResponse(resp); err != nil {")
-	p("    return nil, err")
-	p("  }")
-	p("  return resp, nil")
-	p("}")
-	p("")
+		p("func executeStreamingHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger, body []byte, rpc string) (*http.Response, error) {")
+		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
+		p("  resp, err := client.Do(req)")
+		p("  if err != nil{")
+		p("    return nil, err")
+		p("  }")
+		p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", internallog.HTTPResponse(resp, nil))`)
+		p("  if err = googleapi.CheckResponse(resp); err != nil {")
+		p("    return nil, err")
+		p("  }")
+		p("  return resp, nil")
+		p("}")
+		p("")
+	}
 
-	p("func executeRPC[I proto.Message, O proto.Message](ctx context.Context, fn func(context.Context, I, ...grpc.CallOption) (O, error), req I, opts []grpc.CallOption, logger *slog.Logger, rpc string) (O, error) {")
-	p("  var zero O")
-	p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", grpclog.ProtoMessageRequest(ctx, req))`)
-	p("  resp, err := fn(ctx, req, opts...)")
-	p("  if err != nil {")
-	p("    return zero, err")
-	p("  }")
-	p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", grpclog.ProtoMessageResponse(resp))`)
-	p("  return resp, err")
-	p("}")
-	p("")
+	if containsTransport(g.opts.transports, grpc) {
+		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog/grpclog"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
+
+		p("func executeRPC[I proto.Message, O proto.Message](ctx context.Context, fn func(context.Context, I, ...grpc.CallOption) (O, error), req I, opts []grpc.CallOption, logger *slog.Logger, rpc string) (O, error) {")
+		p("  var zero O")
+		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", grpclog.ProtoMessageRequest(ctx, req))`)
+		p("  resp, err := fn(ctx, req, opts...)")
+		p("  if err != nil {")
+		p("    return zero, err")
+		p("  }")
+		p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", grpclog.ProtoMessageResponse(resp))`)
+		p("  return resp, err")
+		p("}")
+		p("")
+	}
 
 	outFile := filepath.Join(g.opts.outDir, "helpers.go")
 	g.commit(outFile, g.opts.pkgName)
