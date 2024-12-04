@@ -33,14 +33,7 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
-		httpRsp, err := c.httpClient.Do(httpReq)
-		if err != nil{
-			return err
-		}
-		defer httpRsp.Body.Close()
-
-		// Returns nil if there is no error, otherwise wraps
-		// the response code and body into a non-nil error
-		return googleapi.CheckResponse(httpRsp)
+		_, err = executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, nil, "EmptyRPC")
+		return err
 	}, opts...)
 }

@@ -106,6 +106,8 @@ type fooGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewFooClient creates a new foo client based on gRPC.
@@ -132,6 +134,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		connPool:    connPool,
 		fooClient: mypackagepb.NewFooClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 		operationsClient: longrunningpb.NewOperationsClient(connPool),
 
 	}
