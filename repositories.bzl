@@ -14,7 +14,6 @@
 
 load(
     "@bazel_gazelle//:deps.bzl",
-
     gazelle_go_repository = "go_repository",
 )
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -197,8 +196,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_googleapis_gapic_showcase",
         importpath = "github.com/googleapis/gapic-showcase",
-        sum = "h1:73ryXc3r3EKGvl9qUQpexezNO3aY/LNBV1rjQ714Jio=",
-        version = "v0.35.1",
+        sum = "h1:Or8k6GQXYdHFPeQeSoRtq2oTk27VAxiwfh6IBJYhf3A=",
+        version = "v0.35.5",
     )
     go_repository(
         name = "com_github_googleapis_gax_go_v2",
