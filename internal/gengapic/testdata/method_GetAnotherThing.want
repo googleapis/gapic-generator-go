@@ -34,7 +34,7 @@ func (c *fooGRPCClient) GetAnotherThing(ctx context.Context, req *mypackagepb.In
 	var resp *mypackagepb.OutputType
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.fooClient.GetAnotherThing(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.fooClient.GetAnotherThing, req, settings.GRPC, c.logger, "GetAnotherThing")
 		return err
 	}, opts...)
 	if err != nil {

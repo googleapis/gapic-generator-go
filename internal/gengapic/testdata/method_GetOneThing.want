@@ -13,7 +13,7 @@ func (c *fooGRPCClient) GetOneThing(ctx context.Context, req *mypackagepb.InputT
 	var resp *mypackagepb.OutputType
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.fooClient.GetOneThing(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.fooClient.GetOneThing, req, settings.GRPC, c.logger, "GetOneThing")
 		return err
 	}, opts...)
 	if err != nil {

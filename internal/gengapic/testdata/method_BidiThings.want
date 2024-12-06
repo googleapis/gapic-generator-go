@@ -4,7 +4,9 @@ func (c *fooGRPCClient) BidiThings(ctx context.Context, opts ...gax.CallOption) 
 	opts = append((*c.CallOptions).BidiThings[0:len((*c.CallOptions).BidiThings):len((*c.CallOptions).BidiThings)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
+		c.logger.DebugContext(ctx, "api streaming client request", "serviceName", serviceName, "rpcName", "BidiThings")
 		resp, err = c.fooClient.BidiThings(ctx, settings.GRPC...)
+		c.logger.DebugContext(ctx, "api streaming client response", "serviceName", serviceName, "rpcName", "BidiThings")
 		return err
 	}, opts...)
 	if err != nil {

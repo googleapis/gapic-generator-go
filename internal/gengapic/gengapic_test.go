@@ -1128,12 +1128,12 @@ func TestGRPCStubCall(t *testing.T) {
 	}{
 		{
 			name: "foo.FooService.GetFoo",
-			want: "c.client.GetFoo(ctx, req, settings.GRPC...)",
+			want: `executeRPC(ctx, c.client.GetFoo, req, settings.GRPC, c.logger, "GetFoo")`,
 			in:   getFoo,
 		},
 		{
 			name: "foo.BarService.GetBar",
-			want: "c.barClient.GetBar(ctx, req, settings.GRPC...)",
+			want: `executeRPC(ctx, c.barClient.GetBar, req, settings.GRPC, c.logger, "GetBar")`,
 			in:   getBar,
 		},
 	} {
