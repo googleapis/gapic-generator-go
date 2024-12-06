@@ -9,7 +9,7 @@ func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.Inpu
 	opts = append((*c.CallOptions).GetEmptyThing[0:len((*c.CallOptions).GetEmptyThing):len((*c.CallOptions).GetEmptyThing)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		_, err = c.fooClient.GetEmptyThing(ctx, req, settings.GRPC...)
+		_, err = executeRPC(ctx, c.fooClient.GetEmptyThing, req, settings.GRPC, c.logger, "GetEmptyThing")
 		return err
 	}, opts...)
 	return err

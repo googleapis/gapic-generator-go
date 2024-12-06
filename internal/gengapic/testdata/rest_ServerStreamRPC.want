@@ -38,12 +38,8 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
-		httpRsp, err := c.httpClient.Do(httpReq)
+		httpRsp, err := executeStreamingHTTPRequest(ctx, c.httpClient, httpReq, c.logger, jsonReq, "ServerStreamRPC")
 		if err != nil{
-			return err
-		}
-
-		if err = googleapi.CheckResponse(httpRsp); err != nil {
 			return err
 		}
 
