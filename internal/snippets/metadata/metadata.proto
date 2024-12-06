@@ -62,7 +62,7 @@ message Snippet {
   // may be written in F# or VB .NET.
   // Note that this does not contain information about the snippet supported
   // platforms or language versions, etc. This is just a quick way to identify
-  // the generally supported langauge.
+  // the generally supported language.
   Language language = 5;
 
   // The client library method this snippet is for.
@@ -129,7 +129,7 @@ message Snippet {
       FULL = 1;
 
       // A shorter version of the full sample, may not include imports and some
-      // langauge specific initialization code. This is to be used in contexts
+      // language specific initialization code. This is to be used in contexts
       // in which the full aspects of the sample are made clear outside the
       // code.
       SHORT = 2;
@@ -229,7 +229,7 @@ message ClientLibrary {
   // The programming language the library is written in.
   // Note that this does not contain information about the library supported
   // platforms or language versions, etc. This is just a quick way to identify
-  // the generally supported langauge.
+  // the generally supported language.
   Language language = 3;
 
   // The APIs this client library is for.

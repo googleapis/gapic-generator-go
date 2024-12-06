@@ -117,8 +117,14 @@ func (g *generator) exampleClientFactory(pkgName, servName string) {
 }
 
 func (g *generator) exampleInitClient(pkgName, servName string) {
-	p := g.printf
+	g.exampleInitClientWithOpts(pkgName, servName, false)
+}
 
+func (g *generator) exampleInitClientWithOpts(pkgName, servName string, isPackageDoc bool) {
+	p := g.printf
+	if isPackageDoc {
+		p("// go get %s@latest", g.opts.pkgPath)
+	}
 	p("ctx := context.Background()")
 	p("// This snippet has been automatically generated and should be regarded as a code template only.")
 	p("// It will require modifications to work:")
@@ -153,6 +159,10 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptorpb.Meth
 }
 
 func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptorpb.MethodDescriptorProto) error {
+	return g.exampleMethodBodyWithOpts(pkgName, servName, m, false)
+}
+
+func (g *generator) exampleMethodBodyWithOpts(pkgName, servName string, m *descriptorpb.MethodDescriptorProto, isPackageDoc bool) error {
 	if m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(pongad): implement this correctly.
 		return nil
@@ -188,7 +198,9 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptorpb.
 	if t == rest {
 		s += "REST"
 	}
-	g.exampleInitClient(pkgName, s)
+	if !isPackageDoc {
+		g.exampleInitClient(pkgName, s)
+	}
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
@@ -228,7 +240,7 @@ func (g *generator) exampleLROCall(m *descriptorpb.MethodDescriptorProto) {
 	opInfo := eLRO.(*longrunning.OperationInfo)
 	if opInfo.GetResponseType() == emptyValue || opInfo == nil {
 		// no new variables when this is used
-		// therefore don't attempt to delcare it
+		// therefore don't attempt to declare it
 		retVars = "err ="
 	}
 

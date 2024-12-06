@@ -5,20 +5,27 @@
     ":semanticCommitTypeAll(chore)",
     "schedule:weekly"
   ],
+  "ignoreDeps": [
+    "bazel_gazelle",
+    "com_google_protobuf",
+    "io_bazel_rules_go"
+  ],
   "golang": {
     "ignoreDeps": [
       "github.com/russross/blackfriday"
     ],
-    "postUpdateOptions": ["gomodTidy"]
+    "postUpdateOptions": [
+      "gomodTidy"
+    ]
   },
   "rebaseWhen": "behind-base-branch",
-  "labels": ["automerge"],
+  "labels": [
+    "automerge"
+  ],
   "groupName": "deps",
-  "packageRules": [
-    {
-      "matchPackagePatterns": ["io_bazel_rules_go", "bazel_gazelle"],
-      "groupName": "bazel-go"
+  "force": {
+    "constraints": {
+      "go": "1.21"
     }
-  ]
-  
+  }
 }
