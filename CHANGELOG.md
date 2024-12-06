@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.1](https://github.com/googleapis/gapic-generator-go/compare/v0.49.0...v0.49.1) (2024-12-06)
+
+
+### Bug Fixes
+
+* Add missing bazel deps for gapic rules ([#1589](https://github.com/googleapis/gapic-generator-go/issues/1589)) ([8481caf](https://github.com/googleapis/gapic-generator-go/commit/8481cafdcbd111f9ec04fc8e141702225ecb6eca))
+
 ## [0.49.0](https://github.com/googleapis/gapic-generator-go/compare/v0.48.1...v0.49.0) (2024-12-06)
 
 
