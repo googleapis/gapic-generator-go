@@ -353,13 +353,8 @@ func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescript
 
 // getServiceNameOverride checks to see if the service has a defined service name override.
 func (g *generator) getServiceNameOverride(s *descriptorpb.ServiceDescriptorProto) string {
-	// TODO(hongalex): replace the manual map with service config
-	// ls := g.serviceConfig.GetPublishing().GetLibrarySettings()[0]
-	// renamedServices := ls.GetGoSettings().GetRenamedServices()
-
-	renamedServices := make(map[string]string)
-	renamedServices["Publisher"] = "TopicAdmin"
-	renamedServices["Subscriber"] = "SubscriptionAdmin"
+	ls := g.serviceConfig.GetPublishing().GetLibrarySettings()[0]
+	renamedServices := ls.GetGoSettings().GetRenamedServices()
 
 	if v, ok := renamedServices[s.GetName()]; ok {
 		return v
