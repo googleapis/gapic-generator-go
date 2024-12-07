@@ -63,6 +63,8 @@ type restClient struct {
 
 	// Points back to the CallOptions field of the containing Client
 	CallOptions **CallOptions
+
+	logger *slog.Logger
 }
 
 // NewRESTClient creates a new foo rest client.
@@ -80,6 +82,7 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		endpoint: endpoint,
 		httpClient: httpClient,
 		CallOptions: &callOpts,
+		logger: internaloption.GetLogger(opts),
 	}
 	c.setGoogleClientInfo()
 

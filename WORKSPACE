@@ -6,11 +6,11 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # we can remove this if gazelle ships a fix since we didn't need it before.
 http_archive(
     name = "bazel_skylib",
+    sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
     urls = [
         "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
         "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
     ],
-    sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
 )
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
@@ -36,12 +36,15 @@ http_archive(
 )
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+
 rules_proto_dependencies()
 
 load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
+
 rules_proto_setup()
 
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+
 rules_proto_toolchains()
 
 http_archive(
@@ -54,7 +57,12 @@ http_archive(
 )
 
 load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
-switched_rules_by_language(name = "com_google_googleapis_imports", go = True, grpc = True)
+
+switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+    go = True,
+    grpc = True,
+)
 
 http_archive(
     name = "io_bazel_rules_go",
@@ -81,11 +89,10 @@ com_googleapis_gapic_generator_go_repositories()
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
-go_register_toolchains(version = "1.19.13")
+go_register_toolchains(version = "1.21.13")
 
 go_rules_dependencies()
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
 gazelle_dependencies()
-

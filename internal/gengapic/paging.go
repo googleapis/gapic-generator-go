@@ -448,7 +448,7 @@ func (g *generator) pagingIter(pt *iterType) {
 	p("}")
 	p("")
 
-	p("// PageInfo supports pagination. See the google.golang.org/api/iterator package for details.")
+	p("// PageInfo supports pagination. See the [google.golang.org/api/iterator] package for details.")
 	p("func (it *%s) PageInfo() *iterator.PageInfo {", pt.iterTypeName)
 	p("  return it.pageInfo")
 	p("}")

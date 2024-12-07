@@ -4,7 +4,7 @@ func (c *fooGRPCClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.fooClient.EmptyLRO(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.fooClient.EmptyLRO, req, settings.GRPC, c.logger, "EmptyLRO")
 		return err
 	}, opts...)
 	if err != nil {

@@ -18,7 +18,7 @@ func (c *fooGRPCClient) GetManyThingsOptional(ctx context.Context, req *mypackag
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			var err error
-			resp, err = c.fooClient.GetManyThingsOptional(ctx, req, settings.GRPC...)
+			resp, err = executeRPC(ctx, c.fooClient.GetManyThingsOptional, req, settings.GRPC, c.logger, "GetManyThingsOptional")
 			return err
 		}, opts...)
 		if err != nil {

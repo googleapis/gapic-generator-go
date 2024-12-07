@@ -67,7 +67,7 @@ func TestDocFile(t *testing.T) {
 	} {
 		t.Run(tst.want, func(t *testing.T) {
 			g.opts.relLvl = tst.relLvl
-			g.genDocFile(sample.Year, []string{sample.ServiceOAuthScope}, serv)
+			g.genDocFile(sample.Year, serv)
 			txtdiff.Diff(t, g.pt.String(), tst.want)
 			g.reset()
 		})
@@ -121,7 +121,7 @@ func TestDocFileEmptyService(t *testing.T) {
 	} {
 		t.Run(tst.want, func(t *testing.T) {
 			g.opts.relLvl = tst.relLvl
-			g.genDocFile(sample.Year, []string{sample.ServiceOAuthScope}, serv)
+			g.genDocFile(sample.Year, serv)
 			txtdiff.Diff(t, g.pt.String(), tst.want)
 			g.reset()
 		})

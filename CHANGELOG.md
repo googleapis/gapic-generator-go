@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.49.1](https://github.com/googleapis/gapic-generator-go/compare/v0.49.0...v0.49.1) (2024-12-06)
+
+
+### Bug Fixes
+
+* Add missing bazel deps for gapic rules ([#1589](https://github.com/googleapis/gapic-generator-go/issues/1589)) ([8481caf](https://github.com/googleapis/gapic-generator-go/commit/8481cafdcbd111f9ec04fc8e141702225ecb6eca))
+
+## [0.49.0](https://github.com/googleapis/gapic-generator-go/compare/v0.48.1...v0.49.0) (2024-12-06)
+
+
+### Features
+
+* Add logging support to generated clients ([#1577](https://github.com/googleapis/gapic-generator-go/issues/1577)) ([ae37381](https://github.com/googleapis/gapic-generator-go/commit/ae37381afd53cfd77e784c345cecb61e89c3ec52))
+
+
+### Bug Fixes
+
+* Make iter error handling clearer ([#1561](https://github.com/googleapis/gapic-generator-go/issues/1561)) ([dc5af4e](https://github.com/googleapis/gapic-generator-go/commit/dc5af4e6a5580d61a0750aaa4de0ba169bbb70fb))
+
+## [0.48.1](https://github.com/googleapis/gapic-generator-go/compare/v0.48.0...v0.48.1) (2024-11-14)
+
+
+### Bug Fixes
+
+* Improve imports behavior for helpers.go ([#1583](https://github.com/googleapis/gapic-generator-go/issues/1583)) ([5414611](https://github.com/googleapis/gapic-generator-go/commit/541461104f44af7241a5426170a36e2c6fc24e43))
+
+## [0.48.0](https://github.com/googleapis/gapic-generator-go/compare/v0.47.1...v0.48.0) (2024-11-13)
+
+
+### Features
+
+* Split doc.go generation into comments and code portions ([#1579](https://github.com/googleapis/gapic-generator-go/issues/1579)) ([396b171](https://github.com/googleapis/gapic-generator-go/commit/396b171c9460573fbfbdee31b0d9ab90b8dfb407))
+
+
+### Bug Fixes
+
+* Make iterator link clickable ([#1576](https://github.com/googleapis/gapic-generator-go/issues/1576)) ([6249624](https://github.com/googleapis/gapic-generator-go/commit/624962423ddf8b57b9b0cd4138bde6bbdd491427))
+
 ## [0.47.1](https://github.com/googleapis/gapic-generator-go/compare/v0.47.0...v0.47.1) (2024-10-09)
 
 

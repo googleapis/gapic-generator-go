@@ -119,8 +119,14 @@ func (g *generator) exampleClientFactory(pkgName, servName string) {
 }
 
 func (g *generator) exampleInitClient(pkgName, servName string) {
-	p := g.printf
+	g.exampleInitClientWithOpts(pkgName, servName, false)
+}
 
+func (g *generator) exampleInitClientWithOpts(pkgName, servName string, isPackageDoc bool) {
+	p := g.printf
+	if isPackageDoc {
+		p("// go get %s@latest", g.opts.pkgPath)
+	}
 	p("ctx := context.Background()")
 	p("// This snippet has been automatically generated and should be regarded as a code template only.")
 	p("// It will require modifications to work:")
@@ -155,6 +161,10 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptorpb.Meth
 }
 
 func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptorpb.MethodDescriptorProto) error {
+	return g.exampleMethodBodyWithOpts(pkgName, servName, m, false)
+}
+
+func (g *generator) exampleMethodBodyWithOpts(pkgName, servName string, m *descriptorpb.MethodDescriptorProto, isPackageDoc bool) error {
 	if m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(pongad): implement this correctly.
 		return nil
@@ -190,7 +200,9 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptorpb.
 	if t == rest {
 		s += "REST"
 	}
-	g.exampleInitClient(pkgName, s)
+	if !isPackageDoc {
+		g.exampleInitClient(pkgName, s)
+	}
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
@@ -323,7 +335,7 @@ func (g *generator) examplePagingAllCall(m *descriptorpb.MethodDescriptorProto) 
 
 	p("for resp, err := range c.%s(ctx, req).All() {", m.GetName())
 	p("  if err != nil {")
-	p("    // TODO: Handle error.")
+	p("    // TODO: Handle error and break/return/continue. Iteration will stop after any error.")
 	p("  }")
 	p("  // TODO: Use resp.")
 	p("  _ = resp")

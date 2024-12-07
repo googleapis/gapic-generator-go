@@ -15,14 +15,11 @@
 package gengapic
 
 import (
-	"sort"
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
-	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -30,7 +27,7 @@ import (
 //
 // Since it's the only file that needs to write package documentation and canonical import,
 // it does not use g.commit().
-func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.ServiceDescriptorProto) {
+func (g *generator) genDocFile(year int, serv *descriptorpb.ServiceDescriptorProto) {
 	p := g.printf
 
 	p(license.Apache, year)
@@ -88,7 +85,7 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.Ser
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.opts.pkgName, override)
 	tmpClient := g.pt
 	g.pt = printer.P{}
-	g.exampleInitClient(g.opts.pkgName, servName)
+	g.exampleInitClientWithOpts(g.opts.pkgName, servName, true)
 	snipClient := g.pt.String()
 	g.pt = tmpClient
 	g.codesnippet(snipClient)
@@ -100,12 +97,12 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.Ser
 	if len(serv.GetMethod()) > 0 {
 		p("// Using the Client")
 		p("//")
-		p("// The following is an example of making an API call with the newly created client.")
+		p("// The following is an example of making an API call with the newly created client, mentioned above.")
 		p("//")
 		// Code block for client using the first method of the service
 		tmpMethod := g.pt
 		g.pt = printer.P{}
-		g.exampleMethodBody(g.opts.pkgName, servName, serv.GetMethod()[0])
+		g.exampleMethodBodyWithOpts(g.opts.pkgName, servName, serv.GetMethod()[0], true)
 		snipMethod := g.pt.String()
 		g.pt = tmpMethod
 		g.codesnippet(snipMethod)
@@ -126,56 +123,6 @@ func (g *generator) genDocFile(year int, scopes []string, serv *descriptorpb.Ser
 	p("// [Inspecting errors]: https://pkg.go.dev/cloud.google.com/go#hdr-Inspecting_errors")
 	p("package %s // import %q", g.opts.pkgName, g.opts.pkgPath)
 	p("")
-
-	p("import (")
-	p("%s%q", "\t", "context")
-	p("")
-	p("%s%q", "\t", "google.golang.org/api/option")
-	p(")")
-	p("")
-
-	p("// For more information on implementing a client constructor hook, see")
-	p("// https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.")
-	p("type clientHookParams struct{}")
-	p("type clientHook func(context.Context, clientHookParams) ([]option.ClientOption, error)")
-	p("")
-
-	p("var versionClient string")
-	p("")
-	p("func getVersionClient() string {")
-	p(`  if versionClient == "" {`)
-	p(`    return "UNKNOWN"`)
-	p("  }")
-	p("  return versionClient")
-	p("}")
-	p("")
-
-	p("// DefaultAuthScopes reports the default set of authentication scopes to use with this package.")
-	p("func DefaultAuthScopes() []string {")
-	p("  return []string{")
-	for _, sc := range scopes {
-		p("%q,", sc)
-	}
-	p("  }")
-	p("}")
-}
-
-func collectScopes(servs []*descriptorpb.ServiceDescriptorProto) []string {
-	scopeSet := map[string]bool{}
-	for _, s := range servs {
-		eOauthScopes := proto.GetExtension(s.Options, annotations.E_OauthScopes)
-		scopes := strings.Split(eOauthScopes.(string), ",")
-		for _, sc := range scopes {
-			scopeSet[sc] = true
-		}
-	}
-
-	var scopes []string
-	for sc := range scopeSet {
-		scopes = append(scopes, sc)
-	}
-	sort.Strings(scopes)
-	return scopes
 }
 
 func wrapString(str string, max int) []string {
