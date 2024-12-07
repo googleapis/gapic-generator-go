@@ -26,7 +26,8 @@ import (
 
 func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+	override := g.getServiceNameOverride(serv)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 
 	g.exampleClientFactory(pkgName, servName)
 
@@ -42,7 +43,8 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 
 func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+	override := g.getServiceNameOverride(serv)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
 		// Don't need streaming RPCs
