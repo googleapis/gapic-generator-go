@@ -1135,7 +1135,11 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
-	p("  buf, err := executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
+	if isHTTPBodyMessage {
+		p("  buf, httpRsp, err := executeHTTPRequestWithResponse(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
+	} else {
+		p("  buf, err := executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
+	}
 	p("  if err != nil{")
 	p("   return err")
 	p("  }")
