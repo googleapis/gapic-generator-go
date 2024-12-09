@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.3](https://github.com/googleapis/gapic-generator-go/compare/v0.49.2...v0.49.3) (2024-12-09)
+
+
+### Bug Fixes
+
+* Have a helper that returns a http Response as well ([#1594](https://github.com/googleapis/gapic-generator-go/issues/1594)) ([b947c65](https://github.com/googleapis/gapic-generator-go/commit/b947c6511043f038190ffb6480a4b4579d9f635b))
+
 ## [0.49.2](https://github.com/googleapis/gapic-generator-go/compare/v0.49.1...v0.49.2) (2024-12-09)
 
 
