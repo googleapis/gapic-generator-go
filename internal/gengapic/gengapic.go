@@ -232,7 +232,6 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	g.reset()
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog"}] = true
 
 	p("const serviceName = %q", g.serviceConfig.GetName())
 	p("")
@@ -267,6 +266,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 		g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog"}] = true
 
 		p("func executeHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger,	body []byte, rpc string) ([]byte, error) {")
 		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
@@ -303,6 +303,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	}
 
 	if containsTransport(g.opts.transports, grpc) {
+		g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog/grpclog"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
