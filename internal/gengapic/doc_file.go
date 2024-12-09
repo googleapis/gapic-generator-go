@@ -81,7 +81,8 @@ func (g *generator) genDocFile(year int, serv *descriptorpb.ServiceDescriptorPro
 	p("//")
 	p("// To get started with this package, create a client.")
 	// Code block for client creation
-	servName := pbinfo.ReduceServName(serv.GetName(), g.opts.pkgName)
+	override := g.getServiceNameOverride(serv)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.opts.pkgName, override)
 	tmpClient := g.pt
 	g.pt = printer.P{}
 	g.exampleInitClientWithOpts(g.opts.pkgName, servName, true)
