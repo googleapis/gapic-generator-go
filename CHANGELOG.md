@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.2](https://github.com/googleapis/gapic-generator-go/compare/v0.49.1...v0.49.2) (2024-12-09)
+
+
+### Bug Fixes
+
+* Update logging imports in helpers file ([#1592](https://github.com/googleapis/gapic-generator-go/issues/1592)) ([bb8609f](https://github.com/googleapis/gapic-generator-go/commit/bb8609fdcbf2682004d3edaffc1abd7e9a4da4af))
+
 ## [0.49.1](https://github.com/googleapis/gapic-generator-go/compare/v0.49.0...v0.49.1) (2024-12-06)
 
 
