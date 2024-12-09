@@ -269,22 +269,28 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog"}] = true
 
-		p("func executeHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger,	body []byte, rpc string) ([]byte, error) {")
+		p("func executeHTTPRequestWithResponse(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger, body []byte, rpc string) ([]byte, *http.Response, error) {")
 		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
 		p("  resp, err := client.Do(req)")
 		p("  if err != nil{")
-		p("    return nil, err")
+		p("    return nil, nil, err")
 		p("  }")
 		p("  defer resp.Body.Close()")
 		p("  buf, err := io.ReadAll(resp.Body)")
 		p("  if err != nil {")
-		p("    return nil, err")
+		p("    return nil, nil, err")
 		p("  }")
 		p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", internallog.HTTPResponse(resp, buf))`)
 		p("  if err = googleapi.CheckResponse(resp); err != nil {")
-		p("    return nil, err")
+		p("    return nil, nil, err")
 		p("  }")
-		p("  return buf, nil")
+		p("  return buf, resp, nil")
+		p("}")
+		p("")
+
+		p("func executeHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger, body []byte, rpc string) ([]byte, error) {")
+		p("  buf, _, err := executeHTTPRequestWithResponse(ctx, client, req, logger, body, rpc)")
+		p("  return buf, err")
 		p("}")
 		p("")
 
