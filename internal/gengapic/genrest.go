@@ -147,9 +147,15 @@ func (g *generator) restClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 
 func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
-	lowcaseServName := lowcaseRestClientName(servName)
-	clientName := camelToSnake(serv.GetName())
+
+	clientName := serv.GetName()
+	if override := g.getServiceNameOverride(serv); override != "" {
+		clientName = override
+	}
+	clientName = camelToSnake(clientName)
 	clientName = strings.Replace(clientName, "_", " ", -1)
+	lowcaseServName := lowcaseGRPCClientName(servName)
+
 	opServ, hasCustomOp := g.customOpServices[serv]
 
 	p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
