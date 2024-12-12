@@ -1,0 +1,87 @@
+// barGRPCClient is a client for interacting with  over gRPC transport.
+//
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+type barGRPCClient struct {
+	// Connection pool of gRPC connections to the service.
+	connPool gtransport.ConnPool
+
+	// Points back to the CallOptions field of the containing BarClient
+	CallOptions **BarCallOptions
+
+	// The gRPC API client.
+	barClient mypackagepb.FooClient
+
+	// The x-goog-* metadata to be sent with each request.
+	xGoogHeaders []string
+
+	logger *slog.Logger
+}
+
+// NewBarClient creates a new bar client based on gRPC.
+// The returned client must be Closed when it is done being used to clean up its underlying connections.
+func NewBarClient(ctx context.Context, opts ...option.ClientOption) (*BarClient, error) {
+	clientOpts := defaultBarGRPCClientOptions()
+	if newBarClientHook != nil {
+		hookOpts, err := newBarClientHook(ctx, clientHookParams{})
+		if err != nil {
+			return nil, err
+		}
+		clientOpts = append(clientOpts, hookOpts...)
+	}
+
+	connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)
+	if err != nil {
+		return nil, err
+	}
+	client := BarClient{CallOptions: defaultBarCallOptions()}
+
+	c := &barGRPCClient{
+		connPool:    connPool,
+		barClient: mypackagepb.NewFooClient(connPool),
+		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
+
+	}
+	c.setGoogleClientInfo()
+
+	client.internalClient = c
+
+	return &client, nil
+}
+
+// Connection returns a connection to the API service.
+//
+// Deprecated: Connections are now pooled so this method does not always
+// return the same resource.
+func (c *barGRPCClient) Connection() *grpc.ClientConn {
+	return c.connPool.Conn()
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *barGRPCClient) setGoogleClientInfo(keyval ...string) {
+	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	c.xGoogHeaders = []string{
+		"x-goog-api-client", gax.XGoogHeader(kv...),
+	}
+}
+
+// Close closes the connection to the API service. The user should invoke this when
+// the client is no longer required.
+func (c *barGRPCClient) Close() error {
+	return c.connPool.Close()
+}
+
+func (c *barGRPCClient) Baz(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) error {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).Baz[0:len((*c.CallOptions).Baz):len((*c.CallOptions).Baz)], opts...)
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		_, err = executeRPC(ctx, c.barClient.Baz, req, settings.GRPC, c.logger, "Baz")
+		return err
+	}, opts...)
+	return err
+}
+
