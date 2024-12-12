@@ -549,6 +549,7 @@ func TestGenGRPCMethods(t *testing.T) {
 				t.Errorf("TestGenMethod(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
 			}
 			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_"+tst.m.GetName()+".want"))
+			fmt.Println(g.pt.String())
 		})
 	}
 }

@@ -312,7 +312,11 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
-	clientName := camelToSnake(serv.GetName())
+	clientName := serv.GetName()
+	if override := g.getServiceNameOverride(serv); override != "" {
+		clientName = override
+	}
+	clientName = camelToSnake(clientName)
 	clientName = strings.Replace(clientName, "_", " ", -1)
 	lowcaseServName := lowcaseGRPCClientName(servName)
 
