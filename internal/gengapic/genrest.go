@@ -154,7 +154,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	}
 	clientName = camelToSnake(clientName)
 	clientName = strings.Replace(clientName, "_", " ", -1)
-	lowcaseServName := lowcaseGRPCClientName(servName)
+	lowcaseServName := lowcaseRestClientName(servName)
 
 	opServ, hasCustomOp := g.customOpServices[serv]
 
