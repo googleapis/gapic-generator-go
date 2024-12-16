@@ -160,8 +160,9 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 }
 
 func (g *generator) grpcStubCall(method *descriptorpb.MethodDescriptorProto) string {
-	service := g.descInfo.ParentElement[method]
-	stub := pbinfo.ReduceServName(service.GetName(), g.opts.pkgName)
+	service := g.descInfo.ParentElement[method].(*descriptorpb.ServiceDescriptorProto)
+	override := g.getServiceNameOverride(service)
+	stub := pbinfo.ReduceServNameWithOverride(service.GetName(), g.opts.pkgName, override)
 	return fmt.Sprintf("executeRPC(ctx, c.%s.%s, req, settings.GRPC, c.logger, %q)", grpcClientField(stub), method.GetName(), method.GetName())
 }
 
@@ -311,7 +312,11 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
-	clientName := camelToSnake(serv.GetName())
+	clientName := serv.GetName()
+	if override := g.getServiceNameOverride(serv); override != "" {
+		clientName = override
+	}
+	clientName = camelToSnake(clientName)
 	clientName = strings.Replace(clientName, "_", " ", -1)
 	lowcaseServName := lowcaseGRPCClientName(servName)
 
