@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: bazel-contrib/setup-bazel@0.8.5
+    - uses: bazel-contrib/setup-bazel@0.9.1
       with:
         # Avoid downloading Bazel every time.
         bazelisk-cache: true
