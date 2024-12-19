@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/jhump/protoreflect v1.16.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
-	golang.org/x/text v0.16.0
+	golang.org/x/text v0.21.0
 	google.golang.org/genproto v0.0.0-20240722135656-d784300faade
 	google.golang.org/genproto/googleapis/api v0.0.0-20240722135656-d784300faade
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240722135656-d784300faade
@@ -23,8 +23,8 @@ require (
 	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20191124015652-932350d1cb84 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20191124015043-9f83538fa04f // indirect
-	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 	google.golang.org/grpc v1.64.1 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
