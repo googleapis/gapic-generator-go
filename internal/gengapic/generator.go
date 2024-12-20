@@ -350,3 +350,19 @@ func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescript
 	}
 	return validated
 }
+
+// getServiceNameOverride checks to see if the service has a defined service name override.
+func (g *generator) getServiceNameOverride(s *descriptorpb.ServiceDescriptorProto) string {
+	ls := g.serviceConfig.GetPublishing().GetLibrarySettings()
+	if len(ls) == 0 {
+		return ""
+	}
+
+	renamedServices := ls[0].GetGoSettings().GetRenamedServices()
+
+	if v, ok := renamedServices[s.GetName()]; ok {
+		return v
+	}
+
+	return ""
+}

@@ -91,6 +91,8 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	p("")
 	p("  // Points back to the CallOptions field of the containing %sClient", servName)
 	p("  CallOptions **%sCallOptions", servName)
+	p("")
+	p("  logger *slog.Logger")
 	p("}")
 	p("")
 	g.restClientUtilities(serv, servName, hasRPCForLRO)
@@ -98,6 +100,7 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 	g.imports[pbinfo.ImportSpec{Name: "httptransport", Path: "google.golang.org/api/transport/http"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option/internaloption"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 }
 
 func (g *generator) genRESTMethods(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
@@ -144,9 +147,15 @@ func (g *generator) restClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 
 func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
 	p := g.printf
-	lowcaseServName := lowcaseRestClientName(servName)
-	clientName := camelToSnake(serv.GetName())
+
+	clientName := serv.GetName()
+	if override := g.getServiceNameOverride(serv); override != "" {
+		clientName = override
+	}
+	clientName = camelToSnake(clientName)
 	clientName = strings.Replace(clientName, "_", " ", -1)
+	lowcaseServName := lowcaseRestClientName(servName)
+
 	opServ, hasCustomOp := g.customOpServices[serv]
 
 	p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
@@ -163,6 +172,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("        endpoint: endpoint,")
 	p("        httpClient: httpClient,")
 	p("        CallOptions: &callOpts,")
+	p("        logger: internaloption.GetLogger(opts),")
 	p("    }")
 	p("    c.setGoogleClientInfo()")
 	p("")
@@ -617,7 +627,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	// rest-client method
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -638,6 +648,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 		p("")
 
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
@@ -658,13 +669,9 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
-	p("  httpRsp, err := c.httpClient.Do(httpReq)")
+	p("  httpRsp, err := executeStreamingHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
 	p("  if err != nil{")
 	p("   return err")
-	p("  }")
-	p("")
-	p("  if err = googleapi.CheckResponse(httpRsp); err != nil {")
-	p("    return err")
 	p("  }")
 	p("")
 	p("  streamClient = &%s{", streamClient)
@@ -678,8 +685,6 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("return streamClient, e")
 	p("}")
 	p("")
-
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 
 	// server-stream wrapper client
 	p("// %s is the stream client used to consume the server stream created by", streamClient)
@@ -800,10 +805,11 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 
-	maybeReqBytes := "nil"
+	maybeReqBytes, logBody := "nil", "nil"
 	if info.body != "" {
 		g.protoJSONMarshaler()
 		maybeReqBytes = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
@@ -835,21 +841,10 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	// TODO: Should this http.Request use WithContext?
 	p("    httpReq.Header = headers")
 	p("")
-	p("    httpRsp, err := c.httpClient.Do(httpReq)")
+	p("    buf, err := executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
 	p("    if err != nil{")
 	p(`     return err`)
 	p("    }")
-	p("    defer httpRsp.Body.Close()")
-	p("")
-	p("    if err = googleapi.CheckResponse(httpRsp); err != nil {")
-	p(`      return err`)
-	p("    }")
-	p("")
-	p("    buf, err := io.ReadAll(httpRsp.Body)")
-	p("    if err != nil {")
-	p(`      return err`)
-	p("    }")
-	p("")
 	p("    if err := unm.Unmarshal(buf, resp); err != nil {")
 	p("      return err")
 	p("    }")
@@ -868,10 +863,8 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 
@@ -916,7 +909,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	// TODO(noahdietz): handle deadlines?
 	// TODO(noahdietz): handle calloptions
 
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -937,6 +930,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 		p("")
 
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
@@ -957,21 +951,10 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
-	p("  httpRsp, err := c.httpClient.Do(httpReq)")
+	p("  buf, err := executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
 	p("  if err != nil{")
 	p("   return err")
 	p("  }")
-	p("  defer httpRsp.Body.Close()")
-	p("")
-	p("  if err = googleapi.CheckResponse(httpRsp); err != nil {")
-	p("    return err")
-	p("  }")
-	p("")
-	p("  buf, err := io.ReadAll(httpRsp.Body)")
-	p("  if err != nil {")
-	p("    return err")
-	p("  }")
-	p("")
 	p("  if err := unm.Unmarshal(buf, resp); err != nil {")
 	p("    return err")
 	p("  }")
@@ -992,9 +975,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
 	return nil
@@ -1023,7 +1004,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	// TODO(dovs): handle deadlines
 	// TODO(dovs): handle call options
 
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -1044,6 +1025,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 		p("}")
 		p("")
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
@@ -1063,19 +1045,11 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
-	p("  httpRsp, err := c.httpClient.Do(httpReq)")
-	p("  if err != nil{")
-	p("   return err")
-	p("  }")
-	p("  defer httpRsp.Body.Close()")
-	p("")
-	p("  // Returns nil if there is no error, otherwise wraps")
-	p("  // the response code and body into a non-nil error")
-	p("  return googleapi.CheckResponse(httpRsp)")
+	p("  _, err = executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
+	p("  return err")
 	p("  }, opts...)")
 	p("}")
 
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[inSpec] = true
 	return nil
 }
@@ -1117,7 +1091,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	// TODO(dovs): handle deadlines?
 	// TODO(dovs): handle calloptions
 
-	body := "nil"
+	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
 	// Marshal body for HTTP methods that take a body.
@@ -1139,6 +1113,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 		p("")
 
 		body = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
@@ -1166,19 +1141,13 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p("  httpReq = httpReq.WithContext(ctx)")
 	p("  httpReq.Header = headers")
 	p("")
-	p("  httpRsp, err := c.httpClient.Do(httpReq)")
+	if isHTTPBodyMessage {
+		p("  buf, httpRsp, err := executeHTTPRequestWithResponse(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
+	} else {
+		p("  buf, err := executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
+	}
 	p("  if err != nil{")
 	p("   return err")
-	p("  }")
-	p("  defer httpRsp.Body.Close()")
-	p("")
-	p("  if err = googleapi.CheckResponse(httpRsp); err != nil {")
-	p("    return err")
-	p("  }")
-	p("")
-	p("  buf, err := io.ReadAll(httpRsp.Body)")
-	p("  if err != nil {")
-	p("    return err")
 	p("  }")
 	p("")
 	if isHTTPBodyMessage {
@@ -1207,8 +1176,6 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p(ret)
 	p("}")
 
-	g.imports[pbinfo.ImportSpec{Path: "io"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 	return nil

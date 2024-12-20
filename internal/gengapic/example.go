@@ -26,7 +26,8 @@ import (
 
 func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+	override := g.getServiceNameOverride(serv)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 
 	g.exampleClientFactory(pkgName, servName)
 
@@ -42,7 +43,8 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 
 func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+	override := g.getServiceNameOverride(serv)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
 		// Don't need streaming RPCs
@@ -333,7 +335,7 @@ func (g *generator) examplePagingAllCall(m *descriptorpb.MethodDescriptorProto) 
 
 	p("for resp, err := range c.%s(ctx, req).All() {", m.GetName())
 	p("  if err != nil {")
-	p("    // TODO: Handle error.")
+	p("    // TODO: Handle error and break/return/continue. Iteration will stop after any error.")
 	p("  }")
 	p("  // TODO: Use resp.")
 	p("  _ = resp")
