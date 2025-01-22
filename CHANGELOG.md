@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.50.0](https://github.com/googleapis/gapic-generator-go/compare/v0.49.3...v0.50.0) (2024-12-20)
+
+
+### Features
+
+* Add service renaming ([#1580](https://github.com/googleapis/gapic-generator-go/issues/1580)) ([8c5bc3d](https://github.com/googleapis/gapic-generator-go/commit/8c5bc3db29a53d01405fba70c66df69661a841bc))
+
+
+### Bug Fixes
+
+* Update golang.org/x/net to v0.33.0 ([#1600](https://github.com/googleapis/gapic-generator-go/issues/1600)) ([73fa3b7](https://github.com/googleapis/gapic-generator-go/commit/73fa3b7730794f8c6a0ac635e8a91dd563750b41))
+
 ## [0.49.3](https://github.com/googleapis/gapic-generator-go/compare/v0.49.2...v0.49.3) (2024-12-09)
 
 
