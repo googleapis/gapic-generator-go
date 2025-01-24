@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.0](https://github.com/googleapis/gapic-generator-go/compare/v0.50.0...v0.51.0) (2025-01-24)
+
+
+### Features
+
+* Prevent body double-read in googleapi.CheckResponse ([#1602](https://github.com/googleapis/gapic-generator-go/issues/1602)) ([bd42bc4](https://github.com/googleapis/gapic-generator-go/commit/bd42bc4f8818ef755ecdd05d7cedc2ac6b1bf8da))
+
 ## [0.50.0](https://github.com/googleapis/gapic-generator-go/compare/v0.49.3...v0.50.0) (2024-12-20)
 
 
