@@ -44,6 +44,7 @@ var goroutinesToIgnore = []string{
 	"runtime_mcall",
 	"(*loggingT).flushDaemon",
 	"goroutine in C code",
+	"internal/transport/http2_client.go",
 }
 
 // registerIgnoreGoroutine appends s into the ignore goroutine list. The
