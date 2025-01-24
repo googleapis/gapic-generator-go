@@ -281,7 +281,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 		p("    return nil, nil, err")
 		p("  }")
 		p(`  logger.DebugContext(ctx, "api response", "serviceName", serviceName, "rpcName", rpc, "response", internallog.HTTPResponse(resp, buf))`)
-		p("  if err = googleapi.CheckResponse(resp); err != nil {")
+		p("  if err = googleapi.CheckResponseWithBody(resp, buf); err != nil {")
 		p("    return nil, nil, err")
 		p("  }")
 		p("  return buf, resp, nil")
