@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.1](https://github.com/googleapis/gapic-generator-go/compare/v0.51.0...v0.51.1) (2025-01-27)
+
+
+### Bug Fixes
+
+* Downgrade bazel google.golang.org/protobuf dep ([#1609](https://github.com/googleapis/gapic-generator-go/issues/1609)) ([fdb83e9](https://github.com/googleapis/gapic-generator-go/commit/fdb83e9e1064b7f6957d766f2a853e4d0337499a))
+
 ## [0.51.0](https://github.com/googleapis/gapic-generator-go/compare/v0.50.0...v0.51.0) (2025-01-24)
 
 
