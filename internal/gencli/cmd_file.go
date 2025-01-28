@@ -45,7 +45,7 @@ var {{ $fromFileVar }} string
 var {{ $outFileVar }} string
 {{ end }}
 {{ if .IsLRO }}
-var {{ $followVar }} bool 
+var {{ $followVar }} bool
 
 var {{ $pollingOperationVar }} string
 {{ end }}
@@ -171,7 +171,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 				{{ .Accessor }} = &{{ ( .OptionalVarName ) }}
 			}
 			{{ end }}
-			{{ end }} 
+			{{ end }}
 			{{ end }}
 		}
 		{{ end }}
@@ -296,7 +296,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				
+
 				err = stream.Send(&{{ .InputMessageVar }})
 				if err != nil {
 					return err
@@ -363,6 +363,11 @@ var {{$methodCmdVar}} = &cobra.Command{
 		}
 		printMessage(result){{ end }}
 		{{ end }}
+		{{ end }}
+		{{ if .Paged }}
+		if err == iterator.Done {
+		    return nil
+		}
 		{{ end }}
 		return err
   },
