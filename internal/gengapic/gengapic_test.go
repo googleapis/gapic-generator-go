@@ -26,6 +26,7 @@ import (
 	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
+	"github.com/googleapis/gapic-generator-go/internal/testing/sample"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
@@ -1127,12 +1128,12 @@ func TestGRPCStubCall(t *testing.T) {
 	}{
 		{
 			name: "foo.FooService.GetFoo",
-			want: "c.client.GetFoo(ctx, req, settings.GRPC...)",
+			want: `executeRPC(ctx, c.client.GetFoo, req, settings.GRPC, c.logger, "GetFoo")`,
 			in:   getFoo,
 		},
 		{
 			name: "foo.BarService.GetBar",
-			want: "c.barClient.GetBar(ctx, req, settings.GRPC...)",
+			want: `executeRPC(ctx, c.barClient.GetBar, req, settings.GRPC, c.logger, "GetBar")`,
 			in:   getBar,
 		},
 	} {
@@ -1252,10 +1253,11 @@ func TestReturnType(t *testing.T) {
 	}
 }
 
-func TestCollectServices(t *testing.T) {
+func TestCollectServicesAndScopes(t *testing.T) {
 	libraryServ := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Library"),
 	}
+
 	library := &descriptorpb.FileDescriptorProto{
 		Name: proto.String("google/cloud/library/v1/library.proto"),
 		Options: &descriptorpb.FileOptions{
@@ -1269,13 +1271,15 @@ func TestCollectServices(t *testing.T) {
 		toGen           []string
 		fileSet         []*descriptorpb.FileDescriptorProto
 		want            []*descriptorpb.ServiceDescriptorProto
+		wantScopes      []string
 	}{
 		{
-			name:      "simple",
-			goPkgPath: "cloud.google.com/go/library/apiv1",
-			toGen:     []string{library.GetName()},
-			fileSet:   []*descriptorpb.FileDescriptorProto{library},
-			want:      []*descriptorpb.ServiceDescriptorProto{libraryServ},
+			name:       "simple",
+			goPkgPath:  "cloud.google.com/go/library/apiv1",
+			toGen:      []string{library.GetName()},
+			fileSet:    []*descriptorpb.FileDescriptorProto{library},
+			want:       []*descriptorpb.ServiceDescriptorProto{libraryServ},
+			wantScopes: []string{"https://www.googleapis.com/auth/cloud-platform"},
 		},
 		{
 			name:      "ignore-mixins",
@@ -1287,7 +1291,8 @@ func TestCollectServices(t *testing.T) {
 				mixinFiles["google.iam.v1.IAMPolicy"][0],
 				mixinFiles["google.cloud.location.Locations"][0],
 			},
-			want: []*descriptorpb.ServiceDescriptorProto{libraryServ},
+			want:       []*descriptorpb.ServiceDescriptorProto{libraryServ},
+			wantScopes: []string{"scope-a", "scope-b"},
 		},
 		{
 			name:      "include-iam-mixin",
@@ -1302,13 +1307,80 @@ func TestCollectServices(t *testing.T) {
 		},
 	} {
 		g := &generator{opts: &options{pkgPath: tst.goPkgPath}}
-		got := g.collectServices(&pluginpb.CodeGeneratorRequest{
+		setOAuthScopes(libraryServ, tst.wantScopes)
+		gotServices, gotScopes := g.collectServicesAndScopes(&pluginpb.CodeGeneratorRequest{
 			FileToGenerate: tst.toGen,
 			ProtoFile:      tst.fileSet,
 		})
-		if diff := cmp.Diff(got, tst.want, cmp.Comparer(proto.Equal)); diff != "" {
+		if diff := cmp.Diff(gotServices, tst.want, cmp.Comparer(proto.Equal)); diff != "" {
 			t.Errorf("%s: got(-),want(+):\n%s", tst.name, diff)
 		}
+		if diff := cmp.Diff(gotScopes, tst.wantScopes); diff != "" {
+			t.Errorf("%s scopes got(-),want(+):\n%s", tst.name, diff)
+		}
+	}
+}
+
+func TestGenAndCommentHelpers(t *testing.T) {
+	g := generator{
+		apiName:       sample.ServiceTitle,
+		imports:       map[pbinfo.ImportSpec]bool{},
+		serviceConfig: sample.ServiceConfig(),
+		opts: &options{
+			pkgPath:    sample.GoPackagePath,
+			pkgName:    sample.GoPackageName,
+			transports: []transport{grpc, rest},
+		},
+	}
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
+	file := sample.File()
+
+	commonTypes(&g)
+	for _, typ := range []*descriptorpb.DescriptorProto{
+		inputType, outputType,
+	} {
+		typName := sample.DescriptorInfoTypeName(typ.GetName())
+		g.descInfo.Type[typName] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := sample.Service()
+	serv.Method = nil
+	for _, tst := range []struct {
+		description string
+		scopes      []string
+		want        string
+	}{
+		{
+			description: "nil",
+			scopes:      nil,
+			want:        filepath.Join("testdata", "helpers_no_scopes.want"),
+		},
+		{
+			description: "empty",
+			scopes:      []string{},
+			want:        filepath.Join("testdata", "helpers_no_scopes.want"),
+		},
+		{
+			description: "default",
+			scopes:      []string{"https://www.googleapis.com/auth/cloud-platform"},
+			want:        filepath.Join("testdata", "helpers_default_scope.want"),
+		},
+		{
+			description: "multiple",
+			scopes:      []string{"scope-a", "scope-b", "scope-c"},
+			want:        filepath.Join("testdata", "helpers_multiple_scopes.want"),
+		},
+	} {
+		t.Run(tst.description, func(t *testing.T) {
+			if err := g.genAndCommitHelpers(tst.scopes); err != nil {
+				t.Errorf("genAndCommitHelpers: %v", err)
+				return
+			}
+			txtdiff.Diff(t, g.pt.String(), tst.want)
+			g.reset()
+		})
 	}
 }
 
@@ -1318,4 +1390,16 @@ func setHTTPOption(o *descriptorpb.MethodOptions, pattern string) {
 			Get: pattern,
 		},
 	})
+}
+
+func setOAuthScopes(o *descriptorpb.ServiceDescriptorProto, scopes []string) {
+	sopts := o.Options
+	if sopts == nil {
+		sopts = &descriptorpb.ServiceOptions{}
+	}
+	proto.ClearExtension(sopts, annotations.E_OauthScopes)
+	if len(scopes) > 0 {
+		proto.SetExtension(sopts, annotations.E_OauthScopes, strings.Join(scopes, ","))
+	}
+	o.Options = sopts
 }

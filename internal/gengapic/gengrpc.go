@@ -48,7 +48,7 @@ func (g *generator) genGRPCMethods(serv *descriptorpb.ServiceDescriptorProto, se
 }
 
 // genGRPCMethod generates a single method from a client. m must be a method declared in serv.
-// If the generated method requires an auxillary type, it is added to aux.
+// If the generated method requires an auxiliary type, it is added to aux.
 func (g *generator) genGRPCMethod(servName string, serv *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
 	// Check if the RPC returns google.longrunning.Operation.
 	if g.isLRO(m) {
@@ -160,9 +160,10 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 }
 
 func (g *generator) grpcStubCall(method *descriptorpb.MethodDescriptorProto) string {
-	service := g.descInfo.ParentElement[method]
-	stub := pbinfo.ReduceServName(service.GetName(), g.opts.pkgName)
-	return fmt.Sprintf("c.%s.%s(ctx, req, settings.GRPC...)", grpcClientField(stub), method.GetName())
+	service := g.descInfo.ParentElement[method].(*descriptorpb.ServiceDescriptorProto)
+	override := g.getServiceNameOverride(service)
+	stub := pbinfo.ReduceServNameWithOverride(service.GetName(), g.opts.pkgName, override)
+	return fmt.Sprintf("executeRPC(ctx, c.%s.%s, req, settings.GRPC, c.logger, %q)", grpcClientField(stub), method.GetName(), method.GetName())
 }
 
 func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
@@ -185,9 +186,7 @@ func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("    internaloption.EnableJwtWithScope(),")
-	if _, ok := enableNewAuthLibrary[g.serviceConfig.GetName()]; ok {
-		p("internaloption.EnableNewAuthLibrary(),")
-	}
+	p("    internaloption.EnableNewAuthLibrary(),")
 	p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
 	p("      grpc.MaxCallRecvMsgSize(math.MaxInt32))),")
 	p("  }")
@@ -297,6 +296,8 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 
 	p("// The x-goog-* metadata to be sent with each request.")
 	p("xGoogHeaders []string")
+	p("")
+	p("logger *slog.Logger")
 
 	p("}")
 	p("")
@@ -305,12 +306,17 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	g.imports[imp] = true
 
 	g.grpcClientUtilities(serv, servName, imp, hasRPCForLRO)
+	g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 }
 
 func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
-	clientName := camelToSnake(serv.GetName())
+	clientName := serv.GetName()
+	if override := g.getServiceNameOverride(serv); override != "" {
+		clientName = override
+	}
+	clientName = camelToSnake(clientName)
 	clientName = strings.Replace(clientName, "_", " ", -1)
 	lowcaseServName := lowcaseGRPCClientName(servName)
 
@@ -339,6 +345,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("    connPool:    connPool,")
 	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
 	p("    CallOptions: &client.CallOptions,")
+	p("    logger: internaloption.GetLogger(opts),")
 	g.mixinStubsInit()
 	p("")
 	p("  }")

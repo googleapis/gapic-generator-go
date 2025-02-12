@@ -26,7 +26,8 @@ import (
 
 func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(serv.GetName(), pkgName)
+	override := g.getServiceNameOverride(serv)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 
 	g.exampleClientFactory(pkgName, servName)
 
@@ -36,6 +37,63 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
+	pkgName := g.opts.pkgName
+	override := g.getServiceNameOverride(serv)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
+	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	for _, m := range methods {
+		// Don't need streaming RPCs
+		if m.GetClientStreaming() || m.GetServerStreaming() {
+			continue
+		}
+		pf, _, err := g.getPagingFields(m)
+		if err != nil {
+			return err
+		}
+		// Don't generate for non-list RPCs
+		if pf == nil {
+			continue
+		}
+
+		p := g.printf
+
+		inType := g.descInfo.Type[m.GetInputType()]
+		if inType == nil {
+			return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetInputType())
+		}
+
+		inSpec, err := g.descInfo.ImportSpec(inType)
+		if err != nil {
+			return err
+		}
+
+		g.imports[inSpec] = true
+		// Pick the first transport for simplicity. We don't need examples
+		// of each method for both transports when they have the same surface.
+		t := g.opts.transports[0]
+		s := servName
+		if t == rest {
+			s += "REST"
+		}
+		p("func Example%sClient_%s_all() {", servName, m.GetName())
+		g.exampleInitClient(pkgName, s)
+
+		p("")
+		p("req := &%s.%s{", inSpec.Name, inType.GetName())
+		p("  // TODO: Fill request struct fields.")
+		p("  // See https://pkg.go.dev/%s#%s.", inSpec.Path, inType.GetName())
+		p("}")
+
+		if err := g.examplePagingAllCall(m); err != nil {
+			return err
+		}
+		p("}")
+		p("")
 	}
 	return nil
 }
@@ -61,8 +119,14 @@ func (g *generator) exampleClientFactory(pkgName, servName string) {
 }
 
 func (g *generator) exampleInitClient(pkgName, servName string) {
-	p := g.printf
+	g.exampleInitClientWithOpts(pkgName, servName, false)
+}
 
+func (g *generator) exampleInitClientWithOpts(pkgName, servName string, isPackageDoc bool) {
+	p := g.printf
+	if isPackageDoc {
+		p("// go get %s@latest", g.opts.pkgPath)
+	}
 	p("ctx := context.Background()")
 	p("// This snippet has been automatically generated and should be regarded as a code template only.")
 	p("// It will require modifications to work:")
@@ -97,6 +161,10 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptorpb.Meth
 }
 
 func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptorpb.MethodDescriptorProto) error {
+	return g.exampleMethodBodyWithOpts(pkgName, servName, m, false)
+}
+
+func (g *generator) exampleMethodBodyWithOpts(pkgName, servName string, m *descriptorpb.MethodDescriptorProto, isPackageDoc bool) error {
 	if m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(pongad): implement this correctly.
 		return nil
@@ -132,7 +200,9 @@ func (g *generator) exampleMethodBody(pkgName, servName string, m *descriptorpb.
 	if t == rest {
 		s += "REST"
 	}
-	g.exampleInitClient(pkgName, s)
+	if !isPackageDoc {
+		g.exampleInitClient(pkgName, s)
+	}
 
 	if !m.GetClientStreaming() && !m.GetServerStreaming() {
 		p("")
@@ -172,7 +242,7 @@ func (g *generator) exampleLROCall(m *descriptorpb.MethodDescriptorProto) {
 	opInfo := eLRO.(*longrunning.OperationInfo)
 	if opInfo.GetResponseType() == emptyValue || opInfo == nil {
 		// no new variables when this is used
-		// therefore don't attempt to delcare it
+		// therefore don't attempt to declare it
 		retVars = "err ="
 	}
 
@@ -246,6 +316,30 @@ func (g *generator) examplePagingCall(m *descriptorpb.MethodDescriptorProto) err
 	p("}")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
+	g.imports[outSpec] = true
+	return nil
+}
+
+func (g *generator) examplePagingAllCall(m *descriptorpb.MethodDescriptorProto) error {
+	outType := g.descInfo.Type[m.GetOutputType()]
+	if outType == nil {
+		return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetOutputType())
+	}
+
+	outSpec, err := g.descInfo.ImportSpec(outType)
+	if err != nil {
+		return err
+	}
+
+	p := g.printf
+
+	p("for resp, err := range c.%s(ctx, req).All() {", m.GetName())
+	p("  if err != nil {")
+	p("    // TODO: Handle error and break/return/continue. Iteration will stop after any error.")
+	p("  }")
+	p("  // TODO: Use resp.")
+	p("  _ = resp")
+	p("}")
 	g.imports[outSpec] = true
 	return nil
 }

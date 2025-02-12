@@ -1,5 +1,140 @@
 # Changelog
 
+## [0.51.1](https://github.com/googleapis/gapic-generator-go/compare/v0.51.0...v0.51.1) (2025-01-27)
+
+
+### Bug Fixes
+
+* Downgrade bazel google.golang.org/protobuf dep ([#1609](https://github.com/googleapis/gapic-generator-go/issues/1609)) ([fdb83e9](https://github.com/googleapis/gapic-generator-go/commit/fdb83e9e1064b7f6957d766f2a853e4d0337499a))
+
+## [0.51.0](https://github.com/googleapis/gapic-generator-go/compare/v0.50.0...v0.51.0) (2025-01-24)
+
+
+### Features
+
+* Prevent body double-read in googleapi.CheckResponse ([#1602](https://github.com/googleapis/gapic-generator-go/issues/1602)) ([bd42bc4](https://github.com/googleapis/gapic-generator-go/commit/bd42bc4f8818ef755ecdd05d7cedc2ac6b1bf8da))
+
+## [0.50.0](https://github.com/googleapis/gapic-generator-go/compare/v0.49.3...v0.50.0) (2024-12-20)
+
+
+### Features
+
+* Add service renaming ([#1580](https://github.com/googleapis/gapic-generator-go/issues/1580)) ([8c5bc3d](https://github.com/googleapis/gapic-generator-go/commit/8c5bc3db29a53d01405fba70c66df69661a841bc))
+
+
+### Bug Fixes
+
+* Update golang.org/x/net to v0.33.0 ([#1600](https://github.com/googleapis/gapic-generator-go/issues/1600)) ([73fa3b7](https://github.com/googleapis/gapic-generator-go/commit/73fa3b7730794f8c6a0ac635e8a91dd563750b41))
+
+## [0.49.3](https://github.com/googleapis/gapic-generator-go/compare/v0.49.2...v0.49.3) (2024-12-09)
+
+
+### Bug Fixes
+
+* Have a helper that returns a http Response as well ([#1594](https://github.com/googleapis/gapic-generator-go/issues/1594)) ([b947c65](https://github.com/googleapis/gapic-generator-go/commit/b947c6511043f038190ffb6480a4b4579d9f635b))
+
+## [0.49.2](https://github.com/googleapis/gapic-generator-go/compare/v0.49.1...v0.49.2) (2024-12-09)
+
+
+### Bug Fixes
+
+* Update logging imports in helpers file ([#1592](https://github.com/googleapis/gapic-generator-go/issues/1592)) ([bb8609f](https://github.com/googleapis/gapic-generator-go/commit/bb8609fdcbf2682004d3edaffc1abd7e9a4da4af))
+
+## [0.49.1](https://github.com/googleapis/gapic-generator-go/compare/v0.49.0...v0.49.1) (2024-12-06)
+
+
+### Bug Fixes
+
+* Add missing bazel deps for gapic rules ([#1589](https://github.com/googleapis/gapic-generator-go/issues/1589)) ([8481caf](https://github.com/googleapis/gapic-generator-go/commit/8481cafdcbd111f9ec04fc8e141702225ecb6eca))
+
+## [0.49.0](https://github.com/googleapis/gapic-generator-go/compare/v0.48.1...v0.49.0) (2024-12-06)
+
+
+### Features
+
+* Add logging support to generated clients ([#1577](https://github.com/googleapis/gapic-generator-go/issues/1577)) ([ae37381](https://github.com/googleapis/gapic-generator-go/commit/ae37381afd53cfd77e784c345cecb61e89c3ec52))
+
+
+### Bug Fixes
+
+* Make iter error handling clearer ([#1561](https://github.com/googleapis/gapic-generator-go/issues/1561)) ([dc5af4e](https://github.com/googleapis/gapic-generator-go/commit/dc5af4e6a5580d61a0750aaa4de0ba169bbb70fb))
+
+## [0.48.1](https://github.com/googleapis/gapic-generator-go/compare/v0.48.0...v0.48.1) (2024-11-14)
+
+
+### Bug Fixes
+
+* Improve imports behavior for helpers.go ([#1583](https://github.com/googleapis/gapic-generator-go/issues/1583)) ([5414611](https://github.com/googleapis/gapic-generator-go/commit/541461104f44af7241a5426170a36e2c6fc24e43))
+
+## [0.48.0](https://github.com/googleapis/gapic-generator-go/compare/v0.47.1...v0.48.0) (2024-11-13)
+
+
+### Features
+
+* Split doc.go generation into comments and code portions ([#1579](https://github.com/googleapis/gapic-generator-go/issues/1579)) ([396b171](https://github.com/googleapis/gapic-generator-go/commit/396b171c9460573fbfbdee31b0d9ab90b8dfb407))
+
+
+### Bug Fixes
+
+* Make iterator link clickable ([#1576](https://github.com/googleapis/gapic-generator-go/issues/1576)) ([6249624](https://github.com/googleapis/gapic-generator-go/commit/624962423ddf8b57b9b0cd4138bde6bbdd491427))
+
+## [0.47.1](https://github.com/googleapis/gapic-generator-go/compare/v0.47.0...v0.47.1) (2024-10-09)
+
+
+### Bug Fixes
+
+* **internal/gencli:** Revert broken migration to protobuf-go v2 in gencli ([#1573](https://github.com/googleapis/gapic-generator-go/issues/1573)) ([ece235a](https://github.com/googleapis/gapic-generator-go/commit/ece235a8b2aa96680e78906d0dacf409bd4deec9))
+
+## [0.47.0](https://github.com/googleapis/gapic-generator-go/compare/v0.46.2...v0.47.0) (2024-08-28)
+
+
+### Features
+
+* **gengapic:** Move all libraries to new auth lib ([#1564](https://github.com/googleapis/gapic-generator-go/issues/1564)) ([74b6c39](https://github.com/googleapis/gapic-generator-go/commit/74b6c39e442857ee568756c0fff8bc3c68200cc7))
+
+## [0.46.2](https://github.com/googleapis/gapic-generator-go/compare/v0.46.1...v0.46.2) (2024-08-19)
+
+
+### Bug Fixes
+
+* Use correct function name ([#1559](https://github.com/googleapis/gapic-generator-go/issues/1559)) ([de2babb](https://github.com/googleapis/gapic-generator-go/commit/de2babb5d6ef50f1325710654e58d519811066f1))
+
+## [0.46.1](https://github.com/googleapis/gapic-generator-go/compare/v0.46.0...v0.46.1) (2024-08-16)
+
+
+### Bug Fixes
+
+* Add missing cast for proto optionals ([#1557](https://github.com/googleapis/gapic-generator-go/issues/1557)) ([eb6fb9f](https://github.com/googleapis/gapic-generator-go/commit/eb6fb9f7091825f34555fb65ef79035180387540))
+
+## [0.46.0](https://github.com/googleapis/gapic-generator-go/compare/v0.45.0...v0.46.0) (2024-08-16)
+
+
+### Features
+
+* **gengapic:** Generate helpers for Go 1.23 iterators ([#1542](https://github.com/googleapis/gapic-generator-go/issues/1542)) ([d7ed683](https://github.com/googleapis/gapic-generator-go/commit/d7ed68339f7a542ec55d7cd8120b7eb8fc63fbc8))
+* Support wrapper types for autopagination ([#1541](https://github.com/googleapis/gapic-generator-go/issues/1541)) ([d10df59](https://github.com/googleapis/gapic-generator-go/commit/d10df5961ec6e8a79aed1ad2ed60a30d58ec748c))
+
+## [0.45.0](https://github.com/googleapis/gapic-generator-go/compare/v0.44.1...v0.45.0) (2024-07-24)
+
+
+### Features
+
+* Use new auth for storage and bigquery ([#1549](https://github.com/googleapis/gapic-generator-go/issues/1549)) ([9a45fd0](https://github.com/googleapis/gapic-generator-go/commit/9a45fd0815590fbcb52035d7a7bdb8f38f2c0ca5))
+
+## [0.44.1](https://github.com/googleapis/gapic-generator-go/compare/v0.44.0...v0.44.1) (2024-06-20)
+
+
+### Bug Fixes
+
+* **gengapic:** Make field var name generic ([#1537](https://github.com/googleapis/gapic-generator-go/issues/1537)) ([bafae38](https://github.com/googleapis/gapic-generator-go/commit/bafae381c50a5479bc863ac2d17e3b782e3e6e7f))
+
+## [0.44.0](https://github.com/googleapis/gapic-generator-go/compare/v0.43.1...v0.44.0) (2024-06-18)
+
+
+### Features
+
+* **gengapic:** Enable cloud.google.com/go/auth for most clients ([#1535](https://github.com/googleapis/gapic-generator-go/issues/1535)) ([cd06f12](https://github.com/googleapis/gapic-generator-go/commit/cd06f1200328e9bd8a3ed18eaf61acdc8ae1130d))
+
 ## [0.43.1](https://github.com/googleapis/gapic-generator-go/compare/v0.43.0...v0.43.1) (2024-05-30)
 
 

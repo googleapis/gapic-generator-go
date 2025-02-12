@@ -157,6 +157,8 @@ def go_gapic_library(
     "@com_github_google_uuid//:go_default_library",
     "@com_github_googleapis_gax_go_v2//:go_default_library",
     "@com_github_googleapis_gax_go_v2//apierror:go_default_library",
+    "@com_github_googleapis_gax_go_v2//internallog:go_default_library",
+    "@com_github_googleapis_gax_go_v2//internallog/grpclog:go_default_library",
     "@com_google_googleapis//google/rpc:status_go_proto",
     "@io_opentelemetry_go_contrib_instrumentation_net_http_otelhttp//:go_default_library",
     "@io_opentelemetry_go_contrib_instrumentation_google_golang_org_grpc_otelgrpc//:go_default_library",

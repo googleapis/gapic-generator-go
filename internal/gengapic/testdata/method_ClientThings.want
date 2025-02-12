@@ -4,7 +4,9 @@ func (c *fooGRPCClient) ClientThings(ctx context.Context, opts ...gax.CallOption
 	opts = append((*c.CallOptions).ClientThings[0:len((*c.CallOptions).ClientThings):len((*c.CallOptions).ClientThings)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
+		c.logger.DebugContext(ctx, "api streaming client request", "serviceName", serviceName, "rpcName", "ClientThings")
 		resp, err = c.fooClient.ClientThings(ctx, settings.GRPC...)
+		c.logger.DebugContext(ctx, "api streaming client response", "serviceName", serviceName, "rpcName", "ClientThings")
 		return err
 	}, opts...)
 	if err != nil {
