@@ -2,8 +2,6 @@ module github.com/googleapis/gapic-generator-go
 
 go 1.23.0
 
-toolchain go1.23.7
-
 require (
 	cloud.google.com/go/iam v1.3.1
 	cloud.google.com/go/longrunning v0.6.4
