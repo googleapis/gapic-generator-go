@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.2](https://github.com/googleapis/gapic-generator-go/compare/v0.51.1...v0.51.2) (2025-03-13)
+
+
+### Bug Fixes
+
+* **gencli:** Return nil instead of iterator.Done ([#1533](https://github.com/googleapis/gapic-generator-go/issues/1533)) ([973637e](https://github.com/googleapis/gapic-generator-go/commit/973637e39254156cc6840623c60df24e3baf1a0c))
+
 ## [0.51.1](https://github.com/googleapis/gapic-generator-go/compare/v0.51.0...v0.51.1) (2025-01-27)
 
 
