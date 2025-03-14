@@ -3,17 +3,17 @@ module github.com/googleapis/gapic-generator-go
 go 1.23.0
 
 require (
-	cloud.google.com/go/iam v1.3.1
-	cloud.google.com/go/longrunning v0.6.4
+	cloud.google.com/go/iam v1.4.2
+	cloud.google.com/go/longrunning v0.6.6
 	github.com/ghodss/yaml v1.0.0
-	github.com/google/go-cmp v0.6.0
-	github.com/jhump/protoreflect v1.16.0
+	github.com/google/go-cmp v0.7.0
+	github.com/jhump/protoreflect v1.17.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
-	golang.org/x/text v0.22.0
-	google.golang.org/genproto v0.0.0-20250124145028-65684f501c47
-	google.golang.org/genproto/googleapis/api v0.0.0-20250124145028-65684f501c47
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250124145028-65684f501c47
-	google.golang.org/protobuf v1.36.4
+	golang.org/x/text v0.23.0
+	google.golang.org/genproto e70fdf4c4cb4
+	google.golang.org/genproto/googleapis/api e70fdf4c4cb4
+	google.golang.org/genproto/googleapis/rpc e70fdf4c4cb4
+	google.golang.org/protobuf v1.36.5
 )
 
 require (
