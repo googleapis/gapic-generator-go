@@ -622,7 +622,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
-	streamClient := fmt.Sprintf("%sRESTClient", lowerFirst(m.GetName()))
+	streamClient := fmt.Sprintf("%sRESTStreamClient", lowerFirst(m.GetName()))
 
 	// rest-client method
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",

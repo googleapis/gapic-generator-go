@@ -26,7 +26,7 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 	hds = append(c.xGoogHeaders, hds...)
 	hds = append(hds, "Content-Type", "application/json")
 	headers := gax.BuildHeaders(ctx, hds...)
-	var streamClient *serverStreamRPCRESTClient
+	var streamClient *serverStreamRPCRESTStreamClient
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		if settings.Path != "" {
 			baseUrl.Path = settings.Path
@@ -43,7 +43,7 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 			return err
 		}
 
-		streamClient = &serverStreamRPCRESTClient{
+		streamClient = &serverStreamRPCRESTStreamClient{
 			ctx: ctx,
 			md: metadata.MD(httpRsp.Header),
 			stream: gax.NewProtoJSONStreamReader(httpRsp.Body, (&foopb.Foo{}).ProtoReflect().Type()),
@@ -54,15 +54,15 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 	return streamClient, e
 }
 
-// serverStreamRPCRESTClient is the stream client used to consume the server stream created by
+// serverStreamRPCRESTStreamClient is the stream client used to consume the server stream created by
 // the REST implementation of ServerStreamRPC.
-type serverStreamRPCRESTClient struct {
+type serverStreamRPCRESTStreamClient struct {
 	ctx context.Context
 	md metadata.MD
 	stream *gax.ProtoJSONStream
 }
 
-func (c *serverStreamRPCRESTClient) Recv() (*foopb.Foo, error) {
+func (c *serverStreamRPCRESTStreamClient) Recv() (*foopb.Foo, error) {
 	if err := c.ctx.Err(); err != nil {
 		defer c.stream.Close()
 		return nil, err
@@ -76,29 +76,29 @@ func (c *serverStreamRPCRESTClient) Recv() (*foopb.Foo, error) {
 	return res, nil
 }
 
-func (c *serverStreamRPCRESTClient) Header() (metadata.MD, error) {
+func (c *serverStreamRPCRESTStreamClient) Header() (metadata.MD, error) {
 	return c.md, nil
 }
 
-func (c *serverStreamRPCRESTClient) Trailer() metadata.MD {
+func (c *serverStreamRPCRESTStreamClient) Trailer() metadata.MD {
 	return c.md
 }
 
-func (c *serverStreamRPCRESTClient) CloseSend() error {
+func (c *serverStreamRPCRESTStreamClient) CloseSend() error {
 	// This is a no-op to fulfill the interface.
 	return errors.New("this method is not implemented for a server-stream")
 }
 
-func (c *serverStreamRPCRESTClient) Context() context.Context {
+func (c *serverStreamRPCRESTStreamClient) Context() context.Context {
 	return c.ctx
 }
 
-func (c *serverStreamRPCRESTClient) SendMsg(m interface{}) error {
+func (c *serverStreamRPCRESTStreamClient) SendMsg(m interface{}) error {
 	// This is a no-op to fulfill the interface.
 	return errors.New("this method is not implemented for a server-stream")
 }
 
-func (c *serverStreamRPCRESTClient) RecvMsg(m interface{}) error {
+func (c *serverStreamRPCRESTStreamClient) RecvMsg(m interface{}) error {
 	// This is a no-op to fulfill the interface.
 	return errors.New("this method is not implemented, use Recv")
 }
