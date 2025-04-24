@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.51.2](https://github.com/googleapis/gapic-generator-go/compare/v0.51.1...v0.51.2) (2025-04-24)
+
+
+### Bug Fixes
+
+* **gencli:** Return nil instead of iterator.Done ([#1533](https://github.com/googleapis/gapic-generator-go/issues/1533)) ([973637e](https://github.com/googleapis/gapic-generator-go/commit/973637e39254156cc6840623c60df24e3baf1a0c))
+* Remove name collision with server streaming RPC helper ([#1620](https://github.com/googleapis/gapic-generator-go/issues/1620)) ([447116a](https://github.com/googleapis/gapic-generator-go/commit/447116acf184ae32aa634a1aae133164301475a8)), closes [#1617](https://github.com/googleapis/gapic-generator-go/issues/1617)
+
 ## [0.51.1](https://github.com/googleapis/gapic-generator-go/compare/v0.51.0...v0.51.1) (2025-01-27)
 
 
