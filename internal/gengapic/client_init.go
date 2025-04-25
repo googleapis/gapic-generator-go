@@ -160,16 +160,21 @@ func (g *generator) serviceDoc(serv *descriptorpb.ServiceDescriptorProto) {
 		return
 	}
 
+	servName := serv.GetName()
+	if override := g.getServiceNameOverride(serv); override != "" {
+		servName = override
+	}
+
 	// If the service is marked as deprecated and there is no comment, then add default deprecation comment.
 	// If the service has a comment but it does not include a deprecation notice, then append a default deprecation notice.
 	// If the service includes a deprecation notice at the beginning of the comment, prepend a comment stating the service is deprecated and use the included deprecation notice.
 	if serv.GetOptions().GetDeprecated() {
 		if com == "" {
-			com = fmt.Sprintf("\n%s is deprecated.\n\nDeprecated: %[1]s may be removed in a future version.", serv.GetName())
+			com = fmt.Sprintf("\n%s is deprecated.\n\nDeprecated: %[1]s may be removed in a future version.", servName)
 		} else if strings.HasPrefix(com, "Deprecated:") {
-			com = fmt.Sprintf("\n%s is deprecated.\n\n%s", serv.GetName(), com)
+			com = fmt.Sprintf("\n%s is deprecated.\n\n%s", servName, com)
 		} else if !containsDeprecated(com) {
-			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, serv.GetName())
+			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, servName)
 		}
 	}
 	com = strings.TrimSpace(com)
@@ -240,6 +245,10 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto, serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
+	snippetServiceName := servName
+	if override := g.getServiceNameOverride(serv); override != "" {
+		snippetServiceName = override
+	}
 	clientTypeName := fmt.Sprintf("%sClient", servName)
 	inType := g.descInfo.Type[m.GetInputType()]
 	inSpec, err := g.descInfo.ImportSpec(inType)
@@ -258,7 +267,7 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
+		g.addSnippetsMetadataParams(m, snippetServiceName, reqTyp)
 		return nil
 	}
 
@@ -277,8 +286,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
-		g.addSnippetsMetadataResult(m, serv.GetName(), lroType)
+		g.addSnippetsMetadataParams(m, snippetServiceName, reqTyp)
+		g.addSnippetsMetadataResult(m, snippetServiceName, lroType)
 		return nil
 	}
 
@@ -296,8 +305,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
-		g.addSnippetsMetadataResult(m, serv.GetName(), iter.iterTypeName)
+		g.addSnippetsMetadataParams(m, snippetServiceName, reqTyp)
+		g.addSnippetsMetadataResult(m, snippetServiceName, iter.iterTypeName)
 		return nil
 	}
 
@@ -315,8 +324,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.addSnippetsMetadataParams(m, serv.GetName(), "")
-		g.addSnippetsMetadataResult(m, serv.GetName(), retTyp)
+		g.addSnippetsMetadataParams(m, snippetServiceName, "")
+		g.addSnippetsMetadataResult(m, snippetServiceName, retTyp)
 		return nil
 	case m.GetServerStreaming():
 		servSpec, err := g.descInfo.ImportSpec(serv)
@@ -332,8 +341,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
-		g.addSnippetsMetadataResult(m, serv.GetName(), retTyp)
+		g.addSnippetsMetadataParams(m, snippetServiceName, reqTyp)
+		g.addSnippetsMetadataResult(m, snippetServiceName, retTyp)
 		return nil
 	default:
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
@@ -348,8 +357,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		p("}")
 		p("")
 
-		g.addSnippetsMetadataParams(m, serv.GetName(), reqTyp)
-		g.addSnippetsMetadataResult(m, serv.GetName(), retTyp)
+		g.addSnippetsMetadataParams(m, snippetServiceName, reqTyp)
+		g.addSnippetsMetadataResult(m, snippetServiceName, retTyp)
 		return nil
 	}
 

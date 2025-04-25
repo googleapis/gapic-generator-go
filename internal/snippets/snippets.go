@@ -18,6 +18,7 @@ package snippets
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -129,6 +130,11 @@ func (sm *SnippetMetadata) UpdateMethodResult(servName, methodName, result strin
 // ctx and opts params are hardcoded since these are currently the same in all client wrapper methods.
 // The req param will be omitted if empty requestType is given.
 func (sm *SnippetMetadata) AddParams(servName, methodName, requestType string) {
+	log.Printf("AddParams: %v %v", servName, methodName)
+	log.Printf("expected SchemaService")
+	for key, value := range sm.protoServices {
+		log.Printf("key[%s] value[%v]", key, value)
+	}
 	m := sm.protoServices[servName].methods[methodName]
 	m.params = []*param{ctxParam}
 	if requestType != "" {
