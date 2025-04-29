@@ -245,7 +245,9 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto, serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	p := g.printf
 
-	snippetServiceName := servName
+	// This cannot be servName since that is a shortened version and the
+	// addSnippetsMetadataResult function expects the full service name.
+	snippetServiceName := serv.GetName()
 	if override := g.getServiceNameOverride(serv); override != "" {
 		snippetServiceName = override
 	}
