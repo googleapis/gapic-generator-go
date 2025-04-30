@@ -652,7 +652,11 @@ func (g *generator) methodDoc(m *descriptorpb.MethodDescriptorProto, serv *descr
 
 	// Prepend the method name to all non-empty comments.
 	com = m.GetName() + " " + lowerFirst(com)
-	g.addSnippetsMetadataDoc(m, serv.GetName(), com)
+	servName := serv.GetName()
+	if override := g.getServiceNameOverride(serv); override != "" {
+		servName = override
+	}
+	g.addSnippetsMetadataDoc(m, servName, com)
 	g.comment(com)
 }
 

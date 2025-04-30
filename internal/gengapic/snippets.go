@@ -73,7 +73,11 @@ func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto)
 		return nil
 	}
 	defaultHost := proto.GetExtension(s.Options, annotations.E_DefaultHost).(string)
-	g.snippetMetadata.AddService(s.GetName(), defaultHost)
+	servName := s.GetName()
+	if override := g.getServiceNameOverride(s); override != "" {
+		servName = override
+	}
+	g.snippetMetadata.AddService(servName, defaultHost)
 	methods := append(s.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
 		if m.GetClientStreaming() != m.GetServerStreaming() {
@@ -89,27 +93,32 @@ func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto)
 		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
 		// Use the client short name in this filepath.
 		// E.g. the client for LoggingServiceV2 is just "Client".
-		clientName := pbinfo.ReduceServName(s.GetName(), g.opts.pkgName) + "Client"
+		clientName := pbinfo.ReduceServName(servName, g.opts.pkgName) + "Client"
 		// Get the original proto namespace for the method (different from `s` only for mixins).
 		f := g.descInfo.ParentFile[m]
 		// Get the original proto service for the method (different from `s` only for mixins).
 		methodServ := (g.descInfo.ParentElement[m]).(*descriptorpb.ServiceDescriptorProto)
 		lineCount := g.commit(filepath.Join(g.snippetsOutDir(), clientName, m.GetName(), "main.go"), "main")
-		g.snippetMetadata.AddMethod(s.GetName(), m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
+		g.snippetMetadata.AddMethod(servName, m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
 	}
 	return nil
 }
 
 // genSnippetFile generates a single RPC snippet by leveraging exampleMethodBody in gengapic/example.go.
 func (g *generator) genSnippetFile(s *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) error {
-	regionTag := g.snippetMetadata.RegionTag(s.GetName(), m.GetName())
+	servName := s.GetName()
+	if override := g.getServiceNameOverride(s); override != "" {
+		servName = override
+	}
+	regionTag := g.snippetMetadata.RegionTag(servName, m.GetName())
 	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
 	pkgName := g.opts.pkgName
-	servName := pbinfo.ReduceServName(s.GetName(), pkgName)
+
+	reducedServName := pbinfo.ReduceServName(servName, pkgName)
 
 	p := g.printf
 	p("func main() {")
-	if err := g.exampleMethodBody(pkgName, servName, m); err != nil {
+	if err := g.exampleMethodBody(pkgName, reducedServName, m); err != nil {
 		return err
 	}
 	p("}")
