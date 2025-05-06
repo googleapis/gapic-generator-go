@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.0](https://github.com/googleapis/gapic-generator-go/compare/v0.51.2...v0.52.0) (2025-04-30)
+
+
+### Features
+
+* Support service renaming for snippets ([#1622](https://github.com/googleapis/gapic-generator-go/issues/1622)) ([8dcaa85](https://github.com/googleapis/gapic-generator-go/commit/8dcaa85717ce26696f390d8fea001f078da5fd9e))
+
 ## [0.51.2](https://github.com/googleapis/gapic-generator-go/compare/v0.51.1...v0.51.2) (2025-04-24)
 
 
