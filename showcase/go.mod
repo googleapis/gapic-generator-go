@@ -3,16 +3,16 @@ module showcase
 go 1.22.7
 
 require (
-	cloud.google.com/go v0.118.0
-	cloud.google.com/go/iam v1.3.1
-	github.com/google/go-cmp v0.6.0
-	github.com/googleapis/gapic-showcase v0.35.5
-	github.com/googleapis/gax-go/v2 v2.14.1
-	google.golang.org/api v0.218.0
-	google.golang.org/genproto v0.0.0-20250124145028-65684f501c47
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250124145028-65684f501c47
-	google.golang.org/grpc v1.70.0
-	google.golang.org/protobuf v1.36.4
+	cloud.google.com/go v0.121.1
+	cloud.google.com/go/iam v1.5.2
+	github.com/google/go-cmp v0.7.0
+	github.com/googleapis/gapic-showcase v0.36.2
+	github.com/googleapis/gax-go/v2 v2.14.2
+	google.golang.org/api v0.233.0
+	google.golang.org/genproto 5a2f75b736a9
+	google.golang.org/genproto/googleapis/rpc 5a2f75b736a9
+	google.golang.org/grpc v1.72.1
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
