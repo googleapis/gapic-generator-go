@@ -232,9 +232,12 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	p := g.printf
 	g.reset()
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/runtime/protoimpl"}] = true
 
 	p("const serviceName = %q", g.serviceConfig.GetName())
+	p(`var protoVersion = fmt.Sprintf("1.%%d", protoimpl.MaxVersion)`)
 	p("")
 
 	p("// For more information on implementing a client constructor hook, see")
