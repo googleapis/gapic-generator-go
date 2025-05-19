@@ -237,6 +237,9 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/runtime/protoimpl"}] = true
 
 	p("const serviceName = %q", g.serviceConfig.GetName())
+	// Note: protoimpl currently only exposes their minor version. If they ever
+	// take a v2 we will need to update this code accordingly and/or ask them to
+	// expose the major version as well.
 	p(`var protoVersion = fmt.Sprintf("1.%%d", protoimpl.MaxVersion)`)
 	p("")
 
