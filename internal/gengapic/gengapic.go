@@ -232,9 +232,15 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	p := g.printf
 	g.reset()
 	g.imports[pbinfo.ImportSpec{Path: "context"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
+	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/runtime/protoimpl"}] = true
 
 	p("const serviceName = %q", g.serviceConfig.GetName())
+	// Note: protoimpl currently only exposes their minor version. If they ever
+	// take a v2 we will need to update this code accordingly and/or ask them to
+	// expose the major version as well.
+	p(`var protoVersion = fmt.Sprintf("1.%%d", protoimpl.MaxVersion)`)
 	p("")
 
 	p("// For more information on implementing a client constructor hook, see")

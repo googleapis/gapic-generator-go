@@ -1,4 +1,5 @@
 const serviceName = "secretmanager.googleapis.com"
+var protoVersion = fmt.Sprintf("1.%d", protoimpl.MaxVersion)
 
 // For more information on implementing a client constructor hook, see
 // https://github.com/googleapis/google-cloud-go/wiki/Customizing-constructors.
