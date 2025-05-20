@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.53.0](https://github.com/googleapis/gapic-generator-go/compare/v0.52.0...v0.53.0) (2025-05-20)
+
+
+### Features
+
+* Add proto runtime version in header ([#1624](https://github.com/googleapis/gapic-generator-go/issues/1624)) ([e337401](https://github.com/googleapis/gapic-generator-go/commit/e337401603915c0c471f8ae02aed378ca5ff5a67))
+
+
+### Bug Fixes
+
+* Add missing strict deps ([#1629](https://github.com/googleapis/gapic-generator-go/issues/1629)) ([907a834](https://github.com/googleapis/gapic-generator-go/commit/907a834d24b81dde595f549054111da0f87da11c))
+
 ## [0.52.0](https://github.com/googleapis/gapic-generator-go/compare/v0.51.2...v0.52.0) (2025-04-30)
 
 
