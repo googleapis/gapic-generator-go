@@ -674,8 +674,25 @@ func TestMethodDoc(t *testing.T) {
 }
 
 func TestGenOperationBuilders(t *testing.T) {
+	optsUUID4 := &descriptorpb.FieldOptions{}
+	proto.SetExtension(optsUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
+
 	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:  proto.String("other"),
+				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
+			},
+			{
+				Name:           proto.String("request_id"),
+				Type:           typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label:          labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
+				Proto3Optional: proto.Bool(true),
+				Options:        optsUUID4,
+			},
+		},
 	}
 	outputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("OutputType"),
@@ -696,6 +713,19 @@ func TestGenOperationBuilders(t *testing.T) {
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.serviceConfig = &serviceconfig.Service{
+		Publishing: &annotations.Publishing{
+			MethodSettings: []*annotations.MethodSettings{
+				{
+					// Enable auto-populated field request_id only for EmptyLRO, not RespLRO.
+					Selector: "my.pkg.Foo.EmptyLRO",
+					AutoPopulatedFields: []string{
+						"request_id",
+					},
+				},
+			},
+		},
+	}
 	g.mixins = mixins{
 		"google.longrunning.Operations":   operationsMethods(),
 		"google.cloud.location.Locations": locationMethods(),

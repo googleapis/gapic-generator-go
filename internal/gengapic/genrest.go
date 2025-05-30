@@ -904,6 +904,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), opWrapperType)
 
+	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(noahdietz): handle cancellation, metadata, osv.
 	// TODO(noahdietz): handle http headers
 	// TODO(noahdietz): handle deadlines?

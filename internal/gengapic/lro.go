@@ -44,6 +44,7 @@ func (g *generator) lroCall(servName string, m *descriptorpb.MethodDescriptorPro
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
 
 	g.insertRequestHeaders(m, grpc)
+	g.initializeAutoPopulatedFields(servName, m)
 	g.appendCallOpts(m)
 
 	p("  var resp *%s.%s", outSpec.Name, outType.GetName())
