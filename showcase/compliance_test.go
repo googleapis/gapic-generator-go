@@ -70,7 +70,7 @@ func TestComplianceSuite(t *testing.T) {
 
 	suite, err := getComplianceSuite()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err.Error())
 	}
 
 	for _, group := range suite.GetGroup() {

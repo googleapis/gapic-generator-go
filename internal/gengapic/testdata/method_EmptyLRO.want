@@ -1,5 +1,8 @@
 func (c *fooGRPCClient) EmptyLRO(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*EmptyLROOperation, error) {
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	if req != nil && req.RequestId == nil {
+		req.RequestId = proto.String(uuid.NewString())
+	}
 	opts = append((*c.CallOptions).EmptyLRO[0:len((*c.CallOptions).EmptyLRO):len((*c.CallOptions).EmptyLRO)], opts...)
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {

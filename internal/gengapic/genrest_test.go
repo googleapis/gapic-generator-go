@@ -835,7 +835,8 @@ func TestGenRestMethod(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
 				{Path: "cloud.google.com/go/longrunning"}: true,
-				{Path: "fmt"}: true,
+				{Path: "fmt"}:                    true,
+				{Path: "github.com/google/uuid"}: true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}: true,
@@ -894,6 +895,12 @@ func TestGenRestMethod(t *testing.T) {
 						},
 						{
 							Selector: "google.cloud.foo.v1.FooService.EmptyRPC",
+							AutoPopulatedFields: []string{
+								"request_id",
+							},
+						},
+						{
+							Selector: "google.cloud.foo.v1.FooService.LongrunningRPC",
 							AutoPopulatedFields: []string{
 								"request_id",
 							},
