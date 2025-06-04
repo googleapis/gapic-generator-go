@@ -185,6 +185,10 @@ func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultUniverseDomain(%q),", googleDefaultUniverse)
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
+	if _, ok := enableDirectPath[fmt.Sprintf("%s/%s", g.serviceConfig.GetName(), servName)]; ok {
+		p("    internaloption.EnableDirectPath(true),")
+		p("    internaloption.EnableDirectPathXds(),")
+	}
 	p("    internaloption.EnableJwtWithScope(),")
 	p("    internaloption.EnableNewAuthLibrary(),")
 	p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
