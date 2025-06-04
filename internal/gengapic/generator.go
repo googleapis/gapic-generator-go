@@ -41,6 +41,13 @@ var enableWrapperTypesForPageSize = map[string]bool{
 	"google.cloud.bigquery.v2": true,
 }
 
+// keyed by the API + service name joined by "/", e.g. "storage.googleapis.com/StorageControl".
+var enableDirectPath = map[string]bool{
+	"storage.googleapis.com/StorageControl": true,
+	// for test purposes.
+	"showcase.googleapis.com/Foo": true,
+}
+
 type generator struct {
 	pt printer.P
 
