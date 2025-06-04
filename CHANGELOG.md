@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.1](https://github.com/googleapis/gapic-generator-go/compare/v0.53.0...v0.53.1) (2025-05-30)
+
+
+### Bug Fixes
+
+* **gengapic:** Add support for AutoPopulatedFields UUID4 to LROs ([#1631](https://github.com/googleapis/gapic-generator-go/issues/1631)) ([043062a](https://github.com/googleapis/gapic-generator-go/commit/043062acc2fd2cb019f9931ddf51433357a78af3))
+
 ## [0.53.0](https://github.com/googleapis/gapic-generator-go/compare/v0.52.0...v0.53.0) (2025-05-20)
 
 
