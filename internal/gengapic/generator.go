@@ -41,6 +41,12 @@ var enableWrapperTypesForPageSize = map[string]bool{
 	"google.cloud.bigquery.v2": true,
 }
 
+var enableMtlsHardBoundTokens = map[string]bool{
+	"cloudkms.googleapis.com":      true,
+	"secretmanager.googleapis.com": true,
+	"showcase.googleapis.com":      true,
+}
+
 type generator struct {
 	pt printer.P
 

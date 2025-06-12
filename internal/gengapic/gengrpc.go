@@ -186,6 +186,9 @@ func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("    internaloption.EnableJwtWithScope(),")
+	if _, ok := enableMtlsHardBoundTokens[g.serviceConfig.GetName()]; ok {
+		p("internaloption.AllowHardBoundTokens(\"MTLS_S2A\"),")
+	}
 	p("    internaloption.EnableNewAuthLibrary(),")
 	p("    option.WithGRPCDialOption(grpc.WithDefaultCallOptions(")
 	p("      grpc.MaxCallRecvMsgSize(math.MaxInt32))),")
