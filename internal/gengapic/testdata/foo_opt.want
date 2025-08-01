@@ -26,6 +26,7 @@ func defaultFooGRPCClientOptions() []option.ClientOption {
 		internaloption.EnableDirectPath(true),
 		internaloption.EnableDirectPathXds(),
 		internaloption.EnableJwtWithScope(),
+		internaloption.AllowHardBoundTokens("MTLS_S2A"),
 		internaloption.EnableNewAuthLibrary(),
 		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
 		grpc.MaxCallRecvMsgSize(math.MaxInt32))),

@@ -48,6 +48,12 @@ var enableDirectPath = map[string]bool{
 	"showcase.googleapis.com/Foo": true,
 }
 
+var enableMtlsHardBoundTokens = map[string]bool{
+	"cloudkms.googleapis.com":      true,
+	"secretmanager.googleapis.com": true,
+	"showcase.googleapis.com":      true,
+}
+
 type generator struct {
 	pt printer.P
 
