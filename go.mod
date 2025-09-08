@@ -7,13 +7,13 @@ require (
 	cloud.google.com/go/longrunning v0.6.7
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.7.0
-	github.com/jhump/protoreflect v1.16.0
+	github.com/jhump/protoreflect v1.17.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
-	golang.org/x/text v0.25.0
-	google.golang.org/genproto v0.0.0-20250519155744-55703ea1f237
-	google.golang.org/genproto/googleapis/api v0.0.0-20250519155744-55703ea1f237
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237
-	google.golang.org/protobuf v1.36.6
+	golang.org/x/text v0.29.0
+	google.golang.org/genproto ef028d996bc1
+	google.golang.org/genproto/googleapis/api ef028d996bc1
+	google.golang.org/genproto/googleapis/rpc ef028d996bc1
+	google.golang.org/protobuf v1.36.8
 )
 
 require (
