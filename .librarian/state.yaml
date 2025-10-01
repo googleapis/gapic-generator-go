@@ -3,5 +3,5 @@ libraries:
   - id: generator
     version: 0.53.1
     source_roots:
-      - '.'
+      - .
     tag_format: 'v{version}'
