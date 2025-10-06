@@ -1,4 +1,4 @@
-# Changelog
+# Changes
 
 ## [0.53.1](https://github.com/googleapis/gapic-generator-go/compare/v0.53.0...v0.53.1) (2025-05-30)
 
