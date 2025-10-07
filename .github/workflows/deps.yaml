@@ -15,7 +15,7 @@ jobs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: bazel-contrib/setup-bazel@0.8.5
       with:
         # Avoid downloading Bazel every time.
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.update-bazel-deps.outputs.changed
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: main
     - uses: actions/download-artifact@v5
@@ -58,7 +58,7 @@ jobs:
       run: |
         tar xvzf repos.tgz
         rm repos.tgz
-    - uses: googleapis/code-suggester@v4
+    - uses: googleapis/code-suggester@v5
       id: code_suggester
       env:
         ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}  
@@ -74,7 +74,7 @@ jobs:
         git_dir: '.'
         force: true
     - name: Add automerge label to pull request
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           github.rest.issues.addLabels({
