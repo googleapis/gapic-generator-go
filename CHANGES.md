@@ -1,5 +1,13 @@
 # Changes
 
+## [0.54.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.54.0) (2025-10-07)
+
+
+### Features
+
+* Conditionally enable directpath for storagecontrol.googleapis.com ([1e451fa](https://github.com/googleapis/gapic-generator-go/commit/1e451faec522cd81ea911853bc4a53315766c2fd))
+* Conditionally enable AllowHardBoundTokens in gengrpc ([0edb451](https://github.com/googleapis/gapic-generator-go/commit/0edb4512ee7e4541592d669e270543f3fc856976))
+
 ## [0.53.1](https://github.com/googleapis/gapic-generator-go/compare/v0.53.0...v0.53.1) (2025-05-30)
 
 

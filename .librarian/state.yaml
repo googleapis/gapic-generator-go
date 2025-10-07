@@ -1,7 +1,11 @@
 image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go:latest
 libraries:
   - id: generator
-    version: 0.53.1
+    version: 0.54.0
+    last_generated_commit: ""
+    apis: []
     source_roots:
       - .
-    tag_format: 'v{version}'
+    preserve_regex: []
+    remove_regex: []
+    tag_format: v{version}
