@@ -121,7 +121,7 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 		},
 	}
 
-	opts, err := parseOptions(req.Parameter)
+	opts, err := NewOptionsFromParams(req.Parameter)
 	if err != nil {
 		return nil, err
 	}
