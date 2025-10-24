@@ -194,7 +194,7 @@ func newOptionsFromParams(generationParameter *string) (*options, error) {
 
 	}
 	// Now that all options are processed, normalized and validate.
-	if err := validateAndNormalizeConfig(cfg); err != nil {
+	if err := validateAndNormalizeOptions(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
@@ -206,7 +206,7 @@ func newOptionsFromParams(generationParameter *string) (*options, error) {
 //
 // It also handles cases such as default values (e.g. what transports are enabled) where the configuration is more
 // than a simple boolean option.
-func validateAndNormalizeConfig(cfg *options) error {
+func validateAndNormalizeOptions(cfg *options) error {
 	// Normalize transports.  If no transports are specified, generate gRPC only by default.
 	if len(cfg.transports) == 0 {
 		cfg.transports = []transport{grpc}
