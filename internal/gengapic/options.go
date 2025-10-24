@@ -37,7 +37,7 @@ var errInvalidPackageParam = errors.New("need parameter in format: go-gapic-pack
 // DeprecatedArgs are plugin arguments we want to explicitly error on, so invokers know that the
 // option is no longer supported.
 var DeprecatedArgs map[string]error = map[string]error{
-	"gapic-service-config": fmt.Errorf("removed, use api-service-config instead"),
+	"gapic-service-config": errors.New("removed, use api-service-config instead"),
 }
 
 // SupportedBooleanArgs expose boolean plugin arguments (presence enables option).
@@ -71,8 +71,8 @@ var SupportedPrefixArgs map[string]func(string) configOption = map[string]func(s
 }
 
 // Configuration needed to drive the operation of the plugin.
-// The options should be treated is immutable once instantiated.
-// TODO: rename this in a subsequent refactor
+// The options should be treated as immutable once instantiated.
+// TODO: rename this in a subsequent refactor (generatorConfig)
 type options struct {
 	// The fully qualified package path, e.g. "cloud.google.com/go/foo/v1/foopb"
 	pkgPath string
@@ -136,7 +136,7 @@ type configOption func(*options) error
 // SupportedPrefixArgs
 func newOptionsFromParams(generationParameter *string) (*options, error) {
 	if generationParameter == nil {
-		return nil, fmt.Errorf("generationParameter is nil, cannot configure")
+		return nil, errors.New("generationParameter is nil, cannot configure")
 	}
 
 	cfg := &options{}
@@ -182,7 +182,7 @@ func newOptionsFromParams(generationParameter *string) (*options, error) {
 			continue
 		}
 
-		// Now, handle prefix args be scanning registered prefixes.
+		// Now, handle prefix args by scanning registered prefixes.
 		for prefix, prefixOpt := range SupportedPrefixArgs {
 			if strings.HasPrefix(pluginArg, prefix) {
 				prefixLen := len(prefix)
@@ -214,7 +214,7 @@ func validateAndNormalizeOptions(cfg *options) error {
 
 	// REST enums are not supported by DIREGAPIC.
 	if cfg.diregapic && cfg.restNumericEnum {
-		return fmt.Errorf("incompatible features: diregapic and rest numeric enums")
+		return errors.New("incompatible features: diregapic and rest numeric enums")
 	}
 
 	// Certain configuration details must be present.
