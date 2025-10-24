@@ -34,39 +34,40 @@ const (
 // static error for the most critical argument
 var errInvalidPackageParam = errors.New("need parameter in format: go-gapic-package=client/import/path;packageName")
 
-// Deprecated plugin arguments we want to explicitly error on, so invokers know that the
+// DeprecatedArgs are plugin arguments we want to explicitly error on, so invokers know that the
 // option is no longer supported.
-var DEPRECATED_ARGS map[string]error = map[string]error{
+var DeprecatedArgs map[string]error = map[string]error{
 	"gapic-service-config": fmt.Errorf("removed, use api-service-config instead"),
 }
 
-// Supported boolean plugin arguments.
-var SUPPORTED_BOOLEAN_ARGS map[string]func() configOption = map[string]func() configOption{
-	"metadata":           EnableGAPICMetadata,
-	"diregapic":          GenerateAsDIREGAPIC,
-	"rest-numeric-enums": EnableRESTNumericEnums,
-	"omit-snippets":      EnableOmitSnippets,
+// SupportedBooleanArgs expose boolean plugin arguments (presence enables option).
+var SupportedBooleanArgs map[string]func() configOption = map[string]func() configOption{
+	"metadata":           enableGAPICMetadata,
+	"diregapic":          generateAsDIREGAPIC,
+	"rest-numeric-enums": enableRESTNumericEnums,
+	"omit-snippets":      enableOmitSnippets,
 }
 
-// Supported value plugin arguments, which are supplied in the form <key>=<value>.
-// The supplied string argument corresponds to the value part of the
-var SUPPORTED_VALUE_ARGS map[string]func(string) configOption = map[string]func(string) configOption{
-	"go-gapic-package":    WithGoGAPICPackage,
-	"api-service-config":  WithAPIServiceConfigPath,
-	"grpc-service-config": WithGRPCServiceConfigPath,
-	"module":              WithModulePrefix,
-	"release-level":       WithReleaseLevel,
-	"transport":           WithTransports,
+// SupportedValueArgs are arguments that are supplied in the form <key>=<value>.
+// The map is keyed by the argument key.
+var SupportedValueArgs map[string]func(string) configOption = map[string]func(string) configOption{
+	"go-gapic-package":    withGoGAPICPackage,
+	"api-service-config":  withAPIServiceConfigPath,
+	"grpc-service-config": withGRPCServiceConfigPath,
+	"module":              withModulePrefix,
+	"release-level":       withReleaseLevel,
+	"transport":           withTransports,
 }
 
-// Supported prefix args, which bear only a string prefix and all subsequent processing is based on the string.
-// This is primarily for doing package overrides, which are of the form:
+// SupportedPrefixArgs are a special case of the value arg that use a string prefix.
+// The primary use is for dynamic package overrides, which can be used to override the package
+// for a particular input in the example form:
 //
 //	Mgoogle/storage/v2/storage.proto=cloud.google.com/go/storage/internal/apiv2/stubs
 //
 // Recommendation: avoid adding more of these as they complicate processing.
-var SUPPORTED_PREFIX_ARGS map[string]func(string) configOption = map[string]func(string) configOption{
-	"M": WithPackageOverride,
+var SupportedPrefixArgs map[string]func(string) configOption = map[string]func(string) configOption{
+	"M": withPackageOverride,
 }
 
 // Configuration needed to drive the operation of the plugin.
@@ -126,7 +127,14 @@ type configOption func(*options) error
 
 // NewOptionsFromParams consumes the "parameter" field from the CodeGenerationRequest to produce a configuration.
 // This should be a comma seperated list of plugin arguments, and each one is handled in the order it appears.
-func NewOptionsFromParams(generationParameter *string) (*options, error) {
+//
+// All plugin arguments understood by this plugin should be registered in one of the well known option collections, which
+// are used to process the input parameters:
+// DeprecatedArgs
+// SupportedBooleanArgs
+// SupportedValueArgs
+// SupportedPrefixArgs
+func newOptionsFromParams(generationParameter *string) (*options, error) {
 	if generationParameter == nil {
 		return nil, fmt.Errorf("generationParameter is nil, cannot configure")
 	}
@@ -144,11 +152,11 @@ func NewOptionsFromParams(generationParameter *string) (*options, error) {
 		}
 
 		// Handle deprecated arguments first.
-		if err, ok := DEPRECATED_ARGS[pluginArg]; ok {
+		if err, ok := DeprecatedArgs[pluginArg]; ok {
 			return nil, err
 		}
 		// Handle the boolean keyword args, e.g. non key=value style arguments.
-		if o, ok := SUPPORTED_BOOLEAN_ARGS[pluginArg]; ok {
+		if o, ok := SupportedBooleanArgs[pluginArg]; ok {
 			if err := o()(cfg); err != nil {
 				// It's unlikely that any boolean option will surface errors, but we do it here
 				// lest we are surprised in the future.
@@ -167,7 +175,7 @@ func NewOptionsFromParams(generationParameter *string) (*options, error) {
 			return nil, fmt.Errorf("invalid plugin option value, missing value in key=value: %q", pluginArg)
 		}
 
-		if valueOpt, ok := SUPPORTED_VALUE_ARGS[key]; ok {
+		if valueOpt, ok := SupportedValueArgs[key]; ok {
 			if err := valueOpt(val)(cfg); err != nil {
 				return nil, fmt.Errorf("plugin arg %q invalid: %w", pluginArg, err)
 			}
@@ -175,7 +183,7 @@ func NewOptionsFromParams(generationParameter *string) (*options, error) {
 		}
 
 		// Now, handle prefix args be scanning registered prefixes.
-		for prefix, prefixOpt := range SUPPORTED_PREFIX_ARGS {
+		for prefix, prefixOpt := range SupportedPrefixArgs {
 			if strings.HasPrefix(pluginArg, prefix) {
 				prefixLen := len(prefix)
 				if err := prefixOpt(pluginArg[prefixLen:])(cfg); err != nil {
@@ -224,12 +232,12 @@ func validateAndNormalizeConfig(cfg *options) error {
 	return nil
 }
 
-// WithGoGapicPackage parses the value argument based on the typical
+// withGoGapicPackage parses the value argument based on the typical
 // pattern:
 // <packagepath>;<packagename>
 // Example:
 // cloud.google.com/go/foo/v1/foopb;foopb
-func WithGoGAPICPackage(s string) configOption {
+func withGoGAPICPackage(s string) configOption {
 	p := strings.IndexByte(s, ';')
 
 	if p < 0 {
@@ -245,28 +253,28 @@ func WithGoGAPICPackage(s string) configOption {
 	}
 }
 
-// EnableGAPICMetadata enables generation of GAPIC metadata.
-func EnableGAPICMetadata() configOption {
+// enableGAPICMetadata enables generation of GAPIC metadata.
+func enableGAPICMetadata() configOption {
 	return func(cfg *options) error {
 		cfg.metadata = true
 		return nil
 	}
 }
 
-// GenerateAsDIREGAPIC is a behavioral flag that ensures code generation respects
+// generateAsDIREGAPIC is a behavioral flag that ensures code generation respects
 // special DIREGAPIC constraints.  A DIREGAPIC is a set of input artifacts that were
 // reverse-compiled from an API Discovery document, rather than directly from service
 // protos (e.g. compute).
-func GenerateAsDIREGAPIC() configOption {
+func generateAsDIREGAPIC() configOption {
 	return func(cfg *options) error {
 		cfg.diregapic = true
 		return nil
 	}
 }
 
-// EnableRESTNumericEnums is a behavioral flag that causes the generated REST clients
+// enableRESTNumericEnums is a behavioral flag that causes the generated REST clients
 // to send the numeric value for enum fields rather than the string label.
-func EnableRESTNumericEnums() configOption {
+func enableRESTNumericEnums() configOption {
 	return func(cfg *options) error {
 		cfg.restNumericEnum = true
 		return nil
@@ -274,7 +282,7 @@ func EnableRESTNumericEnums() configOption {
 }
 
 // Should automatic generation of snippets be disabled.
-func EnableOmitSnippets() configOption {
+func enableOmitSnippets() configOption {
 	return func(cfg *options) error {
 		cfg.omitSnippets = true
 		return nil
@@ -282,7 +290,7 @@ func EnableOmitSnippets() configOption {
 }
 
 // Specifies the path to the API service config file.
-func WithAPIServiceConfigPath(s string) configOption {
+func withAPIServiceConfigPath(s string) configOption {
 	return func(cfg *options) error {
 		cfg.serviceConfigPath = s
 		return nil
@@ -290,7 +298,7 @@ func WithAPIServiceConfigPath(s string) configOption {
 }
 
 // Specifies the path to the gRPC service config file.
-func WithGRPCServiceConfigPath(s string) configOption {
+func withGRPCServiceConfigPath(s string) configOption {
 	return func(cfg *options) error {
 		cfg.grpcConfPath = s
 		return nil
@@ -298,7 +306,7 @@ func WithGRPCServiceConfigPath(s string) configOption {
 }
 
 // Specifies the module prefix.
-func WithModulePrefix(s string) configOption {
+func withModulePrefix(s string) configOption {
 	return func(cfg *options) error {
 		cfg.modulePrefix = s
 		return nil
@@ -306,7 +314,7 @@ func WithModulePrefix(s string) configOption {
 }
 
 // Specifies the release level of the generated artifacts.
-func WithReleaseLevel(s string) configOption {
+func withReleaseLevel(s string) configOption {
 	return func(cfg *options) error {
 		// TODO: this should be validated against a well defined set of levels
 		cfg.relLvl = s
@@ -314,9 +322,9 @@ func WithReleaseLevel(s string) configOption {
 	}
 }
 
-// WithPackageOverride handles a package naming override.
+// withPackageOverride handles a package naming override.
 // The `M` prefix is not passed as part of the string, only the remaining substring.
-func WithPackageOverride(s string) configOption {
+func withPackageOverride(s string) configOption {
 	e := strings.IndexByte(s, '=')
 	if e < 0 {
 		return func(cfg *options) error {
@@ -352,7 +360,7 @@ func (t transport) String() string {
 }
 
 // Specifies the requested network transports to generate.
-func WithTransports(s string) configOption {
+func withTransports(s string) configOption {
 	transports := map[transport]bool{}
 	for _, t := range strings.Split(s, "+") {
 		switch t {

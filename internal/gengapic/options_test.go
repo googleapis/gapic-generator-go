@@ -140,7 +140,7 @@ func TestParseOptions(t *testing.T) {
 			expectErr: false,
 		},
 	} {
-		opts, err := NewOptionsFromParams(&tst.param)
+		opts, err := newOptionsFromParams(&tst.param)
 		if tst.expectErr && err == nil {
 			t.Errorf("parseOptions(%s) expected error", tst.param)
 			continue
