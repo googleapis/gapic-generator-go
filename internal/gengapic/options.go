@@ -167,19 +167,14 @@ func newOptionsFromParams(generationParameter *string) (*options, error) {
 
 		// Handle value args by parsing key=value parts.
 		e := strings.IndexByte(pluginArg, '=')
-		if e < 0 {
-			return nil, fmt.Errorf("invalid plugin option format, must be key=value: %q", pluginArg)
-		}
-		key, val := pluginArg[:e], pluginArg[e+1:]
-		if val == "" {
-			return nil, fmt.Errorf("invalid plugin option value, missing value in key=value: %q", pluginArg)
-		}
-
-		if valueOpt, ok := SupportedValueArgs[key]; ok {
-			if err := valueOpt(val)(cfg); err != nil {
-				return nil, fmt.Errorf("plugin arg %q invalid: %w", pluginArg, err)
+		if e > 0 {
+			key, val := pluginArg[:e], pluginArg[e+1:]
+			if valueOpt, ok := SupportedValueArgs[key]; ok {
+				if err := valueOpt(val)(cfg); err != nil {
+					return nil, fmt.Errorf("plugin arg %q invalid: %w", pluginArg, err)
+				}
+				continue
 			}
-			continue
 		}
 
 		// Now, handle prefix args by scanning registered prefixes.
@@ -189,6 +184,7 @@ func newOptionsFromParams(generationParameter *string) (*options, error) {
 				if err := prefixOpt(pluginArg[prefixLen:])(cfg); err != nil {
 					return nil, fmt.Errorf("plugin arg %q invalid: %w", pluginArg, err)
 				}
+				continue
 			}
 		}
 
