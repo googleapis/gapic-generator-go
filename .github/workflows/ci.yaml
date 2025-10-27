@@ -32,7 +32,7 @@ jobs:
       # Exclude all of the grpc_service_config package (it is generated).
       run: go mod download && go vet $(go list ./... | grep -v 'grpc_service_config') > govet.txt && ! [ -s govet.txt ]
       if: ${{ always() }}
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       if: ${{ always() }}
       with:
         name: linting-results
