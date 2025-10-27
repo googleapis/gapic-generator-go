@@ -38,7 +38,7 @@ jobs:
     - name: Prepare repositories.bzl payload
       if: steps.update.outputs.changed
       run: tar czf repos.tgz repositories.bzl
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       if: steps.update.outputs.changed
       with:
         name: repositories
@@ -51,7 +51,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: main
-    - uses: actions/download-artifact@v5
+    - uses: actions/download-artifact@v6
       with:
         name: repositories
     - name: Expand repositories archive
