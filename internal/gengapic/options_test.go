@@ -17,6 +17,8 @@ package gengapic
 import (
 	"reflect"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestParseOptions(t *testing.T) {
@@ -140,7 +142,7 @@ func TestParseOptions(t *testing.T) {
 			expectErr: false,
 		},
 	} {
-		opts, err := parseOptions(&tst.param)
+		opts, err := newOptionsFromParams(&tst.param)
 		if tst.expectErr && err == nil {
 			t.Errorf("parseOptions(%s) expected error", tst.param)
 			continue
@@ -155,5 +157,75 @@ func TestParseOptions(t *testing.T) {
 			t.Errorf("parseOptions(%s) = %+v, expected %+v", tst.param, opts, tst.expectedOpts)
 			continue
 		}
+	}
+}
+
+func TestValidateAndNormalizeOptions(t *testing.T) {
+	for _, tc := range []struct {
+		description string
+		in          *options
+		wantErr     bool
+		want        *options
+	}{
+		{
+			description: "empty",
+			in:          &options{},
+			wantErr:     true, // no package info
+		},
+		{
+			description: "minimal",
+			in: &options{
+				pkgPath: "path",
+				pkgName: "name",
+				outDir:  "dir",
+			},
+			want: &options{
+				pkgPath:    "path",
+				pkgName:    "name",
+				outDir:     "dir",
+				transports: []transport{grpc},
+			},
+		},
+		{
+			description: "conflict diregapic enum",
+			in: &options{
+				pkgPath:         "path",
+				pkgName:         "name",
+				outDir:          "dir",
+				diregapic:       true,
+				restNumericEnum: true,
+			},
+			wantErr: true,
+		},
+		{
+			description: "mismatched module prefix",
+			in: &options{
+				pkgPath:      "path",
+				pkgName:      "name",
+				outDir:       "foo/bar/baz",
+				modulePrefix: "notfoo",
+			},
+			wantErr: true,
+		},
+	} {
+		t.Run(tc.description, func(t *testing.T) {
+			got := tc.in
+			err := validateAndNormalizeOptions(got)
+			if tc.wantErr {
+				if err != nil {
+					return
+				}
+				t.Fatalf("wanted err, got success")
+			}
+			if !tc.wantErr {
+				if err != nil {
+					t.Errorf("got unwanted err: %v", err)
+				}
+			}
+			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(options{})); diff != "" {
+				t.Errorf("got(-), want(+):\n%s", diff)
+			}
+		})
+
 	}
 }
