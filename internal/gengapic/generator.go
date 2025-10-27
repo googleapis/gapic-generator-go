@@ -49,9 +49,26 @@ var enableDirectPath = map[string]bool{
 }
 
 var enableMtlsHardBoundTokens = map[string]bool{
-	"cloudkms.googleapis.com":      true,
-	"secretmanager.googleapis.com": true,
-	"showcase.googleapis.com":      true,
+	"bigquery.googleapis.com":             true,
+	"cloudasset.googleapis.com":           true,
+	"clouderrorreporting.googleapis.com":  true,
+	"cloudkms.googleapis.com":             true,
+	"cloudresourcemanager.googleapis.com": true,
+	"cloudtasks.googleapis.com":           true,
+	"cloudtrace.googleapis.com":           true,
+	"dataflow.googleapis.com":             true,
+	"datastore.googleapis.com":            true,
+	"essentialcontacts.googleapis.com":    true,
+	"firestore.googleapis.com":            true,
+	"iam.googleapis.com":                  true,
+	"iamcredentials.googleapis.com":       true,
+	"logging.googleapis.com":              true,
+	"monitoring.googleapis.com":           true,
+	"orgpolicy.googleapis.com":            true,
+	"pubsub.googleapis.com":               true,
+	"recommender.googleapis.com":          true,
+	"secretmanager.googleapis.com":        true,
+	"showcase.googleapis.com":             true,
 }
 
 type generator struct {
