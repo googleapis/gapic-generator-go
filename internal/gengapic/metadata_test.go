@@ -36,7 +36,8 @@ func TestAddMetadataServiceEntry(t *testing.T) {
 			want: &metadata.GapicMetadata{
 				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
 					"Fooer": {
-						Clients: make(map[string]*metadata.GapicMetadata_ServiceAsClient),
+						Clients:    make(map[string]*metadata.GapicMetadata_ServiceAsClient),
+						ApiVersion: "v1",
 					},
 				},
 			},

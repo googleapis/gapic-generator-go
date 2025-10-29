@@ -44,9 +44,8 @@ func (g *generator) addMetadataServiceEntry(service, apiVersion string) {
 	s, ok := g.metadata.GetServices()[service]
 	if !ok {
 		s = &metadata.GapicMetadata_ServiceForTransport{
-			Clients: make(map[string]*metadata.GapicMetadata_ServiceAsClient),
-			// TODO(noahdietz): Uncomment when I can include updated go-genproto.
-			// ApiVersion: apiVersion,
+			Clients:    make(map[string]*metadata.GapicMetadata_ServiceAsClient),
+			ApiVersion: apiVersion,
 		}
 		g.metadata.Services[service] = s
 	}
