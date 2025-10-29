@@ -73,14 +73,4 @@ jobs:
         branch: update-bazel-deps
         git_dir: '.'
         force: true
-    - name: Add automerge label to pull request
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.issues.addLabels({
-            issue_number: ${{ steps.code_suggester.outputs.pull }},
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            labels: ['automerge']
-          })
 

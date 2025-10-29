@@ -12,7 +12,8 @@
   ],
   "golang": {
     "ignoreDeps": [
-      "github.com/russross/blackfriday"
+      "github.com/russross/blackfriday",
+      "github.com/jhump/protoreflect"
     ],
     "postUpdateOptions": [
       "gomodTidy"
@@ -25,7 +26,7 @@
   "groupName": "deps",
   "force": {
     "constraints": {
-      "go": "1.22"
+      "go": "1.24"
     }
   }
 }
