@@ -12,7 +12,8 @@
   ],
   "golang": {
     "ignoreDeps": [
-      "github.com/russross/blackfriday"
+      "github.com/russross/blackfriday",
+      "github.com/jhump/protoreflect"
     ],
     "postUpdateOptions": [
       "gomodTidy"
