@@ -265,8 +265,8 @@ def com_googleapis_gapic_generator_go_repositories():
         # This should be retained by gazelle.
         build_file_proto_mode = "disable",
         importpath = "github.com/jhump/protoreflect",
-        sum = "h1:qOEr613fac2lOuTgWN4tPAtLL7fUSbuJL5X5XumQh94=",
-        version = "v1.17.0",
+        sum = "h1:54fZg+49widqXYQ0b+usAFHbMkBGR4PpXrsHc8+TBDg=",
+        version = "v1.16.0",
     )
     go_repository(
         name = "com_github_kr_pretty",

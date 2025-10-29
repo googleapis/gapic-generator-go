@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/longrunning v0.7.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.7.0
-	github.com/jhump/protoreflect v1.17.0
+	github.com/jhump/protoreflect v1.16.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
 	golang.org/x/text v0.30.0
 	google.golang.org/genproto v0.0.0-20251029180050-ab9386a59fda
