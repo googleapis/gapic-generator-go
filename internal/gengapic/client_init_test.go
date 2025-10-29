@@ -330,8 +330,8 @@ func TestClientInit(t *testing.T) {
 		},
 		Options: &descriptorpb.ServiceOptions{},
 	}
-	servPlainApiVersion := "v1_20240425"
-	proto.SetExtension(servPlain.Options, annotations.E_ApiVersion, servPlainApiVersion)
+	servPlainAPIVersion := "v1_20240425"
+	proto.SetExtension(servPlain.Options, annotations.E_ApiVersion, servPlainAPIVersion)
 
 	servLRO := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
@@ -595,8 +595,8 @@ func TestClientInit(t *testing.T) {
 
 			if md, ok := g.metadata.GetServices()[tst.serv.GetName()]; !ok {
 				t.Errorf("ClientInit(%s) gapic metadata, expected %s to be present but found %+v", tst.tstName, tst.serv.GetName(), g.metadata.GetServices())
-			} else if tst.serv == servPlain && md.GetApiVersion() != servPlainApiVersion {
-				t.Errorf("ClinitInit(%s) gapic metadata service entry api version, got %q, want %q", tst.tstName, md.GetApiVersion(), servPlainApiVersion)
+			} else if tst.serv == servPlain && md.GetApiVersion() != servPlainAPIVersion {
+				t.Errorf("ClinitInit(%s) gapic metadata service entry api version, got %q, want %q", tst.tstName, md.GetApiVersion(), servPlainAPIVersion)
 			}
 
 			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
