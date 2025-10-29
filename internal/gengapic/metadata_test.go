@@ -23,6 +23,66 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+func TestAddMetadataServiceEntry(t *testing.T) {
+	for _, tst := range []struct {
+		name, service, apiVersion string
+		init, want                *metadata.GapicMetadata
+	}{
+		{
+			name:       "empty_metadata",
+			service:    "Fooer",
+			apiVersion: "v1",
+			init:       &metadata.GapicMetadata{},
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
+					"Fooer": {
+						Clients: make(map[string]*metadata.GapicMetadata_ServiceAsClient),
+					},
+				},
+			},
+		},
+		{
+			name:       "service_exists",
+			service:    "Fooer",
+			apiVersion: "v1",
+			init: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
+					"Fooer": {
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
+							"grpc": {
+								LibraryClient: "FooerClient",
+							},
+						},
+					},
+				},
+			},
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
+					"Fooer": {
+						Clients: map[string]*metadata.GapicMetadata_ServiceAsClient{
+							"grpc": {
+								LibraryClient: "FooerClient",
+							},
+						},
+					},
+				},
+			},
+		},
+	} {
+		t.Run(tst.name, func(t *testing.T) {
+			g := generator{
+				metadata: tst.init,
+			}
+			g.addMetadataServiceEntry(tst.service, tst.apiVersion)
+
+			if diff := cmp.Diff(g.metadata, tst.want, cmp.Comparer(proto.Equal)); diff != "" {
+				t.Errorf("addMetadataServiceEntry(%q, %q): got(-),want(+):\n%s", tst.service, tst.apiVersion, diff)
+			}
+		})
+	}
+
+}
+
 func TestAddMetadataServiceForTransport(t *testing.T) {
 	for _, tst := range []struct {
 		service, lib string
@@ -33,6 +93,20 @@ func TestAddMetadataServiceForTransport(t *testing.T) {
 			lib:     "LibraryService",
 			init: &metadata.GapicMetadata{
 				Services: make(map[string]*metadata.GapicMetadata_ServiceForTransport),
+			},
+			want: &metadata.GapicMetadata{
+				Services: make(map[string]*metadata.GapicMetadata_ServiceForTransport),
+			},
+		},
+		{
+			service: "LibraryService",
+			lib:     "LibraryService",
+			init: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
+					"LibraryService": {
+						Clients: make(map[string]*metadata.GapicMetadata_ServiceAsClient),
+					},
+				},
 			},
 			want: &metadata.GapicMetadata{
 				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{

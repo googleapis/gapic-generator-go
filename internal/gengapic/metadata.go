@@ -35,33 +35,66 @@ func (g *generator) genGapicMetadataFile() error {
 	return nil
 }
 
-// Adds a metadata structure for the (service, transport) combination.
-// This method is idempotent.
-func (g *generator) addMetadataServiceForTransport(service, transport, lib string) {
+// Initializes the service metadata entry with the API version, if set.
+// Per-transport clients will be added as they are generated.
+func (g *generator) addMetadataServiceEntry(service, apiVersion string) {
+	if g.metadata.Services == nil {
+		g.metadata.Services = make(map[string]*metadata.GapicMetadata_ServiceForTransport)
+	}
 	s, ok := g.metadata.GetServices()[service]
 	if !ok {
 		s = &metadata.GapicMetadata_ServiceForTransport{
 			Clients: make(map[string]*metadata.GapicMetadata_ServiceAsClient),
+			// TODO(noahdietz): Uncomment when I can include updated go-genproto.
+			// ApiVersion: apiVersion,
 		}
 		g.metadata.Services[service] = s
+	}
+}
+
+// Adds a metadata structure for the (service, transport) combination.
+// Will exit early if addMetadataServiceEntry is not called prior to this.
+// This method is idempotent.
+func (g *generator) addMetadataServiceForTransport(service, transport, lib string) {
+	if g.metadata.Services == nil {
+		return
+	}
+
+	s, ok := g.metadata.GetServices()[service]
+	if !ok {
+		return
 	}
 
 	if _, ok := s.Clients[transport]; !ok {
 		s.Clients[transport] = &metadata.GapicMetadata_ServiceAsClient{
 			// The "Client" part of the generated type's name is hard-coded in the
 			// generator so we need to append it to the lib name.
-			//
-			// TODO(noahdietz): when REGAPIC is added we may need to special-case based
-			// on transport.
 			LibraryClient: lib + "Client",
 			Rpcs:          make(map[string]*metadata.GapicMetadata_MethodList),
 		}
 	}
 }
 
+// Adds a metadata service transport client method entry for the given RPC.
+// Will exit early if addMetadataServiceEntry or addMetadaServiceForTransport
+// are not called prior to this.
 func (g *generator) addMetadataMethod(service, transport, rpc string) {
+	if g.metadata.Services == nil {
+		return
+	}
+	s, ok := g.metadata.GetServices()[service]
+	if !ok {
+		return
+	}
+	c, ok := s.GetClients()[transport]
+	if !ok {
+		return
+	}
+	if c.GetRpcs() == nil {
+		c.Rpcs = make(map[string]*metadata.GapicMetadata_MethodList)
+	}
 	// There is only one method per RPC on a generated Go client, with the same name as the RPC.
-	g.metadata.GetServices()[service].GetClients()[transport].GetRpcs()[rpc] = &metadata.GapicMetadata_MethodList{
+	c.GetRpcs()[rpc] = &metadata.GapicMetadata_MethodList{
 		Methods: []string{rpc},
 	}
 }
