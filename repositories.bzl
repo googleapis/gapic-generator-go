@@ -1333,6 +1333,8 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:UnVkv1+uMLYXoIz6o7chp59WfQUYA2ex/BXQ9rHZu7A=",
         version = "v1.76.0",
     )
+
+    #keep
     go_repository(
         name = "org_golang_google_protobuf",
         build_directives = [
