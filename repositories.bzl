@@ -1342,9 +1342,9 @@ def com_googleapis_gapic_generator_go_repositories():
             "-exclude=**/testdata",
         ],
         importpath = "google.golang.org/protobuf",
-        sum = "h1:8Ar7bF+apOIoThw1EdZl0p1oWvMqTHmpA2fRTyZO8io=",
+        sum = "h1:AYd7cD/uASjIL6Q9LiTjz8JLcrh/88q5UObnmY3aOOE=",
         # TODO(https://github.com/googleapis/gapic-generator-go/issues/1608): Don't hard-code old version
-        version = "v1.35.2",
+        version = "v1.36.10",
     )
     go_repository(
         name = "org_golang_x_crypto",
