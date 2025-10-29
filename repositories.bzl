@@ -1334,7 +1334,7 @@ def com_googleapis_gapic_generator_go_repositories():
         version = "v1.76.0",
     )
 
-    #keep
+    #keep: frozen due to https://github.com/googleapis/gapic-generator-go/issues/1608
     go_repository(
         name = "org_golang_google_protobuf",
         build_directives = [
