@@ -330,7 +330,8 @@ func TestClientInit(t *testing.T) {
 		},
 		Options: &descriptorpb.ServiceOptions{},
 	}
-	proto.SetExtension(servPlain.Options, annotations.E_ApiVersion, "v1_20240425")
+	servPlainApiVersion := "v1_20240425"
+	proto.SetExtension(servPlain.Options, annotations.E_ApiVersion, servPlainApiVersion)
 
 	servLRO := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("Foo"),
@@ -591,6 +592,12 @@ func TestClientInit(t *testing.T) {
 			}
 			g.snippetMetadata = sm
 			g.makeClients(tst.serv, tst.servName)
+
+			if md, ok := g.metadata.GetServices()[tst.serv.GetName()]; !ok {
+				t.Errorf("ClientInit(%s) gapic metadata, expected %s to be present but found %+v", tst.tstName, tst.serv.GetName(), g.metadata.GetServices())
+			} else if tst.serv == servPlain && md.GetApiVersion() != servPlainApiVersion {
+				t.Errorf("ClinitInit(%s) gapic metadata service entry api version, got %q, want %q", tst.tstName, md.GetApiVersion(), servPlainApiVersion)
+			}
 
 			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
 				t.Errorf("ClientInit(%s) imports got(-),want(+):\n%s", tst.tstName, diff)

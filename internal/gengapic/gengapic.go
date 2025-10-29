@@ -353,9 +353,6 @@ func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 		return err
 	}
 
-	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
-	g.addMetadataServiceEntry(serv.GetName(), apiVersion)
-
 	for _, v := range g.opts.transports {
 		switch v {
 		case grpc:
