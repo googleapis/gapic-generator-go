@@ -41,9 +41,9 @@ func (g *generator) addMetadataServiceEntry(service, apiVersion string) {
 	if g.metadata.Services == nil {
 		g.metadata.Services = make(map[string]*metadata.GapicMetadata_ServiceForTransport)
 	}
-	s, ok := g.metadata.GetServices()[service]
+	_, ok := g.metadata.GetServices()[service]
 	if !ok {
-		s = &metadata.GapicMetadata_ServiceForTransport{
+		s := &metadata.GapicMetadata_ServiceForTransport{
 			Clients:    make(map[string]*metadata.GapicMetadata_ServiceAsClient),
 			ApiVersion: apiVersion,
 		}
