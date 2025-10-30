@@ -69,6 +69,18 @@ func TestAddMetadataServiceEntry(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:    "no_api_version",
+			service: "Fooer",
+			init:    &metadata.GapicMetadata{},
+			want: &metadata.GapicMetadata{
+				Services: map[string]*metadata.GapicMetadata_ServiceForTransport{
+					"Fooer": {
+						Clients: make(map[string]*metadata.GapicMetadata_ServiceAsClient),
+					},
+				},
+			},
+		},
 	} {
 		t.Run(tst.name, func(t *testing.T) {
 			g := generator{
