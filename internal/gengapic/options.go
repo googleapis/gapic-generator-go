@@ -42,7 +42,7 @@ var DeprecatedArgs map[string]error = map[string]error{
 
 // SupportedBooleanArgs expose boolean plugin arguments (presence enables option).
 var SupportedBooleanArgs map[string]func() configOption = map[string]func() configOption{
-	"metadata":           enableGAPICMetadata,
+	"metadata":           generateGAPICMetadata,
 	"diregapic":          generateAsDIREGAPIC,
 	"rest-numeric-enums": enableRESTNumericEnums,
 	"omit-snippets":      enableOmitSnippets,
@@ -82,12 +82,12 @@ type options struct {
 	outDir string
 
 	// Should GAPIC metadata be generated
-	// TODO: rename this in a subsequent refactor
-	metadata bool
+	generateGAPICMetadata bool
 
-	// Are the input artifacts from a DIREGAPIC source
-	// TODO: rename this in a subsequent refactor
-	diregapic bool
+	// Should the generator respect DIREGAPIC limitations
+	// If the input artifacts are synthetic (e.g. compiled from another IDL source such as a discovery document) then
+	// some protobuf-behaviors should not be relied upon.
+	generateAsDIREGAPIC bool
 
 	// Should the generator code generator numeric enums for REST calls
 	// TODO: rename this in a subsquent refactor
@@ -209,7 +209,7 @@ func validateAndNormalizeOptions(cfg *options) error {
 	}
 
 	// REST enums are not supported by DIREGAPIC.
-	if cfg.diregapic && cfg.restNumericEnum {
+	if cfg.generateAsDIREGAPIC && cfg.restNumericEnum {
 		return errors.New("incompatible features: diregapic and rest numeric enums")
 	}
 
@@ -249,10 +249,10 @@ func withGoGAPICPackage(s string) configOption {
 	}
 }
 
-// enableGAPICMetadata enables generation of GAPIC metadata.
-func enableGAPICMetadata() configOption {
+// generateGAPICMetadata enables generation of GAPIC metadata.
+func generateGAPICMetadata() configOption {
 	return func(cfg *options) error {
-		cfg.metadata = true
+		cfg.generateGAPICMetadata = true
 		return nil
 	}
 }
@@ -263,7 +263,7 @@ func enableGAPICMetadata() configOption {
 // protos (e.g. compute).
 func generateAsDIREGAPIC() configOption {
 	return func(cfg *options) error {
-		cfg.diregapic = true
+		cfg.generateAsDIREGAPIC = true
 		return nil
 	}
 }
