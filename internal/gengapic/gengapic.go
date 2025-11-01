@@ -441,7 +441,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		return nil
 	}
 
-	g.printf(`routingHeaders := make(map[string]string)`)
+	g.printf(`routingHeadersMap := make(map[string]string)`)
 	for i := range headers {
 		namedCaptureRegex := headers[i][0]
 		field := headers[i][1]
@@ -454,7 +454,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		}
 		// There could be an edge case where the request field is empty and the path template is a wildcard. In that case, we still don't want to send an empty header name.
 		g.printf("if reg := regexp.MustCompile(%q); reg.MatchString(%s) && len(%s) > 0 {", namedCaptureRegex, accessor, regexHelper)
-		g.printf("  routingHeaders[%q] = %s", headerName, regexHelper)
+		g.printf("  routingHeadersMap[%q] = %s", headerName, regexHelper)
 		g.printf("}")
 	}
 	g.printf(`var routingHeadersList []string`)
@@ -469,7 +469,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 	}
 	g.printf(`}`)
 	g.printf(`for _, h := range headerNames {`)
-	g.printf(`	if v, ok := routingHeaders[h]; ok {`)
+	g.printf(`	if v, ok := routingHeadersMap[h]; ok {`)
 	g.printf(`		routingHeadersList = append(routingHeadersList, fmt.Sprintf("%%s=%%s", h, v))`)
 	g.printf(`	}`)
 	g.printf(`}`)

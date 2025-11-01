@@ -12,16 +12,16 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 	baseUrl.Path += fmt.Sprintf("/v1/foo")
 
 	// Build HTTP headers from client and context metadata.
-	routingHeaders := make(map[string]string)
+	routingHeadersMap := make(map[string]string)
 	if reg := regexp.MustCompile("(.*)"); reg.MatchString(req.GetOther()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])) > 0 {
-		routingHeaders["other"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
+		routingHeadersMap["other"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
 	}
 	var routingHeadersList []string
 	headerNames := []string{
 		"other",
 	}
 	for _, h := range headerNames {
-		if v, ok := routingHeaders[h]; ok {
+		if v, ok := routingHeadersMap[h]; ok {
 			routingHeadersList = append(routingHeadersList, fmt.Sprintf("%s=%s", h, v))
 		}
 	}
