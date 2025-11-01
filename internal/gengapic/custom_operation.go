@@ -33,7 +33,7 @@ type customOp struct {
 
 // isCustomOp determines if the given method should return a custom operation wrapper.
 func (g *generator) isCustomOp(m *descriptorpb.MethodDescriptorProto, info *httpInfo) bool {
-	return g.opts.diregapic && // Generator in DIREGAPIC mode.
+	return g.opts.generateAsDIREGAPIC && // Generator in DIREGAPIC mode.
 		g.aux.customOp != nil && // API Defines a custom operation.
 		m.GetOutputType() == g.customOpProtoName() && // Method returns the custom operation.
 		m.GetName() != "Wait" && // Method is not a Wait (uses POST).

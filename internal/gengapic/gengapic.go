@@ -85,7 +85,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 
 	protoPkg := g.descInfo.ParentFile[genServs[0]].GetPackage()
 
-	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.diregapic && ok {
+	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.generateAsDIREGAPIC && ok {
 		g.aux.customOp = &customOp{
 			message:       op.(*descriptorpb.DescriptorProto),
 			handles:       []*descriptorpb.ServiceDescriptorProto{},
@@ -164,7 +164,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		Content: proto.String(g.pt.String()),
 	})
 
-	if g.opts.metadata {
+	if g.opts.generateGAPICMetadata {
 		g.reset()
 		g.genGapicMetadataFile()
 		g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{

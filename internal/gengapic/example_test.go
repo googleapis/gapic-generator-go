@@ -246,9 +246,9 @@ func TestExample(t *testing.T) {
 		{
 			tstName: "custom_op_example",
 			options: options{
-				pkgName:    "Bar",
-				transports: []transport{rest},
-				diregapic:  true,
+				pkgName:             "Bar",
+				transports:          []transport{rest},
+				generateAsDIREGAPIC: true,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
@@ -263,7 +263,7 @@ func TestExample(t *testing.T) {
 			g.reset()
 			g.opts = &tst.options
 			g.mixins = mix
-			if tst.options.diregapic {
+			if tst.options.generateAsDIREGAPIC {
 				g.mixins = nil
 			}
 			g.aux.customOp = tst.op
@@ -281,7 +281,7 @@ func TestExample(t *testing.T) {
 
 			g.opts = &tst.options
 			g.mixins = mix
-			if tst.options.diregapic {
+			if tst.options.generateAsDIREGAPIC {
 				g.mixins = nil
 			}
 			g.aux.customOp = tst.op
