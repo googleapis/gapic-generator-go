@@ -441,8 +441,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		return nil
 	}
 
-	g.printf(`routingHeaders := ""`)
-	g.printf("routingHeadersMap := make(map[string]string)")
+	g.printf(`routingHeadersMap := make(map[string]string)`)
 	for i := range headers {
 		namedCaptureRegex := headers[i][0]
 		field := headers[i][1]
@@ -458,12 +457,24 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		g.printf("  routingHeadersMap[%q] = %s", headerName, regexHelper)
 		g.printf("}")
 	}
-	g.printf("for headerName, headerValue := range routingHeadersMap {")
-	g.printf(`  routingHeaders = fmt.Sprintf("%%s%%s=%%s&", routingHeaders, headerName, headerValue)`)
-	g.printf("}")
-	g.printf(`routingHeaders = strings.TrimSuffix(routingHeaders, "&")`)
+	g.printf(`var routingHeadersList []string`)
+	g.printf(`headerNames := []string{`)
+	uniqueHeaders := make(map[string]bool)
+	for _, h := range headers {
+		headerName := h[2]
+		if !uniqueHeaders[headerName] {
+			g.printf("%q,", headerName)
+			uniqueHeaders[headerName] = true
+		}
+	}
+	g.printf(`}`)
+	g.printf(`for _, h := range headerNames {`)
+	g.printf(`	if v, ok := routingHeadersMap[h]; ok {`)
+	g.printf(`		routingHeadersList = append(routingHeadersList, fmt.Sprintf("%%s=%%s", h, v))`)
+	g.printf(`	}`)
+	g.printf(`}`)
+	g.printf(`hds := []string{"x-goog-request-params", strings.Join(routingHeadersList, "&")}`)
 	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
-	g.printf(`hds := []string{"x-goog-request-params", routingHeaders}`)
 	g.imports[pbinfo.ImportSpec{Path: "regexp"}] = true
 	return nil
 }
