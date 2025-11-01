@@ -1,49 +1,40 @@
 func (c *fooGRPCClient) GetAnotherThing(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
-	var routingHeaders []string
-	seen := make(map[string]bool)
+	routingHeaders := make(map[string]string)
 	if reg := regexp.MustCompile("(.*)"); reg.MatchString(req.GetOther()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])) > 0 {
-		if !seen["other"] {
-			routingHeaders = append(routingHeaders, fmt.Sprintf("%s=%s", "other", url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])))
-			seen["other"] = true
-		}
+		routingHeaders["other"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
 	}
 	if reg := regexp.MustCompile("(?P<name>projects/[^/]+)/foos"); reg.MatchString(req.GetOther()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])) > 0 {
-		if !seen["name"] {
-			routingHeaders = append(routingHeaders, fmt.Sprintf("%s=%s", "name", url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])))
-			seen["name"] = true
-		}
+		routingHeaders["name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetOther())[1])
 	}
 	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])) > 0 {
-		if !seen["foo_name"] {
-			routingHeaders = append(routingHeaders, fmt.Sprintf("%s=%s", "foo_name", url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])))
-			seen["foo_name"] = true
-		}
+		routingHeaders["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
 	if reg := regexp.MustCompile("(?P<foo_name>projects/[^/]+/foos/[^/]+)/bars/[^/]+(?:/.*)?"); reg.MatchString(req.GetAnother()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])) > 0 {
-		if !seen["foo_name"] {
-			routingHeaders = append(routingHeaders, fmt.Sprintf("%s=%s", "foo_name", url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])))
-			seen["foo_name"] = true
-		}
+		routingHeaders["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
 	if reg := regexp.MustCompile("(?P<foo_name>.*)"); reg.MatchString(req.GetAnother()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])) > 0 {
-		if !seen["foo_name"] {
-			routingHeaders = append(routingHeaders, fmt.Sprintf("%s=%s", "foo_name", url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])))
-			seen["foo_name"] = true
-		}
+		routingHeaders["foo_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetAnother())[1])
 	}
 	if reg := regexp.MustCompile("(?P<nested_name>.*)"); reg.MatchString(req.GetFieldName().GetNested()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])) > 0 {
-		if !seen["nested_name"] {
-			routingHeaders = append(routingHeaders, fmt.Sprintf("%s=%s", "nested_name", url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])))
-			seen["nested_name"] = true
-		}
+		routingHeaders["nested_name"] = url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])
 	}
 	if reg := regexp.MustCompile("(?P<part_of_nested>projects/[^/]+)/bars"); reg.MatchString(req.GetFieldName().GetNested()) && len(url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])) > 0 {
-		if !seen["part_of_nested"] {
-			routingHeaders = append(routingHeaders, fmt.Sprintf("%s=%s", "part_of_nested", url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])))
-			seen["part_of_nested"] = true
+		routingHeaders["part_of_nested"] = url.QueryEscape(reg.FindStringSubmatch(req.GetFieldName().GetNested())[1])
+	}
+	var routingHeadersList []string
+	headerNames := []string{
+		"other",
+		"name",
+		"foo_name",
+		"nested_name",
+		"part_of_nested",
+	}
+	for _, h := range headerNames {
+		if v, ok := routingHeaders[h]; ok {
+			routingHeadersList = append(routingHeadersList, fmt.Sprintf("%s=%s", h, v))
 		}
 	}
-	hds := []string{"x-goog-request-params", strings.Join(routingHeaders, "&")}
+	hds := []string{"x-goog-request-params", strings.Join(routingHeadersList, "&")}
 
 	hds = append(c.xGoogHeaders, hds...)
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
