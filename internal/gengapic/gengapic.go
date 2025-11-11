@@ -441,8 +441,8 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		return nil
 	}
 
-	g.printf(`routingHeaders := ""`)
-	g.printf("routingHeadersMap := make(map[string]string)")
+	g.printf(`var routingHeaders []string`)
+	g.printf("seen := make(map[string]bool)")
 	for i := range headers {
 		namedCaptureRegex := headers[i][0]
 		field := headers[i][1]
@@ -455,15 +455,14 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		}
 		// There could be an edge case where the request field is empty and the path template is a wildcard. In that case, we still don't want to send an empty header name.
 		g.printf("if reg := regexp.MustCompile(%q); reg.MatchString(%s) && len(%s) > 0 {", namedCaptureRegex, accessor, regexHelper)
-		g.printf("  routingHeadersMap[%q] = %s", headerName, regexHelper)
+		g.printf("  if !seen[%q] {", headerName)
+		g.printf("    routingHeaders = append(routingHeaders, fmt.Sprintf(\"%%s=%%s\", %q, %s))", headerName, regexHelper)
+		g.printf("    seen[%q] = true", headerName)
+		g.printf("  }")
 		g.printf("}")
 	}
-	g.printf("for headerName, headerValue := range routingHeadersMap {")
-	g.printf(`  routingHeaders = fmt.Sprintf("%%s%%s=%%s&", routingHeaders, headerName, headerValue)`)
-	g.printf("}")
-	g.printf(`routingHeaders = strings.TrimSuffix(routingHeaders, "&")`)
+	g.printf(`hds := []string{"x-goog-request-params", strings.Join(routingHeaders, "&")}`)
 	g.imports[pbinfo.ImportSpec{Path: "strings"}] = true
-	g.printf(`hds := []string{"x-goog-request-params", routingHeaders}`)
 	g.imports[pbinfo.ImportSpec{Path: "regexp"}] = true
 	return nil
 }
