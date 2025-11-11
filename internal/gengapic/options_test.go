@@ -59,11 +59,11 @@ func TestParseOptions(t *testing.T) {
 		{
 			param: "metadata,go-gapic-package=path;pkg",
 			expectedOpts: &options{
-				transports: []transport{grpc},
-				pkgPath:    "path",
-				pkgName:    "pkg",
-				outDir:     "path",
-				metadata:   true,
+				transports:            []transport{grpc},
+				pkgPath:               "path",
+				pkgName:               "pkg",
+				outDir:                "path",
+				generateGAPICMetadata: true,
 			},
 		},
 		{
@@ -189,11 +189,11 @@ func TestValidateAndNormalizeOptions(t *testing.T) {
 		{
 			description: "conflict diregapic enum",
 			in: &options{
-				pkgPath:         "path",
-				pkgName:         "name",
-				outDir:          "dir",
-				diregapic:       true,
-				restNumericEnum: true,
+				pkgPath:             "path",
+				pkgName:             "name",
+				outDir:              "dir",
+				generateAsDIREGAPIC: true,
+				restNumericEnum:     true,
 			},
 			wantErr: true,
 		},
