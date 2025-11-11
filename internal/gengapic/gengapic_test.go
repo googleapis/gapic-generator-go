@@ -1234,7 +1234,7 @@ func TestReturnType(t *testing.T) {
 			},
 		},
 		opts: &options{
-			diregapic: true,
+			generateAsDIREGAPIC: true,
 		},
 		descInfo: pbinfo.Info{
 			ParentFile: map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto{
