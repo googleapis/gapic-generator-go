@@ -12,6 +12,7 @@
 ### Bug Fixes
 
 * ordered dynamic header values (#1661) ([6b4035e](https://github.com/googleapis/google-cloud-go/commit/6b4035e234df705b9bc1ce3b188ba5b559289edf))
+* Revert "conditionally enable directpath for storagecontrol.googleapis.com" (#1667)
 
 ## [0.54.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.54.0) (2025-10-07)
 
