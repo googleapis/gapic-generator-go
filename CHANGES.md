@@ -1,5 +1,19 @@
 # Changes
 
+## [0.55.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.55.0) (2025-11-12)
+
+### Features
+
+* enable AllowHardBoundTokens client option for more services (#1651) ([fddf352](https://github.com/googleapis/google-cloud-go/commit/fddf3526895471f65fb0bfb9ac6ec83629e2b330))
+* improve configuration of the plugin (#1649) ([f6706de](https://github.com/googleapis/google-cloud-go/commit/f6706dee7d208949007f99e256faf0d0b57c3c38))
+* include API version in gapic metadata (#1653) ([a098fba](https://github.com/googleapis/google-cloud-go/commit/a098fbadd24bd580bf9273ee02532eb046a11ebe))
+* update image to us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go@sha256:f2cbb6b904fdbf086efec0100536c52a79a654a5b9df21f975a2b6f6d50395a4 (#1665) ([da5aad9](https://github.com/googleapis/google-cloud-go/commit/da5aad9e8d3f6f8a8efbb1a05bb7c4f69ef5e3dc))
+
+### Bug Fixes
+
+* ordered dynamic header values (#1661) ([6b4035e](https://github.com/googleapis/google-cloud-go/commit/6b4035e234df705b9bc1ce3b188ba5b559289edf))
+* revert "conditionally enable directpath for storagecontrol.googleapis.com" (#1667)
+
 ## [0.54.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.54.0) (2025-10-07)
 
 

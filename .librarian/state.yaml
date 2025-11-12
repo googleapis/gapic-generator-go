@@ -1,7 +1,7 @@
 image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go@sha256:f2cbb6b904fdbf086efec0100536c52a79a654a5b9df21f975a2b6f6d50395a4
 libraries:
   - id: generator
-    version: 0.54.0
+    version: 0.55.0
     last_generated_commit: ""
     apis: []
     source_roots:
