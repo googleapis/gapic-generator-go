@@ -4,7 +4,7 @@
 
 ### Bug Fixes
 
-* ordered dynamic header values (#1661)" ([9d27531](https://github.com/googleapis/google-cloud-go/commit/9d2753140c56a152484436a3717d9345ef546551))
+* revert ordered dynamic header values (#1661)" ([9d27531](https://github.com/googleapis/google-cloud-go/commit/9d2753140c56a152484436a3717d9345ef546551))
 
 ## [0.55.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.55.0) (2025-11-12)
 
