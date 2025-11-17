@@ -1199,7 +1199,7 @@ func (g *generator) protoJSONMarshaler() {
 	// enum. However, since they are synthetic protos, the enum numbers likely
 	// do not match the internal proto enum value, so we do not want to send
 	// any enums as numbers with DIREGAPIC clients.
-	if g.opts.diregapic {
+	if g.opts.generateAsDIREGAPIC {
 		marshalOpts = "AllowPartial: true"
 	}
 	g.pt.Printf("m := protojson.MarshalOptions{%s}", marshalOpts)

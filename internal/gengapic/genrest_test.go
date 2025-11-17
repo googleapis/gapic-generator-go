@@ -753,7 +753,7 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:    "custom_op",
 			method:  opRPC,
-			options: &options{diregapic: true},
+			options: &options{generateAsDIREGAPIC: true},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,

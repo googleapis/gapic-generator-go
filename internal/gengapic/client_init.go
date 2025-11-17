@@ -19,6 +19,8 @@ import (
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
+	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -379,6 +381,9 @@ func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servN
 	if err != nil {
 		return err
 	}
+
+	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
+	g.addMetadataServiceEntry(serv.GetName(), apiVersion)
 
 	err = g.internalClientIntfInit(serv, servName)
 	if err != nil {
