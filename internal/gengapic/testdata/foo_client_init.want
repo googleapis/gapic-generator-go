@@ -15,6 +15,8 @@ type internalFooClient interface {
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 //
 // Foo service does stuff.
+//
+// This client uses Foo version v1_20240425.
 type FooClient struct {
 	// The internal transport-dependent client.
 	internalClient internalFooClient
@@ -99,6 +101,8 @@ type fooGRPCClient struct {
 // The returned client must be Closed when it is done being used to clean up its underlying connections.
 //
 // Foo service does stuff.
+//
+// This client uses Foo version v1_20240425.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := defaultFooGRPCClientOptions()
 	if newFooClientHook != nil {

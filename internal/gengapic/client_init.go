@@ -184,6 +184,12 @@ func (g *generator) serviceDoc(serv *descriptorpb.ServiceDescriptorProto) {
 	// Prepend new line break before existing service comments.
 	g.printf("//")
 	g.comment(com)
+
+	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
+	if apiVersion != "" {
+		g.printf("//")
+		g.comment(fmt.Sprintf("This client uses %s version %s.", serv.GetName(), apiVersion))
+	}
 }
 
 func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
