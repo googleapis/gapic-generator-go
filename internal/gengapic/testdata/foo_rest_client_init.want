@@ -94,8 +94,6 @@ type fooRESTClient struct {
 // NewFooRESTClient creates a new foo rest client.
 //
 // Foo service does stuff.
-//
-// This client uses Foo version v1_20240425.
 func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := append(defaultFooRESTClientOptions(), opts...)
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)

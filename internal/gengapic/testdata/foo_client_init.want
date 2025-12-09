@@ -101,8 +101,6 @@ type fooGRPCClient struct {
 // The returned client must be Closed when it is done being used to clean up its underlying connections.
 //
 // Foo service does stuff.
-//
-// This client uses Foo version v1_20240425.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := defaultFooGRPCClientOptions()
 	if newFooClientHook != nil {
