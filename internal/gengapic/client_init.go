@@ -198,7 +198,7 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 	// client struct
 	p("// %sClient is a client for interacting with %s.", servName, g.apiName)
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-	g.serviceDoc(serv, true) // include API version
+	g.serviceDoc(serv, true) // include API version docs
 	p("type %sClient struct {", servName)
 
 	// Fields
