@@ -19,7 +19,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
@@ -193,7 +192,7 @@ func (g *generator) apiVersionSection(services []*descriptorpb.ServiceDescriptor
 	}
 
 	// Ensure stable generation of the client-interface-version list.
-	slices.SortFunc(versionedServices, func(a *descriptor.ServiceDescriptorProto, b *descriptor.ServiceDescriptorProto) int {
+	slices.SortFunc(versionedServices, func(a *descriptorpb.ServiceDescriptorProto, b *descriptorpb.ServiceDescriptorProto) int {
 		return strings.Compare(a.GetName(), b.GetName())
 	})
 
