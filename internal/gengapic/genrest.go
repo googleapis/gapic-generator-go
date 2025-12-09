@@ -159,7 +159,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	opServ, hasCustomOp := g.customOpServices[serv]
 
 	p("// New%sRESTClient creates a new %s rest client.", servName, clientName)
-	g.serviceDoc(serv)
+	g.serviceDoc(serv, false) // exclude API version docs
 	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("    clientOpts := append(default%sRESTClientOptions(), opts...)", servName)
 	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)")

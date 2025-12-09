@@ -260,16 +260,21 @@ func TestClientOpt(t *testing.T) {
 }
 
 func TestServiceDoc(t *testing.T) {
+	sOpts := &descriptorpb.ServiceOptions{}
+	proto.SetExtension(sOpts, annotations.E_ApiVersion, "2024-09-14")
+
 	serv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("MyService"),
+		Name:    proto.String("MyService"),
+		Options: sOpts,
 	}
 
 	var g generator
 	g.comments = make(map[protoiface.MessageV1]string)
 
 	for _, tst := range []struct {
-		in, want   string
-		deprecated bool
+		in, want          string
+		deprecated        bool
+		includeAPIVersion bool
 	}{
 		{
 			in:   "",
@@ -278,6 +283,11 @@ func TestServiceDoc(t *testing.T) {
 		{
 			in:   "Does stuff.\n It also does other stuffs.",
 			want: "//\n// Does stuff.\n// It also does other stuffs.\n",
+		},
+		{
+			in:                "Does stuff.\n It also does other stuffs.",
+			want:              "//\n// Does stuff.\n// It also does other stuffs.\n//\n// This client uses MyService version 2024-09-14.\n",
+			includeAPIVersion: true,
 		},
 		{
 			in:         "This is deprecated.\n It does not have a proper comment.",
@@ -301,11 +311,10 @@ func TestServiceDoc(t *testing.T) {
 		},
 	} {
 		g.comments[serv] = tst.in
-		serv.Options = &descriptorpb.ServiceOptions{
-			Deprecated: proto.Bool(tst.deprecated),
-		}
+		serv.Options.Deprecated = proto.Bool(tst.deprecated)
+
 		g.pt.Reset()
-		g.serviceDoc(serv)
+		g.serviceDoc(serv, tst.includeAPIVersion)
 		if diff := cmp.Diff(g.pt.String(), tst.want); diff != "" {
 			t.Errorf("comment() got(-),want(+):\n%s", diff)
 		}

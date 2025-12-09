@@ -16,6 +16,8 @@ type internalFooClient interface {
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 //
 // Foo service does stuff.
+//
+// This client uses Foo version v1_20240425.
 type FooClient struct {
 	// The internal transport-dependent client.
 	internalClient internalFooClient
