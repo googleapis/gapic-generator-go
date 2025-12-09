@@ -101,7 +101,7 @@ func TestDocFile_APIVersionSection(t *testing.T) {
 	}
 
 	serv := sample.Service()
-	serv.Options = sample.ApiVersionOptions("2024-09-14")
+	serv.Options = sample.APIVersionOptions("2024-09-14")
 
 	g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
 	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "doc_file_api_version_section.want"))
@@ -180,11 +180,11 @@ func TestApiVersionSection(t *testing.T) {
 			services: []*descriptorpb.ServiceDescriptorProto{
 				{
 					Name:    proto.String("Foo"),
-					Options: sample.ApiVersionOptions("2024-09-14"),
+					Options: sample.APIVersionOptions("2024-09-14"),
 				},
 				{
 					Name:    proto.String("Bar"),
-					Options: sample.ApiVersionOptions("2024-04-04"),
+					Options: sample.APIVersionOptions("2024-04-04"),
 				}},
 		},
 		{
@@ -192,11 +192,11 @@ func TestApiVersionSection(t *testing.T) {
 			services: []*descriptorpb.ServiceDescriptorProto{
 				{
 					Name:    proto.String("Foo"),
-					Options: sample.ApiVersionOptions("2024-09-14"),
+					Options: sample.APIVersionOptions("2024-09-14"),
 				},
 				{
 					Name:    proto.String("Bar"),
-					Options: sample.ApiVersionOptions("2024-09-14"),
+					Options: sample.APIVersionOptions("2024-09-14"),
 				}},
 		},
 		{

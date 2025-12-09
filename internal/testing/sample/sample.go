@@ -254,9 +254,9 @@ func File() *descriptorpb.FileDescriptorProto {
 	}
 }
 
-// ApiVersionOptions returns a ServiceOptions instance with the
+// APIVersionOptions returns a ServiceOptions instance with the
 // google.api.api_version extension set to the provided version string.
-func ApiVersionOptions(v string) *descriptorpb.ServiceOptions {
+func APIVersionOptions(v string) *descriptorpb.ServiceOptions {
 	o := &descriptorpb.ServiceOptions{}
 	proto.SetExtension(o, annotations.E_ApiVersion, v)
 	return o
