@@ -19,6 +19,7 @@ package sample
 import (
 	"fmt"
 
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
@@ -251,4 +252,12 @@ func File() *descriptorpb.FileDescriptorProto {
 		},
 		Package: proto.String(ProtoPackagePath),
 	}
+}
+
+// ApiVersionOptions returns a ServiceOptions instance with the
+// google.api.api_version extension set to the provided version string.
+func ApiVersionOptions(v string) *descriptorpb.ServiceOptions {
+	o := &descriptorpb.ServiceOptions{}
+	proto.SetExtension(o, annotations.E_ApiVersion, v)
+	return o
 }
