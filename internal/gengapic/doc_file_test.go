@@ -21,6 +21,7 @@ import (
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/testing/sample"
 	"github.com/googleapis/gapic-generator-go/internal/txtdiff"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -67,11 +68,44 @@ func TestDocFile(t *testing.T) {
 	} {
 		t.Run(tst.want, func(t *testing.T) {
 			g.opts.relLvl = tst.relLvl
-			g.genDocFile(sample.Year, serv)
+			g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
 			txtdiff.Diff(t, g.pt.String(), tst.want)
 			g.reset()
 		})
 	}
+}
+
+func TestDocFile_APIVersionSection(t *testing.T) {
+	g := generator{
+		apiName:       sample.ServiceTitle,
+		serviceConfig: sample.ServiceConfig(),
+		imports:       map[pbinfo.ImportSpec]bool{},
+		opts: &options{
+			pkgPath:    sample.GoPackagePath,
+			pkgName:    sample.GoPackageName,
+			transports: []transport{grpc, rest},
+		},
+	}
+
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
+	file := sample.File()
+
+	commonTypes(&g)
+	for _, typ := range []*descriptorpb.DescriptorProto{
+		inputType, outputType,
+	} {
+		typName := sample.DescriptorInfoTypeName(typ.GetName())
+		g.descInfo.Type[typName] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := sample.Service()
+	serv.Options = sample.APIVersionOptions("2024-09-14")
+
+	g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "doc_file_api_version_section.want"))
+	g.reset()
 }
 
 func TestDocFileEmptyService(t *testing.T) {
@@ -121,8 +155,75 @@ func TestDocFileEmptyService(t *testing.T) {
 	} {
 		t.Run(tst.want, func(t *testing.T) {
 			g.opts.relLvl = tst.relLvl
-			g.genDocFile(sample.Year, serv)
+			g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
 			txtdiff.Diff(t, g.pt.String(), tst.want)
+			g.reset()
+		})
+	}
+}
+
+func TestApiVersionSection(t *testing.T) {
+	g := generator{
+		serviceConfig: sample.ServiceConfig(),
+		opts: &options{
+			pkgName: sample.GoPackageName,
+		},
+	}
+
+	for _, tst := range []struct {
+		services  []*descriptorpb.ServiceDescriptorProto
+		want      string
+		wantEmpty bool
+	}{
+		{
+			want: filepath.Join("testdata", "api_versions_section_list.want"),
+			services: []*descriptorpb.ServiceDescriptorProto{
+				{
+					Name:    proto.String("Foo"),
+					Options: sample.APIVersionOptions("2024-09-14"),
+				},
+				{
+					Name:    proto.String("Bar"),
+					Options: sample.APIVersionOptions("2024-04-04"),
+				}},
+		},
+		{
+			want: filepath.Join("testdata", "api_versions_section_same.want"),
+			services: []*descriptorpb.ServiceDescriptorProto{
+				{
+					Name:    proto.String("Foo"),
+					Options: sample.APIVersionOptions("2024-09-14"),
+				},
+				{
+					Name:    proto.String("Bar"),
+					Options: sample.APIVersionOptions("2024-09-14"),
+				}},
+		},
+		{
+			wantEmpty: true, // no API versions
+			services: []*descriptorpb.ServiceDescriptorProto{
+				{
+					Name: proto.String("Foo"),
+				},
+				{
+					Name: proto.String("Bar"),
+				}},
+		},
+		{
+			wantEmpty: true, // no services
+		},
+	} {
+		t.Run(tst.want, func(t *testing.T) {
+			g.apiVersionSection(tst.services)
+			got := g.pt.String()
+
+			if tst.wantEmpty {
+				if got != "" {
+					t.Errorf("apiVersionSection(): expected empty API version section got %s", got)
+				}
+			} else {
+				txtdiff.Diff(t, got, tst.want)
+			}
 			g.reset()
 		})
 	}

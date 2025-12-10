@@ -388,8 +388,7 @@ func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servN
 		return err
 	}
 
-	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
-	g.addMetadataServiceEntry(serv.GetName(), apiVersion)
+	g.addMetadataServiceEntry(serv.GetName(), apiVersion(serv))
 
 	err = g.internalClientIntfInit(serv, servName)
 	if err != nil {

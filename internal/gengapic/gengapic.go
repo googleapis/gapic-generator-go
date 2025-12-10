@@ -157,8 +157,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		return nil, err
 	}
 	g.reset()
-	serv := genServs[0]
-	g.genDocFile(time.Now().Year(), serv)
+	g.genDocFile(time.Now().Year(), genServs)
 	g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
 		Name:    proto.String(filepath.Join(g.opts.outDir, "doc.go")),
 		Content: proto.String(g.pt.String()),
