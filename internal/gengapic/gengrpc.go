@@ -182,7 +182,6 @@ func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultEndpoint(%q),", host)
 	p("    internaloption.WithDefaultEndpointTemplate(%q),", generateDefaultEndpointTemplate(host))
 	p("    internaloption.WithDefaultMTLSEndpoint(%q),", generateDefaultMTLSEndpoint(host))
-	p("    internaloption.WithDefaultUniverseDomain(%q),", googleDefaultUniverse)
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("    internaloption.EnableJwtWithScope(),")
