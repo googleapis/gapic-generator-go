@@ -15,7 +15,7 @@ jobs:
       changed: ${{ steps.update.outputs.changed }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: bazel-contrib/setup-bazel@0.16.0
       with:
         # Avoid downloading Bazel every time.
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.update-bazel-deps.outputs.changed
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         ref: main
     - uses: actions/download-artifact@v7
@@ -58,7 +58,7 @@ jobs:
       run: |
         tar xvzf repos.tgz
         rm repos.tgz
-    - uses: googleapis/code-suggester@v4
+    - uses: googleapis/code-suggester@v5
       id: code_suggester
       env:
         ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}  
