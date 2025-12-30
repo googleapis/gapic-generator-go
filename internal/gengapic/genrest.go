@@ -162,6 +162,11 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	g.serviceDoc(serv, false) // exclude API version docs
 	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("    clientOpts := append(default%sRESTClientOptions(), opts...)", servName)
+	p("    if gax.IsFeatureEnabled(\"TRACING\") {")
+	p("        clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
+	p("          \"gcp.client.service\": %q,", strings.Split(g.serviceConfig.GetName(), ".")[0])
+	p("        }))")
+	p("    }")
 	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)")
 	p("    if err != nil {")
 	p("        return nil, err")

@@ -329,6 +329,11 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	g.serviceDoc(serv, false) // exclude API version docs
 	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("  clientOpts := default%[1]sGRPCClientOptions()", servName)
+	p("  if gax.IsFeatureEnabled(\"TRACING\") {")
+	p("    clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
+	p("      \"gcp.client.service\": %q,", strings.Split(g.serviceConfig.GetName(), ".")[0])
+	p("    }))")
+	p("  }")
 
 	p("  if new%sClientHook != nil {", servName)
 	p("    hookOpts, err := new%sClientHook(ctx, clientHookParams{})", servName)

@@ -400,20 +400,20 @@ func TestGenGRPCMethods(t *testing.T) {
 		imports map[pbinfo.ImportSpec]bool
 	}{
 		{
-			m: &descriptorpb.MethodDescriptorProto{
-				Name:       proto.String("GetEmptyThing"),
-				InputType:  proto.String(".my.pkg.InputType"),
-				OutputType: proto.String(emptyType),
-				Options:    opts,
-			},
-			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "github.com/google/uuid"}:         true,
-				{Path: "net/url"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
-			},
-		},
-		{
+			            m: &descriptorpb.MethodDescriptorProto{
+			                Name:       proto.String("GetEmptyThing"),
+			                InputType:  proto.String(".my.pkg.InputType"),
+			                OutputType: proto.String(emptyType),
+			                Options:    opts,
+			            },
+			            imports: map[pbinfo.ImportSpec]bool{
+			                {Path: "fmt"}:                             true,
+			                {Path: "github.com/google/uuid"}:          true,
+			                {Path: "google.golang.org/grpc/metadata"}: true,
+			                {Path: "net/url"}:                         true,
+			                {Name: "mypackagepb", Path: "mypackage"}:  true,
+			            },
+			        },		{
 			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetOneThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
@@ -421,28 +421,29 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "github.com/google/uuid"}:         true,
-				{Path: "net/url"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
+				{Path: "fmt"}:                             true,
+				{Path: "github.com/google/uuid"}:          true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Path: "net/url"}:                         true,
+				{Name: "mypackagepb", Path: "mypackage"}:  true,
 			},
 		},
-		{
-			m: &descriptorpb.MethodDescriptorProto{
-				Name:       proto.String("GetManyThings"),
-				InputType:  proto.String(".my.pkg.PageInputType"),
-				OutputType: proto.String(".my.pkg.PageOutputType"),
-				Options:    opts,
-			},
-			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                              true,
-				{Path: "google.golang.org/api/iterator"}:   true,
-				{Path: "google.golang.org/protobuf/proto"}: true,
-				{Path: "net/url"}:                          true,
-				{Name: "mypackagepb", Path: "mypackage"}:   true,
-			},
-		},
-		{
+		        {
+		            m: &descriptorpb.MethodDescriptorProto{
+		                Name:       proto.String("GetManyThings"),
+		                InputType:  proto.String(".my.pkg.PageInputType"),
+		                OutputType: proto.String(".my.pkg.PageOutputType"),
+		                Options:    opts,
+		            },
+		            imports: map[pbinfo.ImportSpec]bool{
+		                {Path: "fmt"}:                              true,
+		                {Path: "google.golang.org/api/iterator"}:   true,
+		                {Path: "google.golang.org/grpc/metadata"}:  true,
+		                {Path: "google.golang.org/protobuf/proto"}: true,
+		                {Path: "net/url"}:                          true,
+		                {Name: "mypackagepb", Path: "mypackage"}:   true,
+		            },
+		        },		{
 			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetManyThingsOptional"),
 				InputType:  proto.String(".my.pkg.PageInputTypeOptional"),
@@ -452,6 +453,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                              true,
 				{Path: "google.golang.org/api/iterator"}:   true,
+				{Path: "google.golang.org/grpc/metadata"}:  true,
 				{Path: "google.golang.org/protobuf/proto"}: true,
 				{Path: "net/url"}:                          true,
 				{Name: "mypackagepb", Path: "mypackage"}:   true,
@@ -466,9 +468,10 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:         opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "net/url"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
+				{Path: "fmt"}:                             true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Path: "net/url"}:                         true,
+				{Name: "mypackagepb", Path: "mypackage"}:  true,
 			},
 		},
 		{
@@ -505,11 +508,12 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    optsGetAnotherThing,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "net/url"}:                        true,
-				{Path: "regexp"}:                         true,
-				{Path: "strings"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
+				{Path: "fmt"}:                             true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Path: "net/url"}:                         true,
+				{Path: "regexp"}:                          true,
+				{Path: "strings"}:                         true,
+				{Name: "mypackagepb", Path: "mypackage"}:  true,
 			},
 		},
 		// Test for empty dynamic routing annotation, so no headers should be sent.

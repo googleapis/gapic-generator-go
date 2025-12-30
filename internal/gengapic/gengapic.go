@@ -505,10 +505,18 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 		case grpc:
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
+			p("if gax.IsFeatureEnabled(\"TRACING\") {")
+			p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req%s)`, fieldGetter(headers[0][1]))
+			p("}")
+			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 		case rest:
 			p(`hds = append(c.xGoogHeaders, hds...)`)
 			p(`hds = append(hds, "Content-Type", "application/json")`)
 			p(`headers := gax.BuildHeaders(ctx, hds...)`)
+			p("if gax.IsFeatureEnabled(\"TRACING\") {")
+			p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req%s)`, fieldGetter(headers[0][1]))
+			p("}")
+			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
 		}
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
