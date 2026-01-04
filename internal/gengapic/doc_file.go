@@ -15,6 +15,8 @@
 package gengapic
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/license"
@@ -27,7 +29,12 @@ import (
 //
 // Since it's the only file that needs to write package documentation and canonical import,
 // it does not use g.commit().
-func (g *generator) genDocFile(year int, serv *descriptorpb.ServiceDescriptorProto) {
+func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescriptorProto) {
+	// If there are no services to generate, do not generate documentation.
+	if len(services) == 0 {
+		return
+	}
+
 	p := g.printf
 
 	p(license.Apache, year)
@@ -64,6 +71,8 @@ func (g *generator) genDocFile(year int, serv *descriptorpb.ServiceDescriptorPro
 		p("// Deprecated: Find the newer version of this package in the module.")
 	}
 
+	g.apiVersionSection(services)
+
 	p("//")
 	p("// General documentation")
 	p("//")
@@ -81,8 +90,9 @@ func (g *generator) genDocFile(year int, serv *descriptorpb.ServiceDescriptorPro
 	p("//")
 	p("// To get started with this package, create a client.")
 	// Code block for client creation
-	override := g.getServiceNameOverride(serv)
-	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.opts.pkgName, override)
+	exampleService := services[0]
+	override := g.getServiceNameOverride(exampleService)
+	servName := pbinfo.ReduceServNameWithOverride(exampleService.GetName(), g.opts.pkgName, override)
 	tmpClient := g.pt
 	g.pt = printer.P{}
 	g.exampleInitClientWithOpts(g.opts.pkgName, servName, true)
@@ -94,7 +104,7 @@ func (g *generator) genDocFile(year int, serv *descriptorpb.ServiceDescriptorPro
 	p("// The returned client must be Closed when it is done being used.")
 	p("//")
 	// If the service does not have any methods, then do not generate sample method snippet.
-	if len(serv.GetMethod()) > 0 {
+	if len(exampleService.GetMethod()) > 0 {
 		p("// Using the Client")
 		p("//")
 		p("// The following is an example of making an API call with the newly created client, mentioned above.")
@@ -102,7 +112,7 @@ func (g *generator) genDocFile(year int, serv *descriptorpb.ServiceDescriptorPro
 		// Code block for client using the first method of the service
 		tmpMethod := g.pt
 		g.pt = printer.P{}
-		g.exampleMethodBodyWithOpts(g.opts.pkgName, servName, serv.GetMethod()[0], true)
+		g.exampleMethodBodyWithOpts(g.opts.pkgName, servName, exampleService.GetMethod()[0], true)
 		snipMethod := g.pt.String()
 		g.pt = tmpMethod
 		g.codesnippet(snipMethod)
@@ -145,4 +155,58 @@ func wrapString(str string, max int) []string {
 	lines = append(lines, line)
 
 	return lines
+}
+
+func (g *generator) apiVersionSection(services []*descriptorpb.ServiceDescriptorProto) {
+	if len(services) == 0 {
+		return
+	}
+
+	versionedServices := []*descriptorpb.ServiceDescriptorProto{}
+	versionsSeen := map[string]bool{}
+
+	for _, s := range services {
+		v := apiVersion(s)
+		if v == "" {
+			continue
+		}
+		versionedServices = append(versionedServices, s)
+		versionsSeen[v] = true
+	}
+
+	if len(versionedServices) == 0 {
+		return
+	}
+
+	g.printf("//")
+	g.printf("// API Versions")
+	g.printf("//")
+	g.printf("// The versioned iterations of API service interfaces in this API client package.")
+	g.printf("// Each client includes the API version identifier mentioned below in their API calls.")
+	g.printf("// Navigate to the product documentation to learn more about the API versions used in this package.")
+	g.printf("//")
+
+	if len(versionsSeen) == 1 {
+		g.printf("// All clients in this package use version %s of their service interface.", apiVersion(versionedServices[0]))
+		return
+	}
+
+	// Ensure stable generation of the client-interface-version list.
+	slices.SortFunc(versionedServices, func(a *descriptorpb.ServiceDescriptorProto, b *descriptorpb.ServiceDescriptorProto) int {
+		return strings.Compare(a.GetName(), b.GetName())
+	})
+
+	for _, s := range versionedServices {
+		n := s.GetName()
+
+		// Construct the reduced/overridden service name used for client
+		// type name derivation.
+		override := g.getServiceNameOverride(s)
+		sn := pbinfo.ReduceServNameWithOverride(n, g.opts.pkgName, override)
+		ct := fmt.Sprintf("%sClient", sn)
+
+		// Use the raw proto service name in the tuple to associate it with
+		// the API reference documentation using the same.
+		g.printf("// * %s uses %s version %s", ct, n, apiVersion(s))
+	}
 }

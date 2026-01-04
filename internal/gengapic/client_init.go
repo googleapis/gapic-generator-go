@@ -154,7 +154,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 }
 
 // serviceDoc is a helper function similar to methodDoc that includes a deprecation notice for deprecated services.
-func (g *generator) serviceDoc(serv *descriptorpb.ServiceDescriptorProto) {
+func (g *generator) serviceDoc(serv *descriptorpb.ServiceDescriptorProto, includeAPIVersion bool) {
 	com := g.comments[serv]
 
 	// If there's no comment and the service is not deprecated, return.
@@ -184,6 +184,12 @@ func (g *generator) serviceDoc(serv *descriptorpb.ServiceDescriptorProto) {
 	// Prepend new line break before existing service comments.
 	g.printf("//")
 	g.comment(com)
+
+	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
+	if apiVersion != "" && includeAPIVersion {
+		g.printf("//")
+		g.comment(fmt.Sprintf("This client uses %s version %s.", serv.GetName(), apiVersion))
+	}
 }
 
 func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
@@ -192,7 +198,7 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 	// client struct
 	p("// %sClient is a client for interacting with %s.", servName, g.apiName)
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
-	g.serviceDoc(serv)
+	g.serviceDoc(serv, true) // include API version docs
 	p("type %sClient struct {", servName)
 
 	// Fields
@@ -382,8 +388,7 @@ func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servN
 		return err
 	}
 
-	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
-	g.addMetadataServiceEntry(serv.GetName(), apiVersion)
+	g.addMetadataServiceEntry(serv.GetName(), apiVersion(serv))
 
 	err = g.internalClientIntfInit(serv, servName)
 	if err != nil {

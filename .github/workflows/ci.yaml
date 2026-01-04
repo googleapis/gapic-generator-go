@@ -11,8 +11,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+    - uses: actions/checkout@v6
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Check formatting
@@ -32,7 +32,7 @@ jobs:
       # Exclude all of the grpc_service_config package (it is generated).
       run: go mod download && go vet $(go list ./... | grep -v 'grpc_service_config') > govet.txt && ! [ -s govet.txt ]
       if: ${{ always() }}
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       if: ${{ always() }}
       with:
         name: linting-results
@@ -43,16 +43,16 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+    - uses: actions/checkout@v6
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - run: go test ./...
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+    - uses: actions/checkout@v6
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Install protoc
@@ -89,8 +89,8 @@ jobs:
   bazel-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: bazel-contrib/setup-bazel@0.15.0
+    - uses: actions/checkout@v6
+    - uses: bazel-contrib/setup-bazel@0.16.0
       with:
         # Avoid downloading Bazel every time.
         bazelisk-cache: true

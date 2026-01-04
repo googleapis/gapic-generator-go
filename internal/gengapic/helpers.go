@@ -25,6 +25,10 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
+func apiVersion(s *descriptorpb.ServiceDescriptorProto) string {
+	return proto.GetExtension(s.GetOptions(), annotations.E_ApiVersion).(string)
+}
+
 func lowerFirst(s string) string {
 	if s == "" {
 		return ""
