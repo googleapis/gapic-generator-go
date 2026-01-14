@@ -1433,9 +1433,9 @@ func TestInsertDynamicRequestHeaders_Ordering(t *testing.T) {
 	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
 		Field: []*descriptorpb.FieldDescriptorProto{
-			{Name: proto.String("field1"), Type: typePtr(descriptorpb.FieldDescriptorProto_TYPE_STRING)},
-			{Name: proto.String("field2"), Type: typePtr(descriptorpb.FieldDescriptorProto_TYPE_STRING)},
-			{Name: proto.String("field3"), Type: typePtr(descriptorpb.FieldDescriptorProto_TYPE_STRING)},
+			{Name: proto.String("field1"), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()},
+			{Name: proto.String("field2"), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()},
+			{Name: proto.String("field3"), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()},
 		},
 	}
 	g.descInfo.Type[".InputType"] = inputType
@@ -1516,10 +1516,6 @@ func TestInsertDynamicRequestHeaders_Ordering(t *testing.T) {
 			}
 		})
 	}
-}
-
-func typePtr(t descriptorpb.FieldDescriptorProto_Type) *descriptorpb.FieldDescriptorProto_Type {
-	return &t
 }
 
 func setHTTPOption(o *descriptorpb.MethodOptions, pattern string) {
