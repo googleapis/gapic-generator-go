@@ -1,5 +1,13 @@
 # Changes
 
+## [0.55.2](https://github.com/googleapis/google-cloud-go/releases/tag/v0.55.2) (2026-01-14)
+
+### Bug Fixes
+
+* Ensure stable order of dynamic Firestore routing header parameters (#1685) ([d903b0d](https://github.com/googleapis/google-cloud-go/commit/d903b0d768adf71412db6e7c2df860f395484ce7))
+* add API Versions section in pkg docs (#1678) ([3df0b4b](https://github.com/googleapis/google-cloud-go/commit/3df0b4b0fb8ad1bc9f32c279f5057df2b5d1870b))
+* add API version to client comment (#1677) ([171a9cf](https://github.com/googleapis/google-cloud-go/commit/171a9cf512e980c62871a751e6043f204463ab70))
+
 ## [0.55.1](https://github.com/googleapis/google-cloud-go/releases/tag/v0.55.1) (2025-11-13)
 
 ### Bug Fixes
