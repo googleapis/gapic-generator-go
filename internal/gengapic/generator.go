@@ -41,6 +41,11 @@ var enableWrapperTypesForPageSize = map[string]bool{
 	"google.cloud.bigquery.v2": true,
 }
 
+var enableOrderedRoutingHeaders = map[string]bool{
+	"google.firestore.v1":       true,
+	"google.firestore.admin.v1": true,
+}
+
 var enableMtlsHardBoundTokens = map[string]bool{
 	"bigquery.googleapis.com":             true,
 	"cloudasset.googleapis.com":           true,

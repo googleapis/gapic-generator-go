@@ -1414,6 +1414,114 @@ func TestGenAndCommentHelpers(t *testing.T) {
 	}
 }
 
+func TestInsertDynamicRequestHeaders_Ordering(t *testing.T) {
+	g := &generator{
+		imports: make(map[pbinfo.ImportSpec]bool),
+		descInfo: pbinfo.Info{
+			Type:       make(map[string]pbinfo.ProtoType),
+			ParentFile: make(map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto),
+		},
+	}
+
+	m := &descriptorpb.MethodDescriptorProto{
+		Name:      proto.String("TestMethod"),
+		InputType: proto.String(".InputType"),
+		Options:   &descriptorpb.MethodOptions{},
+	}
+
+	// Setup InputType with fields used in headers
+	inputType := &descriptorpb.DescriptorProto{
+		Name: proto.String("InputType"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{Name: proto.String("field1"), Type: typePtr(descriptorpb.FieldDescriptorProto_TYPE_STRING)},
+			{Name: proto.String("field2"), Type: typePtr(descriptorpb.FieldDescriptorProto_TYPE_STRING)},
+			{Name: proto.String("field3"), Type: typePtr(descriptorpb.FieldDescriptorProto_TYPE_STRING)},
+		},
+	}
+	g.descInfo.Type[".InputType"] = inputType
+
+	// The input headers list defines the order:
+	// 1. header_a (from field1)
+	// 2. header_b (from field2)
+	// 3. header_a (from field3) -- Duplicate key
+	headers := [][]string{
+		{"regex1", "field1", "header_a"},
+		{"regex2", "field2", "header_b"},
+		{"regex3", "field3", "header_a"},
+	}
+
+	tests := []struct {
+		pkgName     string
+		wantOrdered bool
+	}{
+		{"google.firestore.v1", true},
+		{"google.firestore.admin.v1", true},
+		{"google.cloud.storage.v1", false},
+		{"other.package", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.pkgName, func(t *testing.T) {
+			g.reset()
+
+			file := &descriptorpb.FileDescriptorProto{
+				Package: proto.String(tc.pkgName),
+			}
+			g.descInfo.ParentFile[m] = file
+			g.descInfo.ParentFile[inputType] = file
+
+			err := g.insertDynamicRequestHeaders(m, headers)
+			if err != nil {
+				t.Fatalf("insertDynamicRequestHeaders failed: %v", err)
+			}
+
+			got := g.pt.String()
+
+			if tc.wantOrdered {
+				// Verify strict order of checks in the generated code.
+				// We expect code blocks for header_a, then header_b, then header_a again.
+
+				idxA1 := strings.Index(got, `if headerValue, ok := routingHeadersMap["header_a"]; ok {`)
+				if idxA1 == -1 {
+					t.Errorf("expected first check for header_a")
+				}
+
+				// Look for header_b check AFTER header_a check
+				idxB := strings.Index(got[idxA1+1:], `if headerValue, ok := routingHeadersMap["header_b"]; ok {`)
+				if idxB == -1 {
+					t.Errorf("expected check for header_b after first header_a")
+				}
+				idxB += idxA1 + 1 // Adjust index to be absolute
+
+				// Look for second header_a check AFTER header_b check
+				idxA2 := strings.Index(got[idxB+1:], `if headerValue, ok := routingHeadersMap["header_a"]; ok {`)
+				if idxA2 == -1 {
+					t.Errorf("expected second check for header_a after header_b")
+				}
+
+				// Verify delete is called
+				if !strings.Contains(got, `delete(routingHeadersMap, "header_a")`) {
+					t.Errorf("expected delete map key for %s", tc.pkgName)
+				}
+
+				// Verify absence of range loop
+				if strings.Contains(got, `range routingHeadersMap`) {
+					t.Errorf("expected NO range map iteration for %s", tc.pkgName)
+				}
+			} else {
+				// Check for unordered iteration pattern: range loop
+				if !strings.Contains(got, `for headerName, headerValue := range routingHeadersMap {`) {
+					t.Errorf("expected range map iteration for %s, got:\n%s", tc.pkgName, got)
+				}
+			}
+		})
+	}
+}
+
+func typePtr(t descriptorpb.FieldDescriptorProto_Type) *descriptorpb.FieldDescriptorProto_Type {
+	return &t
+}
+
 func setHTTPOption(o *descriptorpb.MethodOptions, pattern string) {
 	proto.SetExtension(o, annotations.E_Http, &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Get{
