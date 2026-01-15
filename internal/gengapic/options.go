@@ -308,7 +308,7 @@ func withAPIServiceConfigPath(s string) configOption {
 
 		sc := &serviceconfig.Service{}
 		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(j, sc); err != nil {
-			fmt.Errorf("error unmarshaling api service config: %v", err)
+			return fmt.Errorf("error unmarshaling api service config: %v", err)
 		}
 
 		// An API Service Config will always have a `name` so if it is not populated,

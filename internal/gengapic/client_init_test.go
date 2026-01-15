@@ -576,16 +576,15 @@ func TestClientInit(t *testing.T) {
 				tst.serv.GetMethod()[0]: "Does some stuff.",
 			}
 			g.mixins = tst.mixins
-			g.cfg = &generatorConfig{
-				APIServiceConfig: &serviceconfig.Service{
-					Apis: []*apipb.Api{
-						{Name: "foo.bar.Baz"},
-						{Name: "google.iam.v1.IAMPolicy"},
-						{Name: "google.cloud.location.Locations"},
-						{Name: "google.longrunning.Operations"},
-					},
+			g.cfg.APIServiceConfig = &serviceconfig.Service{
+				Apis: []*apipb.Api{
+					{Name: "foo.bar.Baz"},
+					{Name: "google.iam.v1.IAMPolicy"},
+					{Name: "google.cloud.location.Locations"},
+					{Name: "google.longrunning.Operations"},
 				},
 			}
+
 			g.aux.customOp = &customOp{
 				message: cop,
 			}
