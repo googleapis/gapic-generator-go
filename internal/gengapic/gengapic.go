@@ -40,7 +40,6 @@ const (
 	alpha                   = "alpha"
 	beta                    = "beta"
 	deprecated              = "deprecated"
-	disableDeadlinesVar     = "GOOGLE_API_GO_EXPERIMENTAL_DISABLE_DEFAULT_DEADLINE"
 	fieldTypeBool           = descriptorpb.FieldDescriptorProto_TYPE_BOOL
 	fieldTypeString         = descriptorpb.FieldDescriptorProto_TYPE_STRING
 	fieldTypeBytes          = descriptorpb.FieldDescriptorProto_TYPE_BYTES
@@ -79,13 +78,13 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		g.hasIAMPolicyOverrides = true
 	}
 
-	if g.serviceConfig != nil {
-		g.apiName = g.serviceConfig.GetTitle()
+	if g.cfg.APIServiceConfig != nil {
+		g.apiName = g.cfg.APIServiceConfig.GetTitle()
 	}
 
 	protoPkg := g.descInfo.ParentFile[genServs[0]].GetPackage()
 
-	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.opts.generateAsDIREGAPIC && ok {
+	if op, ok := g.descInfo.Type[fmt.Sprintf(".%s.Operation", protoPkg)]; g.cfg.generateAsDIREGAPIC && ok {
 		g.aux.customOp = &customOp{
 			message:       op.(*descriptorpb.DescriptorProto),
 			handles:       []*descriptorpb.ServiceDescriptorProto{},
@@ -97,7 +96,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	if len(genServs) > 0 {
 		g.metadata.ProtoPackage = protoPkg
 	}
-	g.metadata.LibraryPackage = g.opts.pkgPath
+	g.metadata.LibraryPackage = g.cfg.pkgPath
 	// Initialize the model that will collect snippet metadata.
 	g.snippetMetadata = g.newSnippetsMetadata(protoPkg)
 
@@ -114,7 +113,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		override := g.getServiceNameOverride(s)
 		servName := pbinfo.ReduceServNameWithOverride(s.GetName(), "", override)
 		outFile := camelToSnake(servName)
-		outFile = filepath.Join(g.opts.outDir, outFile)
+		outFile = filepath.Join(g.cfg.outDir, outFile)
 
 		if err := g.genAndCommitSnippets(s); err != nil {
 			return &g.resp, fmt.Errorf("error generating snippets for %s: %v ", s.GetName(), err)
@@ -123,34 +122,34 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		g.reset()
 		// If the service has no REST-able RPCs, then a REGAPIC should not be
 		// generated for it, even if REST is an enabled transport.
-		transports := g.opts.transports
+		transports := g.cfg.transports
 		hasREST := hasRESTMethod(s)
 		if !hasREST {
-			g.opts.transports = []transport{grpc}
+			g.cfg.transports = []transport{grpc}
 		}
 		if err := g.gen(s); err != nil {
 			return nil, err
 		}
-		g.commit(outFile+"_client.go", g.opts.pkgName)
+		g.commit(outFile+"_client.go", g.cfg.pkgName)
 
 		g.reset()
 		if err := g.genExampleFile(s); err != nil {
 			return &g.resp, fmt.Errorf("error generating example for %q; %v", s.GetName(), err)
 		}
-		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-		g.commit(outFile+"_client_example_test.go", g.opts.pkgName+"_test")
+		g.imports[pbinfo.ImportSpec{Name: g.cfg.pkgName, Path: g.cfg.pkgPath}] = true
+		g.commit(outFile+"_client_example_test.go", g.cfg.pkgName+"_test")
 
 		g.reset()
 		if err := g.genExampleIteratorFile(s); err != nil {
 			return &g.resp, fmt.Errorf("error generating iter example for %q; %v", s.GetName(), err)
 		}
-		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
-		g.commitWithBuildTag(outFile+"_client_example_go123_test.go", g.opts.pkgName+"_test", "go1.23")
+		g.imports[pbinfo.ImportSpec{Name: g.cfg.pkgName, Path: g.cfg.pkgPath}] = true
+		g.commitWithBuildTag(outFile+"_client_example_go123_test.go", g.cfg.pkgName+"_test", "go1.23")
 
 		// Replace original set of transports for the next service that may have
 		// REST-able RPCs.
 		if !hasREST {
-			g.opts.transports = transports
+			g.cfg.transports = transports
 		}
 	}
 	if err := g.genAndCommitSnippetMetadata(protoPkg); err != nil {
@@ -159,15 +158,15 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	g.reset()
 	g.genDocFile(time.Now().Year(), genServs)
 	g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
-		Name:    proto.String(filepath.Join(g.opts.outDir, "doc.go")),
+		Name:    proto.String(filepath.Join(g.cfg.outDir, "doc.go")),
 		Content: proto.String(g.pt.String()),
 	})
 
-	if g.opts.generateGAPICMetadata {
+	if g.cfg.generateGAPICMetadata {
 		g.reset()
 		g.genGapicMetadataFile()
 		g.resp.File = append(g.resp.File, &pluginpb.CodeGeneratorResponse_File{
-			Name:    proto.String(filepath.Join(g.opts.outDir, "gapic_metadata.json")),
+			Name:    proto.String(filepath.Join(g.cfg.outDir, "gapic_metadata.json")),
 			Content: proto.String(g.pt.String()),
 		})
 	}
@@ -177,7 +176,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		if err := g.customOperationType(); err != nil {
 			return nil, err
 		}
-		g.commit(filepath.Join(g.opts.outDir, "operations.go"), g.opts.pkgName)
+		g.commit(filepath.Join(g.cfg.outDir, "operations.go"), g.cfg.pkgName)
 	}
 
 	g.reset()
@@ -235,7 +234,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/option"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/runtime/protoimpl"}] = true
 
-	p("const serviceName = %q", g.serviceConfig.GetName())
+	p("const serviceName = %q", g.cfg.APIServiceConfig.GetName())
 	// Note: protoimpl currently only exposes their minor version. If they ever
 	// take a v2 we will need to update this code accordingly and/or ask them to
 	// expose the major version as well.
@@ -267,7 +266,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	p("  }")
 	p("}")
 	p("")
-	if containsTransport(g.opts.transports, rest) {
+	if containsTransport(g.cfg.transports, rest) {
 		g.imports[pbinfo.ImportSpec{Path: "io"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
@@ -314,7 +313,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 		p("")
 	}
 
-	if containsTransport(g.opts.transports, grpc) {
+	if containsTransport(g.cfg.transports, grpc) {
 		g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog/grpclog"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
@@ -333,8 +332,8 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 		p("")
 	}
 
-	outFile := filepath.Join(g.opts.outDir, "helpers.go")
-	g.commit(outFile, g.opts.pkgName)
+	outFile := filepath.Join(g.cfg.outDir, "helpers.go")
+	g.commit(outFile, g.cfg.pkgName)
 	return nil
 }
 
@@ -342,7 +341,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 	// If using service name overrides, use that directly for the rest of generation.
 	override := g.getServiceNameOverride(serv)
-	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.opts.pkgName, override)
+	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.cfg.pkgName, override)
 
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
@@ -352,7 +351,7 @@ func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 		return err
 	}
 
-	for _, v := range g.opts.transports {
+	for _, v := range g.cfg.transports {
 		switch v {
 		case grpc:
 			if err := g.genGRPCMethods(serv, servName); err != nil {
@@ -655,7 +654,7 @@ func (g *generator) methodDoc(m *descriptorpb.MethodDescriptorProto, serv *descr
 		return
 	}
 
-	if containsTransport(g.opts.transports, rest) && m.GetClientStreaming() {
+	if containsTransport(g.cfg.transports, rest) && m.GetClientStreaming() {
 		com = fmt.Sprintf("%s\n\nThis method is not supported for the REST transport.", com)
 	}
 	// If the method is marked as deprecated and there is no comment, then add default deprecation comment.

@@ -30,16 +30,16 @@ import (
 // newSnippetsMetadata initializes the model that will collect snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true.
 func (g *generator) newSnippetsMetadata(protoPkg string) *snippets.SnippetMetadata {
-	if g.opts.omitSnippets {
+	if g.cfg.omitSnippets {
 		return nil
 	}
-	return snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage, g.opts.pkgName)
+	return snippets.NewMetadata(protoPkg, g.metadata.LibraryPackage, g.cfg.pkgName)
 }
 
 // addSnippetsMetadataDoc sets the documentation for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
 func (g *generator) addSnippetsMetadataDoc(m *descriptorpb.MethodDescriptorProto, servName, doc string) {
-	if g.opts.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
+	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
@@ -49,7 +49,7 @@ func (g *generator) addSnippetsMetadataDoc(m *descriptorpb.MethodDescriptorProto
 // addSnippetsMetadataParams sets the parameters for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
 func (g *generator) addSnippetsMetadataParams(m *descriptorpb.MethodDescriptorProto, servName, requestType string) {
-	if g.opts.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
+	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
@@ -59,7 +59,7 @@ func (g *generator) addSnippetsMetadataParams(m *descriptorpb.MethodDescriptorPr
 // addSnippetsMetadataResult sets the result type for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
 func (g *generator) addSnippetsMetadataResult(m *descriptorpb.MethodDescriptorProto, servName, resultType string) {
-	if g.opts.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
+	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
@@ -69,7 +69,7 @@ func (g *generator) addSnippetsMetadataResult(m *descriptorpb.MethodDescriptorPr
 // genAndCommitSnippets generates and commits a snippet file for each method in a client.
 // Does nothing and returns nil if opts.omitSnippets is true.
 func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto) error {
-	if g.opts.omitSnippets {
+	if g.cfg.omitSnippets {
 		return nil
 	}
 	defaultHost := proto.GetExtension(s.Options, annotations.E_DefaultHost).(string)
@@ -90,10 +90,10 @@ func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto)
 		if err := g.genSnippetFile(s, m); err != nil {
 			return err
 		}
-		g.imports[pbinfo.ImportSpec{Name: g.opts.pkgName, Path: g.opts.pkgPath}] = true
+		g.imports[pbinfo.ImportSpec{Name: g.cfg.pkgName, Path: g.cfg.pkgPath}] = true
 		// Use the client short name in this filepath.
 		// E.g. the client for LoggingServiceV2 is just "Client".
-		clientName := pbinfo.ReduceServName(servName, g.opts.pkgName) + "Client"
+		clientName := pbinfo.ReduceServName(servName, g.cfg.pkgName) + "Client"
 		// Get the original proto namespace for the method (different from `s` only for mixins).
 		f := g.descInfo.ParentFile[m]
 		// Get the original proto service for the method (different from `s` only for mixins).
@@ -112,7 +112,7 @@ func (g *generator) genSnippetFile(s *descriptorpb.ServiceDescriptorProto, m *de
 	}
 	regionTag := g.snippetMetadata.RegionTag(servName, m.GetName())
 	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
-	pkgName := g.opts.pkgName
+	pkgName := g.cfg.pkgName
 
 	reducedServName := pbinfo.ReduceServName(servName, pkgName)
 
@@ -130,7 +130,7 @@ func (g *generator) genSnippetFile(s *descriptorpb.ServiceDescriptorProto, m *de
 // genAndCommitSnippetMetadata generates and commits the snippet metadata to the generator response.
 // Does nothing and returns nil if opts.omitSnippets is true.
 func (g *generator) genAndCommitSnippetMetadata(protoPkg string) error {
-	if g.opts.omitSnippets {
+	if g.cfg.omitSnippets {
 		return nil
 	}
 	g.reset()
@@ -147,11 +147,11 @@ func (g *generator) genAndCommitSnippetMetadata(protoPkg string) error {
 }
 
 func (g *generator) snippetsOutDir() string {
-	if strings.Contains(g.opts.pkgPath, "cloud.google.com/go/") {
+	if strings.Contains(g.cfg.pkgPath, "cloud.google.com/go/") {
 		// Write snippet metadata at the top level of the google-cloud-go namespace, not at the client package.
 		// This matches the destination directory structure in google-cloud-go.
-		pkg := strings.TrimPrefix(g.opts.pkgPath, "cloud.google.com/go/")
+		pkg := strings.TrimPrefix(g.cfg.pkgPath, "cloud.google.com/go/")
 		return filepath.Join("cloud.google.com/go", "internal", "generated", "snippets", filepath.FromSlash(pkg))
 	}
-	return filepath.Join(g.opts.outDir, "internal", "snippets")
+	return filepath.Join(g.cfg.outDir, "internal", "snippets")
 }

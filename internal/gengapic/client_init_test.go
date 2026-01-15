@@ -122,17 +122,19 @@ func TestClientOpt(t *testing.T) {
 			"google.cloud.location.Locations": locationMethods(),
 			"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 		},
-		serviceConfig: &serviceconfig.Service{
-			Name: "showcase.googleapis.com",
-			Apis: []*apipb.Api{
-				{Name: "foo.bar.Baz"},
-				{Name: "google.iam.v1.IAMPolicy"},
-				{Name: "google.cloud.location.Locations"},
-				{Name: "google.longrunning.Operations"},
+
+		cfg: &generatorConfig{
+			transports: []transport{grpc, rest},
+			APIServiceConfig: &serviceconfig.Service{
+				Name: "showcase.googleapis.com",
+				Apis: []*apipb.Api{
+					{Name: "foo.bar.Baz"},
+					{Name: "google.iam.v1.IAMPolicy"},
+					{Name: "google.cloud.location.Locations"},
+					{Name: "google.longrunning.Operations"},
+				},
 			},
-		},
-		opts:     &options{transports: []transport{grpc, rest}},
-		grpcConf: grpcConf,
+			gRPCServiceConfig: grpcConf},
 	}
 
 	serv := &descriptorpb.ServiceDescriptorProto{
@@ -270,6 +272,7 @@ func TestServiceDoc(t *testing.T) {
 
 	var g generator
 	g.comments = make(map[protoiface.MessageV1]string)
+	g.cfg = &generatorConfig{}
 
 	for _, tst := range []struct {
 		in, want          string
@@ -573,12 +576,14 @@ func TestClientInit(t *testing.T) {
 				tst.serv.GetMethod()[0]: "Does some stuff.",
 			}
 			g.mixins = tst.mixins
-			g.serviceConfig = &serviceconfig.Service{
-				Apis: []*apipb.Api{
-					{Name: "foo.bar.Baz"},
-					{Name: "google.iam.v1.IAMPolicy"},
-					{Name: "google.cloud.location.Locations"},
-					{Name: "google.longrunning.Operations"},
+			g.cfg = &generatorConfig{
+				APIServiceConfig: &serviceconfig.Service{
+					Apis: []*apipb.Api{
+						{Name: "foo.bar.Baz"},
+						{Name: "google.iam.v1.IAMPolicy"},
+						{Name: "google.cloud.location.Locations"},
+						{Name: "google.longrunning.Operations"},
+					},
 				},
 			}
 			g.aux.customOp = &customOp{
