@@ -470,7 +470,7 @@ func TestPagingField(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.opts = &options{transports: []transport{rest}}
+	g.cfg = &generatorConfig{transports: []transport{rest}}
 
 	for _, tst := range []struct {
 		mthd      *descriptorpb.MethodDescriptorProto
@@ -507,7 +507,7 @@ func TestPagingField(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.opts = &options{transports: []transport{rest}}
+	g.cfg = &generatorConfig{transports: []transport{rest}}
 	for _, tst := range []struct {
 		mthd      *descriptorpb.MethodDescriptorProto
 		sizeField *descriptorpb.FieldDescriptorProto // A nil field means this is not a paged method

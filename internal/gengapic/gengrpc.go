@@ -162,7 +162,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 func (g *generator) grpcStubCall(method *descriptorpb.MethodDescriptorProto) string {
 	service := g.descInfo.ParentElement[method].(*descriptorpb.ServiceDescriptorProto)
 	override := g.getServiceNameOverride(service)
-	stub := pbinfo.ReduceServNameWithOverride(service.GetName(), g.opts.pkgName, override)
+	stub := pbinfo.ReduceServNameWithOverride(service.GetName(), g.cfg.pkgName, override)
 	return fmt.Sprintf("executeRPC(ctx, c.%s.%s, req, settings.GRPC, c.logger, %q)", grpcClientField(stub), method.GetName(), method.GetName())
 }
 
@@ -186,7 +186,7 @@ func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("    internaloption.EnableJwtWithScope(),")
-	if _, ok := enableMtlsHardBoundTokens[g.serviceConfig.GetName()]; ok {
+	if _, ok := enableMtlsHardBoundTokens[g.cfg.APIServiceConfig.GetName()]; ok {
 		p("internaloption.AllowHardBoundTokens(\"MTLS_S2A\"),")
 	}
 	p("    internaloption.EnableNewAuthLibrary(),")
@@ -207,7 +207,7 @@ func (g *generator) grpcCallOptions(serv *descriptorpb.ServiceDescriptorProto, s
 	p := g.printf
 
 	// defaultCallOptions
-	c := g.grpcConf
+	c := g.cfg.gRPCServiceConfig
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 

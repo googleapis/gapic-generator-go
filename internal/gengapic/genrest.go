@@ -81,7 +81,7 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 		g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
 	}
 	if opServ, ok := g.customOpServices[serv]; ok {
-		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
+		opServName := pbinfo.ReduceServName(opServ.GetName(), g.cfg.pkgName)
 		p("// operationClient is used to call the operation-specific management service.")
 		p("operationClient *%sClient", opServName)
 		p("")
@@ -189,7 +189,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("")
 	}
 	if hasCustomOp {
-		opServName := pbinfo.ReduceServName(opServ.GetName(), g.opts.pkgName)
+		opServName := pbinfo.ReduceServName(opServ.GetName(), g.cfg.pkgName)
 		p("o := []option.ClientOption{")
 		p("  option.WithHTTPClient(httpClient),")
 		p("  option.WithEndpoint(endpoint),")
@@ -405,11 +405,11 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 	}
 	sort.Strings(fields)
 
-	if g.opts.restNumericEnum || len(fields) > 0 {
+	if g.cfg.restNumericEnum || len(fields) > 0 {
 		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 		p("params := url.Values{}")
 	}
-	if g.opts.restNumericEnum {
+	if g.cfg.restNumericEnum {
 		p(`params.Add("$alt", "json;enum-encoding=int")`)
 	}
 	for _, path := range fields {
@@ -492,7 +492,7 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 		p("}")
 	}
 
-	if g.opts.restNumericEnum || len(fields) > 0 {
+	if g.cfg.restNumericEnum || len(fields) > 0 {
 		p("")
 		p("baseUrl.RawQuery = params.Encode()")
 		p("")
@@ -1189,7 +1189,7 @@ func (g *generator) protoJSONMarshaler() {
 	// enum. However, since they are synthetic protos, the enum numbers likely
 	// do not match the internal proto enum value, so we do not want to send
 	// any enums as numbers with DIREGAPIC clients.
-	if g.opts.generateAsDIREGAPIC {
+	if g.cfg.generateAsDIREGAPIC {
 		marshalOpts = "AllowPartial: true"
 	}
 	g.pt.Printf("m := protojson.MarshalOptions{%s}", marshalOpts)
@@ -1199,7 +1199,7 @@ func (g *generator) restCallOptions(serv *descriptorpb.ServiceDescriptorProto, s
 	p := g.printf
 
 	// defaultCallOptions
-	c := g.grpcConf
+	c := g.cfg.gRPCServiceConfig
 
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 

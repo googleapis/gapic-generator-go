@@ -114,7 +114,7 @@ func TestCustomOpInit(t *testing.T) {
 				},
 			},
 		},
-		opts: &options{pkgName: "bar"},
+		cfg: &generatorConfig{pkgName: "bar"},
 	}
 	g.customOpInit("foo", "req", "op", req, opServ)
 	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "custom_op_init_helper.want"))

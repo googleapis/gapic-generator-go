@@ -27,13 +27,13 @@ import (
 
 func TestDocFile(t *testing.T) {
 	g := generator{
-		apiName:       sample.ServiceTitle,
-		serviceConfig: sample.ServiceConfig(),
-		imports:       map[pbinfo.ImportSpec]bool{},
-		opts: &options{
-			pkgPath:    sample.GoPackagePath,
-			pkgName:    sample.GoPackageName,
-			transports: []transport{grpc, rest},
+		apiName: sample.ServiceTitle,
+		imports: map[pbinfo.ImportSpec]bool{},
+		cfg: &generatorConfig{
+			pkgPath:          sample.GoPackagePath,
+			pkgName:          sample.GoPackageName,
+			transports:       []transport{grpc, rest},
+			APIServiceConfig: sample.ServiceConfig(),
 		},
 	}
 
@@ -67,7 +67,7 @@ func TestDocFile(t *testing.T) {
 		},
 	} {
 		t.Run(tst.want, func(t *testing.T) {
-			g.opts.relLvl = tst.relLvl
+			g.cfg.relLvl = tst.relLvl
 			g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
 			txtdiff.Diff(t, g.pt.String(), tst.want)
 			g.reset()
@@ -77,13 +77,13 @@ func TestDocFile(t *testing.T) {
 
 func TestDocFile_APIVersionSection(t *testing.T) {
 	g := generator{
-		apiName:       sample.ServiceTitle,
-		serviceConfig: sample.ServiceConfig(),
-		imports:       map[pbinfo.ImportSpec]bool{},
-		opts: &options{
-			pkgPath:    sample.GoPackagePath,
-			pkgName:    sample.GoPackageName,
-			transports: []transport{grpc, rest},
+		apiName: sample.ServiceTitle,
+		imports: map[pbinfo.ImportSpec]bool{},
+		cfg: &generatorConfig{
+			pkgPath:          sample.GoPackagePath,
+			pkgName:          sample.GoPackageName,
+			transports:       []transport{grpc, rest},
+			APIServiceConfig: sample.ServiceConfig(),
 		},
 	}
 
@@ -110,13 +110,13 @@ func TestDocFile_APIVersionSection(t *testing.T) {
 
 func TestDocFileEmptyService(t *testing.T) {
 	g := generator{
-		apiName:       sample.ServiceTitle,
-		imports:       map[pbinfo.ImportSpec]bool{},
-		serviceConfig: sample.ServiceConfig(),
-		opts: &options{
-			pkgPath:    sample.GoPackagePath,
-			pkgName:    sample.GoPackageName,
-			transports: []transport{grpc, rest},
+		apiName: sample.ServiceTitle,
+		imports: map[pbinfo.ImportSpec]bool{},
+		cfg: &generatorConfig{
+			pkgPath:          sample.GoPackagePath,
+			pkgName:          sample.GoPackageName,
+			transports:       []transport{grpc, rest},
+			APIServiceConfig: sample.ServiceConfig(),
 		},
 	}
 	inputType := sample.InputType(sample.CreateRequest)
@@ -154,7 +154,7 @@ func TestDocFileEmptyService(t *testing.T) {
 		},
 	} {
 		t.Run(tst.want, func(t *testing.T) {
-			g.opts.relLvl = tst.relLvl
+			g.cfg.relLvl = tst.relLvl
 			g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
 			txtdiff.Diff(t, g.pt.String(), tst.want)
 			g.reset()
@@ -164,9 +164,9 @@ func TestDocFileEmptyService(t *testing.T) {
 
 func TestApiVersionSection(t *testing.T) {
 	g := generator{
-		serviceConfig: sample.ServiceConfig(),
-		opts: &options{
-			pkgName: sample.GoPackageName,
+		cfg: &generatorConfig{
+			pkgName:          sample.GoPackageName,
+			APIServiceConfig: sample.ServiceConfig(),
 		},
 	}
 

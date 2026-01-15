@@ -54,7 +54,7 @@ func (g *generator) clientOptions(serv *descriptorpb.ServiceDescriptorProto, ser
 		g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
 	}
 
-	for _, v := range g.opts.transports {
+	for _, v := range g.cfg.transports {
 		switch v {
 		case grpc:
 			if err := g.grpcClientOptions(serv, servName); err != nil {
@@ -396,7 +396,7 @@ func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servN
 	}
 	g.clientInit(serv, servName, hasLRO)
 
-	for _, v := range g.opts.transports {
+	for _, v := range g.cfg.transports {
 		switch v {
 		case grpc:
 			g.grpcClientInit(serv, servName, imp, hasLRO)

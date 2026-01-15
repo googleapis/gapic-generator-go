@@ -92,12 +92,12 @@ func TestAutoPopulatedFields(t *testing.T) {
 	}
 
 	var g generator
-	g.opts = &options{
+	g.cfg = &generatorConfig{
 		pkgName: "pkg",
 	}
 	g.imports = map[pbinfo.ImportSpec]bool{}
 
-	g.serviceConfig = &serviceconfig.Service{
+	g.cfg.APIServiceConfig = &serviceconfig.Service{
 		Publishing: &annotations.Publishing{
 			MethodSettings: []*annotations.MethodSettings{
 				{

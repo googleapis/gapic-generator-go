@@ -30,18 +30,18 @@ import (
 
 func TestSnippetsOutDir(t *testing.T) {
 	for _, tst := range []struct {
-		opts options
+		cfg  *generatorConfig
 		want string
 	}{
 		{
-			opts: options{
+			cfg: &generatorConfig{
 				outDir:  sample.GoPackagePath,
 				pkgPath: sample.GoPackagePath,
 			},
 			want: sample.SnippetsDirectory,
 		},
 		{
-			opts: options{
+			cfg: &generatorConfig{
 				outDir:  "example.com/my/package",
 				pkgPath: "example.com/my/package",
 			},
@@ -49,9 +49,9 @@ func TestSnippetsOutDir(t *testing.T) {
 		},
 	} {
 		var g generator
-		g.opts = &tst.opts
+		g.cfg = tst.cfg
 		if s := g.snippetsOutDir(); s != tst.want {
-			t.Errorf("TestGenAndCommitSnippets(g.opts.pkgPath = %s): got %s, want %s", g.opts.pkgPath, s, tst.want)
+			t.Errorf("TestGenAndCommitSnippets(g.opts.pkgPath = %s): got %s, want %s", g.cfg.pkgPath, s, tst.want)
 		}
 	}
 }
@@ -109,7 +109,7 @@ func TestGenAndCommitSnippets(t *testing.T) {
 	}
 
 	var g generator
-	g.opts = &options{
+	g.cfg = &generatorConfig{
 		pkgName:    "pkg",
 		transports: []transport{grpc},
 	}

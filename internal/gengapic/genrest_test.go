@@ -696,7 +696,7 @@ func TestGenRestMethod(t *testing.T) {
 			methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
 			opWrappers:      map[string]operationWrapper{},
 		},
-		opts: &options{},
+		cfg: &generatorConfig{},
 		customOpServices: map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{
 			s: opS,
 		},
@@ -747,13 +747,13 @@ func TestGenRestMethod(t *testing.T) {
 	for _, tst := range []struct {
 		name    string
 		method  *descriptorpb.MethodDescriptorProto
-		options *options
+		cfg     *generatorConfig
 		imports map[pbinfo.ImportSpec]bool
 	}{
 		{
-			name:    "custom_op",
-			method:  opRPC,
-			options: &options{generateAsDIREGAPIC: true},
+			name:   "custom_op",
+			method: opRPC,
+			cfg:    &generatorConfig{generateAsDIREGAPIC: true},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
@@ -762,9 +762,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "empty_rpc",
-			method:  emptyRPC,
-			options: &options{},
+			name:   "empty_rpc",
+			method: emptyRPC,
+			cfg:    &generatorConfig{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                    true,
 				{Path: "github.com/google/uuid"}: true,
@@ -773,9 +773,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "unary_rpc",
-			method:  unaryRPC,
-			options: &options{restNumericEnum: true},
+			name:   "unary_rpc",
+			method: unaryRPC,
+			cfg:    &generatorConfig{restNumericEnum: true},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}:                  true,
 				{Path: "fmt"}:                    true,
@@ -788,9 +788,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "paging_rpc",
-			method:  pagingRPC,
-			options: &options{},
+			name:   "paging_rpc",
+			method: pagingRPC,
+			cfg:    &generatorConfig{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "math"}:    true,
 				{Path: "net/url"}: true,
@@ -802,9 +802,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "server_stream_rpc",
-			method:  serverStreamRPC,
-			options: &options{},
+			name:   "server_stream_rpc",
+			method: serverStreamRPC,
+			cfg:    &generatorConfig{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}:   true,
 				{Path: "context"}: true,
@@ -819,9 +819,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "no_request_stream_rpc",
-			method:  clientStreamRPC,
-			options: &options{},
+			name:   "no_request_stream_rpc",
+			method: clientStreamRPC,
+			cfg:    &generatorConfig{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}: true,
 				{Path: "errors"}:  true,
@@ -829,9 +829,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "lro_rpc",
-			method:  lroRPC,
-			options: &options{transports: []transport{rest}},
+			name:   "lro_rpc",
+			method: lroRPC,
+			cfg:    &generatorConfig{transports: []transport{rest}},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
 				{Path: "cloud.google.com/go/longrunning"}: true,
@@ -843,9 +843,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "http_body_rpc",
-			method:  httpBodyRPC,
-			options: &options{},
+			name:   "http_body_rpc",
+			method: httpBodyRPC,
+			cfg:    &generatorConfig{},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,
@@ -858,9 +858,9 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
-			name:    "update_rpc",
-			method:  updateRPC,
-			options: &options{restNumericEnum: true},
+			name:   "update_rpc",
+			method: updateRPC,
+			cfg:    &generatorConfig{restNumericEnum: true},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,
@@ -872,9 +872,9 @@ func TestGenRestMethod(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tst.name), func(t *testing.T) {
 			s.Method = []*descriptorpb.MethodDescriptorProto{tst.method}
-			g.opts = tst.options
+			g.cfg = tst.cfg
 			g.imports = make(map[pbinfo.ImportSpec]bool)
-			g.serviceConfig = &serviceconfig.Service{
+			g.cfg.APIServiceConfig = &serviceconfig.Service{
 				Http: &annotations.Http{
 					Rules: []*annotations.HttpRule{
 						{

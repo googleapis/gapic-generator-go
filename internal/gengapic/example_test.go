@@ -41,7 +41,7 @@ func TestExample(t *testing.T) {
 		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.mixins = mix
-	g.serviceConfig = &serviceconfig.Service{
+	apiCfg := &serviceconfig.Service{
 		Apis: []*apipb.Api{
 			{Name: "foo.bar.Baz"},
 			{Name: "google.iam.v1.IAMPolicy"},
@@ -176,14 +176,15 @@ func TestExample(t *testing.T) {
 	for _, tst := range []struct {
 		tstName string
 		imports map[pbinfo.ImportSpec]bool
-		options options
+		cfg     *generatorConfig
 		op      *customOp
 	}{
 		{
 			tstName: "empty_example",
-			options: options{
-				pkgName:    "Foo",
-				transports: []transport{grpc, rest},
+			cfg: &generatorConfig{
+				pkgName:          "Foo",
+				transports:       []transport{grpc, rest},
+				APIServiceConfig: apiCfg,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
@@ -197,9 +198,10 @@ func TestExample(t *testing.T) {
 		},
 		{
 			tstName: "empty_example_grpc",
-			options: options{
-				pkgName:    "Foo",
-				transports: []transport{grpc},
+			cfg: &generatorConfig{
+				pkgName:          "Foo",
+				transports:       []transport{grpc},
+				APIServiceConfig: apiCfg,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
@@ -213,9 +215,10 @@ func TestExample(t *testing.T) {
 		},
 		{
 			tstName: "foo_example",
-			options: options{
-				pkgName:    "Bar",
-				transports: []transport{grpc, rest},
+			cfg: &generatorConfig{
+				pkgName:          "Bar",
+				transports:       []transport{grpc, rest},
+				APIServiceConfig: apiCfg,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
@@ -229,9 +232,10 @@ func TestExample(t *testing.T) {
 		},
 		{
 			tstName: "foo_example_rest",
-			options: options{
-				pkgName:    "Bar",
-				transports: []transport{rest},
+			cfg: &generatorConfig{
+				pkgName:          "Bar",
+				transports:       []transport{rest},
+				APIServiceConfig: apiCfg,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
@@ -245,10 +249,11 @@ func TestExample(t *testing.T) {
 		},
 		{
 			tstName: "custom_op_example",
-			options: options{
+			cfg: &generatorConfig{
 				pkgName:             "Bar",
 				transports:          []transport{rest},
 				generateAsDIREGAPIC: true,
+				APIServiceConfig:    apiCfg,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                        true,
@@ -261,9 +266,9 @@ func TestExample(t *testing.T) {
 	} {
 		t.Run(tst.tstName, func(t *testing.T) {
 			g.reset()
-			g.opts = &tst.options
+			g.cfg = tst.cfg
 			g.mixins = mix
-			if tst.options.generateAsDIREGAPIC {
+			if tst.cfg.generateAsDIREGAPIC {
 				g.mixins = nil
 			}
 			g.aux.customOp = tst.op
@@ -279,9 +284,9 @@ func TestExample(t *testing.T) {
 			delete(tst.imports, pbinfo.ImportSpec{Path: "io"})
 			delete(tst.imports, pbinfo.ImportSpec{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"})
 
-			g.opts = &tst.options
+			g.cfg = tst.cfg
 			g.mixins = mix
-			if tst.options.generateAsDIREGAPIC {
+			if tst.cfg.generateAsDIREGAPIC {
 				g.mixins = nil
 			}
 			g.aux.customOp = tst.op
@@ -297,7 +302,6 @@ func TestExample(t *testing.T) {
 func TestGenSnippetFile(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.serviceConfig = sample.ServiceConfig()
 
 	serv := sample.Service()
 	g.snippetMetadata = snippets.NewMetadata(sample.ProtoPackagePath, sample.GoPackagePath, sample.GoPackageName)
@@ -319,14 +323,15 @@ func TestGenSnippetFile(t *testing.T) {
 
 	for _, test := range []struct {
 		name    string
-		options options
+		cfg     *generatorConfig
 		imports map[pbinfo.ImportSpec]bool
 	}{
 		{
 			name: "snippet",
-			options: options{
-				pkgName:    sample.GoPackageName,
-				transports: []transport{grpc, rest},
+			cfg: &generatorConfig{
+				pkgName:          sample.GoPackageName,
+				transports:       []transport{grpc, rest},
+				APIServiceConfig: sample.ServiceConfig(),
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}: true,
@@ -336,7 +341,7 @@ func TestGenSnippetFile(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			g.reset()
-			g.opts = &test.options
+			g.cfg = test.cfg
 			err := g.genSnippetFile(serv, serv.Method[0])
 			if err != nil {
 				t.Fatal(err)

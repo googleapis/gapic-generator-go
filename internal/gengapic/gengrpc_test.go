@@ -53,9 +53,20 @@ func TestServiceRenaming(t *testing.T) {
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.opts = &options{
+	g.cfg = &generatorConfig{
 		pkgName:    "pkg",
 		transports: []transport{grpc},
+		APIServiceConfig: &serviceconfig.Service{
+			Publishing: &annotations.Publishing{
+				LibrarySettings: []*annotations.ClientLibrarySettings{
+					{
+						GoSettings: &annotations.GoSettings{
+							RenamedServices: map[string]string{"Foo": "Bar"},
+						},
+					},
+				},
+			},
+		},
 	}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
@@ -74,7 +85,7 @@ func TestServiceRenaming(t *testing.T) {
 		t.Error(err)
 	}
 	in := bytes.NewReader(data)
-	g.grpcConf, err = conf.New(in)
+	g.cfg.gRPCServiceConfig, err = conf.New(in)
 	if err != nil {
 		t.Error(err)
 	}
@@ -88,17 +99,6 @@ func TestServiceRenaming(t *testing.T) {
 	}
 	g.descInfo.ParentFile[serv] = file
 	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{}
-	g.serviceConfig = &serviceconfig.Service{
-		Publishing: &annotations.Publishing{
-			LibrarySettings: []*annotations.ClientLibrarySettings{
-				{
-					GoSettings: &annotations.GoSettings{
-						RenamedServices: map[string]string{"Foo": "Bar"},
-					},
-				},
-			},
-		},
-	}
 
 	m := &descriptorpb.MethodDescriptorProto{
 		Name:       proto.String("Baz"),

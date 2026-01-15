@@ -59,7 +59,7 @@ func initMixinFiles() {
 // collectMixins collects the configured mixin APIs from the Service config and
 // gathers the appropriately configured mixin methods to generate for each.
 func (g *generator) collectMixins() {
-	for _, api := range g.serviceConfig.GetApis() {
+	for _, api := range g.cfg.APIServiceConfig.GetApis() {
 		if _, ok := mixinFiles[api.GetName()]; ok {
 			g.mixins[api.GetName()] = g.collectMixinMethods(api.GetName())
 		}
@@ -92,7 +92,7 @@ func (g *generator) collectMixinMethods(api string) []*descriptorpb.MethodDescri
 	}
 
 	// Overwrite the google.api.http annotations with bindings from the Service config.
-	for _, rule := range g.serviceConfig.GetHttp().GetRules() {
+	for _, rule := range g.cfg.APIServiceConfig.GetHttp().GetRules() {
 		m, match := methods[rule.GetSelector()]
 		if !match {
 			continue
@@ -103,7 +103,7 @@ func (g *generator) collectMixinMethods(api string) []*descriptorpb.MethodDescri
 	}
 
 	// Include any documentation from the Service config.
-	for _, rule := range g.serviceConfig.GetDocumentation().GetRules() {
+	for _, rule := range g.cfg.APIServiceConfig.GetDocumentation().GetRules() {
 		m, match := methods[rule.GetSelector()]
 		if !match {
 			continue
@@ -191,19 +191,19 @@ func (g *generator) mixinStubsInit() {
 // hasLROMixin is a convenience method for determining if the Operations mixin
 // should be generated.
 func (g *generator) hasLROMixin() bool {
-	return len(g.mixins["google.longrunning.Operations"]) > 0 && len(g.serviceConfig.GetApis()) > 1
+	return len(g.mixins["google.longrunning.Operations"]) > 0 && len(g.cfg.APIServiceConfig.GetApis()) > 1
 }
 
 // hasIAMPolicyMixin is a convenience method for determining if the IAMPolicy
 // mixin should be generated.
 func (g *generator) hasIAMPolicyMixin() bool {
-	return len(g.mixins["google.iam.v1.IAMPolicy"]) > 0 && !g.hasIAMPolicyOverrides && len(g.serviceConfig.GetApis()) > 1
+	return len(g.mixins["google.iam.v1.IAMPolicy"]) > 0 && !g.hasIAMPolicyOverrides && len(g.cfg.APIServiceConfig.GetApis()) > 1
 }
 
 // hasLocationMixin is a convenience method for determining if the Locations
 // mixin should be generated.
 func (g *generator) hasLocationMixin() bool {
-	return len(g.mixins["google.cloud.location.Locations"]) > 0 && len(g.serviceConfig.GetApis()) > 1
+	return len(g.mixins["google.cloud.location.Locations"]) > 0 && len(g.cfg.APIServiceConfig.GetApis()) > 1
 }
 
 // containsIAMPolicyOverrides determines if any of the given services define an
@@ -231,13 +231,13 @@ func (g *generator) containsIAMPolicyOverrides(servs []*descriptorpb.ServiceDesc
 // protos-to-be-generated file set based on if the Go package to be generated
 // is for one of the mixin services explicitly or not.
 func (g *generator) includeMixinInputFile(file string) bool {
-	if strings.HasPrefix(file, "google/cloud/location") && !strings.Contains(g.opts.pkgPath, "location") {
+	if strings.HasPrefix(file, "google/cloud/location") && !strings.Contains(g.cfg.pkgPath, "location") {
 		return false
 	}
-	if strings.HasPrefix(file, "google/iam/v1") && !strings.Contains(g.opts.pkgPath, "iam") {
+	if strings.HasPrefix(file, "google/iam/v1") && !strings.Contains(g.cfg.pkgPath, "iam") {
 		return false
 	}
-	if strings.HasPrefix(file, "google/longrunning") && !strings.Contains(g.opts.pkgPath, "longrunning") {
+	if strings.HasPrefix(file, "google/longrunning") && !strings.Contains(g.cfg.pkgPath, "longrunning") {
 		return false
 	}
 	// Not a mixin file or generating a mixin GAPIC explicitly so include the file.
@@ -247,7 +247,7 @@ func (g *generator) includeMixinInputFile(file string) bool {
 // lookUpGetOperationOverride looks up the google.api.http rule defined in the
 // service config for the given RPC.
 func (g *generator) lookupHTTPOverride(fqn string, f func(h *annotations.HttpRule) string) string {
-	for _, rule := range g.serviceConfig.GetHttp().GetRules() {
+	for _, rule := range g.cfg.APIServiceConfig.GetHttp().GetRules() {
 		if rule.GetSelector() == fqn {
 			return f(rule)
 		}

@@ -326,8 +326,27 @@ func TestGenGRPCMethods(t *testing.T) {
 	}
 
 	var g generator
-	g.opts = &options{
+	g.cfg = &generatorConfig{
 		pkgName: "pkg",
+		APIServiceConfig: &serviceconfig.Service{
+			Publishing: &annotations.Publishing{
+				MethodSettings: []*annotations.MethodSettings{
+					{
+						Selector: "my.pkg.Foo.GetEmptyThing",
+						AutoPopulatedFields: []string{
+							"request_id",
+						},
+					},
+					{
+						Selector: "my.pkg.Foo.GetOneThing",
+						AutoPopulatedFields: []string{
+							"request_id",
+							"non_proto3optional_request_id",
+						},
+					},
+				},
+			},
+		},
 	}
 	g.metadata = &metadatapb.GapicMetadata{
 		Services: make(map[string]*metadatapb.GapicMetadata_ServiceForTransport),
@@ -338,26 +357,6 @@ func TestGenGRPCMethods(t *testing.T) {
 		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
 	g.imports = map[pbinfo.ImportSpec]bool{}
-
-	g.serviceConfig = &serviceconfig.Service{
-		Publishing: &annotations.Publishing{
-			MethodSettings: []*annotations.MethodSettings{
-				{
-					Selector: "my.pkg.Foo.GetEmptyThing",
-					AutoPopulatedFields: []string{
-						"request_id",
-					},
-				},
-				{
-					Selector: "my.pkg.Foo.GetOneThing",
-					AutoPopulatedFields: []string{
-						"request_id",
-						"non_proto3optional_request_id",
-					},
-				},
-			},
-		},
-	}
 
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
@@ -376,7 +375,7 @@ func TestGenGRPCMethods(t *testing.T) {
 		t.Error(err)
 	}
 	in := bytes.NewReader(data)
-	g.grpcConf, err = conf.New(in)
+	g.cfg.gRPCServiceConfig, err = conf.New(in)
 	if err != nil {
 		t.Error(err)
 	}
@@ -606,7 +605,7 @@ func TestMethodDoc(t *testing.T) {
 	for _, tst := range []struct {
 		in, want                    string
 		clientStreaming, deprecated bool
-		opts                        options
+		cfg                         *generatorConfig
 	}{
 		{
 			in:   "",
@@ -615,35 +614,40 @@ func TestMethodDoc(t *testing.T) {
 		{
 			in:   "Does stuff.\nIt also does other stuffs.",
 			want: "// MyMethod does stuff.\n// It also does other stuffs.\n",
+			cfg:  &generatorConfig{},
 		},
 		{
 			in:         "This is deprecated.\nIt does not have a proper comment.",
 			want:       "// MyMethod this is deprecated.\n// It does not have a proper comment.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
 			deprecated: true,
+			cfg:        &generatorConfig{},
 		},
 		{
 			in:         "Deprecated: this is a proper deprecation notice.",
 			want:       "// MyMethod is deprecated.\n//\n// Deprecated: this is a proper deprecation notice.\n",
 			deprecated: true,
+			cfg:        &generatorConfig{},
 		},
 		{
 			in:         "Does my thing.\nDeprecated: this is a proper deprecation notice.",
 			want:       "// MyMethod does my thing.\n// Deprecated: this is a proper deprecation notice.\n",
 			deprecated: true,
+			cfg:        &generatorConfig{},
 		},
 		{
 			in:         "",
 			want:       "// MyMethod is deprecated.\n//\n// Deprecated: MyMethod may be removed in a future version.\n",
 			deprecated: true,
+			cfg:        &generatorConfig{},
 		},
 		{
 			in:              "Does client streaming stuff.\nIt also does other stuffs.",
 			want:            "// MyMethod does client streaming stuff.\n// It also does other stuffs.\n//\n// This method is not supported for the REST transport.\n",
 			clientStreaming: true,
-			opts:            options{transports: []transport{rest}},
+			cfg:             &generatorConfig{transports: []transport{rest}},
 		},
 	} {
-		g.opts = &tst.opts
+		g.cfg = tst.cfg
 		sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
 		sm.AddService(servName, "mypackage.googleapis.com")
 		sm.AddMethod(servName, methodName, "mypackage", servName, 50)
@@ -713,27 +717,27 @@ func TestGenOperationBuilders(t *testing.T) {
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
-	g.serviceConfig = &serviceconfig.Service{
-		Publishing: &annotations.Publishing{
-			MethodSettings: []*annotations.MethodSettings{
-				{
-					// Enable auto-populated field request_id only for EmptyLRO, not RespLRO.
-					Selector: "my.pkg.Foo.EmptyLRO",
-					AutoPopulatedFields: []string{
-						"request_id",
-					},
-				},
-			},
-		},
-	}
 	g.mixins = mixins{
 		"google.longrunning.Operations":   operationsMethods(),
 		"google.cloud.location.Locations": locationMethods(),
 		"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 	}
-	g.opts = &options{
+	g.cfg = &generatorConfig{
 		pkgName:    "pkg",
 		transports: []transport{grpc},
+		APIServiceConfig: &serviceconfig.Service{
+			Publishing: &annotations.Publishing{
+				MethodSettings: []*annotations.MethodSettings{
+					{
+						// Enable auto-populated field request_id only for EmptyLRO, not RespLRO.
+						Selector: "my.pkg.Foo.EmptyLRO",
+						AutoPopulatedFields: []string{
+							"request_id",
+						},
+					},
+				},
+			},
+		},
 	}
 	cpb := &conf.ServiceConfig{
 		MethodConfig: []*conf.MethodConfig{
@@ -752,7 +756,7 @@ func TestGenOperationBuilders(t *testing.T) {
 		t.Error(err)
 	}
 	in := bytes.NewReader(data)
-	g.grpcConf, err = conf.New(in)
+	g.cfg.gRPCServiceConfig, err = conf.New(in)
 	if err != nil {
 		t.Error(err)
 	}
@@ -1233,7 +1237,7 @@ func TestReturnType(t *testing.T) {
 				message: op,
 			},
 		},
-		opts: &options{
+		cfg: &generatorConfig{
 			generateAsDIREGAPIC: true,
 		},
 		descInfo: pbinfo.Info{
@@ -1336,7 +1340,7 @@ func TestCollectServicesAndScopes(t *testing.T) {
 			want: []*descriptorpb.ServiceDescriptorProto{mixinFiles["google.iam.v1.IAMPolicy"][0].GetService()[0]},
 		},
 	} {
-		g := &generator{opts: &options{pkgPath: tst.goPkgPath}}
+		g := &generator{cfg: &generatorConfig{pkgPath: tst.goPkgPath}}
 		setOAuthScopes(libraryServ, tst.wantScopes)
 		gotServices, gotScopes := g.collectServicesAndScopes(&pluginpb.CodeGeneratorRequest{
 			FileToGenerate: tst.toGen,
@@ -1353,13 +1357,13 @@ func TestCollectServicesAndScopes(t *testing.T) {
 
 func TestGenAndCommentHelpers(t *testing.T) {
 	g := generator{
-		apiName:       sample.ServiceTitle,
-		imports:       map[pbinfo.ImportSpec]bool{},
-		serviceConfig: sample.ServiceConfig(),
-		opts: &options{
-			pkgPath:    sample.GoPackagePath,
-			pkgName:    sample.GoPackageName,
-			transports: []transport{grpc, rest},
+		apiName: sample.ServiceTitle,
+		imports: map[pbinfo.ImportSpec]bool{},
+		cfg: &generatorConfig{
+			pkgPath:          sample.GoPackagePath,
+			pkgName:          sample.GoPackageName,
+			transports:       []transport{grpc, rest},
+			APIServiceConfig: sample.ServiceConfig(),
 		},
 	}
 	inputType := sample.InputType(sample.CreateRequest)
