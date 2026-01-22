@@ -128,7 +128,7 @@ type generatorConfig struct {
 // Config options that return errors should not modify the configuration.
 type configOption func(*generatorConfig) error
 
-// NewOptionsFromParams consumes the "parameter" field from the CodeGenerationRequest to produce a configuration.
+// configFromRequest consumes the "parameter" field from the CodeGenerationRequest to produce a configuration.
 // This should be a comma seperated list of plugin arguments, and each one is handled in the order it appears.
 //
 // All plugin arguments understood by this plugin should be registered in one of the well known option collections, which

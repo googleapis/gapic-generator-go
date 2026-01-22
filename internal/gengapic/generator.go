@@ -87,7 +87,8 @@ type generator struct {
 	aux *auxTypes
 
 	// Options for the generator determining module names, transports,
-	// config file paths, etc.
+	// config file paths, etc.  This should be treated as immutable once
+	// configured.
 	cfg *generatorConfig
 
 	// GapicMetadata for recording proto-to-code mappings in a
