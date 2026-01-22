@@ -392,7 +392,7 @@ func TestGenOperations(t *testing.T) {
 			ParentElement: make(map[pbinfo.ProtoType]pbinfo.ProtoType),
 		},
 		imports: make(map[pbinfo.ImportSpec]bool),
-		opts:    &options{transports: []transport{grpc, rest}},
+		cfg:     &generatorConfig{transports: []transport{grpc, rest}},
 	}
 
 	wantImports := map[pbinfo.ImportSpec]bool{

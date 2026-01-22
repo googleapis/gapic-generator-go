@@ -98,7 +98,7 @@ func (g *generator) genOperationBuilder(servName string, m *descriptorpb.MethodD
 
 	// LRO from name
 	{
-		for _, t := range g.opts.transports {
+		for _, t := range g.cfg.transports {
 			p("// %[1]s returns a new %[1]s from a given name.", ow.name)
 			p("// The name must be that of a previously created %s, possibly from a different process.", ow.name)
 

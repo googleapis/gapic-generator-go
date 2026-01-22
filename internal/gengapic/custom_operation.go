@@ -33,7 +33,7 @@ type customOp struct {
 
 // isCustomOp determines if the given method should return a custom operation wrapper.
 func (g *generator) isCustomOp(m *descriptorpb.MethodDescriptorProto, info *httpInfo) bool {
-	return g.opts.generateAsDIREGAPIC && // Generator in DIREGAPIC mode.
+	return g.cfg.generateAsDIREGAPIC && // Generator in DIREGAPIC mode.
 		g.aux.customOp != nil && // API Defines a custom operation.
 		m.GetOutputType() == g.customOpProtoName() && // Method returns the custom operation.
 		m.GetName() != "Wait" && // Method is not a Wait (uses POST).
@@ -70,7 +70,7 @@ func (g *generator) customOpPointerType() (string, error) {
 // operation wrapper type with the Go identifier for a variable that is the
 // proto-defined operation type.
 func (g *generator) customOpInit(rspVar, reqVar, opVar string, req *descriptorpb.DescriptorProto, s *descriptorpb.ServiceDescriptorProto) {
-	h := handleName(s.GetName(), g.opts.pkgName)
+	h := handleName(s.GetName(), g.cfg.pkgName)
 	opName := g.aux.customOp.message.GetName()
 	pt := g.pt.Printf
 

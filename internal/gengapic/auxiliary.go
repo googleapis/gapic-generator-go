@@ -76,11 +76,11 @@ func (g *generator) genAuxFile() error {
 		return err
 	}
 
-	g.commit(filepath.Join(g.opts.outDir, "auxiliary.go"), g.opts.pkgName)
+	g.commit(filepath.Join(g.cfg.outDir, "auxiliary.go"), g.cfg.pkgName)
 	g.reset()
 
 	g.genIteratorsGo123()
-	g.commitWithBuildTag(filepath.Join(g.opts.outDir, "auxiliary_go123.go"), g.opts.pkgName, "go1.23")
+	g.commitWithBuildTag(filepath.Join(g.cfg.outDir, "auxiliary_go123.go"), g.cfg.pkgName, "go1.23")
 	g.reset()
 
 	return nil
@@ -251,7 +251,7 @@ func (g *generator) maybeAddOperationWrapper(m *descriptorpb.MethodDescriptorPro
 // this.
 func (g *generator) genOperationWrapperType(ow operationWrapper) error {
 	p := g.pt.Printf
-	hasREST := containsTransport(g.opts.transports, rest)
+	hasREST := containsTransport(g.cfg.transports, rest)
 	isEmpty := ow.responseName == emptyValue
 
 	// Response Go type resolution.

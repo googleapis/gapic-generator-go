@@ -17,9 +17,15 @@ package gengapic
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/ghodss/yaml"
+	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // Define a type to represent supported network transports.
@@ -72,8 +78,7 @@ var SupportedPrefixArgs map[string]func(string) configOption = map[string]func(s
 
 // Configuration needed to drive the operation of the plugin.
 // The options should be treated as immutable once instantiated.
-// TODO: rename this in a subsequent refactor (generatorConfig)
-type options struct {
+type generatorConfig struct {
 	// The fully qualified package path, e.g. "cloud.google.com/go/foo/v1/foopb"
 	pkgPath string
 	// The package name, e.g. "foopb"
@@ -97,13 +102,11 @@ type options struct {
 	// TODO: rename this in a subsequent refactor
 	omitSnippets bool
 
-	// path to the API service config
-	// TODO: rename and handle parsing during configuration
-	serviceConfigPath string
+	// Parsed Service Configuration.
+	APIServiceConfig *serviceconfig.Service
 
-	// path to the GRPC service config (e.g. method retry settings)
-	// TODO: rename and handle parsing during configuration
-	grpcConfPath string
+	// Parsed gRPC Service Configuration.
+	gRPCServiceConfig conf.Config
 
 	// prefix for the enclosing module
 	modulePrefix string
@@ -123,9 +126,9 @@ type options struct {
 // Signature for configuration arguments.
 // Errors are part of the signature to allow options to provide validation feedback early.
 // Config options that return errors should not modify the configuration.
-type configOption func(*options) error
+type configOption func(*generatorConfig) error
 
-// NewOptionsFromParams consumes the "parameter" field from the CodeGenerationRequest to produce a configuration.
+// configFromRequest consumes the "parameter" field from the CodeGenerationRequest to produce a configuration.
 // This should be a comma seperated list of plugin arguments, and each one is handled in the order it appears.
 //
 // All plugin arguments understood by this plugin should be registered in one of the well known option collections, which
@@ -134,12 +137,12 @@ type configOption func(*options) error
 // SupportedBooleanArgs
 // SupportedValueArgs
 // SupportedPrefixArgs
-func newOptionsFromParams(generationParameter *string) (*options, error) {
+func configFromRequest(generationParameter *string) (*generatorConfig, error) {
 	if generationParameter == nil {
 		return nil, errors.New("generationParameter is nil, cannot configure")
 	}
 
-	cfg := &options{}
+	cfg := &generatorConfig{}
 
 	// params are comma seperated.  Split and process each individually.
 	for _, s := range strings.Split(*generationParameter, ",") {
@@ -202,7 +205,7 @@ func newOptionsFromParams(generationParameter *string) (*options, error) {
 //
 // It also handles cases such as default values (e.g. what transports are enabled) where the configuration is more
 // than a simple boolean option.
-func validateAndNormalizeOptions(cfg *options) error {
+func validateAndNormalizeOptions(cfg *generatorConfig) error {
 	// Normalize transports.  If no transports are specified, generate gRPC only by default.
 	if len(cfg.transports) == 0 {
 		cfg.transports = []transport{grpc}
@@ -237,11 +240,11 @@ func withGoGAPICPackage(s string) configOption {
 	p := strings.IndexByte(s, ';')
 
 	if p < 0 {
-		return func(cfg *options) error {
+		return func(cfg *generatorConfig) error {
 			return errInvalidPackageParam
 		}
 	}
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		cfg.pkgPath = s[0:p]
 		cfg.pkgName = s[p+1:]
 		cfg.outDir = filepath.FromSlash(cfg.pkgPath)
@@ -251,7 +254,7 @@ func withGoGAPICPackage(s string) configOption {
 
 // generateGAPICMetadata enables generation of GAPIC metadata.
 func generateGAPICMetadata() configOption {
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		cfg.generateGAPICMetadata = true
 		return nil
 	}
@@ -262,7 +265,7 @@ func generateGAPICMetadata() configOption {
 // reverse-compiled from an API Discovery document, rather than directly from service
 // protos (e.g. compute).
 func generateAsDIREGAPIC() configOption {
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		cfg.generateAsDIREGAPIC = true
 		return nil
 	}
@@ -271,7 +274,7 @@ func generateAsDIREGAPIC() configOption {
 // enableRESTNumericEnums is a behavioral flag that causes the generated REST clients
 // to send the numeric value for enum fields rather than the string label.
 func enableRESTNumericEnums() configOption {
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		cfg.restNumericEnum = true
 		return nil
 	}
@@ -279,31 +282,71 @@ func enableRESTNumericEnums() configOption {
 
 // Should automatic generation of snippets be disabled.
 func enableOmitSnippets() configOption {
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		cfg.omitSnippets = true
 		return nil
 	}
 }
 
 // Specifies the path to the API service config file.
+// Option parses the path and does basic validation.
 func withAPIServiceConfigPath(s string) configOption {
-	return func(cfg *options) error {
-		cfg.serviceConfigPath = s
+	return func(cfg *generatorConfig) error {
+
+		if s == "" {
+			return fmt.Errorf("provided API service config path was empty")
+		}
+		y, err := os.ReadFile(s)
+		if err != nil {
+			return fmt.Errorf("error reading API service config path (%q): %v", s, err)
+		}
+
+		j, err := yaml.YAMLToJSON(y)
+		if err != nil {
+			return fmt.Errorf("error converting API service config from YAML to JSON: %v", err)
+		}
+
+		sc := &serviceconfig.Service{}
+		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(j, sc); err != nil {
+			return fmt.Errorf("error unmarshaling api service config: %v", err)
+		}
+
+		// An API Service Config will always have a `name` so if it is not populated,
+		// it's an invalid config.
+		if sc.GetName() == "" {
+			return fmt.Errorf("invalid API service config contents")
+		}
+		cfg.APIServiceConfig = sc
 		return nil
 	}
 }
 
 // Specifies the path to the gRPC service config file.
 func withGRPCServiceConfigPath(s string) configOption {
-	return func(cfg *options) error {
-		cfg.grpcConfPath = s
+	return func(cfg *generatorConfig) error {
+
+		if s == "" {
+			return fmt.Errorf("provided gRPC service config path was empty")
+		}
+
+		f, err := os.Open(s)
+		if err != nil {
+			return fmt.Errorf("error opening gRPC service config(%q): %v", s, err)
+		}
+		defer f.Close()
+
+		sc, err := conf.New(f)
+		if err != nil {
+			return fmt.Errorf("error parsing gPRC service config: %v", err)
+		}
+		cfg.gRPCServiceConfig = sc
 		return nil
 	}
 }
 
 // Specifies the module prefix.
 func withModulePrefix(s string) configOption {
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		cfg.modulePrefix = s
 		return nil
 	}
@@ -311,7 +354,7 @@ func withModulePrefix(s string) configOption {
 
 // Specifies the release level of the generated artifacts.
 func withReleaseLevel(s string) configOption {
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		// TODO: this should be validated against a well defined set of levels
 		cfg.relLvl = s
 		return nil
@@ -323,17 +366,17 @@ func withReleaseLevel(s string) configOption {
 func withPackageOverride(s string) configOption {
 	e := strings.IndexByte(s, '=')
 	if e < 0 {
-		return func(cfg *options) error {
+		return func(cfg *generatorConfig) error {
 			return fmt.Errorf("invalid package override format, should be <file>=<renamed file>: %q", s)
 		}
 	}
 	key, val := s[:e], s[e+1:]
 	if val == "" {
-		return func(cfg *options) error {
+		return func(cfg *generatorConfig) error {
 			return fmt.Errorf("invalid plugin option value, missing value in key=value: %q", s)
 		}
 	}
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		if cfg.pkgOverrides == nil {
 			cfg.pkgOverrides = make(map[string]string)
 		}
@@ -365,13 +408,13 @@ func withTransports(s string) configOption {
 		case "rest":
 			transports[rest] = true
 		default:
-			return func(cfg *options) error {
+			return func(cfg *generatorConfig) error {
 				return fmt.Errorf("invalid transport option: %q", t)
 			}
 		}
 
 	}
-	return func(cfg *options) error {
+	return func(cfg *generatorConfig) error {
 		for t := range transports {
 			cfg.transports = append(cfg.transports, t)
 		}

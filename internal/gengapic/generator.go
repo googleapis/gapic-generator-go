@@ -16,20 +16,15 @@ package gengapic
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/ghodss/yaml"
-	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 	"github.com/googleapis/gapic-generator-go/internal/license"
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"github.com/googleapis/gapic-generator-go/internal/snippets"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/genproto/googleapis/gapic/metadata"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -88,18 +83,13 @@ type generator struct {
 	// Human-readable name of the API used in docs
 	apiName string
 
-	// Parsed service config from plugin option
-	serviceConfig *serviceconfig.Service
-
-	// gRPC ServiceConfig
-	grpcConf conf.Config
-
 	// Auxiliary types to be generated in the package
 	aux *auxTypes
 
 	// Options for the generator determining module names, transports,
-	// config file paths, etc.
-	opts *options
+	// config file paths, etc.  This should be treated as immutable once
+	// configured.
+	cfg *generatorConfig
 
 	// GapicMetadata for recording proto-to-code mappings in a
 	// gapic_metadata.json file.
@@ -136,56 +126,22 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 		},
 	}
 
-	opts, err := newOptionsFromParams(req.Parameter)
+	// Build and validate the immutable configuration from the CodeGeneratorRequest plugin args.
+	cfg, err := configFromRequest(req.Parameter)
 	if err != nil {
 		return nil, err
 	}
+	g.cfg = cfg
+
 	files := req.GetProtoFile()
 	files = append(files, wellKnownTypeFiles...)
 
-	if opts.serviceConfigPath != "" {
-		y, err := os.ReadFile(opts.serviceConfigPath)
-		if err != nil {
-			return nil, fmt.Errorf("error reading service config: %v", err)
-		}
-
-		j, err := yaml.YAMLToJSON(y)
-		if err != nil {
-			return nil, fmt.Errorf("error converting YAML to JSON: %v", err)
-		}
-
-		cfg := &serviceconfig.Service{}
-		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(j, cfg); err != nil {
-			return nil, fmt.Errorf("error unmarshaling service config: %v", err)
-		}
-		g.serviceConfig = cfg
-
-		// An API Service Config will always have a `name` so if it is not populated,
-		// it's an invalid config.
-		if g.serviceConfig.GetName() == "" {
-			return nil, fmt.Errorf("invalid API service config file %q", opts.serviceConfigPath)
-		}
-
-		g.collectMixins()
-		files = append(files, g.getMixinFiles()...)
-	}
-	if opts.grpcConfPath != "" {
-		f, err := os.Open(opts.grpcConfPath)
-		if err != nil {
-			return nil, fmt.Errorf("error opening gRPC service config: %v", err)
-		}
-		defer f.Close()
-
-		g.grpcConf, err = conf.New(f)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing gPRC service config: %v", err)
-		}
-	}
-	g.opts = opts
+	g.collectMixins()
+	files = append(files, g.getMixinFiles()...)
 
 	g.descInfo = pbinfo.Of(files)
-	if len(g.opts.pkgOverrides) > 0 {
-		g.descInfo.PkgOverrides = g.opts.pkgOverrides
+	if len(g.cfg.pkgOverrides) > 0 {
+		g.descInfo.PkgOverrides = g.cfg.pkgOverrides
 	}
 
 	for _, f := range files {
@@ -357,7 +313,7 @@ func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescript
 	var apfs []string
 	// Find the service config's AutoPopulatedFields entry by method name.
 	mfqn := g.fqn(m)
-	for _, s := range g.serviceConfig.GetPublishing().GetMethodSettings() {
+	for _, s := range g.cfg.APIServiceConfig.GetPublishing().GetMethodSettings() {
 		if s.GetSelector() == mfqn {
 			apfs = s.AutoPopulatedFields
 			break
@@ -381,7 +337,7 @@ func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescript
 
 // getServiceNameOverride checks to see if the service has a defined service name override.
 func (g *generator) getServiceNameOverride(s *descriptorpb.ServiceDescriptorProto) string {
-	ls := g.serviceConfig.GetPublishing().GetLibrarySettings()
+	ls := g.cfg.APIServiceConfig.GetPublishing().GetLibrarySettings()
 	if len(ls) == 0 {
 		return ""
 	}

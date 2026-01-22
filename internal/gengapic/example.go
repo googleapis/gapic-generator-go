@@ -25,7 +25,7 @@ import (
 )
 
 func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
-	pkgName := g.opts.pkgName
+	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 
@@ -42,7 +42,7 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 }
 
 func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
-	pkgName := g.opts.pkgName
+	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
@@ -75,7 +75,7 @@ func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorP
 		g.imports[inSpec] = true
 		// Pick the first transport for simplicity. We don't need examples
 		// of each method for both transports when they have the same surface.
-		t := g.opts.transports[0]
+		t := g.cfg.transports[0]
 		s := servName
 		if t == rest {
 			s += "REST"
@@ -100,7 +100,7 @@ func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorP
 
 func (g *generator) exampleClientFactory(pkgName, servName string) {
 	p := g.printf
-	for _, t := range g.opts.transports {
+	for _, t := range g.cfg.transports {
 		s := servName
 		if t == rest {
 			s += "REST"
@@ -125,7 +125,7 @@ func (g *generator) exampleInitClient(pkgName, servName string) {
 func (g *generator) exampleInitClientWithOpts(pkgName, servName string, isPackageDoc bool) {
 	p := g.printf
 	if isPackageDoc {
-		p("// go get %s@latest", g.opts.pkgPath)
+		p("// go get %s@latest", g.cfg.pkgPath)
 	}
 	p("ctx := context.Background()")
 	p("// This snippet has been automatically generated and should be regarded as a code template only.")
@@ -195,7 +195,7 @@ func (g *generator) exampleMethodBodyWithOpts(pkgName, servName string, m *descr
 	g.imports[inSpec] = true
 	// Pick the first transport for simplicity. We don't need examples
 	// of each method for both transports when they have the same surface.
-	t := g.opts.transports[0]
+	t := g.cfg.transports[0]
 	s := servName
 	if t == rest {
 		s += "REST"

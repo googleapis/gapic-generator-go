@@ -49,25 +49,27 @@ func TestCollectMixins(t *testing.T) {
 	g := generator{
 		comments: make(map[protoiface.MessageV1]string),
 		mixins:   make(mixins),
-		serviceConfig: &serviceconfig.Service{
-			Apis: []*apipb.Api{
-				{Name: "google.example.library.v1.Library"},
-				{Name: "google.longrunning.Operations"},
-				{Name: "google.cloud.location.Locations"},
-				{Name: "google.iam.v1.IAMPolicy"},
-			},
-			Http: &annotations.Http{
-				Rules: []*annotations.HttpRule{
-					operationsHTTP,
-					locationHTTP,
-					iamHTTP,
+		cfg: &generatorConfig{
+			APIServiceConfig: &serviceconfig.Service{
+				Apis: []*apipb.Api{
+					{Name: "google.example.library.v1.Library"},
+					{Name: "google.longrunning.Operations"},
+					{Name: "google.cloud.location.Locations"},
+					{Name: "google.iam.v1.IAMPolicy"},
 				},
-			},
-			Documentation: &serviceconfig.Documentation{
-				Rules: []*serviceconfig.DocumentationRule{
-					{
-						Selector:    "google.iam.v1.IAMPolicy.GetIamPolicy",
-						Description: iamDescription,
+				Http: &annotations.Http{
+					Rules: []*annotations.HttpRule{
+						operationsHTTP,
+						locationHTTP,
+						iamHTTP,
+					},
+				},
+				Documentation: &serviceconfig.Documentation{
+					Rules: []*serviceconfig.DocumentationRule{
+						{
+							Selector:    "google.iam.v1.IAMPolicy.GetIamPolicy",
+							Description: iamDescription,
+						},
 					},
 				},
 			},
@@ -132,10 +134,12 @@ func TestHasIAMPolicyMixin(t *testing.T) {
 			"google.longrunning.Operations":   operationsMethods(),
 			"google.cloud.location.Locations": locationMethods(),
 		},
-		serviceConfig: &serviceconfig.Service{
-			Apis: []*apipb.Api{
-				{Name: "foo.bar.Baz"},
-				{Name: "google.iam.v1.IAMPolicy"},
+		cfg: &generatorConfig{
+			APIServiceConfig: &serviceconfig.Service{
+				Apis: []*apipb.Api{
+					{Name: "foo.bar.Baz"},
+					{Name: "google.iam.v1.IAMPolicy"},
+				},
 			},
 		},
 	}
@@ -152,13 +156,13 @@ func TestHasIAMPolicyMixin(t *testing.T) {
 	}
 
 	want = false
-	g.serviceConfig.Apis = []*apipb.Api{{Name: "google.iam.v1.IAMPolicy"}}
+	g.cfg.APIServiceConfig.Apis = []*apipb.Api{{Name: "google.iam.v1.IAMPolicy"}}
 	if got := g.hasIAMPolicyMixin(); !cmp.Equal(got, want) {
 		t.Errorf("TestHasIAMPolicyMixin wanted %v but got %v", want, got)
 	}
 
 	g.hasIAMPolicyOverrides = true
-	g.serviceConfig.Apis = append(g.serviceConfig.Apis, &apipb.Api{Name: "foo.bar.Baz"})
+	g.cfg.APIServiceConfig.Apis = append(g.cfg.APIServiceConfig.Apis, &apipb.Api{Name: "foo.bar.Baz"})
 	if got := g.hasIAMPolicyMixin(); !cmp.Equal(got, want) {
 		t.Errorf("TestHasIAMPolicyMixin wanted %v but got %v", want, got)
 	}
@@ -198,10 +202,12 @@ func TestHasLocationMixin(t *testing.T) {
 			"google.longrunning.Operations": operationsMethods(),
 			"google.iam.v1.IAMPolicy":       iamPolicyMethods(),
 		},
-		serviceConfig: &serviceconfig.Service{
-			Apis: []*apipb.Api{
-				{Name: "foo.bar.Baz"},
-				{Name: "google.cloud.location.Locations"},
+		cfg: &generatorConfig{
+			APIServiceConfig: &serviceconfig.Service{
+				Apis: []*apipb.Api{
+					{Name: "foo.bar.Baz"},
+					{Name: "google.cloud.location.Locations"},
+				},
 			},
 		},
 	}
@@ -218,7 +224,7 @@ func TestHasLocationMixin(t *testing.T) {
 	}
 
 	want = false
-	g.serviceConfig.Apis = []*apipb.Api{{Name: "google.cloud.location.Locations"}}
+	g.cfg.APIServiceConfig.Apis = []*apipb.Api{{Name: "google.cloud.location.Locations"}}
 	if got := g.hasLocationMixin(); !cmp.Equal(got, want) {
 		t.Errorf("TestHasLocationMixin wanted %v but got %v", want, got)
 	}
@@ -230,11 +236,13 @@ func TestHasLROMixin(t *testing.T) {
 			"google.cloud.location.Locations": locationMethods(),
 			"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
 		},
-		serviceConfig: &serviceconfig.Service{
-			Apis: []*apipb.Api{
-				{Name: "foo.bar.Baz"},
-				{Name: "google.iam.v1.IAMPolicy"},
-				{Name: "google.cloud.location.Locations"},
+		cfg: &generatorConfig{
+			APIServiceConfig: &serviceconfig.Service{
+				Apis: []*apipb.Api{
+					{Name: "foo.bar.Baz"},
+					{Name: "google.iam.v1.IAMPolicy"},
+					{Name: "google.cloud.location.Locations"},
+				},
 			},
 		},
 	}
@@ -251,7 +259,7 @@ func TestHasLROMixin(t *testing.T) {
 	}
 
 	want = false
-	g.serviceConfig.Apis = []*apipb.Api{{Name: "google.longrunning.Operations"}}
+	g.cfg.APIServiceConfig.Apis = []*apipb.Api{{Name: "google.longrunning.Operations"}}
 	if got := g.hasLROMixin(); !cmp.Equal(got, want) {
 		t.Errorf("TestHasLROMixin wanted %v but got %v", want, got)
 	}
@@ -293,8 +301,10 @@ func TestGetOperationPathOverride(t *testing.T) {
 		g := generator{
 			comments: make(map[protoiface.MessageV1]string),
 			mixins:   make(mixins),
-			serviceConfig: &serviceconfig.Service{
-				Http: tc.http,
+			cfg: &generatorConfig{
+				APIServiceConfig: &serviceconfig.Service{
+					Http: tc.http,
+				},
 			},
 		}
 		if got := g.getOperationPathOverride(tc.pkg); !cmp.Equal(got, tc.want) {
@@ -351,7 +361,7 @@ func TestIncludeMixinInputFile(t *testing.T) {
 			want:    true,
 		},
 	} {
-		g := &generator{opts: &options{pkgPath: tst.pkgPath}}
+		g := &generator{cfg: &generatorConfig{pkgPath: tst.pkgPath}}
 		if got := g.includeMixinInputFile(tst.file); got != tst.want {
 			t.Errorf("%s: got %v, want %v", tst.name, got, tst.want)
 		}

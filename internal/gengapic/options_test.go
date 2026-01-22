@@ -19,17 +19,18 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	conf "github.com/googleapis/gapic-generator-go/internal/grpc_service_config"
 )
 
 func TestParseOptions(t *testing.T) {
 	for _, tst := range []struct {
-		param        string
-		expectedOpts *options
-		expectErr    bool
+		param       string
+		expectedCfg *generatorConfig
+		expectErr   bool
 	}{
 		{
 			param: "transport=grpc,go-gapic-package=path;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports: []transport{grpc},
 				pkgPath:    "path",
 				pkgName:    "pkg",
@@ -39,7 +40,7 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			param: "transport=rest+grpc,go-gapic-package=path;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports: []transport{grpc, rest},
 				pkgPath:    "path",
 				pkgName:    "pkg",
@@ -49,7 +50,7 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			param: "go-gapic-package=path;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports: []transport{grpc},
 				pkgPath:    "path",
 				pkgName:    "pkg",
@@ -58,7 +59,7 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			param: "metadata,go-gapic-package=path;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports:            []transport{grpc},
 				pkgPath:               "path",
 				pkgName:               "pkg",
@@ -68,7 +69,7 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			param: "module=path,go-gapic-package=path/to/out;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports:   []transport{grpc},
 				pkgPath:      "path/to/out",
 				pkgName:      "pkg",
@@ -79,7 +80,7 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			param: "Mgoogle/example/library/v1/library.proto=new/import/path;pkg,go-gapic-package=path/to/out;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				pkgOverrides: map[string]string{"google/example/library/v1/library.proto": "new/import/path;pkg"},
 				transports:   []transport{grpc},
 				pkgPath:      "path/to/out",
@@ -90,7 +91,7 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			param: "transport=rest,rest-numeric-enums,go-gapic-package=path;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports:      []transport{rest},
 				pkgPath:         "path",
 				pkgName:         "pkg",
@@ -101,7 +102,7 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			param: "omit-snippets,go-gapic-package=path;pkg",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports:   []transport{grpc},
 				pkgPath:      "path",
 				pkgName:      "pkg",
@@ -132,7 +133,7 @@ func TestParseOptions(t *testing.T) {
 		{
 			// Test empty parameter in the CSV.
 			param: "go-gapic-package=path/to/imp;pkg,,module=path",
-			expectedOpts: &options{
+			expectedCfg: &generatorConfig{
 				transports:   []transport{grpc},
 				pkgPath:      "path/to/imp",
 				pkgName:      "pkg",
@@ -142,7 +143,7 @@ func TestParseOptions(t *testing.T) {
 			expectErr: false,
 		},
 	} {
-		opts, err := newOptionsFromParams(&tst.param)
+		opts, err := configFromRequest(&tst.param)
 		if tst.expectErr && err == nil {
 			t.Errorf("parseOptions(%s) expected error", tst.param)
 			continue
@@ -153,8 +154,8 @@ func TestParseOptions(t *testing.T) {
 			continue
 		}
 
-		if !reflect.DeepEqual(opts, tst.expectedOpts) {
-			t.Errorf("parseOptions(%s) = %+v, expected %+v", tst.param, opts, tst.expectedOpts)
+		if !reflect.DeepEqual(opts, tst.expectedCfg) {
+			t.Errorf("parseOptions(%s) = %+v, expected %+v", tst.param, opts, tst.expectedCfg)
 			continue
 		}
 	}
@@ -163,23 +164,23 @@ func TestParseOptions(t *testing.T) {
 func TestValidateAndNormalizeOptions(t *testing.T) {
 	for _, tc := range []struct {
 		description string
-		in          *options
+		in          *generatorConfig
 		wantErr     bool
-		want        *options
+		want        *generatorConfig
 	}{
 		{
 			description: "empty",
-			in:          &options{},
+			in:          &generatorConfig{},
 			wantErr:     true, // no package info
 		},
 		{
 			description: "minimal",
-			in: &options{
+			in: &generatorConfig{
 				pkgPath: "path",
 				pkgName: "name",
 				outDir:  "dir",
 			},
-			want: &options{
+			want: &generatorConfig{
 				pkgPath:    "path",
 				pkgName:    "name",
 				outDir:     "dir",
@@ -188,7 +189,7 @@ func TestValidateAndNormalizeOptions(t *testing.T) {
 		},
 		{
 			description: "conflict diregapic enum",
-			in: &options{
+			in: &generatorConfig{
 				pkgPath:             "path",
 				pkgName:             "name",
 				outDir:              "dir",
@@ -199,7 +200,7 @@ func TestValidateAndNormalizeOptions(t *testing.T) {
 		},
 		{
 			description: "mismatched module prefix",
-			in: &options{
+			in: &generatorConfig{
 				pkgPath:      "path",
 				pkgName:      "name",
 				outDir:       "foo/bar/baz",
@@ -222,7 +223,7 @@ func TestValidateAndNormalizeOptions(t *testing.T) {
 					t.Errorf("got unwanted err: %v", err)
 				}
 			}
-			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(options{})); diff != "" {
+			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(generatorConfig{}, conf.Config{})); diff != "" {
 				t.Errorf("got(-), want(+):\n%s", diff)
 			}
 		})

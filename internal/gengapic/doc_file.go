@@ -41,12 +41,12 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	p("")
 
 	if g.apiName != "" {
-		p("// Package %s is an auto-generated package for the ", g.opts.pkgName)
+		p("// Package %s is an auto-generated package for the ", g.cfg.pkgName)
 		p("// %s.", g.apiName)
 	}
 
-	if g.serviceConfig != nil && g.serviceConfig.GetDocumentation() != nil {
-		summary := g.serviceConfig.GetDocumentation().GetSummary()
+	if g.cfg.APIServiceConfig != nil && g.cfg.APIServiceConfig.GetDocumentation() != nil {
+		summary := g.cfg.APIServiceConfig.GetDocumentation().GetSummary()
 		summary = mdPlain(summary)
 		wrapped := wrapString(summary, 75)
 
@@ -59,7 +59,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 		}
 	}
 
-	switch g.opts.relLvl {
+	switch g.cfg.relLvl {
 	case alpha:
 		p("//")
 		p("//   NOTE: This package is in alpha. It is not stable, and is likely to change.")
@@ -92,10 +92,10 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	// Code block for client creation
 	exampleService := services[0]
 	override := g.getServiceNameOverride(exampleService)
-	servName := pbinfo.ReduceServNameWithOverride(exampleService.GetName(), g.opts.pkgName, override)
+	servName := pbinfo.ReduceServNameWithOverride(exampleService.GetName(), g.cfg.pkgName, override)
 	tmpClient := g.pt
 	g.pt = printer.P{}
-	g.exampleInitClientWithOpts(g.opts.pkgName, servName, true)
+	g.exampleInitClientWithOpts(g.cfg.pkgName, servName, true)
 	snipClient := g.pt.String()
 	g.pt = tmpClient
 	g.codesnippet(snipClient)
@@ -112,7 +112,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 		// Code block for client using the first method of the service
 		tmpMethod := g.pt
 		g.pt = printer.P{}
-		g.exampleMethodBodyWithOpts(g.opts.pkgName, servName, exampleService.GetMethod()[0], true)
+		g.exampleMethodBodyWithOpts(g.cfg.pkgName, servName, exampleService.GetMethod()[0], true)
 		snipMethod := g.pt.String()
 		g.pt = tmpMethod
 		g.codesnippet(snipMethod)
@@ -131,7 +131,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	p("// [Testing against Client Libraries]: https://pkg.go.dev/cloud.google.com/go#hdr-Testing")
 	p("// [Debugging Client Libraries]: https://pkg.go.dev/cloud.google.com/go#hdr-Debugging")
 	p("// [Inspecting errors]: https://pkg.go.dev/cloud.google.com/go#hdr-Inspecting_errors")
-	p("package %s // import %q", g.opts.pkgName, g.opts.pkgPath)
+	p("package %s // import %q", g.cfg.pkgName, g.cfg.pkgPath)
 	p("")
 }
 
@@ -202,7 +202,7 @@ func (g *generator) apiVersionSection(services []*descriptorpb.ServiceDescriptor
 		// Construct the reduced/overridden service name used for client
 		// type name derivation.
 		override := g.getServiceNameOverride(s)
-		sn := pbinfo.ReduceServNameWithOverride(n, g.opts.pkgName, override)
+		sn := pbinfo.ReduceServNameWithOverride(n, g.cfg.pkgName, override)
 		ct := fmt.Sprintf("%sClient", sn)
 
 		// Use the raw proto service name in the tuple to associate it with
