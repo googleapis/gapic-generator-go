@@ -522,7 +522,17 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
 	}
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
+// Emit: baseUrl.Path += fmt.Sprintf("<path format>", url.PathEscape(arg1), url.PathEscape(arg2), ...)
+// tokens[0] is the format string; tokens[1:] are the arguments to fmt.Sprintf.
+if len(tokens) > 1 {
+	for i := 1; i < len(tokens); i++ {
+		t := strings.TrimSpace(tokens[i])
+		if t != "" {
+			tokens[i] = fmt.Sprintf("url.PathEscape(%s)", tokens[i])
+		}
+	}
+}
+p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 }
 
