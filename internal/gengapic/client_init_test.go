@@ -134,7 +134,12 @@ func TestClientOpt(t *testing.T) {
 					{Name: "google.longrunning.Operations"},
 				},
 			},
-			gRPCServiceConfig: grpcConf},
+			gRPCServiceConfig: grpcConf,
+			// Showcase would enable MTLS if we went through legacy enablements, so add it explicitly here.
+			featureEnablement: map[featureID]bool{
+				EnableMTLSHardBoundTokens: true,
+			},
+		},
 	}
 
 	serv := &descriptorpb.ServiceDescriptorProto{

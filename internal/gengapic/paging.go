@@ -178,14 +178,6 @@ func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repe
 		return nil, nil, nil
 	}
 
-	var wrapperTypesAllowed bool
-	for p, ok := range enableWrapperTypesForPageSize {
-		if g.descInfo.ParentFile[m].GetPackage() == p && ok {
-			wrapperTypesAllowed = true
-			break
-		}
-	}
-
 	inType := g.descInfo.Type[m.GetInputType()]
 	if inType == nil {
 		return nil, nil, fmt.Errorf("expected %q to be message type, found %T", m.GetInputType(), inType)
@@ -206,7 +198,7 @@ func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repe
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		candidate, needsWrapper := isPageSizeField(f, wrapperTypesAllowed)
+		candidate, needsWrapper := isPageSizeField(f, g.cfg.FeatureEnabled(EnableWrapperTypesForPageSize))
 		if candidate {
 			if pageSizeField == nil {
 				pageSizeField = f

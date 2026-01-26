@@ -186,7 +186,7 @@ func (g *generator) grpcClientOptions(serv *descriptorpb.ServiceDescriptorProto,
 	p("    internaloption.WithDefaultAudience(%q),", generateDefaultAudience(host))
 	p("    internaloption.WithDefaultScopes(DefaultAuthScopes()...),")
 	p("    internaloption.EnableJwtWithScope(),")
-	if _, ok := enableMtlsHardBoundTokens[g.cfg.APIServiceConfig.GetName()]; ok {
+	if g.cfg.FeatureEnabled(EnableMTLSHardBoundTokens) {
 		p("internaloption.AllowHardBoundTokens(\"MTLS_S2A\"),")
 	}
 	p("    internaloption.EnableNewAuthLibrary(),")
