@@ -37,6 +37,9 @@ func (c *fooRESTClient) UnaryRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	if gax.IsFeatureEnabled("TRACING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req.GetOther())
 	}
+	if gax.IsFeatureEnabled("TRACING") {
+		ctx = metadata.AppendToOutgoingContext(ctx, "url.template", "/v1/foo")
+	}
 	opts = append((*c.CallOptions).UnaryRPC[0:len((*c.CallOptions).UnaryRPC):len((*c.CallOptions).UnaryRPC)], opts...)
 	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	resp := &foopb.Foo{}

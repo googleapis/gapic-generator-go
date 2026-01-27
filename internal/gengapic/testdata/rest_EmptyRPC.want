@@ -25,6 +25,9 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	if gax.IsFeatureEnabled("TRACING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req.GetOther())
 	}
+	if gax.IsFeatureEnabled("TRACING") {
+		ctx = metadata.AppendToOutgoingContext(ctx, "url.template", "/v1/foo/{other=*}")
+	}
 	return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		if settings.Path != "" {
 			baseUrl.Path = settings.Path

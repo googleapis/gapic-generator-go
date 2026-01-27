@@ -29,6 +29,9 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 	if gax.IsFeatureEnabled("TRACING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req.GetOther())
 	}
+	if gax.IsFeatureEnabled("TRACING") {
+		ctx = metadata.AppendToOutgoingContext(ctx, "url.template", "/v1/foo")
+	}
 	opts = append((*c.CallOptions).HttpBodyRPC[0:len((*c.CallOptions).HttpBodyRPC):len((*c.CallOptions).HttpBodyRPC)], opts...)
 	resp := &httpbodypb.HttpBody{}
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {

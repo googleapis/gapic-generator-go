@@ -331,7 +331,9 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("  clientOpts := default%[1]sGRPCClientOptions()", servName)
 	p("  if gax.IsFeatureEnabled(\"TRACING\") {")
 	p("    clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
-	p("      \"gcp.client.service\": %q,", strings.Split(g.serviceConfig.GetName(), ".")[0])
+	p("      \"gcp.client.service\": %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+	p("      \"gcp.client.version\": getVersionClient(),")
+	p("      \"gcp.client.repo\":    \"googleapis/google-cloud-go\",")
 	p("    }))")
 	p("  }")
 

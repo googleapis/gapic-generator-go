@@ -506,6 +506,11 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
 			p("if gax.IsFeatureEnabled(\"TRACING\") {")
+			// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
+			// the expression fieldGetter(headers[0][1]) returns an accessor for the full
+			// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
+			// APIs, this logic will most likely only capture a single path component,
+			// such as the project ID.
 			p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req%s)`, fieldGetter(headers[0][1]))
 			p("}")
 			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true

@@ -29,6 +29,9 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 	if gax.IsFeatureEnabled("TRACING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req.GetOther())
 	}
+	if gax.IsFeatureEnabled("TRACING") {
+		ctx = metadata.AppendToOutgoingContext(ctx, "url.template", "/v1/foo")
+	}
 	var streamClient *serverStreamRPCRESTStreamClient
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		if settings.Path != "" {

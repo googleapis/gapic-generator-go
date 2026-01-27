@@ -75,6 +75,8 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 	if gax.IsFeatureEnabled("TRACING") {
 		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
 			"gcp.client.service": "",
+			"gcp.client.version": getVersionClient(),
+			"gcp.client.repo":    "googleapis/google-cloud-go",
 		}))
 	}
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)

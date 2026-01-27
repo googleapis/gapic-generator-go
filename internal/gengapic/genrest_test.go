@@ -755,6 +755,7 @@ func TestGenRestMethod(t *testing.T) {
 			method: opRPC,
 			cfg:    &generatorConfig{generateAsDIREGAPIC: true},
 			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/grpc/metadata"}:                        true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Path: "fmt"}:     true,
@@ -835,6 +836,7 @@ func TestGenRestMethod(t *testing.T) {
 			method: lroRPC,
 			cfg:    &generatorConfig{transports: []transport{rest}},
 			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/grpc/metadata"}:                        true,
 				{Path: "bytes"}: true,
 				{Path: "cloud.google.com/go/longrunning"}: true,
 				{Path: "fmt"}:                    true,
@@ -865,6 +867,7 @@ func TestGenRestMethod(t *testing.T) {
 			method: updateRPC,
 			cfg:    &generatorConfig{restNumericEnum: true},
 			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/grpc/metadata"}:                        true,
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
