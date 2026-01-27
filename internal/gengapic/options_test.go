@@ -15,7 +15,6 @@
 package gengapic
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -142,22 +141,41 @@ func TestParseOptions(t *testing.T) {
 			},
 			expectErr: false,
 		},
+		{
+			// Test empty parameter in the CSV.
+			param:     "go-gapic-package=path/to/imp;pkg,FEAT_INVALID_FEATURE",
+			expectErr: true,
+		},
+		{
+			// Test empty parameter in the CSV.
+			param: "go-gapic-package=path;pkg,FEAT_ORDERED_ROUTING_HEADERS",
+			expectedCfg: &generatorConfig{
+				transports: []transport{grpc},
+				pkgPath:    "path",
+				pkgName:    "pkg",
+				outDir:     "path",
+				featureEnablement: map[featureID]bool{
+					EnableOrderedRoutingHeaders: true,
+				},
+			},
+		},
 	} {
-		opts, err := configFromRequest(&tst.param)
-		if tst.expectErr && err == nil {
-			t.Errorf("parseOptions(%s) expected error", tst.param)
-			continue
-		}
+		t.Run(tst.param, func(t *testing.T) {
 
-		if !tst.expectErr && err != nil {
-			t.Errorf("parseOptions(%s) got unexpected error: %v", tst.param, err)
-			continue
-		}
+			gotCfg, err := configFromRequest(&tst.param)
+			if tst.expectErr && err == nil {
+				t.Fatalf("parseOptions(%s) expected error", tst.param)
+			}
 
-		if !reflect.DeepEqual(opts, tst.expectedCfg) {
-			t.Errorf("parseOptions(%s) = %+v, expected %+v", tst.param, opts, tst.expectedCfg)
-			continue
-		}
+			if !tst.expectErr && err != nil {
+				t.Fatalf("parseOptions(%s) got unexpected error: %v", tst.param, err)
+			}
+
+			if diff := cmp.Diff(gotCfg, tst.expectedCfg, cmp.AllowUnexported(generatorConfig{}, conf.Config{})); diff != "" {
+				t.Errorf("got(-), want(+):\n%s", diff)
+			}
+		})
+
 	}
 }
 
