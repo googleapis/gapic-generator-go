@@ -43,6 +43,7 @@ const (
 var featureRegistry = map[featureID]*featureInfo{
 	EnableMTLSHardBoundTokens: {
 		Description: "support MTLS hard bound tokens",
+		TrackingID:  "b/327916505",
 	},
 	EnableOrderedRoutingHeaders: {
 		Description: "Specify that routing headers are emitted in a deterministic fashion.  Primarily used for firestore.",

@@ -74,7 +74,7 @@ var SupportedValueArgs map[string]func(string) configOption = map[string]func(st
 // Recommendation: avoid adding more of these as they complicate processing.
 var SupportedPrefixArgs map[string]func(string) configOption = map[string]func(string) configOption{
 	"M":     withPackageOverride,
-	"FEAT_": withFeatureEnable,
+	"FEAT_": withFeature,
 }
 
 // Configuration needed to drive the operation of the plugin.
@@ -400,9 +400,9 @@ func withPackageOverride(s string) configOption {
 	}
 }
 
-// withFeatureEnable handles boolean enablement of generator-level functionality.
+// withFeature handles boolean enablement of generator-level functionality.
 // The `FEAT:` prefix is not passed as part of the string, only the remaining substring.
-func withFeatureEnable(s string) configOption {
+func withFeature(s string) configOption {
 	fID := featureID(s)
 	if _, ok := featureRegistry[fID]; !ok {
 		return func(cfg *generatorConfig) error {
