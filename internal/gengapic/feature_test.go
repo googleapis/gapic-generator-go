@@ -34,33 +34,33 @@ func TestProcessLegacyEnablements(t *testing.T) {
 		{
 			desc: "default",
 			wantFeatureDisabled: []featureID{
-				EnableMTLSHardBoundTokens,
-				EnableOrderedRoutingHeaders,
-				EnableWrapperTypesForPageSize,
+				MTLSHardBoundTokensFeature,
+				OrderedRoutingHeadersFeature,
+				WrapperTypesForPageSizeFeature,
 			},
 		},
 		{
 			desc:                "bigquery package",
 			protoPkg:            "google.cloud.bigquery.v2",
-			wantFeaturesEnabled: []featureID{EnableWrapperTypesForPageSize},
+			wantFeaturesEnabled: []featureID{WrapperTypesForPageSizeFeature},
 		},
 		{
 			desc:                "bigquery package only",
 			protoPkg:            "google.cloud.bigquery.v2",
-			wantFeaturesEnabled: []featureID{EnableWrapperTypesForPageSize},
-			wantFeatureDisabled: []featureID{EnableOrderedRoutingHeaders, EnableMTLSHardBoundTokens},
+			wantFeaturesEnabled: []featureID{WrapperTypesForPageSizeFeature},
+			wantFeatureDisabled: []featureID{OrderedRoutingHeadersFeature, MTLSHardBoundTokensFeature},
 		},
 		{
 			desc:                "firestore admin package only",
 			protoPkg:            "google.firestore.admin.v1",
-			wantFeaturesEnabled: []featureID{EnableOrderedRoutingHeaders},
-			wantFeatureDisabled: []featureID{EnableWrapperTypesForPageSize, EnableMTLSHardBoundTokens},
+			wantFeaturesEnabled: []featureID{OrderedRoutingHeadersFeature},
+			wantFeatureDisabled: []featureID{WrapperTypesForPageSizeFeature, MTLSHardBoundTokensFeature},
 		},
 		{
 			desc:                "cloud kms api name",
 			apiName:             "cloudkms.googleapis.com",
-			wantFeaturesEnabled: []featureID{EnableMTLSHardBoundTokens},
-			wantFeatureDisabled: []featureID{EnableWrapperTypesForPageSize, EnableOrderedRoutingHeaders},
+			wantFeaturesEnabled: []featureID{MTLSHardBoundTokensFeature},
+			wantFeatureDisabled: []featureID{WrapperTypesForPageSizeFeature, OrderedRoutingHeadersFeature},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -84,14 +84,15 @@ func TestProcessLegacyEnablements(t *testing.T) {
 					Name: tc.apiName,
 				}
 			}
+			g := &generator{cfg: cfg}
 			processLegacyEnablements(cfg, req)
 			for _, f := range tc.wantFeaturesEnabled {
-				if !cfg.FeatureEnabled(f) {
+				if !g.featureEnabled(f) {
 					t.Errorf("expected feature %q enabled, was not", f)
 				}
 			}
 			for _, f := range tc.wantFeatureDisabled {
-				if cfg.FeatureEnabled(f) {
+				if g.featureEnabled(f) {
 					t.Errorf("expected feature %q to be disabled, was enabled", f)
 				}
 			}

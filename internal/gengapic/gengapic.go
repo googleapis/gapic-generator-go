@@ -456,7 +456,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		g.printf("  routingHeadersMap[%q] = %s", headerName, regexHelper)
 		g.printf("}")
 	}
-	if g.cfg.FeatureEnabled(EnableOrderedRoutingHeaders) {
+	if g.featureEnabled(OrderedRoutingHeadersFeature) {
 		for i := range headers {
 			headerName := headers[i][2]
 			g.printf("if headerValue, ok := routingHeadersMap[%q]; ok {", headerName)

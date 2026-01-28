@@ -198,7 +198,7 @@ func (g *generator) getPagingFields(m *descriptorpb.MethodDescriptorProto) (repe
 
 	hasPageToken := false
 	for _, f := range inMsg.GetField() {
-		candidate, needsWrapper := isPageSizeField(f, g.cfg.FeatureEnabled(EnableWrapperTypesForPageSize))
+		candidate, needsWrapper := isPageSizeField(f, g.featureEnabled(WrapperTypesForPageSizeFeature))
 		if candidate {
 			if pageSizeField == nil {
 				pageSizeField = f

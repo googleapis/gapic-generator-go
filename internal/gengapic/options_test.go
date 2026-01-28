@@ -143,19 +143,33 @@ func TestParseOptions(t *testing.T) {
 		},
 		{
 			// Test empty parameter in the CSV.
-			param:     "go-gapic-package=path/to/imp;pkg,FEAT_INVALID_FEATURE",
+			param:     "go-gapic-package=path/to/imp;pkg,F_invalid_feature",
 			expectErr: true,
 		},
 		{
-			// Test empty parameter in the CSV.
-			param: "go-gapic-package=path;pkg,FEAT_ORDERED_ROUTING_HEADERS",
+			// single feature enablement
+			param: "go-gapic-package=path;pkg,F_ordered_routing_headers",
 			expectedCfg: &generatorConfig{
 				transports: []transport{grpc},
 				pkgPath:    "path",
 				pkgName:    "pkg",
 				outDir:     "path",
 				featureEnablement: map[featureID]bool{
-					EnableOrderedRoutingHeaders: true,
+					OrderedRoutingHeadersFeature: true,
+				},
+			},
+		},
+		{
+			// multiple feature enablement
+			param: "go-gapic-package=path;pkg,F_ordered_routing_headers,F_wrapper_types_for_page_size",
+			expectedCfg: &generatorConfig{
+				transports: []transport{grpc},
+				pkgPath:    "path",
+				pkgName:    "pkg",
+				outDir:     "path",
+				featureEnablement: map[featureID]bool{
+					OrderedRoutingHeadersFeature:   true,
+					WrapperTypesForPageSizeFeature: true,
 				},
 			},
 		},

@@ -137,7 +137,7 @@ func TestClientOpt(t *testing.T) {
 			gRPCServiceConfig: grpcConf,
 			// Showcase would enable MTLS if we went through legacy enablements, so add it explicitly here.
 			featureEnablement: map[featureID]bool{
-				EnableMTLSHardBoundTokens: true,
+				MTLSHardBoundTokensFeature: true,
 			},
 		},
 	}

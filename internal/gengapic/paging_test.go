@@ -496,7 +496,7 @@ func TestPagingField(t *testing.T) {
 	g.cfg = &generatorConfig{
 		transports: []transport{rest},
 		featureEnablement: map[featureID]bool{
-			EnableWrapperTypesForPageSize: true,
+			WrapperTypesForPageSizeFeature: true,
 		},
 	}
 	for _, tst := range []struct {

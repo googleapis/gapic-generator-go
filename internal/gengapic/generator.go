@@ -143,6 +143,17 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 	return g, nil
 }
 
+// featureEnabled is a simple boolean checker for probing if a given feature has been enabled.
+func (g *generator) featureEnabled(f featureID) bool {
+	if g.cfg == nil {
+		return false
+	}
+	if val, ok := g.cfg.featureEnablement[f]; ok && val {
+		return true
+	}
+	return false
+}
+
 // printf formatted-prints to sb, using the print syntax from fmt package.
 //
 // It automatically keeps track of indentation caused by curly-braces.

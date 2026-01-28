@@ -31,9 +31,9 @@ type featureInfo struct {
 
 // Define feature ID strings here.  More details about features are kept in the featureRegistry map.
 const (
-	EnableWrapperTypesForPageSize featureID = "WRAPPER_TYPES_FOR_PAGE_SIZE"
-	EnableOrderedRoutingHeaders   featureID = "ORDERED_ROUTING_HEADERS"
-	EnableMTLSHardBoundTokens     featureID = "MTLS_HARD_BOUND_TOKENS"
+	WrapperTypesForPageSizeFeature featureID = "wrapper_types_for_page_size"
+	OrderedRoutingHeadersFeature   featureID = "ordered_routing_headers"
+	MTLSHardBoundTokensFeature     featureID = "mtls_hard_bound_tokens"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -41,14 +41,14 @@ const (
 // must be registered to be enabled.  This should not be modified at runtime.  Those
 // who attempt to do so will be given a stern talking to.
 var featureRegistry = map[featureID]*featureInfo{
-	EnableMTLSHardBoundTokens: {
+	MTLSHardBoundTokensFeature: {
 		Description: "support MTLS hard bound tokens",
 		TrackingID:  "b/327916505",
 	},
-	EnableOrderedRoutingHeaders: {
+	OrderedRoutingHeadersFeature: {
 		Description: "Specify that routing headers are emitted in a deterministic fashion.  Primarily used for firestore.",
 	},
-	EnableWrapperTypesForPageSize: {
+	WrapperTypesForPageSizeFeature: {
 		Description: "Allow List RPCs to generator with support for protobuf wrapper types (e.g. Int32Value, etc).",
 		TrackingID:  "b/352331075",
 	},
@@ -58,11 +58,11 @@ var featureRegistry = map[featureID]*featureInfo{
 // to bootstrap without breaking generation we keep the legacy definitions enabled here until we can move
 // configuration upstream into tools like librarian/bazel/etc as needed.
 var legacyFeatureEnablementByPackage = map[featureID][]string{
-	EnableOrderedRoutingHeaders: []string{
+	OrderedRoutingHeadersFeature: []string{
 		"google.firestore.v1",
 		"google.firestore.admin.v1",
 	},
-	EnableWrapperTypesForPageSize: []string{
+	WrapperTypesForPageSizeFeature: []string{
 		"google.cloud.bigquery.v2",
 	},
 }
@@ -70,7 +70,7 @@ var legacyFeatureEnablementByPackage = map[featureID][]string{
 // similar to legacyFeatureEnablementByPackage, this is legacy feature enablement using the "name" field from the API
 // service config.
 var legacyFeatureEnablementByAPIName = map[featureID][]string{
-	EnableMTLSHardBoundTokens: []string{
+	MTLSHardBoundTokensFeature: []string{
 		"bigquery.googleapis.com",
 		"cloudasset.googleapis.com",
 		"clouderrorreporting.googleapis.com",
