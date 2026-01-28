@@ -401,7 +401,7 @@ func withPackageOverride(s string) configOption {
 }
 
 // withFeature handles boolean enablement of generator-level functionality.
-// The `FEAT:` prefix is not passed as part of the string, only the remaining substring.
+// The `FEAT_` prefix is not passed as part of the string, only the remaining substring.
 func withFeature(s string) configOption {
 	fID := featureID(s)
 	if _, ok := featureRegistry[fID]; !ok {
