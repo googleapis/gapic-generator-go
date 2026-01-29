@@ -148,7 +148,7 @@ func (g *generator) featureEnabled(f featureID) bool {
 	if g.cfg == nil {
 		return false
 	}
-	if val, ok := g.cfg.featureEnablement[f]; ok && val {
+	if _, ok := g.cfg.featureEnablement[f]; ok {
 		return true
 	}
 	return false

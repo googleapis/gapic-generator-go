@@ -124,7 +124,7 @@ type generatorConfig struct {
 	pkgOverrides map[string]string
 
 	// Keep track of what conditional behaviors/experiments are enabled.
-	featureEnablement map[featureID]bool
+	featureEnablement map[featureID]struct{}
 }
 
 // Signature for configuration arguments.
@@ -400,9 +400,9 @@ func withFeature(s string) configOption {
 	}
 	return func(cfg *generatorConfig) error {
 		if cfg.featureEnablement == nil {
-			cfg.featureEnablement = make(map[featureID]bool)
+			cfg.featureEnablement = make(map[featureID]struct{})
 		}
-		cfg.featureEnablement[fID] = true
+		cfg.featureEnablement[fID] = struct{}{}
 		return nil
 	}
 }

@@ -104,9 +104,9 @@ func processLegacyEnablements(cfg *generatorConfig, req *pluginpb.CodeGeneratorR
 			for _, v := range packages {
 				if probePackage == v { // matched
 					if cfg.featureEnablement == nil {
-						cfg.featureEnablement = make(map[featureID]bool)
+						cfg.featureEnablement = make(map[featureID]struct{})
 					}
-					cfg.featureEnablement[f] = true
+					cfg.featureEnablement[f] = struct{}{}
 					break
 				}
 			}
@@ -119,9 +119,9 @@ func processLegacyEnablements(cfg *generatorConfig, req *pluginpb.CodeGeneratorR
 			for _, v := range apis {
 				if probeName == v { // matched
 					if cfg.featureEnablement == nil {
-						cfg.featureEnablement = make(map[featureID]bool)
+						cfg.featureEnablement = make(map[featureID]struct{})
 					}
-					cfg.featureEnablement[f] = true
+					cfg.featureEnablement[f] = struct{}{}
 					break
 				}
 			}

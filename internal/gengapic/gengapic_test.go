@@ -1468,8 +1468,9 @@ func TestInsertDynamicRequestHeaders_Ordering(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.pkgName, func(t *testing.T) {
 			g.reset()
-			g.cfg.featureEnablement = map[featureID]bool{
-				OrderedRoutingHeadersFeature: tc.wantOrdered,
+			g.cfg.featureEnablement = make(map[featureID]struct{})
+			if tc.wantOrdered {
+				g.cfg.featureEnablement[OrderedRoutingHeadersFeature] = struct{}{}
 			}
 
 			file := &descriptorpb.FileDescriptorProto{
