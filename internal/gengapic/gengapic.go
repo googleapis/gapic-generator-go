@@ -505,23 +505,58 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 		case grpc:
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
-			p("if gax.IsFeatureEnabled(\"TRACING\") {")
-			// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
-			// the expression fieldGetter(headers[0][1]) returns an accessor for the full
-			// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
-			// APIs, this logic will most likely only capture a single path component,
-			// such as the project ID.
-			p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req%s)`, fieldGetter(headers[0][1]))
-			p("}")
-			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+			resField := g.resourceNameField(m)
+			if resField != "" {
+				p("if gax.IsFeatureEnabled(\"TRACING\") {")
+				// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
+				// the expression fieldGetter(resField) returns an accessor for the full
+				// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
+				// APIs (missing the resource_reference annotation), an empty string is returned.
+
+				// Prepend the service host if available
+				serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+				host := ""
+				if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
+					host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
+				}
+
+				if host != "" {
+					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
+				} else {
+					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+				}
+				p("}")
+				g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+				g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+			}
 		case rest:
 			p(`hds = append(c.xGoogHeaders, hds...)`)
 			p(`hds = append(hds, "Content-Type", "application/json")`)
 			p(`headers := gax.BuildHeaders(ctx, hds...)`)
-			p("if gax.IsFeatureEnabled(\"TRACING\") {")
-			p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", req%s)`, fieldGetter(headers[0][1]))
-			p("}")
-			g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+			resField := g.resourceNameField(m)
+			if resField != "" {
+				p("if gax.IsFeatureEnabled(\"TRACING\") {")
+				// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
+				// the expression fieldGetter(resField) returns an accessor for the full
+				// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
+				// APIs (missing the resource_reference annotation), an empty string is returned.
+
+				// Prepend the service host if available
+				serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+				host := ""
+				if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
+					host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
+				}
+
+				if host != "" {
+					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
+				} else {
+					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+				}
+				p("}")
+				g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+				g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+			}
 		}
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
@@ -835,4 +870,56 @@ func parseDynamicRequestHeaders(m *descriptorpb.MethodDescriptorProto) [][]strin
 	}
 
 	return matches
+}
+
+// resourceNameField returns the name of the field in the input message
+// that carries a google.api.resource_reference annotation.
+// If multiple fields match, it prioritizes the one that also appears in the HTTP path.
+// If no input type or associated attributes are found, it returns an empty string.
+func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) string {
+	if m.GetInputType() == "" {
+		return ""
+	}
+	inType := g.descInfo.Type[m.GetInputType()]
+	if inType == nil {
+		return ""
+	}
+	msg, ok := inType.(*descriptorpb.DescriptorProto)
+	if !ok {
+		return ""
+	}
+
+	var candidates []string
+	for _, f := range msg.GetField() {
+		if proto.HasExtension(f.GetOptions(), annotations.E_ResourceReference) {
+			candidates = append(candidates, f.GetName())
+		}
+	}
+
+	if len(candidates) == 0 {
+		return ""
+	}
+	if len(candidates) == 1 {
+		return candidates[0]
+	}
+
+	// Tie-breaking: check against HTTP path variables.
+	// parseImplicitRequestHeaders uses headerParamRegexp (which has one capturing
+	// group) to find variables in the path. h[1] corresponds to that capturing group
+	// and contains the variable's string name (e.g., "name", "parent" or "project").
+	pathParams := make(map[string]bool)
+	headers := parseImplicitRequestHeaders(m)
+	for _, h := range headers {
+		if len(h) > 1 {
+			pathParams[h[1]] = true
+		}
+	}
+
+	for _, c := range candidates {
+		if pathParams[c] {
+			return c
+		}
+	}
+
+	return candidates[0]
 }

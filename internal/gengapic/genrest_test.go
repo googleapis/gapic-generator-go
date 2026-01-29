@@ -440,10 +440,15 @@ func TestGenRestMethod(t *testing.T) {
 		Type:    descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(),
 		Options: sizeOpts,
 	}
+	resRefOpts := &descriptorpb.FieldOptions{}
+	proto.SetExtension(resRefOpts, annotations.E_ResourceReference, &annotations.ResourceReference{
+		Type: "foo.googleapis.com/Bar",
+	})
 	otherField := &descriptorpb.FieldDescriptorProto{
 		Name:           proto.String("other"),
 		Type:           descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 		Proto3Optional: proto.Bool(true),
+		Options:        resRefOpts,
 	}
 	infoOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(infoOpts, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
@@ -673,8 +678,10 @@ func TestGenRestMethod(t *testing.T) {
 	}
 
 	s := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("FooService"),
+		Name:    proto.String("FooService"),
+		Options: &descriptorpb.ServiceOptions{},
 	}
+	proto.SetExtension(s.Options, annotations.E_DefaultHost, "foo.googleapis.com")
 	opS := &descriptorpb.ServiceDescriptorProto{
 		Name: proto.String("FooOperationService"),
 	}
@@ -755,7 +762,7 @@ func TestGenRestMethod(t *testing.T) {
 			method: opRPC,
 			cfg:    &generatorConfig{generateAsDIREGAPIC: true},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "google.golang.org/grpc/metadata"}:                        true,
+				{Path: "google.golang.org/grpc/metadata"}:               true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Path: "fmt"}:     true,
@@ -836,7 +843,7 @@ func TestGenRestMethod(t *testing.T) {
 			method: lroRPC,
 			cfg:    &generatorConfig{transports: []transport{rest}},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "google.golang.org/grpc/metadata"}:                        true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
 				{Path: "bytes"}: true,
 				{Path: "cloud.google.com/go/longrunning"}: true,
 				{Path: "fmt"}:                    true,
@@ -867,7 +874,7 @@ func TestGenRestMethod(t *testing.T) {
 			method: updateRPC,
 			cfg:    &generatorConfig{restNumericEnum: true},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "google.golang.org/grpc/metadata"}:                        true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
