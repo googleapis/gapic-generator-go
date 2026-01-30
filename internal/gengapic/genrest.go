@@ -162,13 +162,15 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	g.serviceDoc(serv, false) // exclude API version docs
 	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("    clientOpts := append(default%sRESTClientOptions(), opts...)", servName)
-	p("    if gax.IsFeatureEnabled(\"TRACING\") {")
-	p("        clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
-	p("          \"gcp.client.service\": %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
-	p("          \"gcp.client.version\": getVersionClient(),")
-	p("          \"gcp.client.repo\":    \"googleapis/google-cloud-go\",")
-	p("        }))")
-	p("    }")
+	if g.featureEnabled(OpenTelemetryTracingFeature) {
+		p("    if gax.IsFeatureEnabled(\"TRACING\") {")
+		p("        clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
+		p("          \"gcp.client.service\": %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+		p("          \"gcp.client.version\": getVersionClient(),")
+		p("          \"gcp.client.repo\":    \"googleapis/google-cloud-go\",")
+		p("        }))")
+		p("    }")
+	}
 	p("    httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)")
 	p("    if err != nil {")
 	p("        return nil, err")
@@ -664,7 +666,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil {
+	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
@@ -952,7 +954,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil {
+	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
@@ -1054,7 +1056,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil {
+	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
@@ -1149,7 +1151,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil {
+	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")

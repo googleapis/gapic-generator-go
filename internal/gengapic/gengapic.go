@@ -498,57 +498,61 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 		case grpc:
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
-			resField := g.resourceNameField(m)
-			if resField != "" {
-				p("if gax.IsFeatureEnabled(\"TRACING\") {")
-				// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
-				// the expression fieldGetter(resField) returns an accessor for the full
-				// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
-				// APIs (missing the resource_reference annotation), an empty string is returned.
+			if g.featureEnabled(OpenTelemetryTracingFeature) {
+				resField := g.resourceNameField(m)
+				if resField != "" {
+					p("if gax.IsFeatureEnabled(\"TRACING\") {")
+					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
+					// the expression fieldGetter(resField) returns an accessor for the full
+					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
+					// APIs (missing the resource_reference annotation), an empty string is returned.
 
-				// Prepend the service host if available
-				serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
-				host := ""
-				if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
-					host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
-				}
+					// Prepend the service host if available
+					serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+					host := ""
+					if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
+						host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
+					}
 
-				if host != "" {
-					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
-				} else {
-					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+					if host != "" {
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
+					} else {
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+					}
+					p("}")
+					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+					g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 				}
-				p("}")
-				g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
-				g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 			}
 		case rest:
 			p(`hds = append(c.xGoogHeaders, hds...)`)
 			p(`hds = append(hds, "Content-Type", "application/json")`)
 			p(`headers := gax.BuildHeaders(ctx, hds...)`)
-			resField := g.resourceNameField(m)
-			if resField != "" {
-				p("if gax.IsFeatureEnabled(\"TRACING\") {")
-				// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
-				// the expression fieldGetter(resField) returns an accessor for the full
-				// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
-				// APIs (missing the resource_reference annotation), an empty string is returned.
+			if g.featureEnabled(OpenTelemetryTracingFeature) {
+				resField := g.resourceNameField(m)
+				if resField != "" {
+					p("if gax.IsFeatureEnabled(\"TRACING\") {")
+					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
+					// the expression fieldGetter(resField) returns an accessor for the full
+					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
+					// APIs (missing the resource_reference annotation), an empty string is returned.
 
-				// Prepend the service host if available
-				serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
-				host := ""
-				if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
-					host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
-				}
+					// Prepend the service host if available
+					serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+					host := ""
+					if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
+						host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
+					}
 
-				if host != "" {
-					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
-				} else {
-					p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+					if host != "" {
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
+					} else {
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+					}
+					p("}")
+					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+					g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 				}
-				p("}")
-				g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
-				g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 			}
 		}
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true

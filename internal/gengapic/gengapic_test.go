@@ -337,6 +337,9 @@ func TestGenGRPCMethods(t *testing.T) {
 	var g generator
 	g.cfg = &generatorConfig{
 		pkgName: "pkg",
+		featureEnablement: map[featureID]struct{}{
+			OpenTelemetryTracingFeature: {},
+		},
 		APIServiceConfig: &serviceconfig.Service{
 			Publishing: &annotations.Publishing{
 				MethodSettings: []*annotations.MethodSettings{
