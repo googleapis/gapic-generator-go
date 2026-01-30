@@ -15,7 +15,6 @@
 package gengapic
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -142,22 +141,55 @@ func TestParseOptions(t *testing.T) {
 			},
 			expectErr: false,
 		},
+		{
+			// Test empty parameter in the CSV.
+			param:     "go-gapic-package=path/to/imp;pkg,F_invalid_feature",
+			expectErr: true,
+		},
+		{
+			// single feature enablement
+			param: "go-gapic-package=path;pkg,F_ordered_routing_headers",
+			expectedCfg: &generatorConfig{
+				transports: []transport{grpc},
+				pkgPath:    "path",
+				pkgName:    "pkg",
+				outDir:     "path",
+				featureEnablement: map[featureID]struct{}{
+					OrderedRoutingHeadersFeature: struct{}{},
+				},
+			},
+		},
+		{
+			// multiple feature enablement
+			param: "go-gapic-package=path;pkg,F_ordered_routing_headers,F_wrapper_types_for_page_size",
+			expectedCfg: &generatorConfig{
+				transports: []transport{grpc},
+				pkgPath:    "path",
+				pkgName:    "pkg",
+				outDir:     "path",
+				featureEnablement: map[featureID]struct{}{
+					OrderedRoutingHeadersFeature:   struct{}{},
+					WrapperTypesForPageSizeFeature: struct{}{},
+				},
+			},
+		},
 	} {
-		opts, err := configFromRequest(&tst.param)
-		if tst.expectErr && err == nil {
-			t.Errorf("parseOptions(%s) expected error", tst.param)
-			continue
-		}
+		t.Run(tst.param, func(t *testing.T) {
 
-		if !tst.expectErr && err != nil {
-			t.Errorf("parseOptions(%s) got unexpected error: %v", tst.param, err)
-			continue
-		}
+			gotCfg, err := configFromRequest(&tst.param)
+			if tst.expectErr && err == nil {
+				t.Fatalf("parseOptions(%s) expected error", tst.param)
+			}
 
-		if !reflect.DeepEqual(opts, tst.expectedCfg) {
-			t.Errorf("parseOptions(%s) = %+v, expected %+v", tst.param, opts, tst.expectedCfg)
-			continue
-		}
+			if !tst.expectErr && err != nil {
+				t.Fatalf("parseOptions(%s) got unexpected error: %v", tst.param, err)
+			}
+
+			if diff := cmp.Diff(gotCfg, tst.expectedCfg, cmp.AllowUnexported(generatorConfig{}, conf.Config{})); diff != "" {
+				t.Errorf("got(-), want(+):\n%s", diff)
+			}
+		})
+
 	}
 }
 

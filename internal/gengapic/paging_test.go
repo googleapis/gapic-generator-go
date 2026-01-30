@@ -125,19 +125,6 @@ func TestPagingField(t *testing.T) {
 	// * Response has a string next_page_token field
 	// * Response has one and only one repeated or map<string, *> field
 
-	// This test manipulates the enableWrapperTypesForPageSize allowlist, so ensure we're
-	// not tainting state after test completes.
-	origAllowList := make(map[string]bool)
-	for k, v := range enableWrapperTypesForPageSize {
-		origAllowList[k] = v
-	}
-
-	defer func() {
-		enableWrapperTypesForPageSize = origAllowList
-	}()
-	// Clear the allowlist for this test.
-	enableWrapperTypesForPageSize = make(map[string]bool)
-
 	// Messages
 	validPageSize := &descriptorpb.DescriptorProto{
 		Name: proto.String("ValidPageSizeRequest"),
@@ -501,13 +488,17 @@ func TestPagingField(t *testing.T) {
 		}
 	}
 
-	// Re-test, adding the "paging" package to the allowlist.
-	enableWrapperTypesForPageSize["paging"] = true
+	// Re-test, enabling the wrapper feature.
 	g, err = newGenerator(&req)
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.cfg = &generatorConfig{transports: []transport{rest}}
+	g.cfg = &generatorConfig{
+		transports: []transport{rest},
+		featureEnablement: map[featureID]struct{}{
+			WrapperTypesForPageSizeFeature: struct{}{},
+		},
+	}
 	for _, tst := range []struct {
 		mthd      *descriptorpb.MethodDescriptorProto
 		sizeField *descriptorpb.FieldDescriptorProto // A nil field means this is not a paged method

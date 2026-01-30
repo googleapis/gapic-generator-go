@@ -1425,6 +1425,7 @@ func TestInsertDynamicRequestHeaders_Ordering(t *testing.T) {
 			Type:       make(map[string]pbinfo.ProtoType),
 			ParentFile: make(map[protoreflect.ProtoMessage]*descriptorpb.FileDescriptorProto),
 		},
+		cfg: &generatorConfig{},
 	}
 
 	m := &descriptorpb.MethodDescriptorProto{
@@ -1467,6 +1468,10 @@ func TestInsertDynamicRequestHeaders_Ordering(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.pkgName, func(t *testing.T) {
 			g.reset()
+			g.cfg.featureEnablement = make(map[featureID]struct{})
+			if tc.wantOrdered {
+				g.cfg.featureEnablement[OrderedRoutingHeadersFeature] = struct{}{}
+			}
 
 			file := &descriptorpb.FileDescriptorProto{
 				Package: proto.String(tc.pkgName),
