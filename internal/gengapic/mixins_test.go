@@ -51,6 +51,7 @@ func TestCollectMixins(t *testing.T) {
 		mixins:   make(mixins),
 		cfg: &generatorConfig{
 			APIServiceConfig: &serviceconfig.Service{
+				Name: "foo.googleapis.com",
 				Apis: []*apipb.Api{
 					{Name: "google.example.library.v1.Library"},
 					{Name: "google.longrunning.Operations"},
@@ -136,6 +137,7 @@ func TestHasIAMPolicyMixin(t *testing.T) {
 		},
 		cfg: &generatorConfig{
 			APIServiceConfig: &serviceconfig.Service{
+				Name: "foo.googleapis.com",
 				Apis: []*apipb.Api{
 					{Name: "foo.bar.Baz"},
 					{Name: "google.iam.v1.IAMPolicy"},
@@ -204,6 +206,7 @@ func TestHasLocationMixin(t *testing.T) {
 		},
 		cfg: &generatorConfig{
 			APIServiceConfig: &serviceconfig.Service{
+				Name: "foo.googleapis.com",
 				Apis: []*apipb.Api{
 					{Name: "foo.bar.Baz"},
 					{Name: "google.cloud.location.Locations"},
@@ -238,6 +241,7 @@ func TestHasLROMixin(t *testing.T) {
 		},
 		cfg: &generatorConfig{
 			APIServiceConfig: &serviceconfig.Service{
+				Name: "foo.googleapis.com",
 				Apis: []*apipb.Api{
 					{Name: "foo.bar.Baz"},
 					{Name: "google.iam.v1.IAMPolicy"},
@@ -303,6 +307,7 @@ func TestGetOperationPathOverride(t *testing.T) {
 			mixins:   make(mixins),
 			cfg: &generatorConfig{
 				APIServiceConfig: &serviceconfig.Service{
+					Name: "foo.googleapis.com",
 					Http: tc.http,
 				},
 			},

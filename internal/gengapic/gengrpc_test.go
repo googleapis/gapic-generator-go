@@ -58,6 +58,7 @@ func TestServiceRenaming(t *testing.T) {
 		transports:        []transport{grpc},
 		featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}},
 		APIServiceConfig: &serviceconfig.Service{
+			Name: "foo.googleapis.com",
 			Publishing: &annotations.Publishing{
 				LibrarySettings: []*annotations.ClientLibrarySettings{
 					{

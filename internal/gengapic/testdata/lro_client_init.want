@@ -120,7 +120,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 	clientOpts := defaultFooGRPCClientOptions()
 	if gax.IsFeatureEnabled("TRACING") {
 		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
-			"gcp.client.service": "",
+			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),
 			"gcp.client.repo":    "googleapis/google-cloud-go",
 		}))

@@ -583,6 +583,7 @@ func TestClientInit(t *testing.T) {
 			}
 			g.mixins = tst.mixins
 			g.cfg.APIServiceConfig = &serviceconfig.Service{
+				Name: "foo.googleapis.com",
 				Apis: []*apipb.Api{
 					{Name: "foo.bar.Baz"},
 					{Name: "google.iam.v1.IAMPolicy"},
