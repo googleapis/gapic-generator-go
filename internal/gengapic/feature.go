@@ -34,6 +34,7 @@ const (
 	WrapperTypesForPageSizeFeature featureID = "wrapper_types_for_page_size"
 	OrderedRoutingHeadersFeature   featureID = "ordered_routing_headers"
 	MTLSHardBoundTokensFeature     featureID = "mtls_hard_bound_tokens"
+	OpenTelemetryTracingFeature    featureID = "open_telemetry_tracing"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -41,6 +42,11 @@ const (
 // must be registered to be enabled.  This should not be modified at runtime.  Those
 // who attempt to do so will be given a stern talking to.
 var featureRegistry = map[featureID]*featureInfo{
+
+	OpenTelemetryTracingFeature: {
+		Description: "Enable OpenTelemetry tracing support (Service Identity, Resource Names, URL Templates).",
+		TrackingID:  "b/467342602,b/467403185",
+	},
 	MTLSHardBoundTokensFeature: {
 		Description: "support MTLS hard bound tokens",
 		TrackingID:  "b/327916505",

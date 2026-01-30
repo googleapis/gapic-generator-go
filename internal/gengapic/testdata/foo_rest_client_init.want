@@ -96,6 +96,13 @@ type fooRESTClient struct {
 // Foo service does stuff.
 func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := append(defaultFooRESTClientOptions(), opts...)
+	if gax.IsFeatureEnabled("TRACING") {
+		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
+			"gcp.client.service": "foo",
+			"gcp.client.version": getVersionClient(),
+			"gcp.client.repo":    "googleapis/google-cloud-go",
+		}))
+	}
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
 	if err != nil {
 		return nil, err

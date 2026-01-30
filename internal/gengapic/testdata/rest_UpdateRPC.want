@@ -39,6 +39,9 @@ func (c *fooRESTClient) UpdateRPC(ctx context.Context, req *foopb.UpdateRequest,
 	// Build HTTP headers from client and context metadata.
 	hds := append(c.xGoogHeaders, "Content-Type", "application/json")
 	headers := gax.BuildHeaders(ctx, hds...)
+	if gax.IsFeatureEnabled("TRACING") {
+		ctx = metadata.AppendToOutgoingContext(ctx, "url.template", "/v1/foo")
+	}
 	opts = append((*c.CallOptions).UpdateRPC[0:len((*c.CallOptions).UpdateRPC):len((*c.CallOptions).UpdateRPC)], opts...)
 	unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}
 	resp := &foopb.Foo{}

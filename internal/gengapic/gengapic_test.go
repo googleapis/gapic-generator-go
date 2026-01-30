@@ -153,13 +153,20 @@ func TestGenGRPCMethods(t *testing.T) {
 	optsUUID4 := &descriptorpb.FieldOptions{}
 	proto.SetExtension(optsUUID4, annotations.E_FieldInfo, &annotations.FieldInfo{Format: annotations.FieldInfo_UUID4})
 
+	optsResRef := &descriptorpb.FieldOptions{}
+	proto.SetExtension(optsResRef, annotations.E_ResourceReference, &annotations.ResourceReference{
+		// "{service}.googleapis.com/{Resource}" is the AIP-122 format for the google.api.resource_reference annotation.
+		Type: "foo.googleapis.com/Bar",
+	})
+
 	inputType := &descriptorpb.DescriptorProto{
 		Name: proto.String("InputType"),
 		Field: []*descriptorpb.FieldDescriptorProto{
 			{
-				Name:  proto.String("other"),
-				Type:  typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
-				Label: labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
+				Name:    proto.String("other"),
+				Type:    typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+				Label:   labelp(descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL),
+				Options: optsResRef,
 			},
 			{
 				Name:  proto.String("another"),
@@ -322,12 +329,17 @@ func TestGenGRPCMethods(t *testing.T) {
 		},
 	}
 	serv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("Foo"),
+		Name:    proto.String("Foo"),
+		Options: &descriptorpb.ServiceOptions{},
 	}
+	proto.SetExtension(serv.Options, annotations.E_DefaultHost, "foo.googleapis.com")
 
 	var g generator
 	g.cfg = &generatorConfig{
 		pkgName: "pkg",
+		featureEnablement: map[featureID]struct{}{
+			OpenTelemetryTracingFeature: {},
+		},
 		APIServiceConfig: &serviceconfig.Service{
 			Publishing: &annotations.Publishing{
 				MethodSettings: []*annotations.MethodSettings{
@@ -407,13 +419,13 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "github.com/google/uuid"}:         true,
-				{Path: "net/url"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
+				{Path: "fmt"}:                             true,
+				{Path: "github.com/google/uuid"}:          true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Path: "net/url"}:                         true,
+				{Name: "mypackagepb", Path: "mypackage"}:  true,
 			},
-		},
-		{
+		}, {
 			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetOneThing"),
 				InputType:  proto.String(".my.pkg.InputType"),
@@ -421,10 +433,11 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "github.com/google/uuid"}:         true,
-				{Path: "net/url"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
+				{Path: "fmt"}:                             true,
+				{Path: "github.com/google/uuid"}:          true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Path: "net/url"}:                         true,
+				{Name: "mypackagepb", Path: "mypackage"}:  true,
 			},
 		},
 		{
@@ -437,12 +450,12 @@ func TestGenGRPCMethods(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                              true,
 				{Path: "google.golang.org/api/iterator"}:   true,
+				{Path: "google.golang.org/grpc/metadata"}:  true,
 				{Path: "google.golang.org/protobuf/proto"}: true,
 				{Path: "net/url"}:                          true,
 				{Name: "mypackagepb", Path: "mypackage"}:   true,
 			},
-		},
-		{
+		}, {
 			m: &descriptorpb.MethodDescriptorProto{
 				Name:       proto.String("GetManyThingsOptional"),
 				InputType:  proto.String(".my.pkg.PageInputTypeOptional"),
@@ -452,6 +465,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                              true,
 				{Path: "google.golang.org/api/iterator"}:   true,
+				{Path: "google.golang.org/grpc/metadata"}:  true,
 				{Path: "google.golang.org/protobuf/proto"}: true,
 				{Path: "net/url"}:                          true,
 				{Name: "mypackagepb", Path: "mypackage"}:   true,
@@ -466,9 +480,10 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:         opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "net/url"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
+				{Path: "fmt"}: true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Path: "net/url"}:                         true,
+				{Name: "mypackagepb", Path: "mypackage"}:  true,
 			},
 		},
 		{
@@ -505,11 +520,12 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    optsGetAnotherThing,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                            true,
-				{Path: "net/url"}:                        true,
-				{Path: "regexp"}:                         true,
-				{Path: "strings"}:                        true,
-				{Name: "mypackagepb", Path: "mypackage"}: true,
+				{Path: "fmt"}: true,
+				{Path: "google.golang.org/grpc/metadata"}: true,
+				{Path: "net/url"}:                         true,
+				{Path: "regexp"}:                          true,
+				{Path: "strings"}:                         true,
+				{Name: "mypackagepb", Path: "mypackage"}:  true,
 			},
 		},
 		// Test for empty dynamic routing annotation, so no headers should be sent.
@@ -712,8 +728,10 @@ func TestGenOperationBuilders(t *testing.T) {
 		},
 	}
 	serv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("Foo"),
+		Name:    proto.String("Foo"),
+		Options: &descriptorpb.ServiceOptions{},
 	}
+	proto.SetExtension(serv.Options, annotations.E_DefaultHost, "foo.googleapis.com")
 
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}

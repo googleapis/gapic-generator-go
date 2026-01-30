@@ -137,7 +137,8 @@ func TestClientOpt(t *testing.T) {
 			gRPCServiceConfig: grpcConf,
 			// Showcase would enable MTLS if we went through legacy enablements, so add it explicitly here.
 			featureEnablement: map[featureID]struct{}{
-				MTLSHardBoundTokensFeature: struct{}{},
+				MTLSHardBoundTokensFeature:  struct{}{},
+				OpenTelemetryTracingFeature: struct{}{},
 			},
 		},
 	}
@@ -582,6 +583,7 @@ func TestClientInit(t *testing.T) {
 			}
 			g.mixins = tst.mixins
 			g.cfg.APIServiceConfig = &serviceconfig.Service{
+				Name: "foo.googleapis.com",
 				Apis: []*apipb.Api{
 					{Name: "foo.bar.Baz"},
 					{Name: "google.iam.v1.IAMPolicy"},
@@ -600,6 +602,7 @@ func TestClientInit(t *testing.T) {
 			}
 
 			g.reset()
+			g.cfg.featureEnablement = map[featureID]struct{}{OpenTelemetryTracingFeature: {}}
 			sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
 			sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
 			for _, m := range tst.serv.GetMethod() {

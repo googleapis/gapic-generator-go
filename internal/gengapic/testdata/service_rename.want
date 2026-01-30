@@ -21,6 +21,13 @@ type barGRPCClient struct {
 // The returned client must be Closed when it is done being used to clean up its underlying connections.
 func NewBarClient(ctx context.Context, opts ...option.ClientOption) (*BarClient, error) {
 	clientOpts := defaultBarGRPCClientOptions()
+	if gax.IsFeatureEnabled("TRACING") {
+		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
+			"gcp.client.service": "foo",
+			"gcp.client.version": getVersionClient(),
+			"gcp.client.repo":    "googleapis/google-cloud-go",
+		}))
+	}
 	if newBarClientHook != nil {
 		hookOpts, err := newBarClientHook(ctx, clientHookParams{})
 		if err != nil {

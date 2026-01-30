@@ -76,6 +76,13 @@ type gRPCClient struct {
 // Deprecated: Foo may be removed in a future version.
 func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := defaultGRPCClientOptions()
+	if gax.IsFeatureEnabled("TRACING") {
+		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
+			"gcp.client.service": "foo",
+			"gcp.client.version": getVersionClient(),
+			"gcp.client.repo":    "googleapis/google-cloud-go",
+		}))
+	}
 	if newClientHook != nil {
 		hookOpts, err := newClientHook(ctx, clientHookParams{})
 		if err != nil {
@@ -153,6 +160,13 @@ type restClient struct {
 // Deprecated: Foo may be removed in a future version.
 func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := append(defaultRESTClientOptions(), opts...)
+	if gax.IsFeatureEnabled("TRACING") {
+		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
+			"gcp.client.service": "foo",
+			"gcp.client.version": getVersionClient(),
+			"gcp.client.repo":    "googleapis/google-cloud-go",
+		}))
+	}
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
 	if err != nil {
 		return nil, err
