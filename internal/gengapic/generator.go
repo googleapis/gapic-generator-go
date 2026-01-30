@@ -31,39 +31,6 @@ import (
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
-// keyed by proto package name, e.g. "google.cloud.foo.v1".
-var enableWrapperTypesForPageSize = map[string]bool{
-	"google.cloud.bigquery.v2": true,
-}
-
-var enableOrderedRoutingHeaders = map[string]bool{
-	"google.firestore.v1":       true,
-	"google.firestore.admin.v1": true,
-}
-
-var enableMtlsHardBoundTokens = map[string]bool{
-	"bigquery.googleapis.com":             true,
-	"cloudasset.googleapis.com":           true,
-	"clouderrorreporting.googleapis.com":  true,
-	"cloudkms.googleapis.com":             true,
-	"cloudresourcemanager.googleapis.com": true,
-	"cloudtasks.googleapis.com":           true,
-	"cloudtrace.googleapis.com":           true,
-	"dataflow.googleapis.com":             true,
-	"datastore.googleapis.com":            true,
-	"essentialcontacts.googleapis.com":    true,
-	"firestore.googleapis.com":            true,
-	"iam.googleapis.com":                  true,
-	"iamcredentials.googleapis.com":       true,
-	"logging.googleapis.com":              true,
-	"monitoring.googleapis.com":           true,
-	"orgpolicy.googleapis.com":            true,
-	"pubsub.googleapis.com":               true,
-	"recommender.googleapis.com":          true,
-	"secretmanager.googleapis.com":        true,
-	"showcase.googleapis.com":             true,
-}
-
 type generator struct {
 	pt printer.P
 
@@ -131,6 +98,11 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Handle legacy enablement via hardcoded allowlists.
+	// This logic should be removed when legacy enablement is no longer needed. (b/264668184)
+	processLegacyEnablements(cfg, req)
+
+	// attach config to generator.
 	g.cfg = cfg
 
 	files := req.GetProtoFile()
@@ -169,6 +141,17 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 	}
 
 	return g, nil
+}
+
+// featureEnabled is a simple boolean checker for probing if a given feature has been enabled.
+func (g *generator) featureEnabled(f featureID) bool {
+	if g.cfg == nil {
+		return false
+	}
+	if _, ok := g.cfg.featureEnablement[f]; ok {
+		return true
+	}
+	return false
 }
 
 // printf formatted-prints to sb, using the print syntax from fmt package.

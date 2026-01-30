@@ -73,7 +73,8 @@ var SupportedValueArgs map[string]func(string) configOption = map[string]func(st
 //
 // Recommendation: avoid adding more of these as they complicate processing.
 var SupportedPrefixArgs map[string]func(string) configOption = map[string]func(string) configOption{
-	"M": withPackageOverride,
+	"M":  withPackageOverride,
+	"F_": withFeature,
 }
 
 // Configuration needed to drive the operation of the plugin.
@@ -121,6 +122,9 @@ type generatorConfig struct {
 
 	// Package naming overrides, keyed by filepath.
 	pkgOverrides map[string]string
+
+	// Keep track of what conditional behaviors/experiments are enabled.
+	featureEnablement map[featureID]struct{}
 }
 
 // Signature for configuration arguments.
@@ -381,6 +385,24 @@ func withPackageOverride(s string) configOption {
 			cfg.pkgOverrides = make(map[string]string)
 		}
 		cfg.pkgOverrides[key] = val
+		return nil
+	}
+}
+
+// withFeature handles boolean enablement of generator-level functionality.
+// The `F_` prefix is not passed as part of the string, only the remaining substring.
+func withFeature(s string) configOption {
+	fID := featureID(s)
+	if _, ok := featureRegistry[fID]; !ok {
+		return func(cfg *generatorConfig) error {
+			return fmt.Errorf("no such feature is registered in the generator: %q", s)
+		}
+	}
+	return func(cfg *generatorConfig) error {
+		if cfg.featureEnablement == nil {
+			cfg.featureEnablement = make(map[featureID]struct{})
+		}
+		cfg.featureEnablement[fID] = struct{}{}
 		return nil
 	}
 }
