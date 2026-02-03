@@ -98,6 +98,7 @@ func TestAutoPopulatedFields(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	g.cfg.APIServiceConfig = &serviceconfig.Service{
+		Name: "foo.googleapis.com",
 		Publishing: &annotations.Publishing{
 			MethodSettings: []*annotations.MethodSettings{
 				{
