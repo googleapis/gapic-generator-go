@@ -54,9 +54,11 @@ func TestServiceRenaming(t *testing.T) {
 	var g generator
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.cfg = &generatorConfig{
-		pkgName:    "pkg",
-		transports: []transport{grpc},
+		pkgName:           "pkg",
+		transports:        []transport{grpc},
+		featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}},
 		APIServiceConfig: &serviceconfig.Service{
+			Name: "foo.googleapis.com",
 			Publishing: &annotations.Publishing{
 				LibrarySettings: []*annotations.ClientLibrarySettings{
 					{

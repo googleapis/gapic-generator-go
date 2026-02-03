@@ -1,5 +1,13 @@
 # Changes
 
+## [0.56.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.56.0) (2026-02-03)
+
+### Features
+
+* add a new feature enablement mechanism (#1689) ([1f6129a](https://github.com/googleapis/google-cloud-go/commit/1f6129a81f6fc2cb1a74dbd56413cf7ca52869a2))
+* expose resource names and static identity for OpenTelemetry tracing (#1690) ([1dad92a](https://github.com/googleapis/google-cloud-go/commit/1dad92aa7c345d2b2030a0836068413fa0ccdf29))
+* refactor generator options -> config (#1688) ([1fc62ac](https://github.com/googleapis/google-cloud-go/commit/1fc62aca44405b1522a8bec88c18d7a2966f541d))
+
 ## [0.55.2](https://github.com/googleapis/google-cloud-go/releases/tag/v0.55.2) (2026-01-14)
 
 ### Bug Fixes
