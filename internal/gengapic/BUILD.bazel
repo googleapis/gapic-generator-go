@@ -70,7 +70,6 @@ go_test(
         "custom_operation_test.go",
         "doc_file_test.go",
         "example_test.go",
-        "feature_test.go",
         "generator_test.go",
         "gengapic_test.go",
         "genrest_test.go",
