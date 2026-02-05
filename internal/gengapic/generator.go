@@ -98,9 +98,6 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Handle legacy enablement via hardcoded allowlists.
-	// This logic should be removed when legacy enablement is no longer needed. (b/264668184)
-	processLegacyEnablements(cfg, req)
 
 	// attach config to generator.
 	g.cfg = cfg
