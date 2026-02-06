@@ -108,6 +108,9 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),
 			"gcp.client.repo":    "googleapis/google-cloud-go",
+			"gcp.client.artifact": "path",
+			"gcp.client.language": "go",
+			"url.domain":         "foo.googleapis.com",
 		}))
 	}
 	if newFooClientHook != nil {
