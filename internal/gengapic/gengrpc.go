@@ -335,6 +335,9 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("      \"gcp.client.service\": %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
 		p("      \"gcp.client.version\": getVersionClient(),")
 		p("      \"gcp.client.repo\":    \"googleapis/google-cloud-go\",")
+		p("      \"gcp.client.artifact\": %q,", g.cfg.pkgPath)
+		p("      \"gcp.client.language\": \"go\",")
+		p("      \"url.domain\":         %q,", g.cfg.APIServiceConfig.GetName())
 		p("    }))")
 		p("  }")
 	}

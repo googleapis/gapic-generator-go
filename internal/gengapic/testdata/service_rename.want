@@ -26,6 +26,9 @@ func NewBarClient(ctx context.Context, opts ...option.ClientOption) (*BarClient,
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),
 			"gcp.client.repo":    "googleapis/google-cloud-go",
+			"gcp.client.artifact": "",
+			"gcp.client.language": "go",
+			"url.domain":         "foo.googleapis.com",
 		}))
 	}
 	if newBarClientHook != nil {

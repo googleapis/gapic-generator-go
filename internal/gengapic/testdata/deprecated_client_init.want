@@ -81,6 +81,9 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),
 			"gcp.client.repo":    "googleapis/google-cloud-go",
+			"gcp.client.artifact": "path",
+			"gcp.client.language": "go",
+			"url.domain":         "foo.googleapis.com",
 		}))
 	}
 	if newClientHook != nil {
@@ -165,6 +168,9 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),
 			"gcp.client.repo":    "googleapis/google-cloud-go",
+			"gcp.client.artifact": "path",
+			"gcp.client.language": "go",
+			"url.domain":         "foo.googleapis.com",
 		}))
 	}
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
