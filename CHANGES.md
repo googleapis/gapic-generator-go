@@ -1,5 +1,11 @@
 # Changes
 
+## [0.57.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.57.0) (2026-02-06)
+
+### Features
+
+* add missing static telemetry attributes for tracing (#1696) ([31ba5d1](https://github.com/googleapis/google-cloud-go/commit/31ba5d107cc32a034b4ee7f0a88eaac92a3ea2fa))
+
 ## [0.56.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.56.0) (2026-02-03)
 
 ### Features
