@@ -14,8 +14,6 @@
 
 package gengapic
 
-import "google.golang.org/protobuf/types/pluginpb"
-
 // We use a custom type for feature ID to clarify that features are setup explicitly.
 type featureID string
 
@@ -58,79 +56,4 @@ var featureRegistry = map[featureID]*featureInfo{
 		Description: "Allow List RPCs to generator with support for protobuf wrapper types (e.g. Int32Value, etc).",
 		TrackingID:  "b/352331075",
 	},
-}
-
-// legacyFeatureEnablementByPackage is temporary bridge functionality.  Features should be enabled via protoc flags, but
-// to bootstrap without breaking generation we keep the legacy definitions enabled here until we can move
-// configuration upstream into tools like librarian/bazel/etc as needed.
-var legacyFeatureEnablementByPackage = map[featureID][]string{
-	OrderedRoutingHeadersFeature: []string{
-		"google.firestore.v1",
-		"google.firestore.admin.v1",
-	},
-	WrapperTypesForPageSizeFeature: []string{
-		"google.cloud.bigquery.v2",
-	},
-}
-
-// similar to legacyFeatureEnablementByPackage, this is legacy feature enablement using the "name" field from the API
-// service config.
-var legacyFeatureEnablementByAPIName = map[featureID][]string{
-	MTLSHardBoundTokensFeature: []string{
-		"bigquery.googleapis.com",
-		"cloudasset.googleapis.com",
-		"clouderrorreporting.googleapis.com",
-		"cloudkms.googleapis.com",
-		"cloudresourcemanager.googleapis.com",
-		"cloudtasks.googleapis.com",
-		"cloudtrace.googleapis.com",
-		"dataflow.googleapis.com",
-		"datastore.googleapis.com",
-		"essentialcontacts.googleapis.com",
-		"firestore.googleapis.com",
-		"iam.googleapis.com",
-		"iamcredentials.googleapis.com",
-		"logging.googleapis.com",
-		"monitoring.googleapis.com",
-		"orgpolicy.googleapis.com",
-		"pubsub.googleapis.com",
-		"recommender.googleapis.com",
-		"secretmanager.googleapis.com",
-		"showcase.googleapis.com",
-	},
-}
-
-// This function consolidates legacy processing of feature enablements.
-// Like the associated allowlists, it should go away once librarian and bazel can pass feature enablements directly.
-func processLegacyEnablements(cfg *generatorConfig, req *pluginpb.CodeGeneratorRequest) {
-	// Use the first proto file in the FileDescriptorSet to handle legacy enablement by package name.
-	if len(req.GetProtoFile()) > 0 {
-		probePackage := req.GetProtoFile()[0].GetPackage()
-		for f, packages := range legacyFeatureEnablementByPackage {
-			for _, v := range packages {
-				if probePackage == v { // matched
-					if cfg.featureEnablement == nil {
-						cfg.featureEnablement = make(map[featureID]struct{})
-					}
-					cfg.featureEnablement[f] = struct{}{}
-					break
-				}
-			}
-		}
-	}
-	// Now, process legacy feature enablements based on API name.
-	if cfg.APIServiceConfig != nil {
-		probeName := cfg.APIServiceConfig.GetName()
-		for f, apis := range legacyFeatureEnablementByAPIName {
-			for _, v := range apis {
-				if probeName == v { // matched
-					if cfg.featureEnablement == nil {
-						cfg.featureEnablement = make(map[featureID]struct{})
-					}
-					cfg.featureEnablement[f] = struct{}{}
-					break
-				}
-			}
-		}
-	}
 }
