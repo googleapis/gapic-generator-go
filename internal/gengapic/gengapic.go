@@ -886,12 +886,12 @@ func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) str
 		return ""
 	}
 
-	var candidates []string
-	for _, f := range msg.GetField() {
-		if proto.HasExtension(f.GetOptions(), annotations.E_ResourceReference) {
-			candidates = append(candidates, f.GetName())
-		}
-	}
+	// Recursively find fields with the annotation, up to 2 levels deep.
+	// This covers top-level "name" or "parent" fields, and also nested
+	// fields like "secret.name" (AIP-134).
+	candidates := g.findFieldsMatching(msg, "", 2, func(f *descriptorpb.FieldDescriptorProto) bool {
+		return proto.HasExtension(f.GetOptions(), annotations.E_ResourceReference)
+	})
 
 	if len(candidates) == 0 {
 		return ""
@@ -919,4 +919,37 @@ func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) str
 	}
 
 	return candidates[0]
+}
+
+// findFieldsMatching recursively scans the given message and its nested sub-messages
+// (up to the specified depth) for fields that satisfy the provided filter predicate.
+// It returns a slice of dot-notation strings representing the full paths to these
+// fields from the root message (e.g., "secret.name"), which are used to generate
+// idiomatic Go accessors.
+func (g *generator) findFieldsMatching(msg *descriptorpb.DescriptorProto, prefix string, depth int, filter func(*descriptorpb.FieldDescriptorProto) bool) []string {
+	if depth <= 0 {
+		return nil
+	}
+
+	var candidates []string
+	for _, f := range msg.GetField() {
+		name := f.GetName()
+		if prefix != "" {
+			name = prefix + "." + name
+		}
+
+		if filter(f) {
+			candidates = append(candidates, name)
+		}
+
+		// Recurse into nested messages.
+		if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
+			nestedType := g.descInfo.Type[f.GetTypeName()]
+			if nestedMsg, ok := nestedType.(*descriptorpb.DescriptorProto); ok {
+				candidates = append(candidates, g.findFieldsMatching(nestedMsg, name, depth-1, filter)...)
+			}
+		}
+	}
+
+	return candidates
 }
