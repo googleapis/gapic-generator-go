@@ -100,8 +100,14 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 
 	lowcaseServName := lowcaseGRPCClientName(servName)
 	retTyp := fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
+	
+	methodName := m.GetName()
+	if g.internalMethods[m] {
+		methodName = lowerFirst(methodName)
+	}
+
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		lowcaseServName, methodName, inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
 	g.initializeAutoPopulatedFields(servName, m)
@@ -137,10 +143,15 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 
 	p := g.printf
 
+	methodName := m.GetName()
+	if g.internalMethods[m] {
+		methodName = lowerFirst(methodName)
+	}
+
 	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+		lowcaseServName, methodName, inSpec.Name, inType.GetName())
 
 	g.insertRequestHeaders(m, grpc)
 	g.initializeAutoPopulatedFields(servName, m)

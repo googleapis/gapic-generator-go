@@ -1564,3 +1564,125 @@ func setOAuthScopes(o *descriptorpb.ServiceDescriptorProto, scopes []string) {
 	}
 	o.Options = sopts
 }
+
+func TestFilterMethods(t *testing.T) {
+	// Setup service with methods
+	m1 := &descriptorpb.MethodDescriptorProto{Name: proto.String("Method1")}
+	m2 := &descriptorpb.MethodDescriptorProto{Name: proto.String("Method2")}
+	m3 := &descriptorpb.MethodDescriptorProto{Name: proto.String("Method3")}
+
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Name:    proto.String("TestService"),
+		Method:  []*descriptorpb.MethodDescriptorProto{m1, m2, m3},
+		Options: &descriptorpb.ServiceOptions{},
+	}
+
+	file := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+
+	tests := []struct {
+		name           string
+		featureEnabled bool
+		settings       *annotations.SelectiveGapicGeneration
+		wantMethods    []string
+		wantInternal   map[string]bool
+	}{
+		{
+			name:           "FeatureDisabled",
+			featureEnabled: false,
+			wantMethods:    []string{"Method1", "Method2", "Method3"},
+		},
+		{
+			name:           "AllowlistOnly",
+			featureEnabled: true,
+			settings: &annotations.SelectiveGapicGeneration{
+				Methods: []string{"my.pkg.TestService.Method1"},
+			},
+			wantMethods: []string{"Method1"},
+		},
+		{
+			name:           "AllowlistWithInternal",
+			featureEnabled: true,
+			settings: &annotations.SelectiveGapicGeneration{
+				Methods:                   []string{"my.pkg.TestService.Method1"},
+				GenerateOmittedAsInternal: true,
+			},
+			wantMethods:  []string{"Method1", "Method2", "Method3"},
+			wantInternal: map[string]bool{"Method2": true, "Method3": true},
+		},
+		{
+			name:           "EmptyAllowlist",
+			featureEnabled: true,
+			settings: &annotations.SelectiveGapicGeneration{
+				Methods: []string{},
+			},
+			wantMethods: []string{"Method1", "Method2", "Method3"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			g := &generator{
+				cfg: &generatorConfig{
+					featureEnablement: make(map[featureID]struct{}),
+					APIServiceConfig: &serviceconfig.Service{
+						Publishing: &annotations.Publishing{
+							LibrarySettings: []*annotations.ClientLibrarySettings{
+								{
+									GoSettings: &annotations.GoSettings{
+										Common: &annotations.CommonLanguageSettings{
+											SelectiveGapicGeneration: tc.settings,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				internalMethods: make(map[*descriptorpb.MethodDescriptorProto]bool),
+				descInfo: pbinfo.Info{
+					ParentElement: make(map[pbinfo.ProtoType]pbinfo.ProtoType),
+					ParentFile:    make(map[proto.Message]*descriptorpb.FileDescriptorProto),
+				},
+			}
+
+			// Reset methods
+			serv.Method = []*descriptorpb.MethodDescriptorProto{m1, m2, m3}
+
+			// Setup parent info for fqn
+			g.descInfo.ParentElement[m1] = serv
+			g.descInfo.ParentElement[m2] = serv
+			g.descInfo.ParentElement[m3] = serv
+			g.descInfo.ParentFile[serv] = file
+
+			if tc.featureEnabled {
+				g.cfg.featureEnablement[SelectiveGapicGenerationFeature] = struct{}{}
+			}
+
+			g.filterMethods([]*descriptorpb.ServiceDescriptorProto{serv})
+
+			var gotMethods []string
+			for _, m := range serv.Method {
+				gotMethods = append(gotMethods, m.GetName())
+			}
+
+			if diff := cmp.Diff(tc.wantMethods, gotMethods); diff != "" {
+				t.Errorf("Methods mismatch (-want +got):\n%s", diff)
+			}
+
+			if tc.wantInternal != nil {
+				for _, m := range serv.Method {
+					isInternal := g.internalMethods[m]
+					if tc.wantInternal[m.GetName()] != isInternal {
+						t.Errorf("Method %s internal status mismatch: want %v, got %v", m.GetName(), tc.wantInternal[m.GetName()], isInternal)
+					}
+				}
+			}
+		})
+	}
+}
+

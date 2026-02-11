@@ -220,7 +220,53 @@ func (g *generator) collectServicesAndScopes(genReq *pluginpb.CodeGeneratorReque
 		scopes = append(scopes, sc)
 	}
 	sort.Strings(scopes)
+
+	// Filter methods if SelectiveGapicGeneration is enabled.
+	if g.featureEnabled(SelectiveGapicGenerationFeature) {
+		g.filterMethods(genServs)
+	}
+
 	return
+}
+
+func (g *generator) filterMethods(servs []*descriptorpb.ServiceDescriptorProto) {
+	if g.cfg.APIServiceConfig == nil {
+		return
+	}
+
+	var sgg *annotations.SelectiveGapicGeneration
+	for _, settings := range g.cfg.APIServiceConfig.GetPublishing().GetLibrarySettings() {
+		if settings.GetGoSettings().GetCommon().GetSelectiveGapicGeneration() != nil {
+			sgg = settings.GetGoSettings().GetCommon().GetSelectiveGapicGeneration()
+			break
+		}
+	}
+
+	if sgg == nil || len(sgg.GetMethods()) == 0 {
+		return
+	}
+
+	allowlist := make(map[string]bool, len(sgg.GetMethods()))
+	for _, m := range sgg.GetMethods() {
+		allowlist[m] = true
+	}
+
+	for _, s := range servs {
+		var keptMethods []*descriptorpb.MethodDescriptorProto
+		for _, m := range s.GetMethod() {
+			fqn := g.fqn(m)
+			if allowlist[fqn] {
+				keptMethods = append(keptMethods, m)
+			} else {
+				if sgg.GetGenerateOmittedAsInternal() {
+					g.internalMethods[m] = true
+					keptMethods = append(keptMethods, m)
+				}
+				// else: drop it
+			}
+		}
+		s.Method = keptMethods
+	}
 }
 
 // getAndCommitHelpers commits shared generated code that should be defined only once.
