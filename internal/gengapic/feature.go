@@ -29,10 +29,11 @@ type featureInfo struct {
 
 // Define feature ID strings here.  More details about features are kept in the featureRegistry map.
 const (
-	WrapperTypesForPageSizeFeature featureID = "wrapper_types_for_page_size"
-	OrderedRoutingHeadersFeature   featureID = "ordered_routing_headers"
-	MTLSHardBoundTokensFeature     featureID = "mtls_hard_bound_tokens"
-	OpenTelemetryTracingFeature    featureID = "open_telemetry_tracing"
+	WrapperTypesForPageSizeFeature  featureID = "wrapper_types_for_page_size"
+	OrderedRoutingHeadersFeature    featureID = "ordered_routing_headers"
+	MTLSHardBoundTokensFeature      featureID = "mtls_hard_bound_tokens"
+	OpenTelemetryTracingFeature     featureID = "open_telemetry_tracing"
+	SelectiveGapicGenerationFeature featureID = "selectivegapicgenerationfeature"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -41,6 +42,10 @@ const (
 // who attempt to do so will be given a stern talking to.
 var featureRegistry = map[featureID]*featureInfo{
 
+	SelectiveGapicGenerationFeature: {
+		Description: "Enable selective GAPIC generation using google.api.ClientLibrarySettings.",
+		TrackingID:  "b/4483092298",
+	},
 	OpenTelemetryTracingFeature: {
 		Description: "Enable OpenTelemetry tracing support (Service Identity, Resource Names, URL Templates).",
 		TrackingID:  "b/467342602,b/467403185",

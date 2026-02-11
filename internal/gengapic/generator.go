@@ -72,6 +72,10 @@ type generator struct {
 	// customOpServices is a map of service descriptors with methods that create custom operations
 	// to the service descriptors of the custom operation services that manage those custom operation instances.
 	customOpServices map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto
+
+	// internalMethods is a set of methods that should be generated as internal (unexported)
+	// methods. This is populated when SelectiveGapicGeneration is enabled and GenerateOmittedAsInternal is true.
+	internalMethods map[*descriptorpb.MethodDescriptorProto]bool
 }
 
 func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
@@ -91,6 +95,7 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 			methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
 			opWrappers:      map[string]operationWrapper{},
 		},
+		internalMethods: map[*descriptorpb.MethodDescriptorProto]bool{},
 	}
 
 	// Build and validate the immutable configuration from the CodeGeneratorRequest plugin args.
