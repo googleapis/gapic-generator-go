@@ -100,7 +100,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 
 	lowcaseServName := lowcaseGRPCClientName(servName)
 	retTyp := fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
-	
+
 	methodName := m.GetName()
 	if g.internalMethods[m] {
 		methodName = lowerFirst(methodName)
