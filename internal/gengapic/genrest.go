@@ -636,9 +636,14 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	lowcaseServName := lowcaseRestClientName(servName)
 	streamClient := fmt.Sprintf("%sRESTStreamClient", lowerFirst(m.GetName()))
 
+	methodName := m.GetName()
+	if g.internalMethods[m] {
+		methodName = lowerFirst(methodName)
+	}
+
 	// rest-client method
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
+		lowcaseServName, methodName, inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
@@ -1020,8 +1025,12 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
+	methodName := m.GetName()
+	if g.internalMethods[m] {
+		methodName = lowerFirst(methodName)
+	}
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+		lowcaseServName, methodName, inSpec.Name, inType.GetName())
 
 	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(dovs): handle cancellation, metadata, osv.

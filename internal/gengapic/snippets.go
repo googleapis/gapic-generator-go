@@ -39,7 +39,7 @@ func (g *generator) newSnippetsMetadata(protoPkg string) *snippets.SnippetMetada
 // addSnippetsMetadataDoc sets the documentation for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
 func (g *generator) addSnippetsMetadataDoc(m *descriptorpb.MethodDescriptorProto, servName, doc string) {
-	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
+	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() || g.internalMethods[m] {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
@@ -49,7 +49,7 @@ func (g *generator) addSnippetsMetadataDoc(m *descriptorpb.MethodDescriptorProto
 // addSnippetsMetadataParams sets the parameters for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
 func (g *generator) addSnippetsMetadataParams(m *descriptorpb.MethodDescriptorProto, servName, requestType string) {
-	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
+	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() || g.internalMethods[m] {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
@@ -59,7 +59,7 @@ func (g *generator) addSnippetsMetadataParams(m *descriptorpb.MethodDescriptorPr
 // addSnippetsMetadataResult sets the result type for a method in the snippet metadata.
 // Does nothing and returns nil if opts.omitSnippets is true, or if the streaming type is not supported in example.go.
 func (g *generator) addSnippetsMetadataResult(m *descriptorpb.MethodDescriptorProto, servName, resultType string) {
-	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() {
+	if g.cfg.omitSnippets || m.GetClientStreaming() != m.GetServerStreaming() || g.internalMethods[m] {
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
@@ -80,7 +80,7 @@ func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto)
 	g.snippetMetadata.AddService(servName, defaultHost)
 	methods := append(s.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
-		if m.GetClientStreaming() != m.GetServerStreaming() {
+		if m.GetClientStreaming() != m.GetServerStreaming() || g.internalMethods[m] {
 			// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODOs.
 			continue
 		}
