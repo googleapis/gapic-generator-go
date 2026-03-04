@@ -419,11 +419,11 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                             true,
-				{Path: "github.com/google/uuid"}:          true,
-				{Path: "google.golang.org/grpc/metadata"}: true,
-				{Path: "net/url"}:                         true,
-				{Name: "mypackagepb", Path: "mypackage"}:  true,
+				{Path: "fmt"}:                                     true,
+				{Path: "github.com/google/uuid"}:                  true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}: true,
+				{Path: "net/url"}:                                 true,
+				{Name: "mypackagepb", Path: "mypackage"}:          true,
 			},
 		}, {
 			m: &descriptorpb.MethodDescriptorProto{
@@ -433,11 +433,11 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                             true,
-				{Path: "github.com/google/uuid"}:          true,
-				{Path: "google.golang.org/grpc/metadata"}: true,
-				{Path: "net/url"}:                         true,
-				{Name: "mypackagepb", Path: "mypackage"}:  true,
+				{Path: "fmt"}:                                     true,
+				{Path: "github.com/google/uuid"}:                  true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}: true,
+				{Path: "net/url"}:                                 true,
+				{Name: "mypackagepb", Path: "mypackage"}:          true,
 			},
 		},
 		{
@@ -448,12 +448,12 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                              true,
-				{Path: "google.golang.org/api/iterator"}:   true,
-				{Path: "google.golang.org/grpc/metadata"}:  true,
-				{Path: "google.golang.org/protobuf/proto"}: true,
-				{Path: "net/url"}:                          true,
-				{Name: "mypackagepb", Path: "mypackage"}:   true,
+				{Path: "fmt"}:                                     true,
+				{Path: "google.golang.org/api/iterator"}:          true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}: true,
+				{Path: "google.golang.org/protobuf/proto"}:        true,
+				{Path: "net/url"}:                                 true,
+				{Name: "mypackagepb", Path: "mypackage"}:          true,
 			},
 		}, {
 			m: &descriptorpb.MethodDescriptorProto{
@@ -463,12 +463,12 @@ func TestGenGRPCMethods(t *testing.T) {
 				Options:    opts,
 			},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                              true,
-				{Path: "google.golang.org/api/iterator"}:   true,
-				{Path: "google.golang.org/grpc/metadata"}:  true,
-				{Path: "google.golang.org/protobuf/proto"}: true,
-				{Path: "net/url"}:                          true,
-				{Name: "mypackagepb", Path: "mypackage"}:   true,
+				{Path: "fmt"}:                                     true,
+				{Path: "google.golang.org/api/iterator"}:          true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}: true,
+				{Path: "google.golang.org/protobuf/proto"}:        true,
+				{Path: "net/url"}:                                 true,
+				{Name: "mypackagepb", Path: "mypackage"}:          true,
 			},
 		},
 		{
@@ -481,9 +481,9 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}: true,
-				{Path: "google.golang.org/grpc/metadata"}: true,
-				{Path: "net/url"}:                         true,
-				{Name: "mypackagepb", Path: "mypackage"}:  true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}: true,
+				{Path: "net/url"}:                        true,
+				{Name: "mypackagepb", Path: "mypackage"}: true,
 			},
 		},
 		{
@@ -521,11 +521,11 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}: true,
-				{Path: "google.golang.org/grpc/metadata"}: true,
-				{Path: "net/url"}:                         true,
-				{Path: "regexp"}:                          true,
-				{Path: "strings"}:                         true,
-				{Name: "mypackagepb", Path: "mypackage"}:  true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}: true,
+				{Path: "net/url"}:                        true,
+				{Path: "regexp"}:                         true,
+				{Path: "strings"}:                        true,
+				{Name: "mypackagepb", Path: "mypackage"}: true,
 			},
 		},
 		// Test for empty dynamic routing annotation, so no headers should be sent.

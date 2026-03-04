@@ -671,9 +671,9 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}
 	p("var streamClient *%s", streamClient)
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -959,9 +959,9 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
@@ -1061,9 +1061,9 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}
 	p("return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  if settings.Path != "" {`)
@@ -1156,9 +1156,9 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}
 	g.appendCallOpts(m)
 	if !isHTTPBodyMessage {
