@@ -27,10 +27,10 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 	hds = append(hds, "Content-Type", "application/json")
 	headers := gax.BuildHeaders(ctx, hds...)
 	if gax.IsFeatureEnabled("TRACING") {
-		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
+		ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
 	if gax.IsFeatureEnabled("TRACING") {
-		ctx = metadata.AppendToOutgoingContext(ctx, "url.template", "/v1/foo")
+		ctx = callctx.WithTelemetryContext(ctx, "url_template", "/v1/foo")
 	}
 	var streamClient *serverStreamRPCRESTStreamClient
 	e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
