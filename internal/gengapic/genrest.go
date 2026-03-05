@@ -671,7 +671,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}
@@ -959,7 +959,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}
@@ -1061,7 +1061,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}
@@ -1156,7 +1156,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	g.insertRequestHeaders(m, rest)
 	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 	}

@@ -23,10 +23,10 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	hds = append(hds, "Content-Type", "application/json")
 	headers := gax.BuildHeaders(ctx, hds...)
 	if gax.IsFeatureEnabled("TRACING") {
-		ctx = callctx.WithTelemetryContext(ctx, "gcp.resource.name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
+		ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
 	if gax.IsFeatureEnabled("TRACING") {
-		ctx = callctx.WithTelemetryContext(ctx, "url.template", "/v1/foo/{other=*}")
+		ctx = callctx.WithTelemetryContext(ctx, "url_template", "/v1/foo/{other=*}")
 	}
 	return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		if settings.Path != "" {

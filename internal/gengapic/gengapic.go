@@ -515,9 +515,9 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 					}
 
 					if host != "" {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
 					} else {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
@@ -545,9 +545,9 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 					}
 
 					if host != "" {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//%s/%%v", req%s))`, host, fieldGetter(resField))
 					} else {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.resource.name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("%%v", req%s))`, fieldGetter(resField))
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
