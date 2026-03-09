@@ -330,7 +330,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("  clientOpts := default%[1]sGRPCClientOptions()", servName)
 	if g.featureEnabled(OpenTelemetryTracingFeature) {
-		p("  if gax.IsFeatureEnabled(\"TRACING\") {")
+		p("  if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("    clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
 		p("      \"gcp.client.service\": %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
 		p("      \"gcp.client.version\": getVersionClient(),")

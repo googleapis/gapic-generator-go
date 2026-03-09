@@ -501,7 +501,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 			if g.featureEnabled(OpenTelemetryTracingFeature) {
 				resField := g.resourceNameField(m)
 				if resField != "" {
-					p("if gax.IsFeatureEnabled(\"TRACING\") {")
+					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
 					// the expression fieldGetter(resField) returns an accessor for the full
 					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
@@ -531,7 +531,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 			if g.featureEnabled(OpenTelemetryTracingFeature) {
 				resField := g.resourceNameField(m)
 				if resField != "" {
-					p("if gax.IsFeatureEnabled(\"TRACING\") {")
+					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
 					// the expression fieldGetter(resField) returns an accessor for the full
 					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
