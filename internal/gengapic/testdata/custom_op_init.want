@@ -72,7 +72,7 @@ type restClient struct {
 // Foo service does stuff.
 func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := append(defaultRESTClientOptions(), opts...)
-	if gax.IsFeatureEnabled("TRACING") {
+	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),

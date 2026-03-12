@@ -162,8 +162,8 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	g.serviceDoc(serv, false) // exclude API version docs
 	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("    clientOpts := append(default%sRESTClientOptions(), opts...)", servName)
-	if g.featureEnabled(OpenTelemetryTracingFeature) {
-		p("    if gax.IsFeatureEnabled(\"TRACING\") {")
+	if g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
+		p("    if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("        clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
 		p("          \"gcp.client.service\": %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
 		p("          \"gcp.client.version\": getVersionClient(),")
@@ -669,8 +669,8 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") {")
+	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
+		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -957,8 +957,8 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") {")
+	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
+		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -1059,8 +1059,8 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") {")
+	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
+		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -1154,8 +1154,8 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	if info != nil && g.featureEnabled(OpenTelemetryTracingFeature) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") {")
+	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
+		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
 		p("}")
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true

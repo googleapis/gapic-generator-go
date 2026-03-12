@@ -498,10 +498,10 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 		case grpc:
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
-			if g.featureEnabled(OpenTelemetryTracingFeature) {
+			if g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
 				resField := g.resourceNameField(m)
 				if resField != "" {
-					p("if gax.IsFeatureEnabled(\"TRACING\") {")
+					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
 					// the expression fieldGetter(resField) returns an accessor for the full
 					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
@@ -528,10 +528,10 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 			p(`hds = append(c.xGoogHeaders, hds...)`)
 			p(`hds = append(hds, "Content-Type", "application/json")`)
 			p(`headers := gax.BuildHeaders(ctx, hds...)`)
-			if g.featureEnabled(OpenTelemetryTracingFeature) {
+			if g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
 				resField := g.resourceNameField(m)
 				if resField != "" {
-					p("if gax.IsFeatureEnabled(\"TRACING\") {")
+					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
 					// the expression fieldGetter(resField) returns an accessor for the full
 					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
