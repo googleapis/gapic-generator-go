@@ -76,7 +76,7 @@ type gRPCClient struct {
 // Deprecated: Foo may be removed in a future version.
 func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := defaultGRPCClientOptions()
-	if gax.IsFeatureEnabled("TRACING") {
+	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),
@@ -163,7 +163,7 @@ type restClient struct {
 // Deprecated: Foo may be removed in a future version.
 func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := append(defaultRESTClientOptions(), opts...)
-	if gax.IsFeatureEnabled("TRACING") {
+	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),

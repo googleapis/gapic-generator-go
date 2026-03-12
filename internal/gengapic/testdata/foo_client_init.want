@@ -103,7 +103,7 @@ type fooGRPCClient struct {
 // Foo service does stuff.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := defaultFooGRPCClientOptions()
-	if gax.IsFeatureEnabled("TRACING") {
+	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
 			"gcp.client.service": "foo",
 			"gcp.client.version": getVersionClient(),
