@@ -104,6 +104,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
+	g.injectMetricsContext(m, nil)
 	g.initializeAutoPopulatedFields(servName, m)
 	g.appendCallOpts(m)
 
@@ -112,7 +113,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 	p("  var err error")
 	p("  resp, err = %s", g.grpcStubCall(m))
 	p("  return err")
-	p("}, opts...)")
+	p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
 	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
@@ -143,13 +144,14 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
 	g.insertRequestHeaders(m, grpc)
+	g.injectMetricsContext(m, nil)
 	g.initializeAutoPopulatedFields(servName, m)
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p("  var err error")
 	p("  _, err = %s", g.grpcStubCall(m))
 	p("  return err")
-	p("}, opts...)")
+	p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
 	p("return err")
 
 	p("}")
@@ -301,7 +303,11 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	p("xGoogHeaders []string")
 	p("")
 	p("logger *slog.Logger")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+	p("")
 
+		p("metrics *gax.ClientMetrics")
+	}
 	p("}")
 	p("")
 
@@ -362,9 +368,21 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("    CallOptions: &client.CallOptions,")
 	p("    logger: internaloption.GetLogger(opts),")
 	g.mixinStubsInit()
-	p("")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+	}
 	p("  }")
 	p("  c.setGoogleClientInfo()")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+		p("  if gax.IsFeatureEnabled(\"METRICS\") {")
+		p("    c.metrics = gax.NewClientMetrics(gax.WithClientMetricsAttributes(map[string]string{")
+		p("      gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+		p("      gax.ClientVersion: getVersionClient(),")
+		p("      gax.ClientArtifact: %q,", g.cfg.pkgPath)
+		p("      gax.RPCSystem: \"grpc\",")
+		p("      gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
+		p("    }))")
+		p("  }")
+	}
 	p("")
 	p("  client.internalClient = c")
 	p("")

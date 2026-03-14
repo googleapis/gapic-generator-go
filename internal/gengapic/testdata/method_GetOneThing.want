@@ -18,7 +18,7 @@ func (c *fooGRPCClient) GetOneThing(ctx context.Context, req *mypackagepb.InputT
 		var err error
 		resp, err = executeRPC(ctx, c.fooClient.GetOneThing, req, settings.GRPC, c.logger, "GetOneThing")
 		return err
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 	if err != nil {
 		return nil, err
 	}

@@ -66,7 +66,7 @@ func (c *fooRESTClient) UpdateRPC(ctx context.Context, req *foopb.UpdateRequest,
 		}
 
 		return nil
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 	if e != nil {
 		return nil, e
 	}

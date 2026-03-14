@@ -55,7 +55,7 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 			stream: gax.NewProtoJSONStreamReader(httpRsp.Body, (&foopb.Foo{}).ProtoReflect().Type()),
 		}
 		return nil
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 
 	return streamClient, e
 }

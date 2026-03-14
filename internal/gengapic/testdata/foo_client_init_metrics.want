@@ -8,7 +8,22 @@ type FooCallOptions struct {
 	TestIamPermissions []gax.CallOption
 }
 
-func defaultFooRESTCallOptions() *FooCallOptions {
+func defaultFooGRPCClientOptions() []option.ClientOption {
+	return []option.ClientOption{
+		internaloption.WithDefaultEndpoint(":443"),
+		internaloption.WithDefaultEndpointTemplate(":443"),
+		internaloption.WithDefaultMTLSEndpoint(":443"),
+		internaloption.WithDefaultUniverseDomain("googleapis.com"),
+		internaloption.WithDefaultAudience("https://"),
+		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
+		internaloption.EnableJwtWithScope(),
+		internaloption.EnableNewAuthLibrary(),
+		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
+	}
+}
+
+func defaultFooCallOptions() *FooCallOptions {
 	return &FooCallOptions{
 		Zip: []gax.CallOption{
 		},
@@ -101,28 +116,37 @@ func (c *FooClient) TestIamPermissions(ctx context.Context, req *iampb.TestIamPe
 	return c.internalClient.TestIamPermissions(ctx, req, opts...)
 }
 
+// fooGRPCClient is a client for interacting with Awesome Foo API over gRPC transport.
+//
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
-type fooRESTClient struct {
-	// The http endpoint to connect to.
-	endpoint string
-
-	// The http client.
-	httpClient *http.Client
-
-	// The x-goog-* headers to be sent with each request.
-	xGoogHeaders []string
+type fooGRPCClient struct {
+	// Connection pool of gRPC connections to the service.
+	connPool gtransport.ConnPool
 
 	// Points back to the CallOptions field of the containing FooClient
 	CallOptions **FooCallOptions
 
+	// The gRPC API client.
+	fooClient mypackagepb.FooClient
+
+	iamPolicyClient iampb.IAMPolicyClient
+
+	locationsClient locationpb.LocationsClient
+
+	// The x-goog-* metadata to be sent with each request.
+	xGoogHeaders []string
+
 	logger *slog.Logger
+
+	metrics *gax.ClientMetrics
 }
 
-// NewFooRESTClient creates a new foo rest client.
+// NewFooClient creates a new foo client based on gRPC.
+// The returned client must be Closed when it is done being used to clean up its underlying connections.
 //
 // Foo service does stuff.
-func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
-	clientOpts := append(defaultFooRESTClientOptions(), opts...)
+func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
+	clientOpts := defaultFooGRPCClientOptions()
 	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
 			"gcp.client.service": "foo",
@@ -133,29 +157,58 @@ func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooCli
 			"url.domain":         "foo.googleapis.com",
 		}))
 	}
-	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
+	if newFooClientHook != nil {
+		hookOpts, err := newFooClientHook(ctx, clientHookParams{})
+		if err != nil {
+			return nil, err
+		}
+		clientOpts = append(clientOpts, hookOpts...)
+	}
+
+	connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)
 	if err != nil {
 		return nil, err
 	}
+	client := FooClient{CallOptions: defaultFooCallOptions()}
 
-	callOpts := defaultFooRESTCallOptions()
-	c := &fooRESTClient{
-		endpoint: endpoint,
-		httpClient: httpClient,
-		CallOptions: &callOpts,
+	c := &fooGRPCClient{
+		connPool:    connPool,
+		fooClient: mypackagepb.NewFooClient(connPool),
+		CallOptions: &client.CallOptions,
 		logger: internaloption.GetLogger(opts),
+		iamPolicyClient: iampb.NewIAMPolicyClient(connPool),
+		locationsClient: locationpb.NewLocationsClient(connPool),
 	}
 	c.setGoogleClientInfo()
+	if gax.IsFeatureEnabled("METRICS") {
+		c.metrics = gax.NewClientMetrics(gax.WithClientMetricsAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "grpc",
+			gax.URLDomain: "foo.googleapis.com",
+		}))
+	}
 
-	return &FooClient{internalClient: c, CallOptions: callOpts}, nil
+	client.internalClient = c
+
+	return &client, nil
+}
+
+// Connection returns a connection to the API service.
+//
+// Deprecated: Connections are now pooled so this method does not always
+// return the same resource.
+func (c *fooGRPCClient) Connection() *grpc.ClientConn {
+	return c.connPool.Conn()
 }
 
 // setGoogleClientInfo sets the name and version of the application in
 // the `x-goog-api-client` header passed on each request. Intended for
 // use by Google-written clients.
-func (c *fooRESTClient) setGoogleClientInfo(keyval ...string) {
+func (c *fooGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "rest", "UNKNOWN", "pb", protoVersion)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 		"x-goog-api-version", "v1_20240425",
@@ -164,15 +217,7 @@ func (c *fooRESTClient) setGoogleClientInfo(keyval ...string) {
 
 // Close closes the connection to the API service. The user should invoke this when
 // the client is no longer required.
-func (c *fooRESTClient) Close() error {
-	// Replace httpClient with nil to force cleanup.
-	c.httpClient = nil
-	return nil
+func (c *fooGRPCClient) Close() error {
+	return c.connPool.Close()
 }
 
-// Connection returns a connection to the API service.
-//
-// Deprecated: This method always returns nil.
-func (c *fooRESTClient) Connection() *grpc.ClientConn {
-	return nil
-}

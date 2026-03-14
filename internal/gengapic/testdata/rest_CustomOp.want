@@ -46,7 +46,7 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 		}
 
 		return nil
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 	if e != nil {
 		return nil, e
 	}

@@ -39,7 +39,7 @@ func (c *fooGRPCClient) GetAnotherThing(ctx context.Context, req *mypackagepb.In
 		var err error
 		resp, err = executeRPC(ctx, c.fooClient.GetAnotherThing, req, settings.GRPC, c.logger, "GetAnotherThing")
 		return err
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 	if err != nil {
 		return nil, err
 	}

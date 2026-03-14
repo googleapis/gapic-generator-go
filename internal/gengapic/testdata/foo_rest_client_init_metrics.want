@@ -115,6 +115,8 @@ type fooRESTClient struct {
 	// Points back to the CallOptions field of the containing FooClient
 	CallOptions **FooCallOptions
 
+	metrics *gax.ClientMetrics
+
 	logger *slog.Logger
 }
 
@@ -146,6 +148,16 @@ func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooCli
 		logger: internaloption.GetLogger(opts),
 	}
 	c.setGoogleClientInfo()
+
+	if gax.IsFeatureEnabled("METRICS") {
+		c.metrics = gax.NewClientMetrics(gax.WithClientMetricsAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "http",
+			gax.URLDomain: "foo.googleapis.com",
+		}))
+	}
 
 	return &FooClient{internalClient: c, CallOptions: callOpts}, nil
 }

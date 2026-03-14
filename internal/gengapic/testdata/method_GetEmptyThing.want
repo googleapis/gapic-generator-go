@@ -14,7 +14,7 @@ func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.Inpu
 		var err error
 		_, err = executeRPC(ctx, c.fooClient.GetEmptyThing, req, settings.GRPC, c.logger, "GetEmptyThing")
 		return err
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 	return err
 }
 

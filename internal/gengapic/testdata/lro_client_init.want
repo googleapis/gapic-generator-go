@@ -1,3 +1,45 @@
+// FooCallOptions contains the retry settings for each method of FooClient.
+type FooCallOptions struct {
+	Zip []gax.CallOption
+	ListOperations []gax.CallOption
+	GetOperation []gax.CallOption
+	DeleteOperation []gax.CallOption
+	CancelOperation []gax.CallOption
+	WaitOperation []gax.CallOption
+}
+
+func defaultFooGRPCClientOptions() []option.ClientOption {
+	return []option.ClientOption{
+		internaloption.WithDefaultEndpoint(":443"),
+		internaloption.WithDefaultEndpointTemplate(":443"),
+		internaloption.WithDefaultMTLSEndpoint(":443"),
+		internaloption.WithDefaultUniverseDomain("googleapis.com"),
+		internaloption.WithDefaultAudience("https://"),
+		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
+		internaloption.EnableJwtWithScope(),
+		internaloption.EnableNewAuthLibrary(),
+		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
+	}
+}
+
+func defaultFooCallOptions() *FooCallOptions {
+	return &FooCallOptions{
+		Zip: []gax.CallOption{
+		},
+		ListOperations: []gax.CallOption{
+		},
+		GetOperation: []gax.CallOption{
+		},
+		DeleteOperation: []gax.CallOption{
+		},
+		CancelOperation: []gax.CallOption{
+		},
+		WaitOperation: []gax.CallOption{
+		},
+	}
+}
+
 // internalFooClient is an interface that defines the methods available from Awesome Foo API.
 type internalFooClient interface {
 	Close() error
@@ -148,7 +190,6 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		CallOptions: &client.CallOptions,
 		logger: internaloption.GetLogger(opts),
 		operationsClient: longrunningpb.NewOperationsClient(connPool),
-
 	}
 	c.setGoogleClientInfo()
 
