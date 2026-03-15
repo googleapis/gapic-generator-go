@@ -1564,3 +1564,43 @@ func setOAuthScopes(o *descriptorpb.ServiceDescriptorProto, scopes []string) {
 	}
 	o.Options = sopts
 }
+
+func TestGenAndCommentHelpersWithLogging(t *testing.T) {
+	g := generator{
+		apiName: sample.ServiceTitle,
+		imports: map[pbinfo.ImportSpec]bool{},
+		cfg: &generatorConfig{
+			pkgPath:          sample.GoPackagePath,
+			pkgName:          sample.GoPackageName,
+			transports:       []transport{grpc, rest},
+			APIServiceConfig: sample.ServiceConfig(),
+			featureEnablement: map[featureID]struct{}{
+				OpenTelemetryLoggingFeature: {},
+			},
+		},
+	}
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
+	file := sample.File()
+
+	commonTypes(&g)
+	for _, typ := range []*descriptorpb.DescriptorProto{
+		inputType, outputType,
+	} {
+		typName := sample.DescriptorInfoTypeName(typ.GetName())
+		g.descInfo.Type[typName] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := sample.Service()
+	serv.Method = nil
+
+	scopes := []string{"https://www.googleapis.com/auth/cloud-platform"}
+	want := filepath.Join("testdata", "helpers_default_scope_with_logging.want")
+
+	if err := g.genAndCommitHelpers(scopes); err != nil {
+		t.Errorf("genAndCommitHelpers: %v", err)
+		return
+	}
+	txtdiff.Diff(t, g.pt.String(), want)
+}
