@@ -272,9 +272,15 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 		g.imports[pbinfo.ImportSpec{Path: "net/http"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/googleapi"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog"}] = true
+		if g.featureEnabled(OpenTelemetryLoggingFeature) {
+			g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
+		}
 
 		p("func executeHTTPRequestWithResponse(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger, body []byte, rpc string) ([]byte, *http.Response, error) {")
 		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
+		if g.featureEnabled(OpenTelemetryLoggingFeature) {
+			p("  req = req.WithContext(callctx.WithLoggerContext(req.Context(), logger))")
+		}
 		p("  resp, err := client.Do(req)")
 		p("  if err != nil{")
 		p("    return nil, nil, err")
@@ -300,6 +306,9 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 
 		p("func executeStreamingHTTPRequest(ctx context.Context, client *http.Client, req *http.Request, logger *slog.Logger, body []byte, rpc string) (*http.Response, error) {")
 		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", internallog.HTTPRequest(req, body))`)
+		if g.featureEnabled(OpenTelemetryLoggingFeature) {
+			p("  req = req.WithContext(callctx.WithLoggerContext(req.Context(), logger))")
+		}
 		p("  resp, err := client.Do(req)")
 		p("  if err != nil{")
 		p("    return nil, err")
@@ -316,12 +325,17 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 	if containsTransport(g.cfg.transports, grpc) {
 		g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/internallog/grpclog"}] = true
+		if g.featureEnabled(OpenTelemetryLoggingFeature) {
+			g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
+		}
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/proto"}] = true
-
 		p("func executeRPC[I proto.Message, O proto.Message](ctx context.Context, fn func(context.Context, I, ...grpc.CallOption) (O, error), req I, opts []grpc.CallOption, logger *slog.Logger, rpc string) (O, error) {")
 		p("  var zero O")
 		p(`  logger.DebugContext(ctx, "api request", "serviceName", serviceName, "rpcName", rpc, "request", grpclog.ProtoMessageRequest(ctx, req))`)
+		if g.featureEnabled(OpenTelemetryLoggingFeature) {
+			p("  ctx = callctx.WithLoggerContext(ctx, logger)")
+		}
 		p("  resp, err := fn(ctx, req, opts...)")
 		p("  if err != nil {")
 		p("    return zero, err")
