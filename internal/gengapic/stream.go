@@ -37,6 +37,7 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptorpb.Service
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s, error) {",
 		lowcaseServName, m.GetName(), retTyp)
 	g.insertRequestHeaders(nil, grpc)
+	g.injectMetricsContext(m, nil)
 	p("  var resp %s", retTyp)
 
 	g.appendCallOpts(m)
@@ -80,6 +81,7 @@ func (g *generator) serverStreamCall(servName string, s *descriptorpb.ServiceDes
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
+	g.injectMetricsContext(m, nil)
 	g.appendCallOpts(m)
 
 	p("  var resp %s", retTyp)

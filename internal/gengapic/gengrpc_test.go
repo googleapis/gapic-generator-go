@@ -126,3 +126,54 @@ func TestServiceRenaming(t *testing.T) {
 
 	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "service_rename.want"))
 }
+
+func TestMetricsInstrumentation(t *testing.T) {
+	file := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+	}
+	m := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("Baz"),
+		InputType:  proto.String(".my.pkg.InputType"),
+		OutputType: proto.String(emptyType),
+	}
+	serv.Method = []*descriptorpb.MethodDescriptorProto{m}
+
+	var g generator
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.cfg = &generatorConfig{
+		pkgName:           "pkg",
+		transports:        []transport{grpc},
+		featureEnablement: map[featureID]struct{}{OpenTelemetryMetricsFeature: {}},
+		APIServiceConfig: &serviceconfig.Service{
+			Name: "foo.googleapis.com",
+		},
+	}
+
+	commonTypes(&g)
+
+	inputType := &descriptorpb.DescriptorProto{
+		Name: proto.String("InputType"),
+	}
+	// empty is already created in commonTypes, but let's make sure we have the right one or look it up.
+	// Actually commonTypes creates its own 'empty' and adds it to descInfo.
+	// Let's just use the one from descInfo if possible, or just overwrite it.
+
+	g.descInfo.ParentFile[serv] = file
+	g.descInfo.ParentFile[m] = file
+	g.descInfo.ParentFile[inputType] = file
+
+	g.descInfo.Type[".my.pkg.InputType"] = inputType
+	g.descInfo.ParentElement[m] = serv
+
+	if err := g.genGRPCMethod("Foo", serv, m); err != nil {
+		t.Fatal(err)
+	}
+
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "metrics_instrumentation.want"))
+}

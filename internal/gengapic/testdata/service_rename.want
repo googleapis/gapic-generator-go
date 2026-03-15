@@ -50,7 +50,6 @@ func NewBarClient(ctx context.Context, opts ...option.ClientOption) (*BarClient,
 		barClient: mypackagepb.NewFooClient(connPool),
 		CallOptions: &client.CallOptions,
 		logger: internaloption.GetLogger(opts),
-
 	}
 	c.setGoogleClientInfo()
 
@@ -91,7 +90,7 @@ func (c *barGRPCClient) Baz(ctx context.Context, req *mypackagepb.InputType, opt
 		var err error
 		_, err = executeRPC(ctx, c.barClient.Baz, req, settings.GRPC, c.logger, "Baz")
 		return err
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 	return err
 }
 

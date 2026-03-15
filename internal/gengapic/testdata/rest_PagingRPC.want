@@ -50,7 +50,7 @@ func (c *fooRESTClient) PagingRPC(ctx context.Context, req *foopb.PagedFooReques
 			}
 
 			return nil
-		}, opts...)
+		}, append(opts, gax.WithClientMetrics(c.metrics))...)
 		if e != nil {
 			return nil, "", e
 		}

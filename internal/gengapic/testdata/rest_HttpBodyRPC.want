@@ -56,7 +56,7 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 		}
 
 		return nil
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 	if e != nil {
 		return nil, e
 	}

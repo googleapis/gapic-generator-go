@@ -377,6 +377,7 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 		lowcaseServName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
 
 	g.insertRequestHeaders(m, grpc)
+	g.injectMetricsContext(m, nil)
 	g.appendCallOpts(m)
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())

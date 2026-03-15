@@ -134,7 +134,7 @@ func TestGenFlag(t *testing.T) {
 				VarName: "ClientInputOneofSelector",
 				Type:    descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				Usage:   "this is the usage",
-				OneOfs:  map[string]*Flag{"test": &Flag{}},
+				OneOfs:  map[string]*Flag{"test": {}},
 			},
 			want: `StringVar(&ClientInputOneofSelector, "oneof_selector", "", "this is the usage")`,
 		},

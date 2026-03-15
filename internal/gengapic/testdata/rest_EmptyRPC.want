@@ -41,5 +41,5 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 
 		_, err = executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, nil, "EmptyRPC")
 		return err
-	}, opts...)
+	}, append(opts, gax.WithClientMetrics(c.metrics))...)
 }

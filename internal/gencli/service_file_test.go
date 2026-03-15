@@ -37,12 +37,12 @@ func TestServiceFile(t *testing.T) {
 		root:   "Root",
 		format: true,
 		imports: map[string]*pbinfo.ImportSpec{
-			"test": &pbinfo.ImportSpec{Name: "proto", Path: "github.com/golang/protobuf/proto"},
+			"test": {Name: "proto", Path: "github.com/golang/protobuf/proto"},
 		},
 		subcommands: map[string][]*Command{
-			name: []*Command{
-				&Command{MethodCmd: "start-todo", IsLRO: true},
-				&Command{MethodCmd: "list-todo"},
+			name: {
+				{MethodCmd: "start-todo", IsLRO: true},
+				{MethodCmd: "list-todo"},
 			},
 		},
 	}

@@ -155,7 +155,7 @@ func TestParseOptions(t *testing.T) {
 				pkgName:    "pkg",
 				outDir:     "path",
 				featureEnablement: map[featureID]struct{}{
-					OrderedRoutingHeadersFeature: struct{}{},
+					OrderedRoutingHeadersFeature: {},
 				},
 			},
 		},
@@ -168,8 +168,8 @@ func TestParseOptions(t *testing.T) {
 				pkgName:    "pkg",
 				outDir:     "path",
 				featureEnablement: map[featureID]struct{}{
-					OrderedRoutingHeadersFeature:   struct{}{},
-					WrapperTypesForPageSizeFeature: struct{}{},
+					OrderedRoutingHeadersFeature:   {},
+					WrapperTypesForPageSizeFeature: {},
 				},
 			},
 		},
