@@ -88,8 +88,6 @@ type fooRESTClient struct {
 	// Points back to the CallOptions field of the containing FooClient
 	CallOptions **FooCallOptions
 
-	metrics *gax.ClientMetrics
-
 	logger *slog.Logger
 }
 
@@ -98,16 +96,6 @@ type fooRESTClient struct {
 // Foo service does stuff.
 func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := append(defaultFooRESTClientOptions(), opts...)
-	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
-		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
-			"gcp.client.service": "foo",
-			"gcp.client.version": getVersionClient(),
-			"gcp.client.repo":    "googleapis/google-cloud-go",
-			"gcp.client.artifact": "path",
-			"gcp.client.language": "go",
-			"url.domain":         "foo.googleapis.com",
-		}))
-	}
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
 	if err != nil {
 		return nil, err
@@ -121,19 +109,6 @@ func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooCli
 		logger: internaloption.GetLogger(opts),
 	}
 	c.setGoogleClientInfo()
-
-	if gax.IsFeatureEnabled("METRICS") {
-		c.metrics = gax.NewClientMetrics(
-		gax.WithTelemetryLogger(c.logger),
-		gax.WithTelemetryAttributes(map[string]string{
-			gax.ClientService: "foo",
-			gax.ClientVersion: getVersionClient(),
-			gax.ClientArtifact: "path",
-			gax.RPCSystem: "http",
-			gax.URLDomain: "foo.googleapis.com",
-		}),
-		)
-	}
 
 	return &FooClient{internalClient: c, CallOptions: callOpts}, nil
 }

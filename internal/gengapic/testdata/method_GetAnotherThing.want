@@ -33,13 +33,16 @@ func (c *fooGRPCClient) GetAnotherThing(ctx context.Context, req *mypackagepb.In
 	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
+	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
+		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetAnotherThing")
+	}
 	opts = append((*c.CallOptions).GetAnotherThing[0:len((*c.CallOptions).GetAnotherThing):len((*c.CallOptions).GetAnotherThing)], opts...)
 	var resp *mypackagepb.OutputType
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
 		resp, err = executeRPC(ctx, c.fooClient.GetAnotherThing, req, settings.GRPC, c.logger, "GetAnotherThing")
 		return err
-	}, append(opts, gax.WithClientMetrics(c.metrics))...)
+	}, opts...)
 	if err != nil {
 		return nil, err
 	}

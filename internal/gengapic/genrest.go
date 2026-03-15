@@ -194,13 +194,16 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("")
 	if g.featureEnabled(OpenTelemetryMetricsFeature) {
 		p("    if gax.IsFeatureEnabled(\"METRICS\") {")
-		p("        c.metrics = gax.NewClientMetrics(gax.WithClientMetricsAttributes(map[string]string{")
-		p("            gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
-		p("            gax.ClientVersion: getVersionClient(),")
-		p("            gax.ClientArtifact: %q,", g.cfg.pkgPath)
-		p("            gax.RPCSystem: \"http\",")
-		p("            gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
-		p("        }))")
+		p("        c.metrics = gax.NewClientMetrics(")
+		p("            gax.WithTelemetryLogger(c.logger),")
+		p("            gax.WithTelemetryAttributes(map[string]string{")
+		p("                gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+		p("                gax.ClientVersion: getVersionClient(),")
+		p("                gax.ClientArtifact: %q,", g.cfg.pkgPath)
+		p("                gax.RPCSystem: \"http\",")
+		p("                gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
+		p("            }),")
+		p("        )")
 		p("    }")
 		p("")
 	}
@@ -685,7 +688,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	g.injectMetricsContext(m, info)
+	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
@@ -715,7 +718,11 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("    stream: gax.NewProtoJSONStreamReader(httpRsp.Body, (&%s.%s{}).ProtoReflect().Type()),", outSpec.Name, outType.GetName())
 	p("  }")
 	p("  return nil")
-	p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+		p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	} else {
+		p("}, opts...)")
+	}
 	p("")
 	p("return streamClient, e")
 	p("}")
@@ -885,7 +892,11 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("    }")
 	p("")
 	p("    return nil")
-	p("  }, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+		p("  }, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	} else {
+		p("  }, opts...)")
+	}
 	p("  if e != nil {")
 	p(`    return nil, "", e`)
 	p("  }")
@@ -974,7 +985,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	g.injectMetricsContext(m, info)
+	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
@@ -1003,7 +1014,11 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("  }")
 	p("")
 	p("  return nil")
-	p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+		p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	} else {
+		p("}, opts...)")
+	}
 	p("if e != nil {")
 	p("  return nil, e")
 	p("}")
@@ -1077,7 +1092,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	g.injectMetricsContext(m, info)
+	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
@@ -1097,7 +1112,11 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	p("")
 	p("  _, err = executeHTTPRequest(ctx, c.httpClient, httpReq, c.logger, %s, %q)", logBody, m.GetName())
 	p("  return err")
-	p("  }, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+		p("  }, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	} else {
+		p("  }, opts...)")
+	}
 	p("}")
 
 	g.imports[inSpec] = true
@@ -1173,7 +1192,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
-	g.injectMetricsContext(m, info)
+	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
@@ -1220,7 +1239,11 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 
 	p("")
 	p("  return nil")
-	p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+		p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
+	} else {
+		p("}, opts...)")
+	}
 	p("if e != nil {")
 	p("  return nil, e")
 	p("}")

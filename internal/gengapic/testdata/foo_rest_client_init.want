@@ -1,30 +1,3 @@
-// FooCallOptions contains the retry settings for each method of FooClient.
-type FooCallOptions struct {
-	Zip []gax.CallOption
-	ListLocations []gax.CallOption
-	GetLocation []gax.CallOption
-	SetIamPolicy []gax.CallOption
-	GetIamPolicy []gax.CallOption
-	TestIamPermissions []gax.CallOption
-}
-
-func defaultFooRESTCallOptions() *FooCallOptions {
-	return &FooCallOptions{
-		Zip: []gax.CallOption{
-		},
-		ListLocations: []gax.CallOption{
-		},
-		GetLocation: []gax.CallOption{
-		},
-		SetIamPolicy: []gax.CallOption{
-		},
-		GetIamPolicy: []gax.CallOption{
-		},
-		TestIamPermissions: []gax.CallOption{
-		},
-	}
-}
-
 // internalFooClient is an interface that defines the methods available from Awesome Foo API.
 type internalFooClient interface {
 	Close() error

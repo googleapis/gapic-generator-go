@@ -1,15 +1,3 @@
-// CallOptions contains the retry settings for each method of Client.
-type CallOptions struct {
-	Zip []gax.CallOption
-}
-
-func defaultRESTCallOptions() *CallOptions {
-	return &CallOptions{
-		Zip: []gax.CallOption{
-		},
-	}
-}
-
 // internalClient is an interface that defines the methods available from Awesome Foo API.
 type internalClient interface {
 	Close() error

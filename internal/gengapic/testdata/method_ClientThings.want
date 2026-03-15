@@ -1,5 +1,8 @@
 func (c *fooGRPCClient) ClientThings(ctx context.Context, opts ...gax.CallOption) (mypackagepb.Foo_ClientThingsClient, error) {
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
+		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/ClientThings")
+	}
 	var resp mypackagepb.Foo_ClientThingsClient
 	opts = append((*c.CallOptions).ClientThings[0:len((*c.CallOptions).ClientThings):len((*c.CallOptions).ClientThings)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {

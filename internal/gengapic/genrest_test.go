@@ -767,6 +767,8 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "net/url"}: true,
 				{Path: "fmt"}:     true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
 			},
 		},
 		{
@@ -779,6 +781,8 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "google.golang.org/grpc/metadata"}: true,
 				{Path: "net/url"}:                         true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
 			},
 		},
 		{
@@ -795,6 +799,8 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "regexp"}:                                        true,
 				{Path: "strings"}:                                       true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
 			},
 		},
 		{
@@ -826,6 +832,8 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "google.golang.org/grpc/metadata"}:                        true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}:          true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
 			},
 		},
 		{
@@ -851,6 +859,8 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                                      true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:                                 true,
 			},
 		},
 		{
@@ -867,6 +877,8 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "strings"}: true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}:                 true,
 				{Name: "httpbodypb", Path: "google.golang.org/genproto/googleapis/api/httpbody"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:                           true,
 			},
 		},
 		{
@@ -880,6 +892,8 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
 			},
 		},
 	} {

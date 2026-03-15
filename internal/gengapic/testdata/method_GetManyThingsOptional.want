@@ -6,6 +6,9 @@ func (c *fooGRPCClient) GetManyThingsOptional(ctx context.Context, req *mypackag
 	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
+	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
+		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetManyThingsOptional")
+	}
 	opts = append((*c.CallOptions).GetManyThingsOptional[0:len((*c.CallOptions).GetManyThingsOptional):len((*c.CallOptions).GetManyThingsOptional)], opts...)
 	it := &StringIterator{}
 	req = proto.Clone(req).(*mypackagepb.PageInputTypeOptional)
