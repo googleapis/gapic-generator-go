@@ -95,8 +95,6 @@ type fooGRPCClient struct {
 	xGoogHeaders []string
 
 	logger *slog.Logger
-
-	metrics *gax.ClientMetrics
 }
 
 // NewFooClient creates a new foo client based on gRPC.
@@ -105,6 +103,16 @@ type fooGRPCClient struct {
 // Foo service does stuff.
 func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient, error) {
 	clientOpts := defaultFooGRPCClientOptions()
+	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
+		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
+			"gcp.client.service": "foo",
+			"gcp.client.version": getVersionClient(),
+			"gcp.client.repo":    "googleapis/google-cloud-go",
+			"gcp.client.artifact": "path",
+			"gcp.client.language": "go",
+			"url.domain":         "foo.googleapis.com",
+		}))
+	}
 	if newFooClientHook != nil {
 		hookOpts, err := newFooClientHook(ctx, clientHookParams{})
 		if err != nil {
@@ -128,15 +136,6 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		locationsClient: locationpb.NewLocationsClient(connPool),
 	}
 	c.setGoogleClientInfo()
-	if gax.IsFeatureEnabled("METRICS") {
-		c.metrics = gax.NewClientMetrics(gax.WithClientMetricsAttributes(map[string]string{
-			gax.ClientService: "foo",
-			gax.ClientVersion: getVersionClient(),
-			gax.ClientArtifact: "path",
-			gax.RPCSystem: "grpc",
-			gax.URLDomain: "foo.googleapis.com",
-		}))
-	}
 
 	client.internalClient = c
 

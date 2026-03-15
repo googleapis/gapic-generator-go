@@ -304,7 +304,7 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	p("")
 	p("logger *slog.Logger")
 	if g.featureEnabled(OpenTelemetryMetricsFeature) {
-	p("")
+		p("")
 
 		p("metrics *gax.ClientMetrics")
 	}
@@ -368,8 +368,6 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("    CallOptions: &client.CallOptions,")
 	p("    logger: internaloption.GetLogger(opts),")
 	g.mixinStubsInit()
-	if g.featureEnabled(OpenTelemetryMetricsFeature) {
-	}
 	p("  }")
 	p("  c.setGoogleClientInfo()")
 	if g.featureEnabled(OpenTelemetryMetricsFeature) {

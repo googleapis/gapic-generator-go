@@ -691,9 +691,9 @@ func (g *generator) injectMetricsContext(m *descriptorpb.MethodDescriptorProto, 
 		serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
 		fqn := fmt.Sprintf("%s.%s/%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
 		g.printf("if gax.IsFeatureEnabled(\"METRICS\") {")
-		g.printf("  ctx = callctx.WithTelemetryContext(ctx, gax.RPCMethod, %q)", fqn)
+		g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"rpc_method\", %q)", fqn)
 		if info != nil && info.url != "" {
-			g.printf("  ctx = callctx.WithTelemetryContext(ctx, gax.URLTemplate, %q)", info.url)
+			g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		}
 		g.printf("}")
 	}

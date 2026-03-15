@@ -191,7 +191,6 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("        logger: internaloption.GetLogger(opts),")
 	p("    }")
 	p("    c.setGoogleClientInfo()")
-	p("")
 	if g.featureEnabled(OpenTelemetryMetricsFeature) {
 		p("    if gax.IsFeatureEnabled(\"METRICS\") {")
 		p("        c.metrics = gax.NewClientMetrics(gax.WithClientMetricsAttributes(map[string]string{")

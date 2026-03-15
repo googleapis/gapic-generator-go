@@ -163,11 +163,11 @@ func TestMetricsInstrumentation(t *testing.T) {
 	// empty is already created in commonTypes, but let's make sure we have the right one or look it up.
 	// Actually commonTypes creates its own 'empty' and adds it to descInfo.
 	// Let's just use the one from descInfo if possible, or just overwrite it.
-	
+
 	g.descInfo.ParentFile[serv] = file
 	g.descInfo.ParentFile[m] = file
 	g.descInfo.ParentFile[inputType] = file
-	
+
 	g.descInfo.Type[".my.pkg.InputType"] = inputType
 	g.descInfo.ParentElement[m] = serv
 

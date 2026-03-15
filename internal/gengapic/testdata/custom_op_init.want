@@ -1,15 +1,3 @@
-// CallOptions contains the retry settings for each method of Client.
-type CallOptions struct {
-	Zip []gax.CallOption
-}
-
-func defaultRESTCallOptions() *CallOptions {
-	return &CallOptions{
-		Zip: []gax.CallOption{
-		},
-	}
-}
-
 // internalClient is an interface that defines the methods available from Awesome Foo API.
 type internalClient interface {
 	Close() error
@@ -84,16 +72,6 @@ type restClient struct {
 // Foo service does stuff.
 func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := append(defaultRESTClientOptions(), opts...)
-	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
-		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
-			"gcp.client.service": "foo",
-			"gcp.client.version": getVersionClient(),
-			"gcp.client.repo":    "googleapis/google-cloud-go",
-			"gcp.client.artifact": "path",
-			"gcp.client.language": "go",
-			"url.domain":         "foo.googleapis.com",
-		}))
-	}
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
 	if err != nil {
 		return nil, err
@@ -107,7 +85,6 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		logger: internaloption.GetLogger(opts),
 	}
 	c.setGoogleClientInfo()
-
 	o := []option.ClientOption{
 		option.WithHTTPClient(httpClient),
 		option.WithEndpoint(endpoint),

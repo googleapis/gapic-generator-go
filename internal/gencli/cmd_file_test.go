@@ -41,10 +41,10 @@ func TestCommandFile(t *testing.T) {
 		InputMessageVar:   "CreateTodoInput",
 		OutputMessageType: "todopb.Todo",
 		Imports: map[string]*pbinfo.ImportSpec{
-			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+			"todopb": {Name: "todopb", Path: "github.com/googleapis/todo/generated"},
 		},
 		Flags: []*Flag{
-			&Flag{
+			{
 				Name:      "task",
 				Type:      descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				Required:  true,
@@ -52,7 +52,7 @@ func TestCommandFile(t *testing.T) {
 				VarName:   "CreateTodoInput",
 				Usage:     "task to complete",
 			},
-			&Flag{
+			{
 				Name:      "done",
 				FieldName: "Done",
 				VarName:   "CreateTodoInput",
@@ -60,7 +60,7 @@ func TestCommandFile(t *testing.T) {
 				Usage:     "task completion status",
 				Optional:  true,
 			},
-			&Flag{
+			{
 				Name:          "priority",
 				FieldName:     "Priority",
 				Type:          descriptorpb.FieldDescriptorProto_TYPE_ENUM,
@@ -88,11 +88,11 @@ func TestCommandFile(t *testing.T) {
 		Imports: map[string]*pbinfo.ImportSpec{
 			"jsonpb": {Path: "github.com/golang/protobuf/jsonpb"},
 			"os":     {Path: "os"},
-			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+			"todopb": {Name: "todopb", Path: "github.com/googleapis/todo/generated"},
 		},
 		Paged: true,
 		Flags: []*Flag{
-			&Flag{
+			{
 				Name:      "page_size",
 				Type:      descriptorpb.FieldDescriptorProto_TYPE_INT32,
 				FieldName: "PageSize",
@@ -100,7 +100,7 @@ func TestCommandFile(t *testing.T) {
 				Usage:     "size of page to list",
 				Optional:  true,
 			},
-			&Flag{
+			{
 				Name:      "page_token",
 				FieldName: "PageToken",
 				VarName:   "ListTodosInput",
@@ -122,10 +122,10 @@ func TestCommandFile(t *testing.T) {
 		InputMessageVar:   "StartTodoInput",
 		OutputMessageType: ".google.longrunning.Operation",
 		Imports: map[string]*pbinfo.ImportSpec{
-			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+			"todopb": {Name: "todopb", Path: "github.com/googleapis/todo/generated"},
 		},
 		Flags: []*Flag{
-			&Flag{
+			{
 				Name:      "id",
 				FieldName: "Id",
 				VarName:   "StartTodoInput",
@@ -147,7 +147,7 @@ func TestCommandFile(t *testing.T) {
 		InputMessageVar:   "CopyTodosInput",
 		OutputMessageType: ".google.protobuf.Empty",
 		Imports: map[string]*pbinfo.ImportSpec{
-			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+			"todopb": {Name: "todopb", Path: "github.com/googleapis/todo/generated"},
 		},
 		ClientStreaming: true,
 	}
@@ -163,10 +163,10 @@ func TestCommandFile(t *testing.T) {
 		InputMessageVar:   "WatchTodoInput",
 		OutputMessageType: "todopb.Todo",
 		Imports: map[string]*pbinfo.ImportSpec{
-			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+			"todopb": {Name: "todopb", Path: "github.com/googleapis/todo/generated"},
 		},
 		Flags: []*Flag{
-			&Flag{
+			{
 				Name:      "id",
 				FieldName: "Id",
 				VarName:   "WatchTodoInput",
@@ -189,7 +189,7 @@ func TestCommandFile(t *testing.T) {
 		InputMessageVar:   "ManageTodosInput",
 		OutputMessageType: "todopb.Todo",
 		Imports: map[string]*pbinfo.ImportSpec{
-			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+			"todopb": {Name: "todopb", Path: "github.com/googleapis/todo/generated"},
 		},
 		ServerStreaming: true,
 		ClientStreaming: true,

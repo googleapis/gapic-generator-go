@@ -1,37 +1,3 @@
-// CallOptions contains the retry settings for each method of Client.
-type CallOptions struct {
-	Zip []gax.CallOption
-}
-
-func defaultGRPCClientOptions() []option.ClientOption {
-	return []option.ClientOption{
-		internaloption.WithDefaultEndpoint(":443"),
-		internaloption.WithDefaultEndpointTemplate(":443"),
-		internaloption.WithDefaultMTLSEndpoint(":443"),
-		internaloption.WithDefaultUniverseDomain("googleapis.com"),
-		internaloption.WithDefaultAudience("https://"),
-		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
-		internaloption.EnableJwtWithScope(),
-		internaloption.EnableNewAuthLibrary(),
-		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
-		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
-	}
-}
-
-func defaultCallOptions() *CallOptions {
-	return &CallOptions{
-		Zip: []gax.CallOption{
-		},
-	}
-}
-
-func defaultRESTCallOptions() *CallOptions {
-	return &CallOptions{
-		Zip: []gax.CallOption{
-		},
-	}
-}
-
 // internalClient is an interface that defines the methods available from Awesome Foo API.
 type internalClient interface {
 	Close() error
@@ -110,16 +76,6 @@ type gRPCClient struct {
 // Deprecated: Foo may be removed in a future version.
 func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := defaultGRPCClientOptions()
-	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
-		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
-			"gcp.client.service": "foo",
-			"gcp.client.version": getVersionClient(),
-			"gcp.client.repo":    "googleapis/google-cloud-go",
-			"gcp.client.artifact": "path",
-			"gcp.client.language": "go",
-			"url.domain":         "foo.googleapis.com",
-		}))
-	}
 	if newClientHook != nil {
 		hookOpts, err := newClientHook(ctx, clientHookParams{})
 		if err != nil {
@@ -196,16 +152,6 @@ type restClient struct {
 // Deprecated: Foo may be removed in a future version.
 func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	clientOpts := append(defaultRESTClientOptions(), opts...)
-	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
-		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
-			"gcp.client.service": "foo",
-			"gcp.client.version": getVersionClient(),
-			"gcp.client.repo":    "googleapis/google-cloud-go",
-			"gcp.client.artifact": "path",
-			"gcp.client.language": "go",
-			"url.domain":         "foo.googleapis.com",
-		}))
-	}
 	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
 	if err != nil {
 		return nil, err
@@ -219,7 +165,6 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		logger: internaloption.GetLogger(opts),
 	}
 	c.setGoogleClientInfo()
-
 	return &Client{internalClient: c, CallOptions: callOpts}, nil
 }
 
