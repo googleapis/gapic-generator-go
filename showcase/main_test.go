@@ -22,6 +22,7 @@ import (
 
 	_ "cloud.google.com/go"
 	showcase "github.com/googleapis/gapic-showcase/client"
+	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -42,21 +43,21 @@ func init() {
 
 var restClientOpts = []option.ClientOption{
 	option.WithEndpoint("http://localhost:7469"),
-	option.WithoutAuthentication(),
+	option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "dummy-token"})),
 }
 
 func TestMain(m *testing.M) {
 	flag.Parse()
 
-	conn, err := grpc.Dial("localhost:7469", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatal(err)
+	grpcClientOpts := []option.ClientOption{
+		option.WithEndpoint("localhost:7469"),
+		option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "dummy-token"})),
+		option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 	}
-	defer conn.Close()
-	opt := option.WithGRPCConn(conn)
 	ctx := context.Background()
 
-	echo, err = showcase.NewEchoClient(ctx, opt)
+	var err error
+	echo, err = showcase.NewEchoClient(ctx, grpcClientOpts...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +69,7 @@ func TestMain(m *testing.M) {
 	}
 	defer echoREST.Close()
 
-	identity, err = showcase.NewIdentityClient(ctx, opt)
+	identity, err = showcase.NewIdentityClient(ctx, grpcClientOpts...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,7 +81,7 @@ func TestMain(m *testing.M) {
 	}
 	defer identityREST.Close()
 
-	sequenceClient, err = showcase.NewSequenceClient(ctx, opt)
+	sequenceClient, err = showcase.NewSequenceClient(ctx, grpcClientOpts...)
 	if err != nil {
 		log.Fatal(err)
 	}
