@@ -42,7 +42,7 @@ func init() {
 }
 
 var restClientOpts = []option.ClientOption{
-	option.WithEndpoint("http://localhost:7469"),
+	option.WithEndpoint("http://127.0.0.1:7469"),
 	option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "dummy-token"})),
 }
 
@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	grpcClientOpts := []option.ClientOption{
-		option.WithEndpoint("localhost:7469"),
+		option.WithEndpoint("127.0.0.1:7469"),
 		option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "dummy-token"})),
 		option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 	}
