@@ -8,6 +8,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gapic-showcase v0.38.0
 	github.com/googleapis/gax-go/v2 v2.18.0
+	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.271.0
 	google.golang.org/genproto v0.0.0-20260311181403-84a4fc48630c
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c
@@ -35,7 +36,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.39.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/net v0.51.0 // indirect
-	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
