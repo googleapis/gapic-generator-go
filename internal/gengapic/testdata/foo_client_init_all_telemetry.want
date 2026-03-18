@@ -95,8 +95,6 @@ type fooGRPCClient struct {
 	xGoogHeaders []string
 
 	logger *slog.Logger
-
-	metrics *gax.ClientMetrics
 }
 
 // NewFooClient creates a new foo client based on gRPC.
@@ -140,7 +138,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 	}
 	c.setGoogleClientInfo()
 	if gax.IsFeatureEnabled("METRICS") {
-		c.metrics = gax.NewClientMetrics(
+		metrics := gax.NewClientMetrics(
 		gax.WithTelemetryLogger(c.logger),
 		gax.WithTelemetryAttributes(map[string]string{
 			gax.ClientService: "foo",
@@ -150,6 +148,13 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 			gax.URLDomain: "foo.googleapis.com",
 		}),
 		)
+
+		client.CallOptions.Zip = append(client.CallOptions.Zip, gax.WithClientMetrics(metrics))
+		client.CallOptions.ListLocations = append(client.CallOptions.ListLocations, gax.WithClientMetrics(metrics))
+		client.CallOptions.GetLocation = append(client.CallOptions.GetLocation, gax.WithClientMetrics(metrics))
+		client.CallOptions.SetIamPolicy = append(client.CallOptions.SetIamPolicy, gax.WithClientMetrics(metrics))
+		client.CallOptions.GetIamPolicy = append(client.CallOptions.GetIamPolicy, gax.WithClientMetrics(metrics))
+		client.CallOptions.TestIamPermissions = append(client.CallOptions.TestIamPermissions, gax.WithClientMetrics(metrics))
 	}
 
 	client.internalClient = c

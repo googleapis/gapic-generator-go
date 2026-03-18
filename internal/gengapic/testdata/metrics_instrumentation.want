@@ -8,7 +8,7 @@ func (c *fooGRPCClient) Baz(ctx context.Context, req *mypackagepb.InputType, opt
 		var err error
 		_, err = executeRPC(ctx, c.fooClient.Baz, req, settings.GRPC, c.logger, "Baz")
 		return err
-	}, append(opts, gax.WithClientMetrics(c.metrics))...)
+	}, opts...)
 	return err
 }
 

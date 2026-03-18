@@ -113,11 +113,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 	p("  var err error")
 	p("  resp, err = %s", g.grpcStubCall(m))
 	p("  return err")
-	if g.featureEnabled(OpenTelemetryMetricsFeature) {
-		p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
-	} else {
-		p("}, opts...)")
-	}
+	p("}, opts...)")
 	p("if err != nil {")
 	p("  return nil, err")
 	p("}")
@@ -155,11 +151,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 	p("  var err error")
 	p("  _, err = %s", g.grpcStubCall(m))
 	p("  return err")
-	if g.featureEnabled(OpenTelemetryMetricsFeature) {
-		p("}, append(opts, gax.WithClientMetrics(c.metrics))...)")
-	} else {
-		p("}, opts...)")
-	}
+	p("}, opts...)")
 	p("return err")
 
 	p("}")
@@ -311,11 +303,6 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	p("xGoogHeaders []string")
 	p("")
 	p("logger *slog.Logger")
-	if g.featureEnabled(OpenTelemetryMetricsFeature) {
-		p("")
-
-		p("metrics *gax.ClientMetrics")
-	}
 	p("}")
 	p("")
 
@@ -381,7 +368,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("  c.setGoogleClientInfo()")
 	if g.featureEnabled(OpenTelemetryMetricsFeature) {
 		p("  if gax.IsFeatureEnabled(\"METRICS\") {")
-		p("    c.metrics = gax.NewClientMetrics(")
+		p("    metrics := gax.NewClientMetrics(")
 		p("      gax.WithTelemetryLogger(c.logger),")
 		p("      gax.WithTelemetryAttributes(map[string]string{")
 		p("        gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
@@ -391,6 +378,11 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("        gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
 		p("      }),")
 		p("    )")
+		p("")
+		methods := append(serv.GetMethod(), g.getMixinMethods()...)
+		for _, m := range methods {
+			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientMetrics(metrics))", m.GetName(), m.GetName())
+		}
 		p("  }")
 	}
 	p("")
