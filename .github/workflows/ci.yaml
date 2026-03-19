@@ -94,8 +94,9 @@ jobs:
       with:
         # Avoid downloading Bazel every time.
         bazelisk-cache: true
+        bazel-version: '6.5.0'
         # Store build cache per workflow.
         disk-cache: ${{ github.workflow }}
         # Share repository cache between workflows.
         repository-cache: true
-    - run: bazelisk test '//...'
+    - run: USE_BAZEL_VERSION=6.5.0 bazelisk test '//...'
