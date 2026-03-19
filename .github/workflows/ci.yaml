@@ -32,7 +32,7 @@ jobs:
       # Exclude all of the grpc_service_config package (it is generated).
       run: go mod download && go vet $(go list ./... | grep -v 'grpc_service_config') > govet.txt && ! [ -s govet.txt ]
       if: ${{ always() }}
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       if: ${{ always() }}
       with:
         name: linting-results
@@ -94,8 +94,9 @@ jobs:
       with:
         # Avoid downloading Bazel every time.
         bazelisk-cache: true
+        bazel-version: '6.5.0'
         # Store build cache per workflow.
         disk-cache: ${{ github.workflow }}
         # Share repository cache between workflows.
         repository-cache: true
-    - run: bazelisk test '//...'
+    - run: USE_BAZEL_VERSION=6.5.0 bazelisk test '//...'
