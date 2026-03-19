@@ -29,7 +29,7 @@ http_archive(
     name = "bazel_features",
     sha256 = "a660027f5a87f13224ab54b8dc6e191693c554f2692fcca46e8e29ee7dabc43b",
     strip_prefix = "bazel_features-1.30.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.30.0/bazel_features-v1.30.0.tar.gz",
+    url = "https://github.com/bazelbuild/bazel_features/releases/download/v1.30.0/bazel_features-v1.30.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -89,8 +89,8 @@ http_archive(
     name = "io_bazel_rules_go",
     sha256 = "86d3dc8f59d253524f933aaf2f3c05896cb0b605fc35b460c0b4b039996124c6",
     urls = [
-        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
-        "https://github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
     ],
 )
 
@@ -98,8 +98,8 @@ http_archive(
     name = "bazel_gazelle",
     sha256 = "675114d8b433d0a9f54d81171833be96ebc4113115664b791e6f204d58e93446",
     urls = [
-        "https://storage.googleapis.com/bazel-mirror/github.com/bazel-contrib/bazel-gazelle/releases/download/v0.47.0/bazel-gazelle-v0.47.0.tar.gz",
-        "https://github.com/bazel-contrib/bazel-gazelle/releases/download/v0.47.0/bazel-gazelle-v0.47.0.tar.gz",
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.47.0/bazel-gazelle-v0.47.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.47.0/bazel-gazelle-v0.47.0.tar.gz",
     ],
 )
 
@@ -112,7 +112,7 @@ http_archive(
     name = "rules_python",
     sha256 = "098ba13578e796c00c853a2161f382647f32eb9a77099e1c88bc5299333d0d6e",
     strip_prefix = "rules_python-1.9.0",
-    url = "https://github.com/bazel-contrib/rules_python/releases/download/1.9.0/rules_python-1.9.0.tar.gz",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/1.9.0/rules_python-1.9.0.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
