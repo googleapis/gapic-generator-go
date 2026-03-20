@@ -29,6 +29,10 @@ func (c *fooRESTClient) ServerStreamRPC(ctx context.Context, req *foopb.Foo, opt
 	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
+	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
+		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "google.cloud.foo.v1.FooService/ServerStreamRPC")
+		ctx = callctx.WithTelemetryContext(ctx, "url_template", "/v1/foo")
+	}
 	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "url.template", "/v1/foo")
 	}

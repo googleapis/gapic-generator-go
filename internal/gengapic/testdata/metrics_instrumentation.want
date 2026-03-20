@@ -1,0 +1,14 @@
+func (c *fooGRPCClient) Baz(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) error {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
+		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/Baz")
+	}
+	opts = append((*c.CallOptions).Baz[0:len((*c.CallOptions).Baz):len((*c.CallOptions).Baz)], opts...)
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		_, err = executeRPC(ctx, c.fooClient.Baz, req, settings.GRPC, c.logger, "Baz")
+		return err
+	}, opts...)
+	return err
+}
+

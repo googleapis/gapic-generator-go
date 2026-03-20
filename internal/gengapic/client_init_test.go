@@ -415,7 +415,29 @@ func TestClientInit(t *testing.T) {
 		imports      map[pbinfo.ImportSpec]bool
 		wantNumSnps  int
 		setExt       func() (protoreflect.ExtensionType, interface{})
+		features     []featureID
 	}{
+		{
+			tstName: "foo_client_init_default",
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
+			},
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "google.golang.org/api/option"}:                                             true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                 true,
+				{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"}:                       true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+				{Path: "log/slog"}: true,
+			},
+			wantNumSnps: 6,
+		},
 		{
 			tstName: "foo_client_init",
 			mixins: mixins{
@@ -436,6 +458,73 @@ func TestClientInit(t *testing.T) {
 				{Path: "log/slog"}: true,
 			},
 			wantNumSnps: 6,
+			features:    []featureID{OpenTelemetryTracingFeature},
+		},
+		{
+			tstName: "foo_client_init_logging",
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
+			},
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "google.golang.org/api/option"}:                                             true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                 true,
+				{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"}:                       true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+				{Path: "log/slog"}: true,
+			},
+			wantNumSnps: 6,
+			features:    []featureID{OpenTelemetryLoggingFeature},
+		},
+		{
+			tstName: "foo_client_init_metrics",
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
+			},
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "google.golang.org/api/option"}:                                             true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                 true,
+				{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"}:                       true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+				{Path: "log/slog"}: true,
+			},
+			wantNumSnps: 6,
+			features:    []featureID{OpenTelemetryMetricsFeature},
+		},
+		{
+			tstName: "foo_client_init_all_telemetry",
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
+			},
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "google.golang.org/api/option"}:                                             true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:                 true,
+				{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"}:                       true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+				{Path: "log/slog"}: true,
+			},
+			wantNumSnps: 6,
+			features:    []featureID{OpenTelemetryTracingFeature, OpenTelemetryLoggingFeature, OpenTelemetryMetricsFeature},
 		},
 		{
 			tstName: "foo_rest_client_init",
@@ -459,6 +548,54 @@ func TestClientInit(t *testing.T) {
 				{Path: "log/slog"}:                                                                 true,
 			},
 			wantNumSnps: 6,
+		},
+		{
+			tstName: "foo_rest_client_init_default",
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
+			},
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/api/option"}:                                             true,
+				{Path: "google.golang.org/api/option/internaloption"}:                              true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "net/http"}:                                                                 true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}:              true,
+				{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"}:                       true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+				{Path: "log/slog"}:                                                                 true,
+			},
+			wantNumSnps: 6,
+			features:    []featureID{""},
+		},
+		{
+			tstName: "foo_rest_client_init_metrics",
+			mixins: mixins{
+				"google.cloud.location.Locations": locationMethods(),
+				"google.iam.v1.IAMPolicy":         iamPolicyMethods(),
+			},
+			servName:  "Foo",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                                  true,
+				{Path: "google.golang.org/api/option"}:                                             true,
+				{Path: "google.golang.org/api/option/internaloption"}:                              true,
+				{Path: "google.golang.org/grpc"}:                                                   true,
+				{Path: "net/http"}:                                                                 true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}:              true,
+				{Name: "iampb", Path: "cloud.google.com/go/iam/apiv1/iampb"}:                       true,
+				{Name: "locationpb", Path: "google.golang.org/genproto/googleapis/cloud/location"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:                     true,
+				{Path: "log/slog"}:                                                                 true,
+			},
+			wantNumSnps: 6,
+			features:    []featureID{OpenTelemetryTracingFeature, OpenTelemetryMetricsFeature},
 		},
 		{
 			tstName:   "empty_client_init",
@@ -537,6 +674,28 @@ func TestClientInit(t *testing.T) {
 				return extendedops.E_OperationService, opS.GetName()
 			},
 		},
+		{
+			tstName:      "custom_op_init_metrics",
+			servName:     "",
+			serv:         servCustomOp,
+			customOpServ: opS,
+			parameter:    proto.String("go-gapic-package=path;mypackage,transport=rest,diregapic"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                     true,
+				{Path: "google.golang.org/api/option"}:                                true,
+				{Path: "google.golang.org/api/option/internaloption"}:                 true,
+				{Path: "google.golang.org/grpc"}:                                      true,
+				{Path: "net/http"}:                                                    true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:        true,
+				{Path: "log/slog"}:                                                    true,
+			},
+			wantNumSnps: 1,
+			setExt: func() (protoreflect.ExtensionType, interface{}) {
+				return extendedops.E_OperationService, opS.GetName()
+			},
+			features: []featureID{OpenTelemetryTracingFeature, OpenTelemetryMetricsFeature},
+		},
 	} {
 		t.Run(tst.tstName, func(t *testing.T) {
 			setExt := tst.setExt
@@ -602,7 +761,17 @@ func TestClientInit(t *testing.T) {
 			}
 
 			g.reset()
-			g.cfg.featureEnablement = map[featureID]struct{}{OpenTelemetryTracingFeature: {}}
+			g.cfg.featureEnablement = make(map[featureID]struct{})
+			if len(tst.features) == 0 {
+				g.cfg.featureEnablement[OpenTelemetryTracingFeature] = struct{}{}
+			}
+			for _, f := range tst.features {
+				if f == "" {
+					g.cfg.featureEnablement = make(map[featureID]struct{})
+				} else {
+					g.cfg.featureEnablement[f] = struct{}{}
+				}
+			}
 			sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
 			sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
 			for _, m := range tst.serv.GetMethod() {

@@ -6,6 +6,9 @@ func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.Inpu
 	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
+	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
+		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetEmptyThing")
+	}
 	if req != nil && req.RequestId == nil {
 		req.RequestId = proto.String(uuid.NewString())
 	}

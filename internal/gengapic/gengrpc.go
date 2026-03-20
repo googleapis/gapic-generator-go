@@ -104,6 +104,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
+	g.injectTelemetryContext(m, nil)
 	g.initializeAutoPopulatedFields(servName, m)
 	g.appendCallOpts(m)
 
@@ -143,6 +144,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
 
 	g.insertRequestHeaders(m, grpc)
+	g.injectTelemetryContext(m, nil)
 	g.initializeAutoPopulatedFields(servName, m)
 	g.appendCallOpts(m)
 	p("err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -301,7 +303,6 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	p("xGoogHeaders []string")
 	p("")
 	p("logger *slog.Logger")
-
 	p("}")
 	p("")
 
@@ -365,6 +366,25 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("")
 	p("  }")
 	p("  c.setGoogleClientInfo()")
+	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+		p("  if gax.IsFeatureEnabled(\"METRICS\") {")
+		p("    metrics := gax.NewClientMetrics(")
+		p("      gax.WithTelemetryLogger(c.logger),")
+		p("      gax.WithTelemetryAttributes(map[string]string{")
+		p("        gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+		p("        gax.ClientVersion: getVersionClient(),")
+		p("        gax.ClientArtifact: %q,", g.cfg.pkgPath)
+		p("        gax.RPCSystem: \"grpc\",")
+		p("        gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
+		p("      }),")
+		p("    )")
+		p("")
+		methods := append(serv.GetMethod(), g.getMixinMethods()...)
+		for _, m := range methods {
+			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientMetrics(metrics))", m.GetName(), m.GetName())
+		}
+		p("  }")
+	}
 	p("")
 	p("  client.internalClient = c")
 	p("")

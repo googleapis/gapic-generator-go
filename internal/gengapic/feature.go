@@ -34,6 +34,7 @@ const (
 	MTLSHardBoundTokensFeature     featureID = "mtls_hard_bound_tokens"
 	OpenTelemetryTracingFeature    featureID = "open_telemetry_tracing"
 	OpenTelemetryLoggingFeature    featureID = "open_telemetry_logging"
+	OpenTelemetryMetricsFeature    featureID = "open_telemetry_metrics"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -49,6 +50,9 @@ var featureRegistry = map[featureID]*featureInfo{
 	OpenTelemetryLoggingFeature: {
 		Description: "Enable OpenTelemetry logging support (Service Identity, Resource Names, URL Templates).",
 		TrackingID:  "b/476980971",
+	},
+	OpenTelemetryMetricsFeature: {
+		Description: "Enable OpenTelemetry M1 metrics support (Duration, RPC Method, URL Template, Error Mapping).",
 	},
 	MTLSHardBoundTokensFeature: {
 		Description: "support MTLS hard bound tokens",

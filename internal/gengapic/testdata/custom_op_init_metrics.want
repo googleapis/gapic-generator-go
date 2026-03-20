@@ -1,0 +1,154 @@
+// internalClient is an interface that defines the methods available from Awesome Foo API.
+type internalClient interface {
+	Close() error
+	setGoogleClientInfo(...string)
+	Connection() *grpc.ClientConn
+	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*Operation, error)
+}
+
+// Client is a client for interacting with Awesome Foo API.
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+//
+// Foo service does stuff.
+type Client struct {
+	// The internal transport-dependent client.
+	internalClient internalClient
+
+	// The call options for this service.
+	CallOptions *CallOptions
+
+}
+
+// Wrapper methods routed to the internal client.
+
+// Close closes the connection to the API service. The user should invoke this when
+// the client is no longer required.
+func (c *Client) Close() error {
+	return c.internalClient.Close()
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *Client) setGoogleClientInfo(keyval ...string) {
+	c.internalClient.setGoogleClientInfo(keyval...)
+}
+
+// Connection returns a connection to the API service.
+//
+// Deprecated: Connections are now pooled so this method does not always
+// return the same resource.
+func (c *Client) Connection() *grpc.ClientConn {
+	return c.internalClient.Connection()
+}
+
+// Zip does some stuff.
+func (c *Client) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*Operation, error) {
+	return c.internalClient.Zip(ctx, req, opts...)
+}
+
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+type restClient struct {
+	// The http endpoint to connect to.
+	endpoint string
+
+	// The http client.
+	httpClient *http.Client
+
+	// operationClient is used to call the operation-specific management service.
+	operationClient *FooOperationClient
+
+	// The x-goog-* headers to be sent with each request.
+	xGoogHeaders []string
+
+	// Points back to the CallOptions field of the containing Client
+	CallOptions **CallOptions
+
+	logger *slog.Logger
+}
+
+// NewRESTClient creates a new foo rest client.
+//
+// Foo service does stuff.
+func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
+	clientOpts := append(defaultRESTClientOptions(), opts...)
+	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
+		clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{
+			"gcp.client.service": "foo",
+			"gcp.client.version": getVersionClient(),
+			"gcp.client.repo":    "googleapis/google-cloud-go",
+			"gcp.client.artifact": "path",
+			"gcp.client.language": "go",
+			"url.domain":         "foo.googleapis.com",
+		}))
+	}
+	httpClient, endpoint, err := httptransport.NewClient(ctx, clientOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	callOpts := defaultRESTCallOptions()
+	c := &restClient{
+		endpoint: endpoint,
+		httpClient: httpClient,
+		CallOptions: &callOpts,
+		logger: internaloption.GetLogger(opts),
+	}
+	c.setGoogleClientInfo()
+
+	if gax.IsFeatureEnabled("METRICS") {
+		metrics := gax.NewClientMetrics(
+		gax.WithTelemetryLogger(c.logger),
+		gax.WithTelemetryAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "http",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		callOpts.Zip = append(callOpts.Zip, gax.WithClientMetrics(metrics))
+	}
+
+	o := []option.ClientOption{
+		option.WithHTTPClient(httpClient),
+		option.WithEndpoint(endpoint),
+	}
+	opC, err := NewFooOperationRESTClient(ctx, o...)
+	if err != nil {
+		return nil, err
+	}
+	c.operationClient = opC
+
+	return &Client{internalClient: c, CallOptions: callOpts}, nil
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *restClient) setGoogleClientInfo(keyval ...string) {
+	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "rest", "UNKNOWN", "pb", protoVersion)
+	c.xGoogHeaders = []string{
+		"x-goog-api-client", gax.XGoogHeader(kv...),
+	}
+}
+
+// Close closes the connection to the API service. The user should invoke this when
+// the client is no longer required.
+func (c *restClient) Close() error {
+	// Replace httpClient with nil to force cleanup.
+	c.httpClient = nil
+	if err := c.operationClient.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Connection returns a connection to the API service.
+//
+// Deprecated: This method always returns nil.
+func (c *restClient) Connection() *grpc.ClientConn {
+	return nil
+}
