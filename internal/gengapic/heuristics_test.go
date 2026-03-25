@@ -1,0 +1,125 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package gengapic
+
+import (
+	"reflect"
+	"testing"
+
+	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
+)
+
+func TestBuildHeuristicVocabulary(t *testing.T) {
+	tests := []struct {
+		name    string
+		methods []*descriptorpb.MethodDescriptorProto
+		want    map[string]bool
+	}{
+		{
+			name: "Standard CRUD paths",
+			methods: []*descriptorpb.MethodDescriptorProto{
+				{
+					Name: proto.String("GetTopic"),
+					Options: func() *descriptorpb.MethodOptions {
+						opts := &descriptorpb.MethodOptions{}
+						proto.SetExtension(opts, annotations.E_Http, &annotations.HttpRule{
+							Pattern: &annotations.HttpRule_Get{Get: "v1/projects/{project}/topics/{topic}"},
+						})
+						return opts
+					}(),
+				},
+				{
+					Name: proto.String("ListSubscriptions"),
+					Options: func() *descriptorpb.MethodOptions {
+						opts := &descriptorpb.MethodOptions{}
+						proto.SetExtension(opts, annotations.E_Http, &annotations.HttpRule{
+							Pattern: &annotations.HttpRule_Get{Get: "v1/projects/{project}/subscriptions/{subscription}"},
+						})
+						return opts
+					}(),
+				},
+			},
+			want: map[string]bool{
+				"projects":        true,
+				"locations":       true,
+				"folders":         true,
+				"organizations":   true,
+				"billingAccounts": true,
+				"topics":          true,
+				"subscriptions":   true,
+			},
+		},
+		{
+			name: "Version string filtering",
+			methods: []*descriptorpb.MethodDescriptorProto{
+				{
+					Name: proto.String("GetProject"),
+					Options: func() *descriptorpb.MethodOptions {
+						opts := &descriptorpb.MethodOptions{}
+						proto.SetExtension(opts, annotations.E_Http, &annotations.HttpRule{
+							Pattern: &annotations.HttpRule_Get{Get: "v1/{project}"},
+						})
+						return opts
+					}(),
+				},
+			},
+			want: map[string]bool{
+				"projects":        true,
+				"locations":       true,
+				"folders":         true,
+				"organizations":   true,
+				"billingAccounts": true,
+			},
+		},
+		{
+			name: "Additional bindings and nested vars",
+			methods: []*descriptorpb.MethodDescriptorProto{
+				{
+					Name: proto.String("UpdateInstance"),
+					Options: func() *descriptorpb.MethodOptions {
+						opts := &descriptorpb.MethodOptions{}
+						proto.SetExtension(opts, annotations.E_Http, &annotations.HttpRule{
+							Pattern: &annotations.HttpRule_Patch{Patch: "v1/{name=projects/*/instances/*}"},
+							AdditionalBindings: []*annotations.HttpRule{
+								{
+									Pattern: &annotations.HttpRule_Post{Post: "v1/{instance=projects/*/zones/*/instances/*}:insert"},
+								},
+							},
+						})
+						return opts
+					}(),
+				},
+			},
+			want: map[string]bool{
+				"projects":        true,
+				"locations":       true,
+				"folders":         true,
+				"organizations":   true,
+				"billingAccounts": true,
+			},
+		},
+	}
+
+	for _, tst := range tests {
+		t.Run(tst.name, func(t *testing.T) {
+			got := BuildHeuristicVocabulary(tst.methods)
+			if !reflect.DeepEqual(got, tst.want) {
+				t.Errorf("BuildHeuristicVocabulary(%v): got %v, want %v", tst.name, got, tst.want)
+			}
+		})
+	}
+}
