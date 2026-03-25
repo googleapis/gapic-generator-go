@@ -72,7 +72,11 @@ type generator struct {
 	// customOpServices is a map of service descriptors with methods that create custom operations
 	// to the service descriptors of the custom operation services that manage those custom operation instances.
 	customOpServices map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto
+
+	// learned vocabulary for heuristic path templates
+	vocabulary map[string]bool
 }
+
 
 func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 	g := &generator{
@@ -137,8 +141,17 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 		}
 	}
 
+	var methods []*descriptorpb.MethodDescriptorProto
+	for _, f := range files {
+		for _, s := range f.GetService() {
+			methods = append(methods, s.GetMethod()...)
+		}
+	}
+	g.vocabulary = BuildHeuristicVocabulary(methods)
+
 	return g, nil
 }
+
 
 // featureEnabled is a simple boolean checker for probing if a given feature has been enabled.
 func (g *generator) featureEnabled(f featureID) bool {
