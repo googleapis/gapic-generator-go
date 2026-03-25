@@ -29,12 +29,12 @@ type featureInfo struct {
 
 // Define feature ID strings here.  More details about features are kept in the featureRegistry map.
 const (
-	WrapperTypesForPageSizeFeature featureID = "wrapper_types_for_page_size"
-	OrderedRoutingHeadersFeature   featureID = "ordered_routing_headers"
-	MTLSHardBoundTokensFeature     featureID = "mtls_hard_bound_tokens"
-	OpenTelemetryTracingFeature    featureID = "open_telemetry_tracing"
-	OpenTelemetryLoggingFeature    featureID = "open_telemetry_logging"
-	OpenTelemetryMetricsFeature    featureID = "open_telemetry_metrics"
+	WrapperTypesForPageSizeFeature   featureID = "wrapper_types_for_page_size"
+	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
+	MTLSHardBoundTokensFeature       featureID = "mtls_hard_bound_tokens"
+	OpenTelemetryTracingFeature      featureID = "open_telemetry_tracing"
+	OpenTelemetryLoggingFeature      featureID = "open_telemetry_logging"
+	OpenTelemetryMetricsFeature      featureID = "open_telemetry_metrics"
 	DynamicResourceHeuristicsFeature featureID = "dynamic_resource_heuristics"
 )
 

@@ -77,7 +77,6 @@ type generator struct {
 	vocabulary map[string]bool
 }
 
-
 func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 	g := &generator{
 		metadata: &metadata.GapicMetadata{
@@ -151,7 +150,6 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 
 	return g, nil
 }
-
 
 // featureEnabled is a simple boolean checker for probing if a given feature has been enabled.
 func (g *generator) featureEnabled(f featureID) bool {

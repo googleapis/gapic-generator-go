@@ -30,7 +30,6 @@ type HeuristicTarget struct {
 	FieldNames []string
 }
 
-
 // BuildHeuristicVocabulary builds a map of valid resource tokens
 // based on the last literal before a variable in CRUD-like methods.
 func BuildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map[string]bool {
@@ -248,4 +247,3 @@ func IdentifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotatio
 
 	return nil, nil
 }
-

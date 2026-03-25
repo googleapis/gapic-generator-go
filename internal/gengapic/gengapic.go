@@ -521,12 +521,11 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 						host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
 					}
 
-
 					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
 					if host != "" {
 						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("`+escapedFormat+`", `+gettersStr+`))`)
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -562,7 +561,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 					if host != "" {
 						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("`+escapedFormat+`", `+gettersStr+`))`)
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -971,4 +970,3 @@ func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) *He
 		FieldNames: []string{selected},
 	}
 }
-
