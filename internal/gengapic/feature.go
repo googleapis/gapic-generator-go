@@ -35,6 +35,7 @@ const (
 	OpenTelemetryTracingFeature    featureID = "open_telemetry_tracing"
 	OpenTelemetryLoggingFeature    featureID = "open_telemetry_logging"
 	OpenTelemetryMetricsFeature    featureID = "open_telemetry_metrics"
+	DynamicResourceHeuristicsFeature featureID = "dynamic_resource_heuristics"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -46,6 +47,10 @@ var featureRegistry = map[featureID]*featureInfo{
 	OpenTelemetryTracingFeature: {
 		Description: "Enable OpenTelemetry tracing support (Service Identity, Resource Names, URL Templates).",
 		TrackingID:  "b/467342602,b/467403185",
+	},
+	DynamicResourceHeuristicsFeature: {
+		Description: "Enable dynamic resource name heuristics for unannotated legacy services.",
+		TrackingID:  "b/476980139",
 	},
 	OpenTelemetryLoggingFeature: {
 		Description: "Enable OpenTelemetry logging support (Service Identity, Resource Names, URL Templates).",
