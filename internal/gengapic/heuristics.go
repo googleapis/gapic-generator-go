@@ -25,6 +25,12 @@ import (
 
 var literalVarRegex = regexp.MustCompile(`([^/]+)/{[^}]+\}`)
 
+type HeuristicTarget struct {
+	Format     string
+	FieldNames []string
+}
+
+
 // BuildHeuristicVocabulary builds a map of valid resource tokens
 // based on the last literal before a variable in CRUD-like methods.
 func BuildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map[string]bool {
@@ -154,3 +160,92 @@ func isVersionString(s string) bool {
 	}
 	return false
 }
+
+func IdentifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotations.HttpRule, vocabulary map[string]bool) (*HeuristicTarget, error) {
+	patterns := getHttpPatterns(h)
+	if len(patterns) == 0 {
+		return nil, nil
+	}
+
+	pattern := patterns[0]
+	segments := strings.Split(pattern, "/")
+
+	varNameRegex := regexp.MustCompile(`{([^=}\s]+)`)
+
+	for i := len(segments) - 1; i >= 0; i-- {
+		seg := segments[i]
+		if !strings.Contains(seg, "{") || i == 0 || strings.Contains(segments[i-1], "{") {
+			continue
+		}
+
+		token := segments[i-1]
+		if !vocabulary[token] && !isVersionString(token) {
+			continue
+		}
+
+		firstIndex := i
+		if vocabulary[token] {
+			firstIndex = i - 1
+			for firstIndex > 0 {
+				prevSeg := segments[firstIndex-1]
+				if !strings.Contains(prevSeg, "{") {
+					if isVersionString(prevSeg) {
+						break
+					}
+					firstIndex--
+					continue
+				}
+
+				if firstIndex < 2 || strings.Contains(segments[firstIndex-2], "{") {
+					break
+				}
+				prevLiteralVal := segments[firstIndex-2]
+				if vocabulary[prevLiteralVal] {
+					firstIndex -= 2
+					continue
+				}
+				if isVersionString(prevLiteralVal) {
+					firstIndex--
+				}
+				break
+			}
+		}
+
+		disconnected := false
+		for k := 0; k < firstIndex; k++ {
+			if strings.Contains(segments[k], "{") {
+				disconnected = true
+				break
+			}
+		}
+		if disconnected {
+			continue
+		}
+
+		var fields []string
+		var formatSegments []string
+
+		targetSegments := segments[firstIndex : i+1]
+		for _, s := range targetSegments {
+			if strings.Contains(s, "{") {
+				match := varNameRegex.FindStringSubmatch(s)
+				if len(match) > 1 {
+					fields = append(fields, match[1])
+				}
+				formatSegments = append(formatSegments, "%v")
+			} else {
+				if !isVersionString(s) {
+					formatSegments = append(formatSegments, s)
+				}
+			}
+		}
+
+		return &HeuristicTarget{
+			Format:     strings.Join(formatSegments, "/"),
+			FieldNames: fields,
+		}, nil
+	}
+
+	return nil, nil
+}
+

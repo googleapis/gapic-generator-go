@@ -123,3 +123,79 @@ func TestBuildHeuristicVocabulary(t *testing.T) {
 		})
 	}
 }
+
+func TestIdentifyHeuristicTarget(t *testing.T) {
+	vocabulary := map[string]bool{
+		"projects":        true,
+		"locations":       true,
+		"topics":          true,
+		"subscriptions":   true,
+		"billingAccounts": true,
+	}
+
+	tests := []struct {
+		name       string
+		methodName string
+		pattern    string
+		want       *HeuristicTarget
+	}{
+		{
+			name:       "Standard AIP pattern",
+			methodName: "GetTopic",
+			pattern:    "v1/projects/{project}/topics/{topic}",
+			want: &HeuristicTarget{
+				Format:     "projects/%v/topics/%v",
+				FieldNames: []string{"project", "topic"},
+			},
+		},
+		{
+			name:       "Partial chain with disconnected prefix",
+			methodName: "GetVolume",
+			pattern:    "v1/projects/{project}/unsupported/{unsupported}/volumes/{volume}",
+			want: &HeuristicTarget{
+				Format:     "projects/%v",
+				FieldNames: []string{"project"},
+			},
+		},
+		{
+			name:       "Version string handling",
+			methodName: "ListTopics",
+			pattern:    "v1/projects/{project}/topics",
+			want: &HeuristicTarget{
+				Format:     "projects/%v",
+				FieldNames: []string{"project"},
+			},
+		},
+
+		{
+			name:       "Pattern ending in variable",
+			methodName: "GetProject",
+			pattern:    "v1/projects/{project}",
+			want: &HeuristicTarget{
+				Format:     "projects/%v",
+				FieldNames: []string{"project"},
+			},
+		},
+	}
+
+	for _, tst := range tests {
+		t.Run(tst.name, func(t *testing.T) {
+			m := &descriptorpb.MethodDescriptorProto{Name: proto.String(tst.methodName)}
+			opts := &descriptorpb.MethodOptions{}
+			proto.SetExtension(opts, annotations.E_Http, &annotations.HttpRule{
+				Pattern: &annotations.HttpRule_Get{Get: tst.pattern},
+			})
+			m.Options = opts
+
+			got, err := IdentifyHeuristicTarget(m, opts.ProtoReflect().Get(annotations.E_Http.TypeDescriptor()).Message().Interface().(*annotations.HttpRule), vocabulary)
+			if err != nil {
+				t.Fatalf("IdentifyHeuristicTarget failed: %v", err)
+			}
+
+			if !reflect.DeepEqual(got, tst.want) {
+				t.Errorf("IdentifyHeuristicTarget(%s): got %v, want %v", tst.name, got, tst.want)
+			}
+		})
+	}
+}
+
