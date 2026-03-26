@@ -27,10 +27,15 @@ import (
 // by a curly-brace variable ({...}).
 var literalVarRegex = regexp.MustCompile(`([^/]+)/{[^}]+\}`)
 
+// HeuristicTarget represents a resolved resource name template pattern and its
+// associated variable field names.
 type HeuristicTarget struct {
-	Format     string
+	// Format is the resource template string (e.g. projects/%v/topics/%v).
+	Format string
+	// FieldNames are the names of variables extracted from the template.
 	FieldNames []string
 }
+
 
 // BuildHeuristicVocabulary builds a map of valid resource collections
 // by examining standard CRUD-like patterns in routes.
