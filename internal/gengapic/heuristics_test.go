@@ -270,6 +270,15 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			methodName: "GetTopic",
 			pattern:    "v1/projects/{project}/topics:cancel/{topic}",
 			want: &HeuristicTarget{
+				Format:     "projects/%v",
+				FieldNames: []string{"project"},
+			},
+		},
+		{
+			name:       "Standard custom verb on leaf collection (topics/{topic}:cancel)",
+			methodName: "GetTopic",
+			pattern:    "v1/projects/{project}/topics/{topic}:cancel",
+			want: &HeuristicTarget{
 				Format:     "projects/%v/topics/%v",
 				FieldNames: []string{"project", "topic"},
 			},

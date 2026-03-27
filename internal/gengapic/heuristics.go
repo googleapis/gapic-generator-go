@@ -254,8 +254,10 @@ func IdentifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotatio
 		}
 
 		token := segments[i-1]
-		if idx := strings.Index(token, ":"); idx != -1 {
-			token = token[:idx]
+		if strings.Contains(token, ":") {
+			// Wes: Custom verbs in a literal path indicate an action, not a collection noun.
+			// Skip this segment to fall back to the parent resource.
+			continue
 		}
 
 		// The segment immediately preceding our variable must be a known vocabulary token
