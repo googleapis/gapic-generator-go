@@ -111,7 +111,7 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 			methods = append(methods, s.GetMethod()...)
 		}
 	}
-	g.vocabulary = BuildHeuristicVocabulary(methods)
+	g.vocabulary = buildHeuristicVocabulary(methods)
 
 	files := req.GetProtoFile()
 	files = append(files, wellKnownTypeFiles...)

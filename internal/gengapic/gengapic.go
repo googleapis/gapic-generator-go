@@ -905,7 +905,7 @@ func parseDynamicRequestHeaders(m *descriptorpb.MethodDescriptorProto) [][]strin
 // that carries a google.api.resource_reference annotation.
 // If multiple fields match, it prioritizes the one that also appears in the HTTP path.
 // If no input type or associated attributes are found, it returns an empty string.
-func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) *HeuristicTarget {
+func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) *heuristicTarget {
 	if m.GetInputType() == "" {
 		return nil
 	}
@@ -940,7 +940,7 @@ func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) *He
 		if !ok || h == nil {
 			return nil
 		}
-		target, err := IdentifyHeuristicTarget(m, h, g.vocabulary)
+		target, err := identifyHeuristicTarget(m, h, g.vocabulary)
 		if err != nil || target == nil {
 			return nil
 		}
@@ -965,7 +965,7 @@ func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) *He
 		}
 	}
 
-	return &HeuristicTarget{
+	return &heuristicTarget{
 		Format:     "%v",
 		FieldNames: []string{selected},
 	}

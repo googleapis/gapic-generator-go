@@ -185,7 +185,7 @@ func TestBuildHeuristicVocabulary(t *testing.T) {
 
 	for _, tst := range tests {
 		t.Run(tst.name, func(t *testing.T) {
-			got := BuildHeuristicVocabulary(tst.methods)
+			got := buildHeuristicVocabulary(tst.methods)
 			if !reflect.DeepEqual(got, tst.want) {
 				t.Errorf("BuildHeuristicVocabulary(%v): got %v, want %v", tst.name, got, tst.want)
 			}
@@ -208,13 +208,13 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 		name       string
 		methodName string
 		pattern    string
-		want       *HeuristicTarget
+		want       *heuristicTarget
 	}{
 		{
 			name:       "Standard AIP pattern",
 			methodName: "GetTopic",
 			pattern:    "v1/projects/{project}/topics/{topic}",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "projects/%v/topics/%v",
 				FieldNames: []string{"project", "topic"},
 			},
@@ -223,7 +223,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			name:       "Skips unrecognized collections to find the closest known parent",
 			methodName: "GetVolume",
 			pattern:    "v1/projects/{project}/unsupported/{unsupported}/volumes/{volume}",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "projects/%v",
 				FieldNames: []string{"project"},
 			},
@@ -232,7 +232,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			name:       "Deduces parent resource for List endpoints (ends in a literal)",
 			methodName: "ListTopics",
 			pattern:    "v1/projects/{project}/topics",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "projects/%v",
 				FieldNames: []string{"project"},
 			},
@@ -242,7 +242,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			name:       "Base case with a single-segment resource (GetProject)",
 			methodName: "GetProject",
 			pattern:    "v1/projects/{project}",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "projects/%v",
 				FieldNames: []string{"project"},
 			},
@@ -251,7 +251,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			name:       "Compute: interstitial literal 'global' with unknown collection",
 			methodName: "GetCrossSiteNetwork",
 			pattern:    "v1/projects/{project}/global/crossSiteNetworks/{cross_site_network}",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "projects/%v",
 				FieldNames: []string{"project"},
 			},
@@ -260,7 +260,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			name:       "Compute: leading 'locations/global' with known collection (topics)",
 			methodName: "ListLocationGlobalTopics",
 			pattern:    "v1/locations/global/topics/{topic}",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "locations/global/topics/%v",
 				FieldNames: []string{"topic"},
 			},
@@ -269,7 +269,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			name:       "Custom verb stripping on literals (topics:cancel)",
 			methodName: "GetTopic",
 			pattern:    "v1/projects/{project}/topics:cancel/{topic}",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "projects/%v",
 				FieldNames: []string{"project"},
 			},
@@ -278,7 +278,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			name:       "Standard custom verb on leaf collection (topics/{topic}:cancel)",
 			methodName: "GetTopic",
 			pattern:    "v1/projects/{project}/topics/{topic}:cancel",
-			want: &HeuristicTarget{
+			want: &heuristicTarget{
 				Format:     "projects/%v/topics/%v",
 				FieldNames: []string{"project", "topic"},
 			},
@@ -294,7 +294,7 @@ func TestIdentifyHeuristicTarget(t *testing.T) {
 			})
 			m.Options = opts
 
-			got, err := IdentifyHeuristicTarget(m, opts.ProtoReflect().Get(annotations.E_Http.TypeDescriptor()).Message().Interface().(*annotations.HttpRule), vocabulary)
+			got, err := identifyHeuristicTarget(m, opts.ProtoReflect().Get(annotations.E_Http.TypeDescriptor()).Message().Interface().(*annotations.HttpRule), vocabulary)
 			if err != nil {
 				t.Fatalf("IdentifyHeuristicTarget failed: %v", err)
 			}

@@ -31,18 +31,18 @@ var literalVarRegex = regexp.MustCompile(`([^/]+)/{[^}]+\}`)
 // path segment (`projects/{project}).
 var varNameRegex = regexp.MustCompile(`{([^=}\s]+)`)
 
-// HeuristicTarget represents a resolved resource name template pattern and its
+// heuristicTarget represents a resolved resource name template pattern and its
 // associated variable field names.
-type HeuristicTarget struct {
+type heuristicTarget struct {
 	// Format is the resource template string (e.g. projects/%v/topics/%v).
 	Format string
 	// FieldNames are the names of variables extracted from the template.
 	FieldNames []string
 }
 
-// BuildHeuristicVocabulary builds a map of valid resource collections
+// buildHeuristicVocabulary builds a map of valid resource collections
 // by examining standard CRUD-like patterns in routes.
-func BuildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map[string]bool {
+func buildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map[string]bool {
 	resourceCollections := make(map[string]bool)
 
 	// Step 1: Seed standard infrastructure resource collections.
@@ -214,7 +214,7 @@ func isVersionString(s string) bool {
 	return false
 }
 
-// IdentifyHeuristicTarget reconstructs a canonical resource name template for an
+// identifyHeuristicTarget reconstructs a canonical resource name template for an
 // unannotated API endpoint.
 //
 // It parses a single HTTP rule and attempts to infer its method's resource format
@@ -232,7 +232,7 @@ func isVersionString(s string) bool {
 // For unannotated legacy services (like Compute), these annotations are missing.
 // However, if the HTTP path follows standard conventions (like `projects/{project}/topics/{topic}`),
 // we can still deduce the vocabulary.
-func IdentifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotations.HttpRule, vocabulary map[string]bool) (*HeuristicTarget, error) {
+func identifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotations.HttpRule, vocabulary map[string]bool) (*heuristicTarget, error) {
 	patterns := getHTTPPatterns(h)
 	if len(patterns) == 0 {
 		return nil, nil
@@ -347,7 +347,7 @@ func IdentifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotatio
 			}
 		}
 
-		return &HeuristicTarget{
+		return &heuristicTarget{
 			Format:     strings.Join(formatSegments, "/"),
 			FieldNames: fields,
 		}, nil
