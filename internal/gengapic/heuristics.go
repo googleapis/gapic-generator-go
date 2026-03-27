@@ -120,14 +120,14 @@ func BuildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map
 			continue
 		}
 
-		// Cast to HttpRule for use in getHttpPatterns, below.
+		// Cast to HttpRule for use in getHTTPPatterns, below.
 		h, ok := eHTTP.(*annotations.HttpRule)
 		if !ok || h == nil {
 			continue
 		}
 
 		// Step 4: Extract literals that appear before variables.
-		patterns := getHttpPatterns(h)
+		patterns := getHTTPPatterns(h)
 		for _, pattern := range patterns {
 			// Find all instances of a literal right before a variable `{...}`
 			// Trace example: `/v1/projects/{project}/topics/{topic}`
@@ -158,7 +158,7 @@ func BuildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map
 	return resourceCollections
 }
 
-// getHttpPatterns flattens an HttpRule (and any recursive AdditionalBindings)
+// getHTTPPatterns flattens an HttpRule (and any recursive AdditionalBindings)
 // into a flat slice of string patterns.
 //
 // We use standard method name verbs (Get, List, Create) to filter for where to look.
@@ -167,7 +167,7 @@ func BuildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map
 // has secondary endpoints via `additional_bindings` to support legacy paths or
 // alternative styles. To learn the full set of valid collection nouns for an API,
 // we must process all possible paths.
-func getHttpPatterns(h *annotations.HttpRule) []string {
+func getHTTPPatterns(h *annotations.HttpRule) []string {
 	var patterns []string
 
 	extract := func(pattern string) {
@@ -192,7 +192,7 @@ func getHttpPatterns(h *annotations.HttpRule) []string {
 
 	// Step 2: Recursively process any additional bindings attached to this rule.
 	for _, rule := range h.GetAdditionalBindings() {
-		patterns = append(patterns, getHttpPatterns(rule)...)
+		patterns = append(patterns, getHTTPPatterns(rule)...)
 	}
 
 	return patterns
@@ -230,7 +230,7 @@ func isVersionString(s string) bool {
 // However, if the HTTP path follows standard conventions (like `projects/{project}/topics/{topic}`),
 // we can still deduce the vocabulary.
 func IdentifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotations.HttpRule, vocabulary map[string]bool) (*HeuristicTarget, error) {
-	patterns := getHttpPatterns(h)
+	patterns := getHTTPPatterns(h)
 	if len(patterns) == 0 {
 		return nil, nil
 	}
