@@ -27,6 +27,10 @@ import (
 // by a curly-brace variable ({...}).
 var literalVarRegex = regexp.MustCompile(`([^/]+)/{[^}]+\}`)
 
+// varNameRegex matches a variable name (`project`) in a
+// path segment (`projects/{project}).
+var varNameRegex = regexp.MustCompile(`{([^=}\s]+)`)
+
 // HeuristicTarget represents a resolved resource name template pattern and its
 // associated variable field names.
 type HeuristicTarget struct {
@@ -238,8 +242,6 @@ func IdentifyHeuristicTarget(m *descriptorpb.MethodDescriptorProto, h *annotatio
 
 	// Step 1: Split the path into atomic segments.
 	segments := splitPathSegments(pattern)
-
-	varNameRegex := regexp.MustCompile(`{([^=}\s]+)`)
 
 	// Step 2: Walk BACKWARDS from the end of the HTTP path in order to find the most
 	// specific resource (the child) at the end of the URI.
