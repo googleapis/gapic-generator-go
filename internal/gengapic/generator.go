@@ -105,6 +105,14 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 	// attach config to generator.
 	g.cfg = cfg
 
+	var methods []*descriptorpb.MethodDescriptorProto
+	for _, f := range req.GetProtoFile() {
+		for _, s := range f.GetService() {
+			methods = append(methods, s.GetMethod()...)
+		}
+	}
+	g.vocabulary = BuildHeuristicVocabulary(methods)
+
 	files := req.GetProtoFile()
 	files = append(files, wellKnownTypeFiles...)
 
@@ -139,26 +147,6 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 			}
 		}
 	}
-
-	// Restrict the heuristic vocabulary acquisition to only files we are
-	// actively generating code for. Since `files` includes the entire transitive
-	// dependency graph (WKTs, mixins, etc.), running without filtering can lead
-	// to vocabulary pollution from unrelated third-party API definitions.
-	toGen := map[string]bool{}
-	for _, f := range req.GetFileToGenerate() {
-		toGen[f] = true
-	}
-
-	var methods []*descriptorpb.MethodDescriptorProto
-	for _, f := range files { // files includes protoFile + wellKnownTypes + mixins
-		if !toGen[f.GetName()] {
-			continue
-		}
-		for _, s := range f.GetService() {
-			methods = append(methods, s.GetMethod()...)
-		}
-	}
-	g.vocabulary = BuildHeuristicVocabulary(methods)
 
 	return g, nil
 }
