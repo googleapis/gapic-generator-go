@@ -523,9 +523,9 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 
 					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
 					if host != "" {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
@@ -559,9 +559,9 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 
 					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
 					if host != "" {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
+						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true

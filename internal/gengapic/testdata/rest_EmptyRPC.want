@@ -23,7 +23,7 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	hds = append(hds, "Content-Type", "application/json")
 	headers := gax.BuildHeaders(ctx, hds...)
 	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
-		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.resource.name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
+		ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "google.cloud.foo.v1.FooService/EmptyRPC")
