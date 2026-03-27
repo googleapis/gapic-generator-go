@@ -523,12 +523,12 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 
 					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
 					if host != "" {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
-					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 					g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 				}
 			}
@@ -559,12 +559,12 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 
 					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
 					if host != "" {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = metadata.AppendToOutgoingContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
-					g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
+					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 					g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 				}
 			}

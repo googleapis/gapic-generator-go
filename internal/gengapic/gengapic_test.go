@@ -421,7 +421,6 @@ func TestGenGRPCMethods(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                                          true,
 				{Path: "github.com/google/uuid"}:                       true,
-				{Path: "google.golang.org/grpc/metadata"}:              true,
 				{Path: "net/url"}:                                      true,
 				{Name: "mypackagepb", Path: "mypackage"}:               true,
 				{Path: "github.com/googleapis/gax-go/v2/callctx"}:      true,
@@ -437,7 +436,6 @@ func TestGenGRPCMethods(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                                          true,
 				{Path: "github.com/google/uuid"}:                       true,
-				{Path: "google.golang.org/grpc/metadata"}:              true,
 				{Path: "net/url"}:                                      true,
 				{Name: "mypackagepb", Path: "mypackage"}:               true,
 				{Path: "github.com/googleapis/gax-go/v2/callctx"}:      true,
@@ -454,7 +452,6 @@ func TestGenGRPCMethods(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                                          true,
 				{Path: "google.golang.org/api/iterator"}:               true,
-				{Path: "google.golang.org/grpc/metadata"}:              true,
 				{Path: "google.golang.org/protobuf/proto"}:             true,
 				{Path: "net/url"}:                                      true,
 				{Name: "mypackagepb", Path: "mypackage"}:               true,
@@ -471,7 +468,6 @@ func TestGenGRPCMethods(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}:                                          true,
 				{Path: "google.golang.org/api/iterator"}:               true,
-				{Path: "google.golang.org/grpc/metadata"}:              true,
 				{Path: "google.golang.org/protobuf/proto"}:             true,
 				{Path: "net/url"}:                                      true,
 				{Name: "mypackagepb", Path: "mypackage"}:               true,
@@ -489,7 +485,6 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}: true,
-				{Path: "google.golang.org/grpc/metadata"}:              true,
 				{Path: "net/url"}:                                      true,
 				{Name: "mypackagepb", Path: "mypackage"}:               true,
 				{Path: "github.com/googleapis/gax-go/v2/callctx"}:      true,
@@ -535,7 +530,6 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "fmt"}: true,
-				{Path: "google.golang.org/grpc/metadata"}:              true,
 				{Path: "net/url"}:                                      true,
 				{Path: "regexp"}:                                       true,
 				{Path: "strings"}:                                      true,
