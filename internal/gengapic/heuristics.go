@@ -36,7 +36,6 @@ type HeuristicTarget struct {
 	FieldNames []string
 }
 
-
 // BuildHeuristicVocabulary builds a map of valid resource collections
 // by examining standard CRUD-like patterns in routes.
 func BuildHeuristicVocabulary(methods []*descriptorpb.MethodDescriptorProto) map[string]bool {
