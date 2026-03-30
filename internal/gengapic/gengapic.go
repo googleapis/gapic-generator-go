@@ -699,12 +699,14 @@ func (g *generator) injectTelemetryContext(m *descriptorpb.MethodDescriptorProto
 	if m == nil {
 		return
 	}
-	if g.featureEnabled(OpenTelemetryMetricsFeature) || g.featureEnabled(OpenTelemetryTracingFeature) {
+	if g.featureEnabled(OpenTelemetryMetricsFeature) || g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 		g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
+
 		serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
 		fqn := fmt.Sprintf("%s.%s/%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
-		g.printf("if gax.IsFeatureEnabled(\"METRICS\") || gax.IsFeatureEnabled(\"TRACING\") {")
+
+		g.printf("if gax.IsFeatureEnabled(\"METRICS\") || gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"rpc_method\", %q)", fqn)
 		if info != nil && info.url != "" {
 			g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)

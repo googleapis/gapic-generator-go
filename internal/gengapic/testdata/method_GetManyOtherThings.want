@@ -1,6 +1,6 @@
 func (c *fooGRPCClient) GetManyOtherThings(ctx context.Context, req *mypackagepb.PageInputType, opts ...gax.CallOption) *StringIterator {
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
-	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") {
+	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetManyOtherThings")
 	}
 	opts = append((*c.CallOptions).GetManyOtherThings[0:len((*c.CallOptions).GetManyOtherThings):len((*c.CallOptions).GetManyOtherThings)], opts...)

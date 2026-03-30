@@ -690,11 +690,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
-		p("}")
-	}
+
 	p("var streamClient *%s", streamClient)
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  if settings.Path != "" {`)
@@ -978,11 +974,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
-		p("}")
-	}
+
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -1080,11 +1072,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
-		p("}")
-	}
+
 	p("return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  if settings.Path != "" {`)
 	p("    baseUrl.Path = settings.Path")
@@ -1175,11 +1163,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
-		p("}")
-	}
+
 	g.appendCallOpts(m)
 	if !isHTTPBodyMessage {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
