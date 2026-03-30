@@ -692,7 +692,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 	}
 	p("var streamClient *%s", streamClient)
@@ -980,7 +980,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 	}
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
@@ -1082,7 +1082,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 	}
 	p("return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -1177,7 +1177,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	g.injectTelemetryContext(m, info)
 	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
 		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = callctx.WithTelemetryContext(ctx, \"url.template\", %q)", info.url)
+		p("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		p("}")
 	}
 	g.appendCallOpts(m)

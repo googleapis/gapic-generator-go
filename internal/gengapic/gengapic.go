@@ -523,9 +523,9 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 
 					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
 					if host != "" {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
@@ -559,9 +559,9 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 
 					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
 					if host != "" {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
 					} else {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "gcp.destination.resource.id", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
+						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
 					}
 					p("}")
 					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
