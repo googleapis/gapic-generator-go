@@ -1576,3 +1576,104 @@ func setOAuthScopes(o *descriptorpb.ServiceDescriptorProto, scopes []string) {
 	}
 	o.Options = sopts
 }
+
+func TestResourceNameField_FeatureFlag(t *testing.T) {
+	fooRequest := &descriptorpb.DescriptorProto{
+		Name: proto.String("GetFooRequest"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name: proto.String("project"),
+				Type: typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+			},
+			{
+				Name: proto.String("topic"),
+				Type: typep(descriptorpb.FieldDescriptorProto_TYPE_STRING),
+			},
+		},
+	}
+
+	getFoo := &descriptorpb.MethodDescriptorProto{
+		Name:      proto.String("GetFoo"),
+		InputType: proto.String(".google.foo.v1.GetFooRequest"),
+		Options:   &descriptorpb.MethodOptions{},
+	}
+	proto.SetExtension(getFoo.GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/v1/projects/{project}/topics/{topic}",
+		},
+	})
+
+	fooFile := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("google.foo.v1"),
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String("google.golang.org/genproto/googleapis/foo/v1"),
+		},
+		Service: []*descriptorpb.ServiceDescriptorProto{
+			{
+				Name:   proto.String("FooService"),
+				Method: []*descriptorpb.MethodDescriptorProto{getFoo},
+			},
+		},
+		MessageType: []*descriptorpb.DescriptorProto{fooRequest},
+	}
+
+	for _, tc := range []struct {
+		name       string
+		heuristic  bool
+		wantTarget *heuristicTarget
+	}{
+		{
+			name:       "Heuristics OFF",
+			heuristic:  false,
+			wantTarget: nil,
+		},
+		{
+			name:      "Heuristics ON",
+			heuristic: true,
+			wantTarget: &heuristicTarget{
+				Format:     "projects/%v/topics/%v",
+				FieldNames: []string{"project", "topic"},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := &pluginpb.CodeGeneratorRequest{
+				ProtoFile: []*descriptorpb.FileDescriptorProto{fooFile},
+				Parameter: proto.String("go-gapic-package=cloud.google.com/go/foo/apiv1;foo"),
+			}
+			g, err := newGenerator(req)
+			if err != nil {
+				t.Fatalf("newGenerator failed: %v", err)
+			}
+
+			// Clear features map and set only what we want to test.
+			g.cfg.featureEnablement = make(map[featureID]struct{})
+			if tc.heuristic {
+				g.cfg.featureEnablement[DynamicResourceHeuristicsFeature] = struct{}{}
+			}
+
+			got := g.resourceNameField(getFoo)
+			if tc.wantTarget == nil {
+				if got != nil {
+					t.Errorf("got %v, want nil", got)
+				}
+				return
+			}
+			if got == nil {
+				t.Fatalf("got nil, want %v", tc.wantTarget)
+			}
+			if got.Format != tc.wantTarget.Format {
+				t.Errorf("got Format %q, want %q", got.Format, tc.wantTarget.Format)
+			}
+			if len(got.FieldNames) != len(tc.wantTarget.FieldNames) {
+				t.Errorf("got FieldNames length %d, want %d", len(got.FieldNames), len(tc.wantTarget.FieldNames))
+			} else {
+				for i := range got.FieldNames {
+					if got.FieldNames[i] != tc.wantTarget.FieldNames[i] {
+						t.Errorf("got FieldNames[%d] %q, want %q", i, got.FieldNames[i], tc.wantTarget.FieldNames[i])
+					}
+				}
+			}
+		})
+	}
+}
