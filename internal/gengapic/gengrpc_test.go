@@ -56,7 +56,7 @@ func TestServiceRenaming(t *testing.T) {
 	g.cfg = &generatorConfig{
 		pkgName:           "pkg",
 		transports:        []transport{grpc},
-		featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}},
+		featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}},
 		APIServiceConfig: &serviceconfig.Service{
 			Name: "foo.googleapis.com",
 			Publishing: &annotations.Publishing{
@@ -149,7 +149,7 @@ func TestMetricsInstrumentation(t *testing.T) {
 	g.cfg = &generatorConfig{
 		pkgName:           "pkg",
 		transports:        []transport{grpc},
-		featureEnablement: map[featureID]struct{}{OpenTelemetryMetricsFeature: {}},
+		featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}},
 		APIServiceConfig: &serviceconfig.Service{
 			Name: "foo.googleapis.com",
 		},

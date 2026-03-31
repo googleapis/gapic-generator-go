@@ -137,8 +137,8 @@ func TestClientOpt(t *testing.T) {
 			gRPCServiceConfig: grpcConf,
 			// Showcase would enable MTLS if we went through legacy enablements, so add it explicitly here.
 			featureEnablement: map[featureID]struct{}{
-				MTLSHardBoundTokensFeature:  struct{}{},
-				OpenTelemetryTracingFeature: struct{}{},
+				MTLSHardBoundTokensFeature:     struct{}{},
+				OpenTelemetryAttributesFeature: struct{}{},
 			},
 		},
 	}
@@ -458,7 +458,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "log/slog"}: true,
 			},
 			wantNumSnps: 6,
-			features:    []featureID{OpenTelemetryTracingFeature},
+			features:    []featureID{OpenTelemetryAttributesFeature},
 		},
 		{
 			tstName: "foo_client_init_logging",
@@ -480,7 +480,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "log/slog"}: true,
 			},
 			wantNumSnps: 6,
-			features:    []featureID{OpenTelemetryLoggingFeature},
+			features:    []featureID{OpenTelemetryAttributesFeature},
 		},
 		{
 			tstName: "foo_client_init_metrics",
@@ -502,7 +502,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "log/slog"}: true,
 			},
 			wantNumSnps: 6,
-			features:    []featureID{OpenTelemetryMetricsFeature},
+			features:    []featureID{OpenTelemetryAttributesFeature},
 		},
 		{
 			tstName: "foo_client_init_all_telemetry",
@@ -524,7 +524,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "log/slog"}: true,
 			},
 			wantNumSnps: 6,
-			features:    []featureID{OpenTelemetryTracingFeature, OpenTelemetryLoggingFeature, OpenTelemetryMetricsFeature},
+			features:    []featureID{OpenTelemetryAttributesFeature},
 		},
 		{
 			tstName: "foo_rest_client_init",
@@ -595,7 +595,7 @@ func TestClientInit(t *testing.T) {
 				{Path: "log/slog"}:                                                                 true,
 			},
 			wantNumSnps: 6,
-			features:    []featureID{OpenTelemetryTracingFeature, OpenTelemetryMetricsFeature},
+			features:    []featureID{OpenTelemetryAttributesFeature},
 		},
 		{
 			tstName:   "empty_client_init",
@@ -694,7 +694,7 @@ func TestClientInit(t *testing.T) {
 			setExt: func() (protoreflect.ExtensionType, interface{}) {
 				return extendedops.E_OperationService, opS.GetName()
 			},
-			features: []featureID{OpenTelemetryTracingFeature, OpenTelemetryMetricsFeature},
+			features: []featureID{OpenTelemetryAttributesFeature},
 		},
 	} {
 		t.Run(tst.tstName, func(t *testing.T) {
@@ -763,7 +763,7 @@ func TestClientInit(t *testing.T) {
 			g.reset()
 			g.cfg.featureEnablement = make(map[featureID]struct{})
 			if len(tst.features) == 0 {
-				g.cfg.featureEnablement[OpenTelemetryTracingFeature] = struct{}{}
+				g.cfg.featureEnablement[OpenTelemetryAttributesFeature] = struct{}{}
 			}
 			for _, f := range tst.features {
 				if f == "" {
