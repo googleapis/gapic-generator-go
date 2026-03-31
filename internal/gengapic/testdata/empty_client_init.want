@@ -106,6 +106,20 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 
 	}
 	c.setGoogleClientInfo()
+	if gax.IsFeatureEnabled("METRICS") {
+		metrics := gax.NewClientMetrics(
+		gax.WithTelemetryLogger(c.logger),
+		gax.WithTelemetryAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "grpc",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		client.CallOptions.Zip = append(client.CallOptions.Zip, gax.WithClientMetrics(metrics))
+	}
 
 	client.internalClient = c
 
@@ -183,6 +197,21 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		logger: internaloption.GetLogger(opts),
 	}
 	c.setGoogleClientInfo()
+
+	if gax.IsFeatureEnabled("METRICS") {
+		metrics := gax.NewClientMetrics(
+		gax.WithTelemetryLogger(c.logger),
+		gax.WithTelemetryAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "http",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		callOpts.Zip = append(callOpts.Zip, gax.WithClientMetrics(metrics))
+	}
 
 	return &Client{internalClient: c, CallOptions: callOpts}, nil
 }

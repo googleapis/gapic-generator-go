@@ -53,6 +53,20 @@ func NewBarClient(ctx context.Context, opts ...option.ClientOption) (*BarClient,
 
 	}
 	c.setGoogleClientInfo()
+	if gax.IsFeatureEnabled("METRICS") {
+		metrics := gax.NewClientMetrics(
+		gax.WithTelemetryLogger(c.logger),
+		gax.WithTelemetryAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "",
+			gax.RPCSystem: "grpc",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		client.CallOptions.Baz = append(client.CallOptions.Baz, gax.WithClientMetrics(metrics))
+	}
 
 	client.internalClient = c
 

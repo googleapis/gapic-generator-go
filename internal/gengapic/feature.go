@@ -32,9 +32,7 @@ const (
 	WrapperTypesForPageSizeFeature   featureID = "wrapper_types_for_page_size"
 	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
 	MTLSHardBoundTokensFeature       featureID = "mtls_hard_bound_tokens"
-	OpenTelemetryTracingFeature      featureID = "open_telemetry_tracing"
-	OpenTelemetryLoggingFeature      featureID = "open_telemetry_logging"
-	OpenTelemetryMetricsFeature      featureID = "open_telemetry_metrics"
+	OpenTelemetryAttributesFeature   featureID = "open_telemetry_attributes"
 	DynamicResourceHeuristicsFeature featureID = "dynamic_resource_heuristics"
 )
 
@@ -44,20 +42,13 @@ const (
 // who attempt to do so will be given a stern talking to.
 var featureRegistry = map[featureID]*featureInfo{
 
-	OpenTelemetryTracingFeature: {
-		Description: "Enable OpenTelemetry tracing support (Service Identity, Resource Names, URL Templates).",
+	OpenTelemetryAttributesFeature: {
+		Description: "Enable OpenTelemetry attributes support (Service Identity, Resource Names, URL Templates).",
 		TrackingID:  "b/467342602,b/467403185",
 	},
 	DynamicResourceHeuristicsFeature: {
 		Description: "Enable dynamic resource name heuristics for unannotated legacy services.",
 		TrackingID:  "b/476980139",
-	},
-	OpenTelemetryLoggingFeature: {
-		Description: "Enable OpenTelemetry logging support (Service Identity, Resource Names, URL Templates).",
-		TrackingID:  "b/476980971",
-	},
-	OpenTelemetryMetricsFeature: {
-		Description: "Enable OpenTelemetry M1 metrics support (Duration, RPC Method, URL Template, Error Mapping).",
 	},
 	MTLSHardBoundTokensFeature: {
 		Description: "support MTLS hard bound tokens",

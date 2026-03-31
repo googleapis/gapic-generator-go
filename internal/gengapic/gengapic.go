@@ -498,7 +498,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 		case grpc:
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
-			if g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
+			if g.featureEnabled(OpenTelemetryAttributesFeature) {
 				resTarget := g.resourceNameField(m)
 				if resTarget != nil {
 					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
@@ -536,7 +536,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 			p(`hds = append(c.xGoogHeaders, hds...)`)
 			p(`hds = append(hds, "Content-Type", "application/json")`)
 			p(`headers := gax.BuildHeaders(ctx, hds...)`)
-			if g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
+			if g.featureEnabled(OpenTelemetryAttributesFeature) {
 				resTarget := g.resourceNameField(m)
 				if resTarget != nil {
 					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
@@ -699,7 +699,7 @@ func (g *generator) injectTelemetryContext(m *descriptorpb.MethodDescriptorProto
 	if m == nil {
 		return
 	}
-	if g.featureEnabled(OpenTelemetryMetricsFeature) || g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
+	if g.featureEnabled(OpenTelemetryAttributesFeature) {
 		g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
 		g.imports[pbinfo.ImportSpec{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}] = true
 
