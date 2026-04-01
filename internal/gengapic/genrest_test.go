@@ -703,7 +703,7 @@ func TestGenRestMethod(t *testing.T) {
 			methodToWrapper: map[*descriptorpb.MethodDescriptorProto]operationWrapper{},
 			opWrappers:      map[string]operationWrapper{},
 		},
-		cfg: &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+		cfg: &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 		customOpServices: map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{
 			s: opS,
 		},
@@ -760,9 +760,8 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "custom_op",
 			method: opRPC,
-			cfg:    &generatorConfig{generateAsDIREGAPIC: true, featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{generateAsDIREGAPIC: true, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "google.golang.org/grpc/metadata"}:               true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Path: "fmt"}:     true,
@@ -774,12 +773,11 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "empty_rpc",
 			method: emptyRPC,
-			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "fmt"}:                             true,
-				{Path: "github.com/google/uuid"}:          true,
-				{Path: "google.golang.org/grpc/metadata"}: true,
-				{Path: "net/url"}:                         true,
+				{Path: "fmt"}:                    true,
+				{Path: "github.com/google/uuid"}: true,
+				{Path: "net/url"}:                true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
 				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
@@ -788,16 +786,15 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "unary_rpc",
 			method: unaryRPC,
-			cfg:    &generatorConfig{restNumericEnum: true, featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{restNumericEnum: true, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "bytes"}:                                         true,
-				{Path: "fmt"}:                                           true,
-				{Path: "github.com/google/uuid"}:                        true,
-				{Path: "google.golang.org/grpc/metadata"}:               true,
+				{Path: "bytes"}:                  true,
+				{Path: "fmt"}:                    true,
+				{Path: "github.com/google/uuid"}: true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
-				{Path: "net/url"}:                                       true,
-				{Path: "regexp"}:                                        true,
-				{Path: "strings"}:                                       true,
+				{Path: "net/url"}: true,
+				{Path: "regexp"}:  true,
+				{Path: "strings"}: true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
 				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
 				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
@@ -806,7 +803,7 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "paging_rpc",
 			method: pagingRPC,
-			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "math"}:    true,
 				{Path: "net/url"}: true,
@@ -820,7 +817,7 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "server_stream_rpc",
 			method: serverStreamRPC,
-			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}:   true,
 				{Path: "context"}: true,
@@ -839,7 +836,7 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "no_request_stream_rpc",
 			method: clientStreamRPC,
-			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}: true,
 				{Path: "errors"}:  true,
@@ -849,9 +846,8 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "lro_rpc",
 			method: lroRPC,
-			cfg:    &generatorConfig{transports: []transport{rest}, featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{transports: []transport{rest}, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "google.golang.org/grpc/metadata"}: true,
 				{Path: "bytes"}: true,
 				{Path: "cloud.google.com/go/longrunning"}: true,
 				{Path: "fmt"}:                    true,
@@ -866,11 +862,10 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "http_body_rpc",
 			method: httpBodyRPC,
-			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,
-				{Path: "google.golang.org/grpc/metadata"}:               true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Path: "regexp"}:  true,
@@ -884,9 +879,8 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "update_rpc",
 			method: updateRPC,
-			cfg:    &generatorConfig{restNumericEnum: true, featureEnablement: map[featureID]struct{}{OpenTelemetryTracingFeature: {}}},
+			cfg:    &generatorConfig{restNumericEnum: true, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
 			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "google.golang.org/grpc/metadata"}: true,
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,

@@ -96,6 +96,21 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 	}
 	c.setGoogleClientInfo()
 
+	if gax.IsFeatureEnabled("METRICS") {
+		metrics := gax.NewClientMetrics(
+		gax.WithTelemetryLogger(c.logger),
+		gax.WithTelemetryAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "http",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		callOpts.Zip = append(callOpts.Zip, gax.WithClientMetrics(metrics))
+	}
+
 	o := []option.ClientOption{
 		option.WithHTTPClient(httpClient),
 		option.WithEndpoint(endpoint),

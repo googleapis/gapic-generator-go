@@ -39,6 +39,7 @@ func init() {
 	registerIgnoreGoroutine("google.golang.org/grpc.newCCBalancerWrapper")
 	registerIgnoreGoroutine("google.golang.org/grpc.(*addrConn).connect")
 	registerIgnoreGoroutine("google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer")
+	registerIgnoreGoroutine("net/rpc.(*Client).input")
 }
 
 var restClientOpts = []option.ClientOption{

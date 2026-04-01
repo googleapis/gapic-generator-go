@@ -162,7 +162,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	g.serviceDoc(serv, false) // exclude API version docs
 	p("func New%[1]sRESTClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
 	p("    clientOpts := append(default%sRESTClientOptions(), opts...)", servName)
-	if g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature) {
+	if g.featureEnabled(OpenTelemetryAttributesFeature) {
 		p("    if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("        clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
 		p("          \"gcp.client.service\": %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
@@ -188,7 +188,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("    }")
 	p("    c.setGoogleClientInfo()")
 	p("")
-	if g.featureEnabled(OpenTelemetryMetricsFeature) {
+	if g.featureEnabled(OpenTelemetryAttributesFeature) {
 		p("    if gax.IsFeatureEnabled(\"METRICS\") {")
 		p("        metrics := gax.NewClientMetrics(")
 		p("            gax.WithTelemetryLogger(c.logger),")
@@ -690,12 +690,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
-		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
-	}
+
 	p("var streamClient *%s", streamClient)
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  if settings.Path != "" {`)
@@ -979,12 +974,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
-		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
-	}
+
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("resp := &%s.%s{}", outSpec.Name, outType.GetName())
 	p("e := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
@@ -1082,12 +1072,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
-		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
-	}
+
 	p("return gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")
 	p(`  if settings.Path != "" {`)
 	p("    baseUrl.Path = settings.Path")
@@ -1178,12 +1163,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
 	g.injectTelemetryContext(m, info)
-	if info != nil && (g.featureEnabled(OpenTelemetryTracingFeature) || g.featureEnabled(OpenTelemetryLoggingFeature)) {
-		p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-		p("  ctx = metadata.AppendToOutgoingContext(ctx, \"url.template\", %q)", info.url)
-		p("}")
-		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc/metadata"}] = true
-	}
+
 	g.appendCallOpts(m)
 	if !isHTTPBodyMessage {
 		p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
