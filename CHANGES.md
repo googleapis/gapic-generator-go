@@ -1,5 +1,17 @@
 # Changes
 
+## [0.58.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.58.0) (2026-04-06)
+
+### Features
+
+* ClientMetrics Integration for Go GAPIC (#1709) ([719ba65](https://github.com/googleapis/google-cloud-go/commit/719ba655ff83e8015fd23f71c6e61d847e30228d))
+* add dynamic resource name heuristics (#1722) ([9515cd2](https://github.com/googleapis/google-cloud-go/commit/9515cd2880312bad869d69acf7618722363c5559))
+
+### Bug Fixes
+
+* update bazel_features URL to bazel-contrib (#1718) ([f8fba25](https://github.com/googleapis/google-cloud-go/commit/f8fba25a0b91dfc01ce9d7efe648469fa35125ac))
+* upgrade bazel toolchains to support go 1.25.0 (#1715) ([1ecf8a0](https://github.com/googleapis/google-cloud-go/commit/1ecf8a08996bbeddcdf2a8b9899fda7997a57784))
+
 ## [0.57.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.57.0) (2026-02-06)
 
 ### Features
