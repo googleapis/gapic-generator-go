@@ -101,7 +101,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 	lowcaseServName := lowcaseGRPCClientName(servName)
 	retTyp := fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
@@ -141,7 +141,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName())
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
@@ -163,8 +163,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 
 func (g *generator) grpcStubCall(method *descriptorpb.MethodDescriptorProto) string {
 	service := g.descInfo.ParentElement[method].(*descriptorpb.ServiceDescriptorProto)
-	override := g.getServiceNameOverride(service)
-	stub := pbinfo.ReduceServNameWithOverride(service.GetName(), g.cfg.pkgName, override)
+	stub := g.clientName(service, g.cfg.pkgName)
 	return fmt.Sprintf("executeRPC(ctx, c.%s.%s, req, settings.GRPC, c.logger, %q)", grpcClientField(stub), method.GetName(), method.GetName())
 }
 

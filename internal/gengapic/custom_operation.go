@@ -70,7 +70,7 @@ func (g *generator) customOpPointerType() (string, error) {
 // operation wrapper type with the Go identifier for a variable that is the
 // proto-defined operation type.
 func (g *generator) customOpInit(rspVar, reqVar, opVar string, req *descriptorpb.DescriptorProto, s *descriptorpb.ServiceDescriptorProto) {
-	h := handleName(s.GetName(), g.cfg.pkgName)
+	h := g.handleName(s)
 	opName := g.aux.customOp.message.GetName()
 	pt := g.pt.Printf
 
@@ -199,8 +199,8 @@ func (g *generator) customOperationType() error {
 
 	for _, handle := range op.handles {
 		pollingParams := op.pollingParams[handle]
-		s := pbinfo.ReduceServName(handle.GetName(), opImp.Name)
-		n := handleName(handle.GetName(), opImp.Name)
+		s := g.clientName(handle, opImp.Name)
+		n := g.handleName(handle)
 
 		// Look up polling method and its input.
 		poll := operationPollingMethod(handle)
@@ -417,7 +417,11 @@ func (g *generator) pollingRequestParameters(m *descriptorpb.MethodDescriptorPro
 
 // handleName is a helper for constructing a operation handle name from the
 // operation service name and Go package name.
-func handleName(s, pkg string) string {
-	s = pbinfo.ReduceServName(s, pkg)
-	return lowerFirst(s + "Handle")
+func (g *generator) handleName(s *descriptorpb.ServiceDescriptorProto) string {
+	pkgName := ""
+	if g.cfg != nil {
+		pkgName = g.cfg.pkgName
+	}
+	name := g.clientName(s, pkgName)
+	return lowerFirst(name + "Handle")
 }

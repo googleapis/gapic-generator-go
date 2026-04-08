@@ -81,7 +81,7 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 		g.imports[pbinfo.ImportSpec{Name: "lroauto", Path: "cloud.google.com/go/longrunning/autogen"}] = true
 	}
 	if opServ, ok := g.customOpServices[serv]; ok {
-		opServName := pbinfo.ReduceServName(opServ.GetName(), g.cfg.pkgName)
+		opServName := g.clientName(opServ, g.cfg.pkgName)
 		p("// operationClient is used to call the operation-specific management service.")
 		p("operationClient *%sClient", opServName)
 		p("")
@@ -221,7 +221,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("")
 	}
 	if hasCustomOp {
-		opServName := pbinfo.ReduceServName(opServ.GetName(), g.cfg.pkgName)
+		opServName := g.clientName(opServ, g.cfg.pkgName)
 		p("o := []option.ClientOption{")
 		p("  option.WithHTTPClient(httpClient),")
 		p("  option.WithEndpoint(endpoint),")
@@ -658,7 +658,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 
 	// rest-client method
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
@@ -794,7 +794,7 @@ func (g *generator) noRequestStreamRESTCall(servName string, s *descriptorpb.Ser
 	lowcaseServName := lowcaseRestClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
+		lowcaseServName, g.methodName(m), servSpec.Name, s.GetName(), m.GetName())
 	p(`  return nil, errors.New("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
@@ -835,7 +835,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	}
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 
@@ -936,7 +936,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 
 	opWrapperType := lroTypeName(m)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), opWrapperType)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), opWrapperType)
 
 	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(noahdietz): handle cancellation, metadata, osv.
@@ -1033,7 +1033,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName())
 
 	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(dovs): handle cancellation, metadata, osv.
@@ -1122,7 +1122,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 
 	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(dovs): handle cancellation, metadata, osv.

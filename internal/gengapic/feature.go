@@ -34,6 +34,7 @@ const (
 	MTLSHardBoundTokensFeature       featureID = "mtls_hard_bound_tokens"
 	OpenTelemetryAttributesFeature   featureID = "open_telemetry_attributes"
 	DynamicResourceHeuristicsFeature featureID = "dynamic_resource_heuristics"
+	SelectiveGapicGenerationFeature  featureID = "selective_gapic_generation"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -42,6 +43,9 @@ const (
 // who attempt to do so will be given a stern talking to.
 var featureRegistry = map[featureID]*featureInfo{
 
+	SelectiveGapicGenerationFeature: {
+		Description: "Enable selective GAPIC generation and internal methods routing",
+	},
 	OpenTelemetryAttributesFeature: {
 		Description: "Enable OpenTelemetry attributes support (Service Identity, Resource Names, URL Templates).",
 		TrackingID:  "b/467342602,b/467403185",

@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"github.com/googleapis/gapic-generator-go/internal/license"
-	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"github.com/googleapis/gapic-generator-go/internal/printer"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
@@ -91,8 +90,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	p("// To get started with this package, create a client.")
 	// Code block for client creation
 	exampleService := services[0]
-	override := g.getServiceNameOverride(exampleService)
-	servName := pbinfo.ReduceServNameWithOverride(exampleService.GetName(), g.cfg.pkgName, override)
+	servName := g.clientName(exampleService, g.cfg.pkgName)
 	tmpClient := g.pt
 	g.pt = printer.P{}
 	g.exampleInitClientWithOpts(g.cfg.pkgName, servName, true)
@@ -201,8 +199,7 @@ func (g *generator) apiVersionSection(services []*descriptorpb.ServiceDescriptor
 
 		// Construct the reduced/overridden service name used for client
 		// type name derivation.
-		override := g.getServiceNameOverride(s)
-		sn := pbinfo.ReduceServNameWithOverride(n, g.cfg.pkgName, override)
+		sn := g.clientName(s, g.cfg.pkgName)
 		ct := fmt.Sprintf("%sClient", sn)
 
 		// Use the raw proto service name in the tuple to associate it with

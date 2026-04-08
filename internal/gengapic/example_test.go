@@ -304,6 +304,7 @@ func TestGenSnippetFile(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 
 	serv := sample.Service()
+	g.cfg = &generatorConfig{}
 	g.snippetMetadata = snippets.NewMetadata(sample.ProtoPackagePath, sample.GoPackagePath, sample.GoPackageName)
 	g.snippetMetadata.AddService(serv.GetName(), sample.ServiceURL)
 
@@ -342,6 +343,9 @@ func TestGenSnippetFile(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			g.reset()
 			g.cfg = test.cfg
+			g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{
+				serv.Method[0]: serv,
+			}
 			err := g.genSnippetFile(serv, serv.Method[0])
 			if err != nil {
 				t.Fatal(err)

@@ -374,7 +374,7 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 
 	p := g.printf
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-		lowcaseServName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), pt.iterTypeName)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)

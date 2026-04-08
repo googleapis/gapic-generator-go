@@ -46,7 +46,7 @@ func (g *generator) clientOptions(serv *descriptorpb.ServiceDescriptorProto, ser
 		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", servName)
 		p("type %sCallOptions struct {", servName)
 		for _, m := range methods {
-			p("%s []gax.CallOption", m.GetName())
+			p("%s []gax.CallOption", g.methodName(m))
 		}
 		p("}")
 		p("")
@@ -99,7 +99,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 		g.imports[inSpec] = true
 		if m.GetOutputType() == emptyType {
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) error",
-				m.GetName(),
+				g.methodName(m),
 				inSpec.Name,
 				inType.GetName())
 			continue
@@ -113,7 +113,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 				return err
 			}
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) *%s",
-				m.GetName(),
+				g.methodName(m),
 				inSpec.Name,
 				inType.GetName(),
 				iter.iterTypeName)
@@ -126,17 +126,17 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 			// longrunning.Operation and more precise types
 			lroType := lroTypeName(m)
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), lroType)
+				g.methodName(m), inSpec.Name, inType.GetName(), lroType)
 			p("%[1]s(name string) *%[1]s", lroType)
 
 		case m.GetClientStreaming():
 			// Handles both client-streaming and bidi-streaming
 			p("%s(context.Context, ...gax.CallOption) (%s.%s_%sClient, error)",
-				m.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+				g.methodName(m), inSpec.Name, serv.GetName(), m.GetName())
 		case m.GetServerStreaming():
 			// Handles _just_ server streaming
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s.%s_%sClient, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+				g.methodName(m), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
 		default:
 			retTyp, err := g.returnType(m)
 			if err != nil {
@@ -144,7 +144,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 			}
 
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+				g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 		}
 	}
 	p("}")
@@ -272,8 +272,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 	if m.GetOutputType() == emptyType {
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) error {",
-			clientTypeName, m.GetName(), reqTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, g.methodName(m), reqTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", g.methodName(m))
 		p("}")
 		p("")
 
@@ -285,8 +285,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		lroType := lroTypeName(m)
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (*%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, lroType)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, g.methodName(m), reqTyp, lroType)
+		p("    return c.internalClient.%s(ctx, req, opts...)", g.methodName(m))
 		p("}")
 		p("")
 		p("// %s returns a new %[1]s from a given name.", lroType)
@@ -310,8 +310,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 			return err
 		}
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) *%s {",
-			clientTypeName, m.GetName(), reqTyp, iter.iterTypeName)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, g.methodName(m), reqTyp, iter.iterTypeName)
+		p("    return c.internalClient.%s(ctx, req, opts...)", g.methodName(m))
 		p("}")
 		p("")
 
@@ -329,8 +329,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 
 		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
 		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), retTyp)
-		p("    return c.internalClient.%s(ctx, opts...)", m.GetName())
+			clientTypeName, g.methodName(m), retTyp)
+		p("    return c.internalClient.%s(ctx, opts...)", g.methodName(m))
 		p("}")
 		p("")
 
@@ -346,8 +346,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, retTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, g.methodName(m), reqTyp, retTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", g.methodName(m))
 		p("}")
 		p("")
 
@@ -362,8 +362,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		}
 
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, retTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, g.methodName(m), reqTyp, retTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", g.methodName(m))
 		p("}")
 		p("")
 

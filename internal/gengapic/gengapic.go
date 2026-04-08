@@ -110,8 +110,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
-		override := g.getServiceNameOverride(s)
-		servName := pbinfo.ReduceServNameWithOverride(s.GetName(), "", override)
+		servName := g.clientName(s, "")
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.cfg.outDir, outFile)
 
@@ -340,8 +339,7 @@ func (g *generator) genAndCommitHelpers(scopes []string) error {
 // gen generates client for the given service.
 func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 	// If using service name overrides, use that directly for the rest of generation.
-	override := g.getServiceNameOverride(serv)
-	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.cfg.pkgName, override)
+	servName := g.clientName(serv, g.cfg.pkgName)
 
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
@@ -692,7 +690,7 @@ func (g *generator) lookupField(msgName, field string) *descriptorpb.FieldDescri
 }
 
 func (g *generator) appendCallOpts(m *descriptorpb.MethodDescriptorProto) {
-	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "(*c.CallOptions)."+*m.Name)
+	g.printf("opts = append(%[1]s[0:len(%[1]s):len(%[1]s)], opts...)", "(*c.CallOptions)."+g.methodName(m))
 }
 
 func (g *generator) injectTelemetryContext(m *descriptorpb.MethodDescriptorProto, info *httpInfo) {
@@ -741,17 +739,17 @@ func (g *generator) methodDoc(m *descriptorpb.MethodDescriptorProto, serv *descr
 	// If the method includes a deprecation notice at the beginning of the comment, prepend a comment stating the method is deprecated and use the included deprecation notice.
 	if m.GetOptions().GetDeprecated() {
 		if com == "" {
-			com = fmt.Sprintf("\n is deprecated.\n\nDeprecated: %s may be removed in a future version.", m.GetName())
+			com = fmt.Sprintf("\n is deprecated.\n\nDeprecated: %s may be removed in a future version.", g.methodName(m))
 		} else if strings.HasPrefix(com, "Deprecated:") {
 			com = fmt.Sprintf("\n is deprecated.\n\n%s", com)
 		} else if !containsDeprecated(com) {
-			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, m.GetName())
+			com = fmt.Sprintf("%s\n\nDeprecated: %s may be removed in a future version.", com, g.methodName(m))
 		}
 	}
 	com = strings.TrimSpace(com)
 
 	// Prepend the method name to all non-empty comments.
-	com = m.GetName() + " " + lowerFirst(com)
+	com = g.methodName(m) + " " + lowerFirst(com)
 	servName := serv.GetName()
 	if override := g.getServiceNameOverride(serv); override != "" {
 		servName = override

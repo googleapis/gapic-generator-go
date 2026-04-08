@@ -328,6 +328,9 @@ func (g *generator) autoPopulatedFields(_ string, m *descriptorpb.MethodDescript
 
 // getServiceNameOverride checks to see if the service has a defined service name override.
 func (g *generator) getServiceNameOverride(s *descriptorpb.ServiceDescriptorProto) string {
+	if g.cfg == nil || g.cfg.APIServiceConfig == nil || g.cfg.APIServiceConfig.GetPublishing() == nil {
+		return ""
+	}
 	ls := g.cfg.APIServiceConfig.GetPublishing().GetLibrarySettings()
 	if len(ls) == 0 {
 		return ""
@@ -340,4 +343,81 @@ func (g *generator) getServiceNameOverride(s *descriptorpb.ServiceDescriptorProt
 	}
 
 	return ""
+}
+
+// getSelectiveGapicGeneration returns the SelectiveGapicGeneration config if it is present and the feature is enabled.
+func (g *generator) getSelectiveGapicGeneration() *annotations.SelectiveGapicGeneration {
+	if g.cfg == nil {
+		return nil
+	}
+	if _, ok := g.cfg.featureEnablement[SelectiveGapicGenerationFeature]; !ok {
+		return nil
+	}
+	if g.cfg.APIServiceConfig == nil || g.cfg.APIServiceConfig.GetPublishing() == nil {
+		return nil
+	}
+	ls := g.cfg.APIServiceConfig.GetPublishing().GetLibrarySettings()
+	if len(ls) == 0 {
+		return nil
+	}
+	if goSettings := ls[0].GetGoSettings(); goSettings != nil && goSettings.GetCommon() != nil && goSettings.GetCommon().GetSelectiveGapicGeneration() != nil {
+		return goSettings.GetCommon().GetSelectiveGapicGeneration()
+	}
+	return nil
+}
+
+// isInternalMethod determines if a method should be generated as internal based on SelectiveGapicGeneration config.
+func (g *generator) isInternalMethod(fqn string) bool {
+	sgg := g.getSelectiveGapicGeneration()
+	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
+		return false
+	}
+	for _, m := range sgg.GetMethods() {
+		if m == fqn {
+			return false
+		}
+	}
+	return true
+}
+
+// isInternalService determines if a service should be treated as internal (i.e. has at least one internal method).
+func (g *generator) isInternalService(s *descriptorpb.ServiceDescriptorProto) bool {
+	sgg := g.getSelectiveGapicGeneration()
+	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
+		return false
+	}
+
+	// A service is internal if it has any internal methods
+	for _, m := range append(s.GetMethod(), g.getMixinMethods()...) {
+		parent := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+		fqn := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[parent].GetPackage(), parent.GetName(), m.GetName())
+		if g.isInternalMethod(fqn) {
+			return true
+		}
+	}
+	return false
+}
+
+// methodName returns the appropriate Go method name (exported or unexported) for a given RPC.
+func (g *generator) methodName(m *descriptorpb.MethodDescriptorProto) string {
+	sgg := g.getSelectiveGapicGeneration()
+	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
+		return m.GetName()
+	}
+	parent := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+	fqn := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[parent].GetPackage(), parent.GetName(), m.GetName())
+	if g.isInternalMethod(fqn) {
+		return lowerFirst(m.GetName())
+	}
+	return m.GetName()
+}
+
+// clientName returns the appropriate Go client name for a given service.
+func (g *generator) clientName(s *descriptorpb.ServiceDescriptorProto, pkgName string) string {
+	override := g.getServiceNameOverride(s)
+	servName := pbinfo.ReduceServNameWithOverride(s.GetName(), pkgName, override)
+	if g.isInternalService(s) {
+		servName = "Base" + servName
+	}
+	return servName
 }

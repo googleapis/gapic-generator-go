@@ -138,3 +138,80 @@ func TestAutoPopulatedFields(t *testing.T) {
 		t.Errorf("got(-),want(+):\n%s", diff)
 	}
 }
+
+func TestSelectiveGapicGeneration(t *testing.T) {
+	file := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+	m := &descriptorpb.MethodDescriptorProto{
+		Name: proto.String("InternalMethod"),
+	}
+	m2 := &descriptorpb.MethodDescriptorProto{
+		Name: proto.String("PublicMethod"),
+	}
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Name:   proto.String("Foo"),
+		Method: []*descriptorpb.MethodDescriptorProto{m, m2},
+	}
+
+	var g generator
+	g.cfg = &generatorConfig{
+		pkgName: "pkg",
+		featureEnablement: map[featureID]struct{}{
+			SelectiveGapicGenerationFeature: {},
+		},
+	}
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{
+		m:  serv,
+		m2: serv,
+	}
+	g.descInfo.ParentFile = map[proto.Message]*descriptorpb.FileDescriptorProto{
+		serv: file,
+		m:    file,
+		m2:   file,
+	}
+
+	if g.isInternalService(serv) {
+		t.Errorf("expected isInternalService to be false when config is missing")
+	}
+
+	g.cfg.APIServiceConfig = &serviceconfig.Service{
+		Publishing: &annotations.Publishing{
+			LibrarySettings: []*annotations.ClientLibrarySettings{
+				{
+					GoSettings: &annotations.GoSettings{
+						Common: &annotations.CommonLanguageSettings{
+							SelectiveGapicGeneration: &annotations.SelectiveGapicGeneration{
+								GenerateOmittedAsInternal: true,
+								Methods:                   []string{"my.pkg.Foo.PublicMethod"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if !g.isInternalService(serv) {
+		t.Errorf("expected isInternalService to be true")
+	}
+
+	if g.methodName(m) != "internalMethod" {
+		t.Errorf("expected methodName(m) to be 'internalMethod', got %q", g.methodName(m))
+	}
+
+	if g.methodName(m2) != "PublicMethod" {
+		t.Errorf("expected methodName(m2) to be 'PublicMethod', got %q", g.methodName(m2))
+	}
+
+	if got := g.clientName(serv, "pkg"); got != "BaseFoo" {
+		t.Errorf("expected clientName to be 'BaseFoo', got %q", got)
+	}
+
+	if got := g.clientName(serv, "Foo"); got != "Base" {
+		t.Errorf("expected clientName to be 'Base', got %q", got)
+	}
+}

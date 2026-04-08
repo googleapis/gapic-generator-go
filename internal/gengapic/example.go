@@ -26,8 +26,7 @@ import (
 
 func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.cfg.pkgName
-	override := g.getServiceNameOverride(serv)
-	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
+	servName := g.clientName(serv, pkgName)
 
 	g.exampleClientFactory(pkgName, servName)
 
@@ -43,8 +42,7 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 
 func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.cfg.pkgName
-	override := g.getServiceNameOverride(serv)
-	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
+	servName := g.clientName(serv, pkgName)
 	methods := append(serv.GetMethod(), g.getMixinMethods()...)
 	for _, m := range methods {
 		// Don't need streaming RPCs
@@ -80,7 +78,7 @@ func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorP
 		if t == rest {
 			s += "REST"
 		}
-		p("func Example%sClient_%s_all() {", servName, m.GetName())
+		p("func Example%sClient_%s_all() {", servName, g.methodName(m))
 		g.exampleInitClient(pkgName, s)
 
 		p("")
@@ -150,7 +148,7 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptorpb.Meth
 
 	p := g.printf
 
-	p("func Example%sClient_%s() {", servName, m.GetName())
+	p("func Example%sClient_%s() {", servName, g.methodName(m))
 	if err := g.exampleMethodBody(pkgName, servName, m); err != nil {
 		return err
 	}
@@ -246,7 +244,7 @@ func (g *generator) exampleLROCall(m *descriptorpb.MethodDescriptorProto) {
 		retVars = "err ="
 	}
 
-	p("op, err := c.%s(ctx, req)", *m.Name)
+	p("op, err := c.%s(ctx, req)", g.methodName(m))
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
@@ -266,7 +264,7 @@ func (g *generator) exampleLROCall(m *descriptorpb.MethodDescriptorProto) {
 func (g *generator) exampleUnaryCall(m *descriptorpb.MethodDescriptorProto) {
 	p := g.printf
 
-	p("resp, err := c.%s(ctx, req)", *m.Name)
+	p("resp, err := c.%s(ctx, req)", g.methodName(m))
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
@@ -277,7 +275,7 @@ func (g *generator) exampleUnaryCall(m *descriptorpb.MethodDescriptorProto) {
 func (g *generator) exampleEmptyCall(m *descriptorpb.MethodDescriptorProto) {
 	p := g.printf
 
-	p("err = c.%s(ctx, req)", *m.Name)
+	p("err = c.%s(ctx, req)", g.methodName(m))
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
@@ -296,7 +294,7 @@ func (g *generator) examplePagingCall(m *descriptorpb.MethodDescriptorProto) err
 
 	p := g.printf
 
-	p("it := c.%s(ctx, req)", m.GetName())
+	p("it := c.%s(ctx, req)", g.methodName(m))
 	p("for {")
 	p("  resp, err := it.Next()")
 	p("  if err == iterator.Done {")
@@ -333,7 +331,7 @@ func (g *generator) examplePagingAllCall(m *descriptorpb.MethodDescriptorProto) 
 
 	p := g.printf
 
-	p("for resp, err := range c.%s(ctx, req).All() {", m.GetName())
+	p("for resp, err := range c.%s(ctx, req).All() {", g.methodName(m))
 	p("  if err != nil {")
 	p("    // TODO: Handle error and break/return/continue. Iteration will stop after any error.")
 	p("  }")
@@ -347,7 +345,7 @@ func (g *generator) examplePagingAllCall(m *descriptorpb.MethodDescriptorProto) 
 func (g *generator) exampleBidiCall(m *descriptorpb.MethodDescriptorProto, inType pbinfo.ProtoType, inSpec pbinfo.ImportSpec) {
 	p := g.printf
 
-	p("stream, err := c.%s(ctx)", m.GetName())
+	p("stream, err := c.%s(ctx)", g.methodName(m))
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")

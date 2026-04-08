@@ -397,6 +397,24 @@ func TestClientInit(t *testing.T) {
 			},
 		},
 	}
+	servSelective := &descriptorpb.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+		Method: []*descriptorpb.MethodDescriptorProto{
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptorpb.MethodOptions{},
+			},
+			{
+				Name:       proto.String("Zap"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptorpb.MethodOptions{},
+			},
+		},
+		Options: &descriptorpb.ServiceOptions{},
+	}
 	for _, s := range []*descriptorpb.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
 		proto.SetExtension(s.Method[0].GetOptions(), annotations.E_Http, &annotations.HttpRule{
 			Pattern: &annotations.HttpRule_Get{
@@ -404,6 +422,16 @@ func TestClientInit(t *testing.T) {
 			},
 		})
 	}
+	proto.SetExtension(servSelective.Method[0].GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/zip",
+		},
+	})
+	proto.SetExtension(servSelective.Method[1].GetOptions(), annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/zap",
+		},
+	})
 
 	for _, tst := range []struct {
 		tstName      string
@@ -416,6 +444,7 @@ func TestClientInit(t *testing.T) {
 		wantNumSnps  int
 		setExt       func() (protoreflect.ExtensionType, interface{})
 		features     []featureID
+		publishing   *annotations.Publishing
 	}{
 		{
 			tstName: "foo_client_init_default",
@@ -696,6 +725,36 @@ func TestClientInit(t *testing.T) {
 			},
 			features: []featureID{OpenTelemetryAttributesFeature},
 		},
+		{
+			tstName:  "selective_gapic_client_init",
+			servName: "BaseFoo",
+			serv:     servSelective,
+			parameter: proto.String("go-gapic-package=path;mypackage,F_selective_gapic_generation"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                  true,
+				{Path: "google.golang.org/api/option"}:                              true,
+				{Path: "google.golang.org/grpc"}:                                     true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:  true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:      true,
+				{Path: "log/slog"}:                                                 true,
+			},
+			wantNumSnps: 2,
+			features:    []featureID{SelectiveGapicGenerationFeature},
+			publishing: &annotations.Publishing{
+				LibrarySettings: []*annotations.ClientLibrarySettings{
+					{
+						GoSettings: &annotations.GoSettings{
+							Common: &annotations.CommonLanguageSettings{
+								SelectiveGapicGeneration: &annotations.SelectiveGapicGeneration{
+									GenerateOmittedAsInternal: true,
+									Methods:                   []string{"mypackage.Foo.Zip"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	} {
 		t.Run(tst.tstName, func(t *testing.T) {
 			setExt := tst.setExt
@@ -749,6 +808,7 @@ func TestClientInit(t *testing.T) {
 					{Name: "google.cloud.location.Locations"},
 					{Name: "google.longrunning.Operations"},
 				},
+				Publishing: tst.publishing,
 			}
 
 			g.aux.customOp = &customOp{
