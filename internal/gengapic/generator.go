@@ -75,6 +75,9 @@ type generator struct {
 
 	// learned vocabulary for heuristic path templates
 	vocabulary map[string]bool
+
+	// clientProtoPkg is the proto package of the service currently being generated.
+	clientProtoPkg string
 }
 
 func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
@@ -332,21 +335,27 @@ func (g *generator) getServiceNameOverride(s *descriptorpb.ServiceDescriptorProt
 		return ""
 	}
 	ls := g.cfg.APIServiceConfig.GetPublishing().GetLibrarySettings()
-	if len(ls) == 0 {
-		return ""
-	}
 
-	renamedServices := ls[0].GetGoSettings().GetRenamedServices()
+	protoPkg := g.descInfo.ParentFile[s].GetPackage()
 
-	if v, ok := renamedServices[s.GetName()]; ok {
-		return v
+	for _, setting := range ls {
+		if setting.GetVersion() != "" && setting.GetVersion() != protoPkg {
+			continue
+		}
+		if goSettings := setting.GetGoSettings(); goSettings != nil {
+			if renamedServices := goSettings.GetRenamedServices(); renamedServices != nil {
+				if v, ok := renamedServices[s.GetName()]; ok {
+					return v
+				}
+			}
+		}
 	}
 
 	return ""
 }
 
 // getSelectiveGapicGeneration returns the SelectiveGapicGeneration config if it is present and the feature is enabled.
-func (g *generator) getSelectiveGapicGeneration() *annotations.SelectiveGapicGeneration {
+func (g *generator) getSelectiveGapicGeneration(protoPkg string) *annotations.SelectiveGapicGeneration {
 	if g.cfg == nil {
 		return nil
 	}
@@ -357,18 +366,22 @@ func (g *generator) getSelectiveGapicGeneration() *annotations.SelectiveGapicGen
 		return nil
 	}
 	ls := g.cfg.APIServiceConfig.GetPublishing().GetLibrarySettings()
-	if len(ls) == 0 {
-		return nil
+
+	for _, setting := range ls {
+		if setting.GetVersion() != "" && setting.GetVersion() != protoPkg {
+			continue
+		}
+		if goSettings := setting.GetGoSettings(); goSettings != nil && goSettings.GetCommon() != nil && goSettings.GetCommon().GetSelectiveGapicGeneration() != nil {
+			return goSettings.GetCommon().GetSelectiveGapicGeneration()
+		}
 	}
-	if goSettings := ls[0].GetGoSettings(); goSettings != nil && goSettings.GetCommon() != nil && goSettings.GetCommon().GetSelectiveGapicGeneration() != nil {
-		return goSettings.GetCommon().GetSelectiveGapicGeneration()
-	}
+
 	return nil
 }
 
 // isInternalMethod determines if a method should be generated as internal based on SelectiveGapicGeneration config.
-func (g *generator) isInternalMethod(fqn string) bool {
-	sgg := g.getSelectiveGapicGeneration()
+func (g *generator) isInternalMethod(protoPkg, fqn string) bool {
+	sgg := g.getSelectiveGapicGeneration(protoPkg)
 	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
 		return false
 	}
@@ -382,7 +395,8 @@ func (g *generator) isInternalMethod(fqn string) bool {
 
 // isInternalService determines if a service should be treated as internal (i.e. has at least one internal method).
 func (g *generator) isInternalService(s *descriptorpb.ServiceDescriptorProto) bool {
-	sgg := g.getSelectiveGapicGeneration()
+	protoPkg := g.descInfo.ParentFile[s].GetPackage()
+	sgg := g.getSelectiveGapicGeneration(protoPkg)
 	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
 		return false
 	}
@@ -391,7 +405,7 @@ func (g *generator) isInternalService(s *descriptorpb.ServiceDescriptorProto) bo
 	for _, m := range append(s.GetMethod(), g.getMixinMethods()...) {
 		parent := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
 		fqn := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[parent].GetPackage(), parent.GetName(), m.GetName())
-		if g.isInternalMethod(fqn) {
+		if g.isInternalMethod(protoPkg, fqn) {
 			return true
 		}
 	}
@@ -400,13 +414,50 @@ func (g *generator) isInternalService(s *descriptorpb.ServiceDescriptorProto) bo
 
 // methodName returns the appropriate Go method name (exported or unexported) for a given RPC.
 func (g *generator) methodName(m *descriptorpb.MethodDescriptorProto) string {
-	sgg := g.getSelectiveGapicGeneration()
+	// 1. Determine the logical API package context.
+	//
+	// When we generate mixin methods (like IAM's GetIamPolicy or LRO's GetOperation),
+	// their raw Protobuf definitions live in generic packages like `google.iam.v1`
+	// rather than the specific service package being generated (e.g. `google.example.v1`).
+	//
+	// However, the `service.yaml` publishing settings (including the SGG allowlist)
+	// that govern these mixins are defined under the *current service's* version block
+	// (e.g. `version: google.example.v1`).
+	//
+	// Therefore, to look up the correct SGG config, we must use `g.clientProtoPkg`
+	// (the package of the service we are *currently generating a client for*),
+	// rather than the package where the raw method was originally defined.
+	protoPkg := g.clientProtoPkg
+
+	// 2. Fallback for testing environments.
+	//
+	// In some narrow unit testing contexts (like `TestDocFile`), `g.clientProtoPkg`
+	// might not be explicitly populated. In these cases, we fall back to reading
+	// the package directly from the method's parent service.
+	if protoPkg == "" {
+		if parent, ok := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto); ok && parent != nil {
+			protoPkg = g.descInfo.ParentFile[parent].GetPackage()
+		}
+	}
+
+	// 3. Look up the Selective GAPIC config.
+	sgg := g.getSelectiveGapicGeneration(protoPkg)
 	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
 		return m.GetName()
 	}
-	parent := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+
+	// 4. Construct the Fully Qualified Name (FQN) of the method.
+	// We MUST use the method's *original* package and service name for the FQN,
+	// because that is how it is referenced in the `service.yaml` allowlist
+	// (e.g. `methods: ["google.iam.v1.IAMPolicy.GetIamPolicy"]`).
+	parent, ok := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
+	if !ok || parent == nil {
+		return m.GetName()
+	}
 	fqn := fmt.Sprintf("%s.%s.%s", g.descInfo.ParentFile[parent].GetPackage(), parent.GetName(), m.GetName())
-	if g.isInternalMethod(fqn) {
+
+	// 5. Evaluate visibility.
+	if g.isInternalMethod(protoPkg, fqn) {
 		return lowerFirst(m.GetName())
 	}
 	return m.GetName()

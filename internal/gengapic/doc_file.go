@@ -90,6 +90,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	p("// To get started with this package, create a client.")
 	// Code block for client creation
 	exampleService := services[0]
+	g.clientProtoPkg = g.descInfo.ParentFile[exampleService].GetPackage()
 	servName := g.clientName(exampleService, g.cfg.pkgName)
 	tmpClient := g.pt
 	g.pt = printer.P{}
@@ -199,6 +200,7 @@ func (g *generator) apiVersionSection(services []*descriptorpb.ServiceDescriptor
 
 		// Construct the reduced/overridden service name used for client
 		// type name derivation.
+		g.clientProtoPkg = g.descInfo.ParentFile[s].GetPackage()
 		sn := g.clientName(s, g.cfg.pkgName)
 		ct := fmt.Sprintf("%sClient", sn)
 

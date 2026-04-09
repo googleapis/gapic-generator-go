@@ -110,6 +110,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
 		// Keep the current behavior for now, but we could revisit this later.
+		g.clientProtoPkg = g.descInfo.ParentFile[s].GetPackage()
 		servName := g.clientName(s, "")
 		outFile := camelToSnake(servName)
 		outFile = filepath.Join(g.cfg.outDir, outFile)
