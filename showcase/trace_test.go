@@ -28,7 +28,7 @@ func setupTracingTest(t *testing.T, enableTracing bool, transport string) (*obse
 	// Reset feature cache just in case something else evaluated it
 	gax.TestOnlyResetIsFeatureEnabled()
 	t.Cleanup(gax.TestOnlyResetIsFeatureEnabled)
-	
+
 	if enableTracing {
 		os.Setenv("GOOGLE_SDK_GO_EXPERIMENTAL_TRACING", "true")
 	} else {
@@ -117,7 +117,7 @@ func verifyInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName st
 			t.Errorf("Client span attributes mismatch (-want +got):\n%s", diff)
 		}
 	}
-	
+
 	for _, attr := range unexpectedAttrs {
 		if _, ok := gotSpan.Attributes[attr]; ok {
 			t.Errorf("expected attribute %q to be NOT SET, but it was present", attr)
@@ -131,12 +131,12 @@ func TestObservability_Tracing_Success(t *testing.T) {
 		t.Run(transport, func(t *testing.T) {
 			fix, clientOpts := setupTracingTest(t, true, transport)
 			ctx := context.Background()
-			
+
 			var seqClient interface {
 				Close() error
 			}
 			var err error
-			
+
 			if transport == "grpc" {
 				seqClient, err = showcase.NewSequenceClient(ctx, clientOpts...)
 			} else {
@@ -148,7 +148,7 @@ func TestObservability_Tracing_Success(t *testing.T) {
 			t.Cleanup(func() { seqClient.Close() })
 
 			ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP")
-			
+
 			if transport == "grpc" {
 				_ = runTracingSuccessScenario(ctxSpan, t, seqClient.(*showcase.SequenceClient))
 			} else {
@@ -170,9 +170,9 @@ func TestObservability_Tracing_Success(t *testing.T) {
 					"gcp.client.version":          "DYNAMIC",
 					"gcp.resource.destination.id": "DYNAMIC",
 					"rpc.method":                  "google.showcase.v1beta1.SequenceService/AttemptSequence",
-					"rpc.response.status_code": "OK",
+					"rpc.response.status_code":    "OK",
 					"rpc.system.name":             "grpc",
-					"server.address":           "127.0.0.1",
+					"server.address":              "127.0.0.1",
 					"server.port":                 int64(7469),
 					"url.domain":                  "showcase.googleapis.com",
 				}
@@ -207,12 +207,12 @@ func TestObservability_Tracing_Failure(t *testing.T) {
 		t.Run(transport, func(t *testing.T) {
 			fix, clientOpts := setupTracingTest(t, true, transport)
 			ctx := context.Background()
-			
+
 			var seqClient interface {
 				Close() error
 			}
 			var err error
-			
+
 			if transport == "grpc" {
 				seqClient, err = showcase.NewSequenceClient(ctx, clientOpts...)
 			} else {
@@ -239,39 +239,39 @@ func TestObservability_Tracing_Failure(t *testing.T) {
 			if transport == "grpc" {
 				expectedName = "google.showcase.v1beta1.SequenceService/AttemptSequence"
 				wantAttrs = map[string]any{
-					"error.type":               "NOT_FOUND",
-					"exception.type":           "*status.Error",
-					"gcp.client.artifact":      "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":          "googleapis/google-cloud-go",
-					"gcp.client.service":       "showcase",
-					"gcp.client.version":       "DYNAMIC",
+					"error.type":                  "NOT_FOUND",
+					"exception.type":              "*status.Error",
+					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":             "googleapis/google-cloud-go",
+					"gcp.client.service":          "showcase",
+					"gcp.client.version":          "DYNAMIC",
 					"gcp.resource.destination.id": "DYNAMIC",
-					"rpc.method":               "google.showcase.v1beta1.SequenceService/AttemptSequence",
-					"rpc.response.status_code": "NOT_FOUND",
+					"rpc.method":                  "google.showcase.v1beta1.SequenceService/AttemptSequence",
+					"rpc.response.status_code":    "NOT_FOUND",
 					"rpc.system.name":             "grpc",
-					"server.address":           "127.0.0.1",
-					"server.port":              int64(7469),
-					"status.message":           "not found",
-					"url.domain":               "showcase.googleapis.com",
+					"server.address":              "127.0.0.1",
+					"server.port":                 int64(7469),
+					"status.message":              "not found",
+					"url.domain":                  "showcase.googleapis.com",
 				}
 				unexpectedAttrs = []string{}
 			} else {
 				expectedName = "POST /v1beta1/{name=sequences/*}"
 				wantAttrs = map[string]any{
-					"error.type":               "404",
-					"gcp.client.artifact":      "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":          "googleapis/google-cloud-go",
-					"gcp.client.service":       "showcase",
-					"gcp.client.version":       "DYNAMIC",
+					"error.type":                  "404",
+					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":             "googleapis/google-cloud-go",
+					"gcp.client.service":          "showcase",
+					"gcp.client.version":          "DYNAMIC",
 					"gcp.resource.destination.id": "DYNAMIC",
-					"http.request.method":      "POST",
-					"http.response.status_code": int64(404),
+					"http.request.method":         "POST",
+					"http.response.status_code":   int64(404),
 					"server.address":              "127.0.0.1",
-					"server.port":              int64(7469),
-					"status.message":           "not found",
-					"url.domain":               "showcase.googleapis.com",
-					"url.full":                 "DYNAMIC",
-					"url.template":             "/v1beta1/{name=sequences/*}",
+					"server.port":                 int64(7469),
+					"status.message":              "not found",
+					"url.domain":                  "showcase.googleapis.com",
+					"url.full":                    "DYNAMIC",
+					"url.template":                "/v1beta1/{name=sequences/*}",
 				}
 				unexpectedAttrs = []string{}
 			}
@@ -287,12 +287,12 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 		t.Run(transport, func(t *testing.T) {
 			fix, clientOpts := setupTracingTest(t, true, transport)
 			ctx := context.Background()
-			
+
 			var seqClient interface {
 				Close() error
 			}
 			var err error
-			
+
 			if transport == "grpc" {
 				seqClient, err = showcase.NewSequenceClient(ctx, clientOpts...)
 			} else {
@@ -319,37 +319,37 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 			if transport == "grpc" {
 				expectedName = "google.showcase.v1beta1.SequenceService/AttemptSequence"
 				wantAttrs = map[string]any{
-					"error.type":               "CLIENT_TIMEOUT",
-					"exception.type":           "*status.Error",
-					"gcp.client.artifact":      "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":          "googleapis/google-cloud-go",
-					"gcp.client.service":       "showcase",
-					"gcp.client.version":       "DYNAMIC",
+					"error.type":                  "CLIENT_TIMEOUT",
+					"exception.type":              "*status.Error",
+					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":             "googleapis/google-cloud-go",
+					"gcp.client.service":          "showcase",
+					"gcp.client.version":          "DYNAMIC",
 					"gcp.resource.destination.id": "DYNAMIC",
-					"rpc.method":               "google.showcase.v1beta1.SequenceService/AttemptSequence",
+					"rpc.method":                  "google.showcase.v1beta1.SequenceService/AttemptSequence",
 					"rpc.system.name":             "grpc",
 					"server.address":              "127.0.0.1",
-					"server.port":              int64(7469),
-					"status.message":           "context deadline exceeded",
-					"url.domain":               "showcase.googleapis.com",
+					"server.port":                 int64(7469),
+					"status.message":              "context deadline exceeded",
+					"url.domain":                  "showcase.googleapis.com",
 				}
 				unexpectedAttrs = []string{}
 			} else {
 				expectedName = "POST /v1beta1/{name=sequences/*}"
 				wantAttrs = map[string]any{
-					"error.type":               "context.deadlineExceededError",
-					"exception.type":           "context.deadlineExceededError",
-					"gcp.client.artifact":      "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":          "googleapis/google-cloud-go",
-					"gcp.client.service":       "showcase",
-					"gcp.client.version":       "DYNAMIC",
+					"error.type":                  "context.deadlineExceededError",
+					"exception.type":              "context.deadlineExceededError",
+					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":             "googleapis/google-cloud-go",
+					"gcp.client.service":          "showcase",
+					"gcp.client.version":          "DYNAMIC",
 					"gcp.resource.destination.id": "DYNAMIC",
 					"http.request.method":         "POST",
 					"server.address":              "127.0.0.1",
-					"server.port":              int64(7469),
-					"url.domain":               "showcase.googleapis.com",
-					"url.full":                 "DYNAMIC",
-					"url.template":             "/v1beta1/{name=sequences/*}",
+					"server.port":                 int64(7469),
+					"url.domain":                  "showcase.googleapis.com",
+					"url.full":                    "DYNAMIC",
+					"url.template":                "/v1beta1/{name=sequences/*}",
 				}
 				unexpectedAttrs = []string{}
 			}
@@ -365,7 +365,7 @@ func TestObservability_Tracing_Disablement(t *testing.T) {
 		t.Run(transport, func(t *testing.T) {
 			fix, clientOpts := setupTracingTest(t, false, transport)
 			ctx := context.Background()
-			
+
 			var seqClient interface {
 				Close() error
 			}
@@ -379,7 +379,7 @@ func TestObservability_Tracing_Disablement(t *testing.T) {
 				t.Fatalf("failed to create sequence client: %v", err)
 			}
 			t.Cleanup(func() { seqClient.Close() })
-			
+
 			ctxSpan, span := otel.Tracer("test-tracer").Start(context.Background(), "APP")
 			if transport == "grpc" {
 				runTracingDisablementScenario(ctxSpan, t, seqClient.(*showcase.SequenceClient))
@@ -397,7 +397,7 @@ func TestObservability_Tracing_Disablement(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 
 			spans := fix.traceServer.GetCapturedSpans()
-			
+
 			for _, s := range spans {
 				if _, ok := s.Attributes["gcp.client.artifact"]; ok {
 					t.Errorf("found gcp.client.artifact attribute, but tracing telemetry should be disabled")
@@ -413,12 +413,12 @@ func TestObservability_Tracing_Retry(t *testing.T) {
 		t.Run(transport, func(t *testing.T) {
 			fix, clientOpts := setupTracingTest(t, true, transport)
 			ctx := context.Background()
-			
+
 			var seqClient interface {
 				Close() error
 			}
 			var err error
-			
+
 			if transport == "grpc" {
 				seqClient, err = showcase.NewSequenceClient(ctx, clientOpts...)
 			} else {
@@ -461,7 +461,7 @@ func TestObservability_Tracing_Retry(t *testing.T) {
 			if len(attemptSpans) != 4 {
 				t.Errorf("expected 4 attempt spans (3 failures + 1 success), got %d", len(attemptSpans))
 			}
-			
+
 			// Verify last span has correct attributes
 			if len(attemptSpans) > 0 {
 				lastSpan := attemptSpans[len(attemptSpans)-1]

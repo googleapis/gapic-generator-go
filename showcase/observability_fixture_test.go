@@ -11,16 +11,16 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/sdk/resource"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	pblog "go.opentelemetry.io/proto/otlp/collector/logs/v1"
-	olog "go.opentelemetry.io/proto/otlp/logs/v1"
 	pbmetric "go.opentelemetry.io/proto/otlp/collector/metrics/v1"
 	pb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	v1common "go.opentelemetry.io/proto/otlp/common/v1"
+	olog "go.opentelemetry.io/proto/otlp/logs/v1"
 	"google.golang.org/grpc"
 )
 

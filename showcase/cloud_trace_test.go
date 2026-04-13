@@ -95,7 +95,7 @@ func setupCloudTrace(t *testing.T) string {
 		defer cancel()
 		tp.Shutdown(ctx)
 	})
-	
+
 	return projectID
 }
 
@@ -138,7 +138,7 @@ func TestObservability_Tracing_CloudTrace_Integration(t *testing.T) {
 		t.Fatalf("failed to create sequence client: %v", err)
 	}
 	t.Cleanup(func() { seqClient.Close() })
-	
+
 	echoClient, err := showcase.NewEchoClient(ctx, grpcClientOpts...)
 	if err != nil {
 		t.Fatalf("failed to create echo client: %v", err)
