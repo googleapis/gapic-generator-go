@@ -60,6 +60,26 @@ func (s *mockTraceServer) GetCapturedSpans() []CapturedSpan {
 			for _, ss := range rs.ScopeSpans {
 				for _, s := range ss.Spans {
 					attrs := make(map[string]any)
+					// Extract Resource attributes
+					if rs.Resource != nil {
+						for _, kv := range rs.Resource.Attributes {
+							if kv.Value != nil {
+								switch v := kv.Value.Value.(type) {
+								case *v1common.AnyValue_StringValue:
+									attrs[kv.Key] = v.StringValue
+								case *v1common.AnyValue_IntValue:
+									attrs[kv.Key] = v.IntValue
+								case *v1common.AnyValue_BoolValue:
+									attrs[kv.Key] = v.BoolValue
+								case *v1common.AnyValue_DoubleValue:
+									attrs[kv.Key] = v.DoubleValue
+								default:
+									attrs[kv.Key] = kv.Value.String()
+								}
+							}
+						}
+					}
+					// Extract Span attributes
 					for _, kv := range s.Attributes {
 						if kv.Value != nil {
 							switch v := kv.Value.Value.(type) {
@@ -71,7 +91,6 @@ func (s *mockTraceServer) GetCapturedSpans() []CapturedSpan {
 								attrs[kv.Key] = v.BoolValue
 							case *v1common.AnyValue_DoubleValue:
 								attrs[kv.Key] = v.DoubleValue
-							// other types omitted for brevity, but easily added later if needed
 							default:
 								attrs[kv.Key] = kv.Value.String()
 							}

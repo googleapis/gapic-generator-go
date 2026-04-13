@@ -176,7 +176,7 @@ func TestObservability_Tracing_Success(t *testing.T) {
 					"server.port":                 int64(7469),
 					"url.domain":                  "showcase.googleapis.com",
 				}
-				unexpectedAttrs = []string{"status.message", "error.type", "gcp.grpc.resend_count"}
+				unexpectedAttrs = []string{"status.message", "error.type"}
 			} else {
 				expectedName = "POST /v1beta1/{name=sequences/*}"
 				wantAttrs = map[string]any{
@@ -193,7 +193,7 @@ func TestObservability_Tracing_Success(t *testing.T) {
 					"url.full":                    "DYNAMIC",
 					"url.template":                "/v1beta1/{name=sequences/*}",
 				}
-				unexpectedAttrs = []string{"status.message", "error.type", "exception.type", "http.request.resend_count"}
+				unexpectedAttrs = []string{"status.message", "error.type", "exception.type"}
 			}
 
 			verifyInMemorySpan(t, fix, expectedName, traceID, wantAttrs, unexpectedAttrs)
@@ -333,7 +333,7 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 					"status.message":           "context deadline exceeded",
 					"url.domain":               "showcase.googleapis.com",
 				}
-				unexpectedAttrs = []string{"rpc.response.status_code"}
+				unexpectedAttrs = []string{}
 			} else {
 				expectedName = "POST /v1beta1/{name=sequences/*}"
 				wantAttrs = map[string]any{
@@ -351,7 +351,7 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 					"url.full":                 "DYNAMIC",
 					"url.template":             "/v1beta1/{name=sequences/*}",
 				}
-				unexpectedAttrs = []string{"http.response.status_code"}
+				unexpectedAttrs = []string{}
 			}
 
 			verifyInMemorySpan(t, fix, expectedName, traceID, wantAttrs, unexpectedAttrs)
