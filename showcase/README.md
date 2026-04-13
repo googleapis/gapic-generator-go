@@ -57,7 +57,7 @@ artifacts created by `showcase.bash`.
 
 ## How the telemetry tests work
 
-The telemetry tests in `cloud_trace_test.go` are integration tests that verify end-to-end tracing to the real Google Cloud Trace backend. They require specific setup and are separated from normal unit tests.
+The telemetry tests in `cloud_trace_test.go` are integration tests that verify end-to-end tracing to the real Google Cloud Trace backend. They require specific setup and are separated from normal Showcase tests.
 
 ### Prerequisites and Environment Variables
 
