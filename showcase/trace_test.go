@@ -104,6 +104,12 @@ func verifyInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName st
 			// ignore exception message as it contains arbitrary text sometimes
 			gotSpan.Attributes["exception.message"] = "DYNAMIC"
 		}
+		if msg, ok := gotSpan.Attributes["status.message"].(string); ok {
+			// Normalize timeout messages that can vary by environment
+			if msg == "stream terminated by RST_STREAM with error code: CANCEL" {
+				gotSpan.Attributes["status.message"] = "context deadline exceeded"
+			}
+		}
 
 		// Keep only the attributes we expect for diffing
 		filteredGot := make(map[string]any)
