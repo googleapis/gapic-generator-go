@@ -43,6 +43,11 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 )
 
+// setupCloudTrace configures and installs a new tracer provider with a GCP
+// resource detector that points to telemetry.googleapis.com. It retrieves the
+// project ID from the environment or default credentials, configures telemetry
+// environment variables, and initializes the OTLP exporter to send traces to
+// Cloud Trace.
 func setupCloudTrace(t *testing.T) string {
 	ctx := context.Background()
 	creds, err := google.FindDefaultCredentials(ctx, "https://www.googleapis.com/auth/cloud-platform")
@@ -113,7 +118,7 @@ func setupCloudTrace(t *testing.T) string {
 	return projectID
 }
 
-func verifyTrace(t *testing.T, ctx context.Context, traceClient *trace.Client, projectID string, traceID [16]byte) {
+func verifyTraceExists(t *testing.T, ctx context.Context, traceClient *trace.Client, projectID string, traceID [16]byte) {
 	traceIDStr := hex.EncodeToString(traceID[:])
 	t.Logf("Looking for trace %s in project %s", traceIDStr, projectID)
 
@@ -141,67 +146,107 @@ func TestObservability_Tracing_CloudTrace_Integration(t *testing.T) {
 	projectID := setupCloudTrace(t)
 	ctx := context.Background()
 
-	grpcClientOpts := []option.ClientOption{
-		option.WithEndpoint("127.0.0.1:7469"),
-		option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "dummy-token"})),
-		option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+	transports := []string{"grpc", "rest"}
+	for _, transport := range transports {
+		t.Run(transport, func(t *testing.T) {
+			var clientOpts []option.ClientOption
+			if transport == "grpc" {
+				clientOpts = []option.ClientOption{
+					option.WithEndpoint("127.0.0.1:7469"),
+					option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "dummy-token"})),
+					option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+				}
+			} else {
+				clientOpts = []option.ClientOption{
+					option.WithEndpoint("http://127.0.0.1:7469"),
+					option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "dummy-token"})),
+				}
+			}
+
+			var seqClient *showcase.SequenceClient
+			var err error
+			if transport == "grpc" {
+				seqClient, err = showcase.NewSequenceClient(ctx, clientOpts...)
+			} else {
+				seqClient, err = showcase.NewSequenceRESTClient(ctx, clientOpts...)
+			}
+			if err != nil {
+				t.Fatalf("failed to create sequence client: %v", err)
+			}
+			t.Cleanup(func() { seqClient.Close() })
+
+			var echoClient *showcase.EchoClient
+			if transport == "grpc" {
+				echoClient, err = showcase.NewEchoClient(ctx, clientOpts...)
+			} else {
+				echoClient, err = showcase.NewEchoRESTClient(ctx, clientOpts...)
+			}
+			if err != nil {
+				t.Fatalf("failed to create echo client: %v", err)
+			}
+			t.Cleanup(func() { echoClient.Close() })
+
+			traceClient, err := trace.NewClient(ctx)
+			if err != nil {
+				t.Fatalf("failed to create trace client: %v", err)
+			}
+			t.Cleanup(func() { traceClient.Close() })
+
+			// 1. Success Scenario
+			t.Run("Success", func(t *testing.T) {
+				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-Success-"+transport)
+				if transport == "grpc" {
+					_ = runTracingSuccessScenario(ctxSpan, t, seqClient)
+				} else {
+					_ = runTracingSuccessScenarioREST(ctxSpan, t, seqClient)
+				}
+				span.End()
+				traceID := span.SpanContext().TraceID()
+				otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
+				verifyTraceExists(t, ctx, traceClient, projectID, traceID)
+			})
+
+			// 2. Server Failure Scenario
+			t.Run("ServerFailure", func(t *testing.T) {
+				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-ServerFailure-"+transport)
+				if transport == "grpc" {
+					_ = runTracingServerFailureScenario(ctxSpan, t, seqClient)
+				} else {
+					_ = runTracingServerFailureScenarioREST(ctxSpan, t, seqClient)
+				}
+				span.End()
+				traceID := span.SpanContext().TraceID()
+				otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
+				verifyTraceExists(t, ctx, traceClient, projectID, traceID)
+			})
+
+			// 3. Client Failure Scenario
+			t.Run("ClientFailure", func(t *testing.T) {
+				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-ClientFailure-"+transport)
+				if transport == "grpc" {
+					_ = runTracingClientFailureScenario(ctxSpan, t, seqClient)
+				} else {
+					_ = runTracingClientFailureScenarioREST(ctxSpan, t, seqClient)
+				}
+				span.End()
+				traceID := span.SpanContext().TraceID()
+				otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
+				verifyTraceExists(t, ctx, traceClient, projectID, traceID)
+			})
+
+			// 4. Retry Scenario
+			t.Run("Retry", func(t *testing.T) {
+				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-Retry-"+transport)
+				if transport == "grpc" {
+					_ = runTracingRetryScenario(ctxSpan, t, seqClient)
+				} else {
+					_ = runTracingRetryScenarioREST(ctxSpan, t, seqClient)
+				}
+				span.End()
+				traceID := span.SpanContext().TraceID()
+				otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
+				verifyTraceExists(t, ctx, traceClient, projectID, traceID)
+			})
+		})
 	}
-
-	seqClient, err := showcase.NewSequenceClient(ctx, grpcClientOpts...)
-	if err != nil {
-		t.Fatalf("failed to create sequence client: %v", err)
-	}
-	t.Cleanup(func() { seqClient.Close() })
-
-	echoClient, err := showcase.NewEchoClient(ctx, grpcClientOpts...)
-	if err != nil {
-		t.Fatalf("failed to create echo client: %v", err)
-	}
-	t.Cleanup(func() { echoClient.Close() })
-
-	traceClient, err := trace.NewClient(ctx)
-	if err != nil {
-		t.Fatalf("failed to create trace client: %v", err)
-	}
-	t.Cleanup(func() { traceClient.Close() })
-
-	// 1. Success Scenario
-	t.Run("Success", func(t *testing.T) {
-		ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-Success")
-		_ = runTracingSuccessScenario(ctxSpan, t, seqClient)
-		span.End()
-		traceID := span.SpanContext().TraceID()
-		otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
-		verifyTrace(t, ctx, traceClient, projectID, traceID)
-	})
-
-	// 2. Server Failure Scenario
-	t.Run("ServerFailure", func(t *testing.T) {
-		ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-ServerFailure")
-		_ = runTracingServerFailureScenario(ctxSpan, t, seqClient)
-		span.End()
-		traceID := span.SpanContext().TraceID()
-		otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
-		verifyTrace(t, ctx, traceClient, projectID, traceID)
-	})
-
-	// 3. Client Failure Scenario
-	t.Run("ClientFailure", func(t *testing.T) {
-		ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-ClientFailure")
-		_ = runTracingClientFailureScenario(ctxSpan, t, seqClient)
-		span.End()
-		traceID := span.SpanContext().TraceID()
-		otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
-		verifyTrace(t, ctx, traceClient, projectID, traceID)
-	})
-
-	// 4. Retry Scenario
-	t.Run("Retry", func(t *testing.T) {
-		ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-Retry")
-		_ = runTracingRetryScenario(ctxSpan, t, seqClient)
-		span.End()
-		traceID := span.SpanContext().TraceID()
-		otel.GetTracerProvider().(*sdktrace.TracerProvider).ForceFlush(ctx)
-		verifyTrace(t, ctx, traceClient, projectID, traceID)
-	})
 }
