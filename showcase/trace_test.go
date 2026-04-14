@@ -487,14 +487,62 @@ func TestObservability_Tracing_Retry(t *testing.T) {
 			// Verify last span has correct attributes
 			if len(attemptSpans) > 0 {
 				lastSpan := attemptSpans[len(attemptSpans)-1]
+				var wantAttrs map[string]any
 				if transport == "rest" {
-					if resend, ok := lastSpan.Attributes["http.request.resend_count"]; !ok || resend.(int64) != 3 {
-						t.Errorf("expected http.request.resend_count to be 3, got %v", resend)
+					wantAttrs = map[string]any{
+						"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
+						"gcp.client.repo":             "googleapis/google-cloud-go",
+						"gcp.client.service":          "showcase",
+						"gcp.client.version":          "DYNAMIC",
+						"gcp.resource.destination.id": "DYNAMIC",
+						"http.request.method":         "POST",
+						"http.response.status_code":   int64(200),
+						"rpc.system.name":             "http",
+						"server.address":              "127.0.0.1",
+						"server.port":                 int64(7469),
+						"url.domain":                  "showcase.googleapis.com",
+						"url.full":                    "DYNAMIC",
+						"url.template":                "/v1beta1/{name=sequences/*}",
+						"http.request.resend_count":   int64(3),
 					}
 				} else if transport == "grpc" {
-					if resend, ok := lastSpan.Attributes["gcp.grpc.resend_count"]; !ok || resend.(int64) != 3 {
-						t.Errorf("expected gcp.grpc.resend_count to be 3, got %v", resend)
+					wantAttrs = map[string]any{
+						"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
+						"gcp.client.repo":             "googleapis/google-cloud-go",
+						"gcp.client.service":          "showcase",
+						"gcp.client.version":          "DYNAMIC",
+						"gcp.resource.destination.id": "DYNAMIC",
+						"rpc.method":                  "google.showcase.v1beta1.SequenceService/AttemptSequence",
+						"rpc.response.status_code":    "OK",
+						"rpc.system.name":             "grpc",
+						"server.address":              "127.0.0.1",
+						"server.port":                 int64(7469),
+						"url.domain":                  "showcase.googleapis.com",
+						"gcp.grpc.resend_count":       int64(3),
 					}
+				}
+
+				// Normalize dynamic attributes
+				if _, ok := lastSpan.Attributes["gcp.client.version"]; ok {
+					lastSpan.Attributes["gcp.client.version"] = "DYNAMIC"
+				}
+				if _, ok := lastSpan.Attributes["gcp.resource.destination.id"]; ok {
+					lastSpan.Attributes["gcp.resource.destination.id"] = "DYNAMIC"
+				}
+				if _, ok := lastSpan.Attributes["url.full"]; ok {
+					lastSpan.Attributes["url.full"] = "DYNAMIC"
+				}
+
+				// Filter and compare
+				filteredGot := make(map[string]any)
+				for k, v := range lastSpan.Attributes {
+					if _, expected := wantAttrs[k]; expected {
+						filteredGot[k] = v
+					}
+				}
+
+				if diff := cmp.Diff(wantAttrs, filteredGot); diff != "" {
+					t.Errorf("Last retry span attributes mismatch (-want +got):\n%s", diff)
 				}
 			}
 		})
