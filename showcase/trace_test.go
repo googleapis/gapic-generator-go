@@ -207,6 +207,7 @@ func TestObservability_Tracing_Success(t *testing.T) {
 					"gcp.resource.destination.id": "DYNAMIC",
 					"http.request.method":         "POST",
 					"http.response.status_code":   int64(200),
+					"rpc.system.name":             "http",
 					"server.address":              "127.0.0.1",
 					"server.port":                 int64(7469),
 					"url.domain":                  "showcase.googleapis.com",
