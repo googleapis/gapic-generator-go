@@ -368,6 +368,7 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 					"http.request.method":         "POST",
 					"server.address":              "127.0.0.1",
 					"server.port":                 int64(7469),
+					"status.message":              "context deadline exceeded",
 					"url.domain":                  "showcase.googleapis.com",
 					"url.full":                    "DYNAMIC",
 					"url.template":                "/v1beta1/{name=sequences/*}",
