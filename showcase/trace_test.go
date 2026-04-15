@@ -16,7 +16,9 @@ package showcase
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -101,28 +103,10 @@ func findInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName stri
 	return nil
 }
 
-func assertInMemorySpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[string]any, unexpectedAttrs []string) {
+func assertCapturedSpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[string]any, unexpectedAttrs []string, constraints map[string]func(any) error) {
 	t.Helper()
 
 	if wantAttrs != nil {
-		if _, ok := gotSpan.Attributes["gcp.client.version"]; ok {
-			gotSpan.Attributes["gcp.client.version"] = "DYNAMIC"
-		}
-		if _, ok := gotSpan.Attributes["gcp.resource.destination.id"]; ok {
-			gotSpan.Attributes["gcp.resource.destination.id"] = "DYNAMIC"
-		}
-		if _, ok := gotSpan.Attributes["url.full"]; ok {
-			gotSpan.Attributes["url.full"] = "DYNAMIC"
-		}
-		if _, ok := gotSpan.Attributes["exception.message"]; ok {
-			gotSpan.Attributes["exception.message"] = "DYNAMIC"
-		}
-		if msg, ok := gotSpan.Attributes["status.message"].(string); ok {
-			if msg == "stream terminated by RST_STREAM with error code: CANCEL" {
-				gotSpan.Attributes["status.message"] = "context deadline exceeded"
-			}
-		}
-
 		// Keep only the attributes we expect for diffing
 		filteredGot := make(map[string]any)
 		for k, v := range gotSpan.Attributes {
@@ -140,6 +124,31 @@ func assertInMemorySpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[strin
 		if _, ok := gotSpan.Attributes[attr]; ok {
 			t.Errorf("expected attribute %q to be NOT SET, but it was present", attr)
 		}
+	}
+
+	for attr, check := range constraints {
+		val := gotSpan.Attributes[attr]
+		if err := check(val); err != nil {
+			t.Errorf("constraint failed for attribute %q: %v", attr, err)
+		}
+	}
+}
+
+func checkNonEmpty(v any) error {
+	s, ok := v.(string)
+	if !ok || s == "" {
+		return fmt.Errorf("expected non-empty string, got %v", v)
+	}
+	return nil
+}
+
+func checkPrefix(prefix string) func(any) error {
+	return func(v any) error {
+		s, ok := v.(string)
+		if !ok || !strings.HasPrefix(s, prefix) {
+			return fmt.Errorf("expected string with prefix %q, got %v", prefix, v)
+		}
+		return nil
 	}
 }
 
@@ -182,41 +191,45 @@ func TestObservability_Tracing_Success(t *testing.T) {
 			if transport == "grpc" {
 				expectedName = "google.showcase.v1beta1.SequenceService/AttemptSequence"
 				wantAttrs = map[string]any{
-					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":             "googleapis/google-cloud-go",
-					"gcp.client.service":          "showcase",
-					"gcp.client.version":          "DYNAMIC",
-					"gcp.resource.destination.id": "DYNAMIC",
-					"rpc.method":                  "google.showcase.v1beta1.SequenceService/AttemptSequence",
-					"rpc.response.status_code":    "OK",
-					"rpc.system.name":             "grpc",
-					"server.address":              "127.0.0.1",
-					"server.port":                 int64(7469),
-					"url.domain":                  "showcase.googleapis.com",
+					"gcp.client.artifact":      "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":          "googleapis/google-cloud-go",
+					"gcp.client.service":       "showcase",
+					"rpc.method":               "google.showcase.v1beta1.SequenceService/AttemptSequence",
+					"rpc.response.status_code": "OK",
+					"rpc.system.name":          "grpc",
+					"server.address":           "127.0.0.1",
+					"server.port":              int64(7469),
+					"url.domain":               "showcase.googleapis.com",
 				}
 				unexpectedAttrs = []string{"status.message", "error.type"}
 			} else {
 				expectedName = "POST /v1beta1/{name=sequences/*}"
 				wantAttrs = map[string]any{
-					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":             "googleapis/google-cloud-go",
-					"gcp.client.service":          "showcase",
-					"gcp.client.version":          "DYNAMIC",
-					"gcp.resource.destination.id": "DYNAMIC",
-					"http.request.method":         "POST",
-					"http.response.status_code":   int64(200),
-					"rpc.system.name":             "http",
-					"server.address":              "127.0.0.1",
-					"server.port":                 int64(7469),
-					"url.domain":                  "showcase.googleapis.com",
-					"url.full":                    "DYNAMIC",
-					"url.template":                "/v1beta1/{name=sequences/*}",
+					"gcp.client.artifact":       "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":           "googleapis/google-cloud-go",
+					"gcp.client.service":        "showcase",
+					"http.request.method":       "POST",
+					"http.response.status_code": int64(200),
+					"rpc.system.name":           "http",
+					"server.address":            "127.0.0.1",
+					"server.port":               int64(7469),
+					"url.domain":                "showcase.googleapis.com",
+					"url.template":              "/v1beta1/{name=sequences/*}",
 				}
 				unexpectedAttrs = []string{"status.message", "error.type", "exception.type"}
 			}
 
 			capturedSpan := findInMemorySpan(t, fix, expectedName, traceID)
-			assertInMemorySpan(t, capturedSpan, wantAttrs, unexpectedAttrs)
+
+			constraints := map[string]func(any) error{
+				"gcp.client.version":          checkNonEmpty,
+				"gcp.resource.destination.id": checkNonEmpty,
+			}
+			if transport == "rest" {
+				constraints["url.full"] = checkNonEmpty
+			}
+
+			assertCapturedSpan(t, capturedSpan, wantAttrs, unexpectedAttrs, constraints)
 		})
 	}
 }
@@ -259,45 +272,48 @@ func TestObservability_Tracing_Failure(t *testing.T) {
 			if transport == "grpc" {
 				expectedName = "google.showcase.v1beta1.SequenceService/AttemptSequence"
 				wantAttrs = map[string]any{
-					"error.type":                  "NOT_FOUND",
-					"exception.type":              "*status.Error",
-					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":             "googleapis/google-cloud-go",
-					"gcp.client.service":          "showcase",
-					"gcp.client.version":          "DYNAMIC",
-					"gcp.resource.destination.id": "DYNAMIC",
-					"rpc.method":                  "google.showcase.v1beta1.SequenceService/AttemptSequence",
-					"rpc.response.status_code":    "NOT_FOUND",
-					"rpc.system.name":             "grpc",
-					"server.address":              "127.0.0.1",
-					"server.port":                 int64(7469),
-					"status.message":              "not found",
-					"url.domain":                  "showcase.googleapis.com",
+					"error.type":               "NOT_FOUND",
+					"exception.type":           "*status.Error",
+					"gcp.client.artifact":      "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":          "googleapis/google-cloud-go",
+					"gcp.client.service":       "showcase",
+					"rpc.method":               "google.showcase.v1beta1.SequenceService/AttemptSequence",
+					"rpc.response.status_code": "NOT_FOUND",
+					"rpc.system.name":          "grpc",
+					"server.address":           "127.0.0.1",
+					"server.port":              int64(7469),
+					"status.message":           "not found",
+					"url.domain":               "showcase.googleapis.com",
 				}
 				unexpectedAttrs = []string{}
 			} else {
 				expectedName = "POST /v1beta1/{name=sequences/*}"
 				wantAttrs = map[string]any{
-					"error.type":                  "404",
-					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":             "googleapis/google-cloud-go",
-					"gcp.client.service":          "showcase",
-					"gcp.client.version":          "DYNAMIC",
-					"gcp.resource.destination.id": "DYNAMIC",
-					"http.request.method":         "POST",
-					"http.response.status_code":   int64(404),
-					"server.address":              "127.0.0.1",
-					"server.port":                 int64(7469),
-					"status.message":              "not found",
-					"url.domain":                  "showcase.googleapis.com",
-					"url.full":                    "DYNAMIC",
-					"url.template":                "/v1beta1/{name=sequences/*}",
+					"error.type":                "404",
+					"gcp.client.artifact":       "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":           "googleapis/google-cloud-go",
+					"gcp.client.service":        "showcase",
+					"http.request.method":       "POST",
+					"http.response.status_code": int64(404),
+					"server.address":            "127.0.0.1",
+					"server.port":               int64(7469),
+					"status.message":            "not found",
+					"url.domain":                "showcase.googleapis.com",
+					"url.template":              "/v1beta1/{name=sequences/*}",
 				}
 				unexpectedAttrs = []string{}
 			}
 
 			capturedSpan := findInMemorySpan(t, fix, expectedName, traceID)
-			assertInMemorySpan(t, capturedSpan, wantAttrs, unexpectedAttrs)
+			constraints := map[string]func(any) error{
+				"gcp.client.version":          checkNonEmpty,
+				"gcp.resource.destination.id": checkNonEmpty,
+			}
+			if transport == "rest" {
+				constraints["url.full"] = checkNonEmpty
+			}
+
+			assertCapturedSpan(t, capturedSpan, wantAttrs, unexpectedAttrs, constraints)
 		})
 	}
 }
@@ -340,44 +356,47 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 			if transport == "grpc" {
 				expectedName = "google.showcase.v1beta1.SequenceService/AttemptSequence"
 				wantAttrs = map[string]any{
-					"error.type":                  "CLIENT_TIMEOUT",
-					"exception.type":              "*status.Error",
-					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":             "googleapis/google-cloud-go",
-					"gcp.client.service":          "showcase",
-					"gcp.client.version":          "DYNAMIC",
-					"gcp.resource.destination.id": "DYNAMIC",
-					"rpc.method":                  "google.showcase.v1beta1.SequenceService/AttemptSequence",
-					"rpc.system.name":             "grpc",
-					"server.address":              "127.0.0.1",
-					"server.port":                 int64(7469),
-					"status.message":              "context deadline exceeded",
-					"url.domain":                  "showcase.googleapis.com",
+					"error.type":          "CLIENT_TIMEOUT",
+					"exception.type":      "*status.Error",
+					"gcp.client.artifact": "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":     "googleapis/google-cloud-go",
+					"gcp.client.service":  "showcase",
+					"rpc.method":          "google.showcase.v1beta1.SequenceService/AttemptSequence",
+					"rpc.system.name":     "grpc",
+					"server.address":      "127.0.0.1",
+					"server.port":         int64(7469),
+					"status.message":      "context deadline exceeded",
+					"url.domain":          "showcase.googleapis.com",
 				}
 				unexpectedAttrs = []string{}
 			} else {
 				expectedName = "POST /v1beta1/{name=sequences/*}"
 				wantAttrs = map[string]any{
-					"error.type":                  "context.deadlineExceededError",
-					"exception.type":              "context.deadlineExceededError",
-					"gcp.client.artifact":         "github.com/googleapis/gapic-showcase/client",
-					"gcp.client.repo":             "googleapis/google-cloud-go",
-					"gcp.client.service":          "showcase",
-					"gcp.client.version":          "DYNAMIC",
-					"gcp.resource.destination.id": "DYNAMIC",
-					"http.request.method":         "POST",
-					"server.address":              "127.0.0.1",
-					"server.port":                 int64(7469),
-					"status.message":              "context deadline exceeded",
-					"url.domain":                  "showcase.googleapis.com",
-					"url.full":                    "DYNAMIC",
-					"url.template":                "/v1beta1/{name=sequences/*}",
+					"error.type":          "context.deadlineExceededError",
+					"exception.type":      "context.deadlineExceededError",
+					"gcp.client.artifact": "github.com/googleapis/gapic-showcase/client",
+					"gcp.client.repo":     "googleapis/google-cloud-go",
+					"gcp.client.service":  "showcase",
+					"http.request.method": "POST",
+					"server.address":      "127.0.0.1",
+					"server.port":         int64(7469),
+					"status.message":      "context deadline exceeded",
+					"url.domain":          "showcase.googleapis.com",
+					"url.template":        "/v1beta1/{name=sequences/*}",
 				}
 				unexpectedAttrs = []string{}
 			}
 
 			capturedSpan := findInMemorySpan(t, fix, expectedName, traceID)
-			assertInMemorySpan(t, capturedSpan, wantAttrs, unexpectedAttrs)
+			constraints := map[string]func(any) error{
+				"gcp.client.version":          checkNonEmpty,
+				"gcp.resource.destination.id": checkNonEmpty,
+			}
+			if transport == "rest" {
+				constraints["url.full"] = checkNonEmpty
+			}
+
+			assertCapturedSpan(t, capturedSpan, wantAttrs, unexpectedAttrs, constraints)
 		})
 	}
 }

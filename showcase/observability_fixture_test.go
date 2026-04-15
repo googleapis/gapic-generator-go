@@ -120,15 +120,12 @@ func (s *mockTraceServer) GetCapturedSpans() []CapturedSpan {
 	return spans
 }
 
-
-
-
 // observabilityFixture encapsulates an in-memory OTLP gRPC server and the
 // OpenTelemetry provider configurations for integration testing.
 type observabilityFixture struct {
-	grpcServer     *grpc.Server
-	traceServer    *mockTraceServer
-	provider       *sdktrace.TracerProvider
+	grpcServer  *grpc.Server
+	traceServer *mockTraceServer
+	provider    *sdktrace.TracerProvider
 }
 
 // setupObservabilityFixture creates an in-memory OTLP trace server and configures the OTel SDK to export to it.
@@ -187,8 +184,8 @@ func setupObservabilityFixture(t *testing.T) *observabilityFixture {
 	})
 
 	return &observabilityFixture{
-		grpcServer:     grpcServer,
-		traceServer:    traceServer,
-		provider:       tp,
+		grpcServer:  grpcServer,
+		traceServer: traceServer,
+		provider:    tp,
 	}
 }
