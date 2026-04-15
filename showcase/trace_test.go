@@ -25,7 +25,6 @@ import (
 	showcase "github.com/googleapis/gapic-showcase/client"
 	gax "github.com/googleapis/gax-go/v2"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
@@ -74,7 +73,7 @@ func setupTracingTest(t *testing.T, enableTracing bool, transport string) (*obse
 	return fix, clientOpts
 }
 
-func verifyInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName string, traceID trace.TraceID, wantAttrs map[string]any, unexpectedAttrs []string) {
+func findInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName string, traceID [16]byte) *CapturedSpan {
 	t.Helper()
 
 	// Force flush the provider to ensure traces are exported
@@ -92,17 +91,18 @@ func verifyInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName st
 		t.Fatalf("expected to receive trace exports, got none")
 	}
 
-	var gotSpan *CapturedSpan
 	for _, s := range spans {
 		if string(s.TraceID) == string(traceID[:]) && s.Name == expectedName {
-			gotSpan = &s
-			break
+			return &s
 		}
 	}
 
-	if gotSpan == nil {
-		t.Fatalf("did not find the expected client span")
-	}
+	t.Fatalf("did not find the expected client span %s", expectedName)
+	return nil
+}
+
+func assertInMemorySpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[string]any, unexpectedAttrs []string) {
+	t.Helper()
 
 	if wantAttrs != nil {
 		if _, ok := gotSpan.Attributes["gcp.client.version"]; ok {
@@ -115,11 +115,9 @@ func verifyInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName st
 			gotSpan.Attributes["url.full"] = "DYNAMIC"
 		}
 		if _, ok := gotSpan.Attributes["exception.message"]; ok {
-			// ignore exception message as it contains arbitrary text sometimes
 			gotSpan.Attributes["exception.message"] = "DYNAMIC"
 		}
 		if msg, ok := gotSpan.Attributes["status.message"].(string); ok {
-			// Normalize timeout messages that can vary by environment
 			if msg == "stream terminated by RST_STREAM with error code: CANCEL" {
 				gotSpan.Attributes["status.message"] = "context deadline exceeded"
 			}
@@ -217,7 +215,8 @@ func TestObservability_Tracing_Success(t *testing.T) {
 				unexpectedAttrs = []string{"status.message", "error.type", "exception.type"}
 			}
 
-			verifyInMemorySpan(t, fix, expectedName, traceID, wantAttrs, unexpectedAttrs)
+			capturedSpan := findInMemorySpan(t, fix, expectedName, traceID)
+			assertInMemorySpan(t, capturedSpan, wantAttrs, unexpectedAttrs)
 		})
 	}
 }
@@ -297,7 +296,8 @@ func TestObservability_Tracing_Failure(t *testing.T) {
 				unexpectedAttrs = []string{}
 			}
 
-			verifyInMemorySpan(t, fix, expectedName, traceID, wantAttrs, unexpectedAttrs)
+			capturedSpan := findInMemorySpan(t, fix, expectedName, traceID)
+			assertInMemorySpan(t, capturedSpan, wantAttrs, unexpectedAttrs)
 		})
 	}
 }
@@ -376,7 +376,8 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 				unexpectedAttrs = []string{}
 			}
 
-			verifyInMemorySpan(t, fix, expectedName, traceID, wantAttrs, unexpectedAttrs)
+			capturedSpan := findInMemorySpan(t, fix, expectedName, traceID)
+			assertInMemorySpan(t, capturedSpan, wantAttrs, unexpectedAttrs)
 		})
 	}
 }
