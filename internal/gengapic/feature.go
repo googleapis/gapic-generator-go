@@ -29,11 +29,12 @@ type featureInfo struct {
 
 // Define feature ID strings here.  More details about features are kept in the featureRegistry map.
 const (
-	WrapperTypesForPageSizeFeature   featureID = "wrapper_types_for_page_size"
-	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
+	DynamicResourceHeuristicsFeature featureID = "dynamic_resource_heuristics"
+	ExportSetGoogleClientInfoFeature featureID = "export_set_google_client_info"
 	MTLSHardBoundTokensFeature       featureID = "mtls_hard_bound_tokens"
 	OpenTelemetryAttributesFeature   featureID = "open_telemetry_attributes"
-	DynamicResourceHeuristicsFeature featureID = "dynamic_resource_heuristics"
+	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
+	WrapperTypesForPageSizeFeature   featureID = "wrapper_types_for_page_size"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -42,17 +43,21 @@ const (
 // who attempt to do so will be given a stern talking to.
 var featureRegistry = map[featureID]*featureInfo{
 
-	OpenTelemetryAttributesFeature: {
-		Description: "Enable OpenTelemetry attributes support (Service Identity, Resource Names, URL Templates).",
-		TrackingID:  "b/467342602,b/467403185",
-	},
 	DynamicResourceHeuristicsFeature: {
 		Description: "Enable dynamic resource name heuristics for unannotated legacy services.",
 		TrackingID:  "b/476980139",
 	},
+	ExportSetGoogleClientInfoFeature: {
+		Description: "Generated exported SetGoogleClientInfo function in client",
+		TrackingID:  "b/489495186",
+	},
 	MTLSHardBoundTokensFeature: {
 		Description: "support MTLS hard bound tokens",
 		TrackingID:  "b/327916505",
+	},
+	OpenTelemetryAttributesFeature: {
+		Description: "Enable OpenTelemetry attributes support (Service Identity, Resource Names, URL Templates).",
+		TrackingID:  "b/467342602,b/467403185",
 	},
 	OrderedRoutingHeadersFeature: {
 		Description: "Specify that routing headers are emitted in a deterministic fashion.  Primarily used for firestore.",

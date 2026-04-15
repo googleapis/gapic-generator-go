@@ -616,6 +616,25 @@ func TestClientInit(t *testing.T) {
 			wantNumSnps: 1,
 		},
 		{
+			tstName:   "exported_set_google_client_info_client_init",
+			servName:  "",
+			serv:      servPlain,
+			parameter: proto.String("go-gapic-package=path;mypackage,transport=grpc+rest"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "google.golang.org/api/option"}:                                true,
+				{Path: "google.golang.org/api/option/internaloption"}:                 true,
+				{Path: "net/http"}:                                                    true,
+				{Path: "context"}:                                                     true,
+				{Path: "google.golang.org/grpc"}:                                      true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:    true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:        true,
+				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
+				{Path: "log/slog"}:                                                    true,
+			},
+			features: []featureID{ExportSetGoogleClientInfoFeature},
+			wantNumSnps: 1,
+		},
+		{
 			tstName: "lro_client_init",
 			mixins: mixins{
 				"google.longrunning.Operations": operationsMethods(),
