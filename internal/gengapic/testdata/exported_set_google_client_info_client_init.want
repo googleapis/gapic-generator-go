@@ -39,6 +39,9 @@ func (c *Client) setGoogleClientInfo(keyval ...string) {
 // SetGoogleClientInfo sets the name and version of the application in
 // the `x-goog-api-client` header passed on each request. Intended for
 // use by Google-written clients.
+//
+// SetGoogleClientInfo is not concurrency-safe and should only be invoked
+// sequentially before concurrent operations begin.
 func (c *Client) SetGoogleClientInfo(keyval ...string) {
 	c.setGoogleClientInfo(keyval...)
 }
