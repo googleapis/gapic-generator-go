@@ -235,6 +235,18 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 	p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", servName)
 	p("  c.internalClient.setGoogleClientInfo(keyval...)")
 	p("}")
+	if g.featureEnabled(ExportSetGoogleClientInfoFeature) {
+		p("")
+		p("// SetGoogleClientInfo sets the name and version of the application in")
+		p("// the `x-goog-api-client` header passed on each request. Intended for")
+		p("// use by Google-written clients.")
+		p("//")
+		p("// SetGoogleClientInfo is not concurrency-safe and should only be invoked")
+		p("// sequentially before concurrent operations begin.")
+		p("func (c *%sClient) SetGoogleClientInfo(keyval ...string) {", servName)
+		p("  c.setGoogleClientInfo(keyval...)")
+		p("}")
+	}
 	p("")
 	p("// Connection returns a connection to the API service.")
 	p("//")
