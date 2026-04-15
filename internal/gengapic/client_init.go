@@ -241,7 +241,7 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 		p("// the `x-goog-api-client` header passed on each request. Intended for")
 		p("// use by Google-written clients.")
 		p("func (c *%sClient) SetGoogleClientInfo(keyval ...string) {", servName)
-		p("  c.internalClient.setGoogleClientInfo(keyval...)")
+		p("  c.setGoogleClientInfo(keyval...)")
 		p("}")
 	}
 	p("")

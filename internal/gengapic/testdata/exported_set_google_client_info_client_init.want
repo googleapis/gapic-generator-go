@@ -40,7 +40,7 @@ func (c *Client) setGoogleClientInfo(keyval ...string) {
 // the `x-goog-api-client` header passed on each request. Intended for
 // use by Google-written clients.
 func (c *Client) SetGoogleClientInfo(keyval ...string) {
-	c.internalClient.setGoogleClientInfo(keyval...)
+	c.setGoogleClientInfo(keyval...)
 }
 
 // Connection returns a connection to the API service.
