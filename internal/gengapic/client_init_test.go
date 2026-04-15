@@ -631,7 +631,7 @@ func TestClientInit(t *testing.T) {
 				{Name: "httptransport", Path: "google.golang.org/api/transport/http"}: true,
 				{Path: "log/slog"}:                                                    true,
 			},
-			features: []featureID{ExportSetGoogleClientInfoFeature},
+			features:    []featureID{ExportSetGoogleClientInfoFeature},
 			wantNumSnps: 1,
 		},
 		{
