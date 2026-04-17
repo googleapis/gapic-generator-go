@@ -172,7 +172,19 @@ func checkPrefix(prefix string) func(any) error {
 	}
 }
 
-func addResourceConstraints(constraints map[string]func(any) error) {
+func addResourceConstraints(gotAttrs map[string]any, constraints map[string]func(any) error) {
+	// Only enforce GCP resource attributes if we are actually running on GCP
+	// and the detector found them. In non-GCP environments like standard CI
+	// runners (e.g., GitHub Actions), the gcp.NewDetector() (which queries the
+	// GCP metadata server) will fail to find metadata and return an empty resource,
+	// causing these attributes to be missing.
+	// We use the presence of "cloud.provider" (set to "gcp" by gcp.NewDetector()
+	// when successful) as a heuristic to detect if we are running in an
+	// environment that successfully resolved GCP resource metadata.
+	if _, ok := gotAttrs["cloud.provider"]; !ok {
+		return
+	}
+
 	resourceAttrs := []string{
 		"cloud.provider",
 		"cloud.platform",
@@ -270,7 +282,7 @@ func TestObservability_Tracing_Success(t *testing.T) {
 				"gcp.client.version":          checkNonEmpty,
 				"gcp.resource.destination.id": checkNonEmpty,
 			}
-			addResourceConstraints(constraints)
+			addResourceConstraints(capturedSpan.Attributes, constraints)
 			if transport == "rest" {
 				constraints["url.full"] = checkNonEmpty
 				constraints["network.protocol.version"] = checkNonEmpty
@@ -359,7 +371,7 @@ func TestObservability_Tracing_Failure(t *testing.T) {
 				"gcp.client.version":          checkNonEmpty,
 				"gcp.resource.destination.id": checkNonEmpty,
 			}
-			addResourceConstraints(constraints)
+			addResourceConstraints(capturedSpan.Attributes, constraints)
 			if transport == "rest" {
 				constraints["url.full"] = checkNonEmpty
 				constraints["network.protocol.version"] = checkNonEmpty
@@ -447,7 +459,7 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 				"gcp.client.version":          checkNonEmpty,
 				"gcp.resource.destination.id": checkNonEmpty,
 			}
-			addResourceConstraints(constraints)
+			addResourceConstraints(capturedSpan.Attributes, constraints)
 			if transport == "rest" {
 				constraints["url.full"] = checkNonEmpty
 				constraints["network.protocol.version"] = checkNonEmpty
