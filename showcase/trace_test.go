@@ -103,7 +103,7 @@ func findInMemorySpan(t *testing.T, fix *observabilityFixture, expectedName stri
 	return nil
 }
 
-func assertCapturedSpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[string]any, unexpectedAttrs []string, constraints map[string]func(any) error) {
+func assertCapturedSpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[string]any, constraints map[string]func(any) error) {
 	t.Helper()
 
 	if wantAttrs != nil {
@@ -120,12 +120,6 @@ func assertCapturedSpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[strin
 		}
 	}
 
-	for _, attr := range unexpectedAttrs {
-		if _, ok := gotSpan.Attributes[attr]; ok {
-			t.Errorf("expected attribute %q to be NOT SET, but it was present", attr)
-		}
-	}
-
 	for attr, check := range constraints {
 		val := gotSpan.Attributes[attr]
 		if err := check(val); err != nil {
@@ -139,17 +133,7 @@ func assertCapturedSpan(t *testing.T, gotSpan *CapturedSpan, wantAttrs map[strin
 		_, inConstraints := constraints[k]
 
 		if !inWant && !inConstraints {
-			// Check if it was explicitly expected to be absent
-			isUnexpected := false
-			for _, u := range unexpectedAttrs {
-				if u == k {
-					isUnexpected = true
-					break
-				}
-			}
-			if !isUnexpected {
-				t.Errorf("unexpected attribute found: %q", k)
-			}
+			t.Errorf("unexpected attribute found: %q", k)
 		}
 	}
 }
@@ -170,6 +154,13 @@ func checkPrefix(prefix string) func(any) error {
 		}
 		return nil
 	}
+}
+
+func checkAbsent(v any) error {
+	if v != nil {
+		return fmt.Errorf("expected attribute to be NOT SET, but it was present")
+	}
+	return nil
 }
 
 func addResourceConstraints(gotAttrs map[string]any, constraints map[string]func(any) error) {
@@ -288,7 +279,11 @@ func TestObservability_Tracing_Success(t *testing.T) {
 				constraints["network.protocol.version"] = checkNonEmpty
 			}
 
-			assertCapturedSpan(t, capturedSpan, wantAttrs, unexpectedAttrs, constraints)
+			for _, attr := range unexpectedAttrs {
+				constraints[attr] = checkAbsent
+			}
+
+			assertCapturedSpan(t, capturedSpan, wantAttrs, constraints)
 		})
 	}
 }
@@ -377,7 +372,11 @@ func TestObservability_Tracing_Failure(t *testing.T) {
 				constraints["network.protocol.version"] = checkNonEmpty
 			}
 
-			assertCapturedSpan(t, capturedSpan, wantAttrs, unexpectedAttrs, constraints)
+			for _, attr := range unexpectedAttrs {
+				constraints[attr] = checkAbsent
+			}
+
+			assertCapturedSpan(t, capturedSpan, wantAttrs, constraints)
 		})
 	}
 }
@@ -467,7 +466,11 @@ func TestObservability_Tracing_ClientFailure(t *testing.T) {
 				constraints["rpc.response.status_code"] = checkNonEmpty
 			}
 
-			assertCapturedSpan(t, capturedSpan, wantAttrs, unexpectedAttrs, constraints)
+			for _, attr := range unexpectedAttrs {
+				constraints[attr] = checkAbsent
+			}
+
+			assertCapturedSpan(t, capturedSpan, wantAttrs, constraints)
 		})
 	}
 }
