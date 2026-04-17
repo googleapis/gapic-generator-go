@@ -20,6 +20,9 @@ test:
 	go install ./cmd/protoc-gen-go_gapic
 	cd showcase && ./showcase.bash && cd .. && ./test.sh
 
+test-telemetry:
+	cd showcase && ./showcase.bash -tags=telemetry -run TestObservability_Tracing_CloudTrace_Integration
+
 install:
 	go install ./cmd/protoc-gen-go_gapic
 	go install ./cmd/protoc-gen-go_cli
