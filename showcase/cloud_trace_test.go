@@ -192,7 +192,6 @@ func TestObservability_Tracing_CloudTrace_Integration(t *testing.T) {
 			}
 			t.Cleanup(func() { traceClient.Close() })
 
-			// 1. Success Scenario
 			t.Run("Success", func(t *testing.T) {
 				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-Success-"+transport)
 				if transport == "grpc" {
@@ -206,7 +205,6 @@ func TestObservability_Tracing_CloudTrace_Integration(t *testing.T) {
 				verifyTraceExists(t, ctx, traceClient, projectID, traceID)
 			})
 
-			// 2. Server Failure Scenario
 			t.Run("ServerFailure", func(t *testing.T) {
 				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-ServerFailure-"+transport)
 				if transport == "grpc" {
@@ -220,7 +218,6 @@ func TestObservability_Tracing_CloudTrace_Integration(t *testing.T) {
 				verifyTraceExists(t, ctx, traceClient, projectID, traceID)
 			})
 
-			// 3. Client Failure Scenario
 			t.Run("ClientFailure", func(t *testing.T) {
 				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-ClientFailure-"+transport)
 				if transport == "grpc" {
@@ -234,7 +231,6 @@ func TestObservability_Tracing_CloudTrace_Integration(t *testing.T) {
 				verifyTraceExists(t, ctx, traceClient, projectID, traceID)
 			})
 
-			// 4. Retry Scenario
 			t.Run("Retry", func(t *testing.T) {
 				ctxSpan, span := otel.Tracer("test-tracer").Start(ctx, "APP-Retry-"+transport)
 				if transport == "grpc" {
