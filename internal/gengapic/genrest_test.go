@@ -894,6 +894,7 @@ func TestGenRestMethod(t *testing.T) {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tst.name), func(t *testing.T) {
 			s.Method = []*descriptorpb.MethodDescriptorProto{tst.method}
 			g.cfg = tst.cfg
+			g.cfg.pkgPath = "github.com/my/pkg"
 			g.imports = make(map[pbinfo.ImportSpec]bool)
 			g.cfg.APIServiceConfig = &serviceconfig.Service{
 				Http: &annotations.Http{

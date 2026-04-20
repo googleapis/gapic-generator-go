@@ -8,6 +8,7 @@ func (c *fooGRPCClient) ServerThings(ctx context.Context, req *mypackagepb.Input
 	}
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/ServerThings")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.ServerThings")
 	}
 	opts = append((*c.CallOptions).ServerThings[0:len((*c.CallOptions).ServerThings):len((*c.CallOptions).ServerThings)], opts...)
 	var resp mypackagepb.Foo_ServerThingsClient

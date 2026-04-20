@@ -8,6 +8,7 @@ func (c *fooGRPCClient) GetManyThings(ctx context.Context, req *mypackagepb.Page
 	}
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetManyThings")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.GetManyThings")
 	}
 	opts = append((*c.CallOptions).GetManyThings[0:len((*c.CallOptions).GetManyThings):len((*c.CallOptions).GetManyThings)], opts...)
 	it := &StringIterator{}

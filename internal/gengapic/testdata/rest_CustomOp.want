@@ -21,6 +21,7 @@ func (c *fooRESTClient) CustomOp(ctx context.Context, req *foopb.Foo, opts ...ga
 	headers := gax.BuildHeaders(ctx, hds...)
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "google.cloud.foo.v1.FooService/CustomOp")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.CustomOp")
 		ctx = callctx.WithTelemetryContext(ctx, "url_template", "/v1/foo")
 	}
 	opts = append((*c.CallOptions).CustomOp[0:len((*c.CallOptions).CustomOp):len((*c.CallOptions).CustomOp)], opts...)

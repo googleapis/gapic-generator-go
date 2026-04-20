@@ -2,6 +2,7 @@ func (c *fooGRPCClient) BidiThings(ctx context.Context, opts ...gax.CallOption) 
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/BidiThings")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.BidiThings")
 	}
 	var resp mypackagepb.Foo_BidiThingsClient
 	opts = append((*c.CallOptions).BidiThings[0:len((*c.CallOptions).BidiThings):len((*c.CallOptions).BidiThings)], opts...)
