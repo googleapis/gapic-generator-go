@@ -40,6 +40,7 @@ const (
 	alpha                   = "alpha"
 	beta                    = "beta"
 	deprecated              = "deprecated"
+	baseClientPrefix        = "Base"
 	fieldTypeBool           = descriptorpb.FieldDescriptorProto_TYPE_BOOL
 	fieldTypeString         = descriptorpb.FieldDescriptorProto_TYPE_STRING
 	fieldTypeBytes          = descriptorpb.FieldDescriptorProto_TYPE_BYTES
@@ -344,7 +345,7 @@ func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.cfg.pkgName, override)
 	if g.isInternalService(serv) {
-		servName = "Base" + servName
+		servName = baseClientPrefix + servName
 	}
 
 	g.clientHook(servName)

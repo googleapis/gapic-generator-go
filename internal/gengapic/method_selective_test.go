@@ -1,13 +1,27 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package gengapic
 
 import (
 	"testing"
 
+	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
 )
 
 func TestMethodSelectiveGeneration(t *testing.T) {
@@ -26,7 +40,7 @@ func TestMethodSelectiveGeneration(t *testing.T) {
 		Method: []*descriptorpb.MethodDescriptorProto{fooMethod, barMethod},
 	}
 	mixinSrv := &descriptorpb.ServiceDescriptorProto{
-		Name: proto.String("MixinService"),
+		Name:   proto.String("MixinService"),
 		Method: []*descriptorpb.MethodDescriptorProto{mixinMethod},
 	}
 
@@ -41,15 +55,15 @@ func TestMethodSelectiveGeneration(t *testing.T) {
 
 	descInfo := pbinfo.Info{
 		ParentFile: map[proto.Message]*descriptorpb.FileDescriptorProto{
-			srv: file,
-			fooMethod: file,
-			barMethod: file,
+			srv:         file,
+			fooMethod:   file,
+			barMethod:   file,
 			mixinMethod: mixinFile,
-			mixinSrv: mixinFile,
+			mixinSrv:    mixinFile,
 		},
 		ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
-			fooMethod: srv,
-			barMethod: srv,
+			fooMethod:   srv,
+			barMethod:   srv,
 			mixinMethod: mixinSrv,
 		},
 	}
@@ -66,70 +80,70 @@ func TestMethodSelectiveGeneration(t *testing.T) {
 		wantBasePrefix bool
 	}{
 		{
-			name: "No selective gen",
-			cfg:  nil,
-			wantFooGen:  true,
-			wantFooName: "Foo",
-			wantBarGen:  true,
-			wantBarName: "Bar",
-			wantMixinGen: true,
-			wantMixinName: "GetMixin",
+			name:           "No selective gen",
+			cfg:            nil,
+			wantFooGen:     true,
+			wantFooName:    "Foo",
+			wantBarGen:     true,
+			wantBarName:    "Bar",
+			wantMixinGen:   true,
+			wantMixinName:  "GetMixin",
 			wantBasePrefix: false,
 		},
 		{
 			name: "Empty methods, no generate_omitted",
 			cfg: &annotations.SelectiveGapicGeneration{
-				Methods: []string{},
+				Methods:                   []string{},
 				GenerateOmittedAsInternal: false,
 			},
-			wantFooGen:  true,
-			wantFooName: "Foo",
-			wantBarGen:  true,
-			wantBarName: "Bar",
-			wantMixinGen: true,
-			wantMixinName: "GetMixin",
+			wantFooGen:     true,
+			wantFooName:    "Foo",
+			wantBarGen:     true,
+			wantBarName:    "Bar",
+			wantMixinGen:   true,
+			wantMixinName:  "GetMixin",
 			wantBasePrefix: false,
 		},
 		{
 			name: "Empty methods, generate_omitted",
 			cfg: &annotations.SelectiveGapicGeneration{
-				Methods: []string{},
+				Methods:                   []string{},
 				GenerateOmittedAsInternal: true,
 			},
-			wantFooGen:  true,
-			wantFooName: "foo",
-			wantBarGen:  true,
-			wantBarName: "bar",
-			wantMixinGen: true,
-			wantMixinName: "getMixin",
+			wantFooGen:     true,
+			wantFooName:    "foo",
+			wantBarGen:     true,
+			wantBarName:    "bar",
+			wantMixinGen:   true,
+			wantMixinName:  "getMixin",
 			wantBasePrefix: true,
 		},
 		{
 			name: "Foo only, no generate_omitted",
 			cfg: &annotations.SelectiveGapicGeneration{
-				Methods: []string{"my.pkg.MyService.Foo"},
+				Methods:                   []string{"my.pkg.MyService.Foo"},
 				GenerateOmittedAsInternal: false,
 			},
-			wantFooGen:  true,
-			wantFooName: "Foo",
-			wantBarGen:  false,
-			wantBarName: "Bar",
-			wantMixinGen: false,
-			wantMixinName: "GetMixin",
+			wantFooGen:     true,
+			wantFooName:    "Foo",
+			wantBarGen:     false,
+			wantBarName:    "Bar",
+			wantMixinGen:   false,
+			wantMixinName:  "GetMixin",
 			wantBasePrefix: false,
 		},
 		{
 			name: "Foo and Mixin, generate_omitted",
 			cfg: &annotations.SelectiveGapicGeneration{
-				Methods: []string{"my.pkg.MyService.Foo", "google.mixin.v1.MixinService.GetMixin"},
+				Methods:                   []string{"my.pkg.MyService.Foo", "google.mixin.v1.MixinService.GetMixin"},
 				GenerateOmittedAsInternal: true,
 			},
-			wantFooGen:  true,
-			wantFooName: "Foo",
-			wantBarGen:  true,
-			wantBarName: "bar",
-			wantMixinGen: true,
-			wantMixinName: "GetMixin",
+			wantFooGen:     true,
+			wantFooName:    "Foo",
+			wantBarGen:     true,
+			wantBarName:    "bar",
+			wantMixinGen:   true,
+			wantMixinName:  "GetMixin",
 			wantBasePrefix: true,
 		},
 	}

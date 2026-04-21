@@ -736,16 +736,16 @@ func TestClientInit(t *testing.T) {
 			features: []featureID{OpenTelemetryAttributesFeature},
 		},
 		{
-			tstName:  "selective_gapic_client_init",
-			servName: "BaseFoo",
-			serv:     servSelective,
+			tstName:   "selective_gapic_client_init",
+			servName:  "BaseFoo",
+			serv:      servSelective,
 			parameter: proto.String("go-gapic-package=path;mypackage,F_selective_gapic_generation"),
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                                                  true,
-				{Path: "google.golang.org/api/option"}:                              true,
-				{Path: "google.golang.org/grpc"}:                                     true,
-				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:  true,
-				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:      true,
+				{Path: "google.golang.org/api/option"}:                             true,
+				{Path: "google.golang.org/grpc"}:                                   true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
 				{Path: "log/slog"}:                                                 true,
 			},
 			wantNumSnps: 2,
@@ -767,16 +767,16 @@ func TestClientInit(t *testing.T) {
 			},
 		},
 		{
-			tstName:  "selective_gapic_client_init_omitted",
-			servName: "Foo",
-			serv:     servSelective,
+			tstName:   "selective_gapic_client_init_omitted",
+			servName:  "Foo",
+			serv:      servSelective,
 			parameter: proto.String("go-gapic-package=path;mypackage,F_selective_gapic_generation"),
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "context"}:                                                  true,
-				{Path: "google.golang.org/api/option"}:                              true,
-				{Path: "google.golang.org/grpc"}:                                     true,
-				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}:  true,
-				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:      true,
+				{Path: "google.golang.org/api/option"}:                             true,
+				{Path: "google.golang.org/grpc"}:                                   true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
 				{Path: "log/slog"}:                                                 true,
 			},
 			wantNumSnps: 1,
@@ -843,7 +843,7 @@ func TestClientInit(t *testing.T) {
 			}
 			g.mixins = tst.mixins
 			g.cfg.APIServiceConfig = &serviceconfig.Service{
-				Name: "foo.googleapis.com",
+				Name:       "foo.googleapis.com",
 				Publishing: tst.publishing,
 				Apis: []*apipb.Api{
 					{Name: "foo.bar.Baz"},
