@@ -41,7 +41,7 @@ func (g *generator) clientOptions(serv *descriptorpb.ServiceDescriptorProto, ser
 
 	// CallOptions struct
 	{
-		methods := append(serv.GetMethod(), g.getMixinMethods()...)
+		methods := g.getMethods(serv)
 
 		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", servName)
 		p("type %sCallOptions struct {", servName)
@@ -83,7 +83,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
 
 	// The mixin methods are for manipulating LROs, IAM, and Location.
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	if len(methods) > 0 {
 		g.imports[pbinfo.ImportSpec{Path: "context"}] = true
@@ -99,7 +99,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 		g.imports[inSpec] = true
 		if m.GetOutputType() == emptyType {
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) error",
-				m.GetName(),
+				g.methodName(m),
 				inSpec.Name,
 				inType.GetName())
 			continue
@@ -113,7 +113,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 				return err
 			}
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) *%s",
-				m.GetName(),
+				g.methodName(m),
 				inSpec.Name,
 				inType.GetName(),
 				iter.iterTypeName)
@@ -126,17 +126,17 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 			// longrunning.Operation and more precise types
 			lroType := lroTypeName(m)
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), lroType)
+				g.methodName(m), inSpec.Name, inType.GetName(), lroType)
 			p("%[1]s(name string) *%[1]s", lroType)
 
 		case m.GetClientStreaming():
 			// Handles both client-streaming and bidi-streaming
 			p("%s(context.Context, ...gax.CallOption) (%s.%s_%sClient, error)",
-				m.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+				g.methodName(m), inSpec.Name, serv.GetName(), m.GetName())
 		case m.GetServerStreaming():
 			// Handles _just_ server streaming
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s.%s_%sClient, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+				g.methodName(m), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
 		default:
 			retTyp, err := g.returnType(m)
 			if err != nil {
@@ -144,7 +144,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 			}
 
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+				g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 		}
 	}
 	p("}")
@@ -256,13 +256,14 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 	p("  return c.internalClient.Connection()")
 	p("}")
 	p("")
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 	for _, m := range methods {
 		g.genClientWrapperMethod(m, serv, servName)
 	}
 }
 
 func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto, serv *descriptorpb.ServiceDescriptorProto, servName string) error {
+	methodName := g.methodName(m)
 	p := g.printf
 
 	// This cannot be servName since that is a shortened version and the
@@ -284,8 +285,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 	if m.GetOutputType() == emptyType {
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) error {",
-			clientTypeName, m.GetName(), reqTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -297,8 +298,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		lroType := lroTypeName(m)
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (*%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, lroType)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, lroType)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 		p("// %s returns a new %[1]s from a given name.", lroType)
@@ -322,8 +323,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 			return err
 		}
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) *%s {",
-			clientTypeName, m.GetName(), reqTyp, iter.iterTypeName)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, iter.iterTypeName)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -341,8 +342,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 
 		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
 		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), retTyp)
-		p("    return c.internalClient.%s(ctx, opts...)", m.GetName())
+			clientTypeName, methodName, retTyp)
+		p("    return c.internalClient.%s(ctx, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -358,8 +359,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, retTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, retTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -374,8 +375,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		}
 
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, retTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, retTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -388,7 +389,7 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 
 func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	var hasLRO bool
-	for _, m := range serv.GetMethod() {
+	for _, m := range g.getMethods(serv) {
 		if g.isLRO(m) {
 			hasLRO = true
 			break

@@ -35,7 +35,7 @@ func (g *generator) noRequestStreamCall(servName string, s *descriptorpb.Service
 
 	retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s, error) {",
-		lowcaseServName, m.GetName(), retTyp)
+		lowcaseServName, g.methodName(m), retTyp)
 	g.insertRequestHeaders(nil, grpc)
 	g.injectTelemetryContext(m, nil)
 	p("  var resp %s", retTyp)
@@ -78,7 +78,7 @@ func (g *generator) serverStreamCall(servName string, s *descriptorpb.ServiceDes
 
 	retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, s.GetName(), m.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)

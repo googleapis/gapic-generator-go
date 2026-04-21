@@ -37,7 +37,7 @@ func lowcaseGRPCClientName(servName string) string {
 func (g *generator) genGRPCMethods(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 	for _, m := range methods {
 		if err := g.genGRPCMethod(servName, serv, m); err != nil {
 			return fmt.Errorf("error generating method %q: %v", m.GetName(), err)
@@ -101,7 +101,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 	lowcaseServName := lowcaseGRPCClientName(servName)
 	retTyp := fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
@@ -141,7 +141,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName())
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
@@ -211,7 +211,7 @@ func (g *generator) grpcCallOptions(serv *descriptorpb.ServiceDescriptorProto, s
 	// defaultCallOptions
 	c := g.cfg.gRPCServiceConfig
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	// read retry params from gRPC ServiceConfig
 	p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
@@ -379,7 +379,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("      }),")
 		p("    )")
 		p("")
-		methods := append(serv.GetMethod(), g.getMixinMethods()...)
+		methods := g.getMethods(serv)
 		for _, m := range methods {
 			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientMetrics(metrics))", m.GetName(), m.GetName())
 		}

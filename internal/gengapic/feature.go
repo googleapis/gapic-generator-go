@@ -34,6 +34,7 @@ const (
 	MTLSHardBoundTokensFeature       featureID = "mtls_hard_bound_tokens"
 	OpenTelemetryAttributesFeature   featureID = "open_telemetry_attributes"
 	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
+	SelectiveGapicGenerationFeature  featureID = "selective_gapic_generation"
 	WrapperTypesForPageSizeFeature   featureID = "wrapper_types_for_page_size"
 )
 
@@ -61,6 +62,9 @@ var featureRegistry = map[featureID]*featureInfo{
 	},
 	OrderedRoutingHeadersFeature: {
 		Description: "Specify that routing headers are emitted in a deterministic fashion.  Primarily used for firestore.",
+	},
+	SelectiveGapicGenerationFeature: {
+		Description: "Enable selective GAPIC generation, reducing public surface area based on config.",
 	},
 	WrapperTypesForPageSizeFeature: {
 		Description: "Allow List RPCs to generator with support for protobuf wrapper types (e.g. Int32Value, etc).",

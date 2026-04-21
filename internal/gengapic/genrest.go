@@ -106,7 +106,7 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 func (g *generator) genRESTMethods(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "rest", servName)
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	for _, m := range methods {
 		g.methodDoc(m, serv)
@@ -201,7 +201,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("            }),")
 		p("        )")
 		p("")
-		methods := append(serv.GetMethod(), g.getMixinMethods()...)
+		methods := g.getMethods(serv)
 		for _, m := range methods {
 			p("        callOpts.%s = append(callOpts.%s, gax.WithClientMetrics(metrics))", m.GetName(), m.GetName())
 		}
@@ -658,7 +658,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 
 	// rest-client method
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), servSpec.Name, s.GetName(), m.GetName())
 	body, logBody := "nil", "nil"
 	verb := strings.ToUpper(info.verb)
 
@@ -794,7 +794,7 @@ func (g *generator) noRequestStreamRESTCall(servName string, s *descriptorpb.Ser
 	lowcaseServName := lowcaseRestClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s.%s_%sClient, error) {",
-		lowcaseServName, m.GetName(), servSpec.Name, s.GetName(), m.GetName())
+		lowcaseServName, g.methodName(m), servSpec.Name, s.GetName(), m.GetName())
 	p(`  return nil, errors.New("%s not yet supported for REST clients")`, m.GetName())
 	p("}")
 	p("")
@@ -835,7 +835,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	}
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
 
@@ -936,7 +936,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 
 	opWrapperType := lroTypeName(m)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), opWrapperType)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), opWrapperType)
 
 	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(noahdietz): handle cancellation, metadata, osv.
@@ -1033,7 +1033,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName())
 
 	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(dovs): handle cancellation, metadata, osv.
@@ -1122,7 +1122,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 	p := g.printf
 	lowcaseServName := lowcaseRestClientName(servName)
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 
 	g.initializeAutoPopulatedFields(servName, m)
 	// TODO(dovs): handle cancellation, metadata, osv.
@@ -1241,7 +1241,7 @@ func (g *generator) restCallOptions(serv *descriptorpb.ServiceDescriptorProto, s
 	// defaultCallOptions
 	c := g.cfg.gRPCServiceConfig
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	// read retry params from gRPC ServiceConfig
 	p("func default%[1]sRESTCallOptions() *%[1]sCallOptions {", servName)
