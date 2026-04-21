@@ -31,7 +31,7 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 
 	g.exampleClientFactory(pkgName, servName)
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	for _, m := range methods {
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {
@@ -45,7 +45,7 @@ func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorP
 	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 	for _, m := range methods {
 		// Don't need streaming RPCs
 		if m.GetClientStreaming() || m.GetServerStreaming() {

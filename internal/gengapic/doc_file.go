@@ -34,6 +34,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	if len(services) == 0 {
 		return
 	}
+	g.clientProtoPkg = g.descInfo.ParentFile[services[0]].GetPackage()
 
 	p := g.printf
 
@@ -93,6 +94,9 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	exampleService := services[0]
 	override := g.getServiceNameOverride(exampleService)
 	servName := pbinfo.ReduceServNameWithOverride(exampleService.GetName(), g.cfg.pkgName, override)
+	if g.isInternalService(exampleService) {
+		servName = baseClientPrefix + servName
+	}
 	tmpClient := g.pt
 	g.pt = printer.P{}
 	g.exampleInitClientWithOpts(g.cfg.pkgName, servName, true)
