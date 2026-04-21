@@ -42,7 +42,7 @@ func (g *generator) genGRPCMethods(serv *descriptorpb.ServiceDescriptorProto, se
 		if err := g.genGRPCMethod(servName, serv, m); err != nil {
 			return fmt.Errorf("error generating method %q: %v", m.GetName(), err)
 		}
-		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
+		g.addMetadataMethod(serv.GetName(), "grpc", g.methodName(m))
 	}
 	return nil
 }

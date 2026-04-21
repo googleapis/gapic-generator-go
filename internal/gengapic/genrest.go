@@ -113,7 +113,7 @@ func (g *generator) genRESTMethods(serv *descriptorpb.ServiceDescriptorProto, se
 		if err := g.genRESTMethod(servName, serv, m); err != nil {
 			return fmt.Errorf("error generating method %q: %v", m.GetName(), err)
 		}
-		g.addMetadataMethod(serv.GetName(), "rest", m.GetName())
+		g.addMetadataMethod(serv.GetName(), "rest", g.methodName(m))
 	}
 
 	return nil
