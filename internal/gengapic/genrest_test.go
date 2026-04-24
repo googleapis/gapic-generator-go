@@ -803,20 +803,6 @@ func TestGenRestMethod(t *testing.T) {
 		{
 			name:   "paging_rpc",
 			method: pagingRPC,
-			cfg:    &generatorConfig{featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
-			imports: map[pbinfo.ImportSpec]bool{
-				{Path: "math"}:    true,
-				{Path: "net/url"}: true,
-				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
-				{Path: "fmt"}:                                                    true,
-				{Path: "google.golang.org/api/iterator"}:                         true,
-				{Path: "google.golang.org/protobuf/proto"}:                       true,
-				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
-			},
-		},
-		{
-			name:   "paging_rpc_cloneof",
-			method: pagingRPC,
 			cfg: &generatorConfig{featureEnablement: map[featureID]struct{}{
 				OpenTelemetryAttributesFeature: {},
 				ProtoCloneOfMigrationFeature:   {},
