@@ -11,7 +11,7 @@ func (c *fooGRPCClient) GetManyThingsOptional(ctx context.Context, req *mypackag
 	}
 	opts = append((*c.CallOptions).GetManyThingsOptional[0:len((*c.CallOptions).GetManyThingsOptional):len((*c.CallOptions).GetManyThingsOptional)], opts...)
 	it := &StringIterator{}
-	req = proto.Clone(req).(*mypackagepb.PageInputTypeOptional)
+	req = proto.CloneOf(req)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]string, string, error) {
 		resp := &mypackagepb.PageOutputType{}
 		if pageToken != "" {
