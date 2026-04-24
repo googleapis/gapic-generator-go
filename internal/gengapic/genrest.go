@@ -837,7 +837,11 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
 		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), pt.iterTypeName)
 	p("it := &%s{}", pt.iterTypeName)
-	p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
+	if g.featureEnabled(ProtoCloneOfMigrationFeature) {
+		p("req = proto.CloneOf(req)")
+	} else {
+		p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
+	}
 
 	maybeReqBytes, logBody := "nil", "nil"
 	if info.body != "" {

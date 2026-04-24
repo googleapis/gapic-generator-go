@@ -339,6 +339,7 @@ func TestGenGRPCMethods(t *testing.T) {
 		pkgName: "pkg",
 		featureEnablement: map[featureID]struct{}{
 			OpenTelemetryAttributesFeature: {},
+			ProtoCloneOfMigrationFeature:   {},
 		},
 		APIServiceConfig: &serviceconfig.Service{
 			Publishing: &annotations.Publishing{
