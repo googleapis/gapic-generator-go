@@ -134,6 +134,7 @@ func (g *generator) exampleInitClientWithOpts(pkgName, servName string, isPackag
 	p("// - It may require specifying regional endpoints when creating the service client as shown in:")
 	p("//   https://pkg.go.dev/cloud.google.com/go#hdr-Client_Options")
 	clientName := servName
+	// Guard against double-suffixing if the caller already appended "REST".
 	if len(g.cfg.transports) == 1 && g.cfg.transports[0] == rest && !strings.HasSuffix(servName, "REST") {
 		clientName += "REST"
 	}

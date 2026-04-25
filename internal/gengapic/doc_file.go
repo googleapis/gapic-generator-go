@@ -121,6 +121,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	p("// Use of Context")
 	p("//")
 	clientName := servName
+	// Guard against double-suffixing if the caller already appended "REST".
 	if len(g.cfg.transports) == 1 && g.cfg.transports[0] == rest && !strings.HasSuffix(servName, "REST") {
 		clientName += "REST"
 	}
