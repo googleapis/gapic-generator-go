@@ -133,7 +133,11 @@ func (g *generator) exampleInitClientWithOpts(pkgName, servName string, isPackag
 	p("// - It may require correct/in-range values for request initialization.")
 	p("// - It may require specifying regional endpoints when creating the service client as shown in:")
 	p("//   https://pkg.go.dev/cloud.google.com/go#hdr-Client_Options")
-	p("c, err := %s.New%sClient(ctx)", pkgName, servName)
+	clientName := servName
+	if len(g.cfg.transports) == 1 && g.cfg.transports[0] == rest && !strings.HasSuffix(servName, "REST") {
+		clientName += "REST"
+	}
+	p("c, err := %s.New%sClient(ctx)", pkgName, clientName)
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")

@@ -120,7 +120,11 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 
 	p("// Use of Context")
 	p("//")
-	p("// The ctx passed to New%sClient is used for authentication requests and", servName)
+	clientName := servName
+	if len(g.cfg.transports) == 1 && g.cfg.transports[0] == rest && !strings.HasSuffix(servName, "REST") {
+		clientName += "REST"
+	}
+	p("// The ctx passed to New%sClient is used for authentication requests and", clientName)
 	p("// for creating the underlying connection, but is not used for subsequent calls.")
 	p("// Individual methods on the client use the ctx given to them.")
 	p("//")

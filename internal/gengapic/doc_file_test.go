@@ -16,6 +16,7 @@ package gengapic
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -226,5 +227,43 @@ func TestApiVersionSection(t *testing.T) {
 			}
 			g.reset()
 		})
+	}
+}
+
+func TestDocFile_RestOnly(t *testing.T) {
+	g := generator{
+		apiName: sample.ServiceTitle,
+		imports: map[pbinfo.ImportSpec]bool{},
+		cfg: &generatorConfig{
+			pkgPath:          sample.GoPackagePath,
+			pkgName:          sample.GoPackageName,
+			transports:       []transport{rest},
+			APIServiceConfig: sample.ServiceConfig(),
+		},
+	}
+
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
+	file := sample.File()
+
+	commonTypes(&g)
+	for _, typ := range []*descriptorpb.DescriptorProto{
+		inputType, outputType,
+	} {
+		typName := sample.DescriptorInfoTypeName(typ.GetName())
+		g.descInfo.Type[typName] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := sample.Service()
+	g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
+
+	got := g.pt.String()
+	// Verify that NewRESTClient is used instead of NewClient
+	if !strings.Contains(got, "NewRESTClient") {
+		t.Errorf("genDocFile() = %s, want it to contain NewRESTClient", got)
+	}
+	if strings.Contains(got, "NewClient") {
+		t.Errorf("genDocFile() = %s, do not want it to contain NewClient", got)
 	}
 }
