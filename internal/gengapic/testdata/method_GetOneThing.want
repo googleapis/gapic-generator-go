@@ -8,6 +8,7 @@ func (c *fooGRPCClient) GetOneThing(ctx context.Context, req *mypackagepb.InputT
 	}
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetOneThing")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.GetOneThing")
 	}
 	if req != nil && req.RequestId == nil {
 		req.RequestId = proto.String(uuid.NewString())

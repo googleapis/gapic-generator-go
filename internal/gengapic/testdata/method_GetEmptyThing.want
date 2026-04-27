@@ -8,6 +8,7 @@ func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.Inpu
 	}
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetEmptyThing")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.GetEmptyThing")
 	}
 	if req != nil && req.RequestId == nil {
 		req.RequestId = proto.String(uuid.NewString())

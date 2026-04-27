@@ -706,8 +706,13 @@ func (g *generator) injectTelemetryContext(m *descriptorpb.MethodDescriptorProto
 		serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
 		fqn := fmt.Sprintf("%s.%s/%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
 
+		override := g.getServiceNameOverride(serv)
+		servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.cfg.pkgName, override)
+		clientSpanName := fmt.Sprintf("%s.%s.%s", g.cfg.pkgPath, servName, m.GetName())
+
 		g.printf("if gax.IsFeatureEnabled(\"METRICS\") || gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"rpc_method\", %q)", fqn)
+		g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"client_span_name\", %q)", clientSpanName)
 		if info != nil && info.url != "" {
 			g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"url_template\", %q)", info.url)
 		}

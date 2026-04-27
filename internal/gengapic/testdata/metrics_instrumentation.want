@@ -2,6 +2,7 @@ func (c *fooGRPCClient) Baz(ctx context.Context, req *mypackagepb.InputType, opt
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/Baz")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.Baz")
 	}
 	opts = append((*c.CallOptions).Baz[0:len((*c.CallOptions).Baz):len((*c.CallOptions).Baz)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
