@@ -16,7 +16,6 @@ package gengapic
 
 import (
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -257,13 +256,5 @@ func TestDocFile_RestOnly(t *testing.T) {
 
 	serv := sample.Service()
 	g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
-
-	got := g.pt.String()
-	// Verify that NewRESTClient is used instead of NewClient
-	if !strings.Contains(got, "NewRESTClient") {
-		t.Errorf("genDocFile() = %s, want it to contain NewRESTClient", got)
-	}
-	if strings.Contains(got, "NewClient") {
-		t.Errorf("genDocFile() = %s, do not want it to contain NewClient", got)
-	}
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "doc_file_rest.want"))
 }
