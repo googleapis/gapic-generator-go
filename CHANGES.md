@@ -1,5 +1,16 @@
 # Changes
 
+## [0.59.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.59.0) (2026-04-27)
+
+### Features
+
+* add proto.clone migration feature (#1730) ([2ba041d](https://github.com/googleapis/google-cloud-go/commit/2ba041dbac577695be2efdcaaad080ffd43170a7))
+* make exporting goog client info a generator capability (#1726) ([5359f2c](https://github.com/googleapis/google-cloud-go/commit/5359f2cb993205c1bc0891ea6d1a47d959dea30c))
+
+### Bug Fixes
+
+* make documentation transport aware (#1731) ([541e230](https://github.com/googleapis/google-cloud-go/commit/541e230a8f34b346215d787d4eaf7273961e466c))
+
 ## [0.58.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.58.0) (2026-04-06)
 
 ### Features
