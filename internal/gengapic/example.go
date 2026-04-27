@@ -24,6 +24,8 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
+const restClientSuffix = "REST"
+
 func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
 	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
@@ -78,7 +80,7 @@ func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorP
 		t := g.cfg.transports[0]
 		s := servName
 		if t == rest {
-			s += "REST"
+			s += restClientSuffix
 		}
 		p("func Example%sClient_%s_all() {", servName, m.GetName())
 		g.exampleInitClient(pkgName, s)
@@ -103,7 +105,7 @@ func (g *generator) exampleClientFactory(pkgName, servName string) {
 	for _, t := range g.cfg.transports {
 		s := servName
 		if t == rest {
-			s += "REST"
+			s += restClientSuffix
 		}
 
 		p("func ExampleNew%sClient() {", s)
@@ -133,7 +135,12 @@ func (g *generator) exampleInitClientWithOpts(pkgName, servName string, isPackag
 	p("// - It may require correct/in-range values for request initialization.")
 	p("// - It may require specifying regional endpoints when creating the service client as shown in:")
 	p("//   https://pkg.go.dev/cloud.google.com/go#hdr-Client_Options")
-	p("c, err := %s.New%sClient(ctx)", pkgName, servName)
+	clientName := servName
+	// Guard against double-suffixing if the caller already appended "REST".
+	if len(g.cfg.transports) == 1 && g.cfg.transports[0] == rest && !strings.HasSuffix(servName, restClientSuffix) {
+		clientName += restClientSuffix
+	}
+	p("c, err := %s.New%sClient(ctx)", pkgName, clientName)
 	p("if err != nil {")
 	p("  // TODO: Handle error.")
 	p("}")
@@ -198,7 +205,7 @@ func (g *generator) exampleMethodBodyWithOpts(pkgName, servName string, m *descr
 	t := g.cfg.transports[0]
 	s := servName
 	if t == rest {
-		s += "REST"
+		s += restClientSuffix
 	}
 	if !isPackageDoc {
 		g.exampleInitClient(pkgName, s)
