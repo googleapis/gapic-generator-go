@@ -1,5 +1,7 @@
 # Changes
 
+## [0.60.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.60.0) (2026-04-28)
+
 ## [0.59.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.59.0) (2026-04-27)
 
 ### Features
