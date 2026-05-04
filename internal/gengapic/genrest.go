@@ -261,7 +261,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("")
 
 	// Close method
-	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// Close closes the connection to the API service. **Always** call Close() when")
 	p("// the client is no longer required.")
 	p("func (c *%s) Close() error {", lowcaseServName)
 	p("    // Replace httpClient with nil to force cleanup.")
