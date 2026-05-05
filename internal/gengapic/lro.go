@@ -41,7 +41,7 @@ func (g *generator) lroCall(servName string, m *descriptorpb.MethodDescriptorPro
 	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), lroType)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)

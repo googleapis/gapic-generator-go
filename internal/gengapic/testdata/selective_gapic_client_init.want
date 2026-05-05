@@ -1,0 +1,132 @@
+// internalBaseFooClient is an interface that defines the methods available from Awesome Foo API.
+type internalBaseFooClient interface {
+	Close() error
+	setGoogleClientInfo(...string)
+	Connection() *grpc.ClientConn
+	Zip(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
+	zap(context.Context, *mypackagepb.Bar, ...gax.CallOption) (*mypackagepb.Foo, error)
+}
+
+// BaseFooClient is a client for interacting with Awesome Foo API.
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+//
+// Foo service does stuff.
+type BaseFooClient struct {
+	// The internal transport-dependent client.
+	internalClient internalBaseFooClient
+
+	// The call options for this service.
+	CallOptions *BaseFooCallOptions
+
+}
+
+// Wrapper methods routed to the internal client.
+
+// Close closes the connection to the API service. **Always** call Close() when
+// the client is no longer required.
+func (c *BaseFooClient) Close() error {
+	return c.internalClient.Close()
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *BaseFooClient) setGoogleClientInfo(keyval ...string) {
+	c.internalClient.setGoogleClientInfo(keyval...)
+}
+
+// Connection returns a connection to the API service.
+//
+// Deprecated: Connections are now pooled so this method does not always
+// return the same resource.
+func (c *BaseFooClient) Connection() *grpc.ClientConn {
+	return c.internalClient.Connection()
+}
+
+// Zip does some stuff.
+func (c *BaseFooClient) Zip(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
+	return c.internalClient.Zip(ctx, req, opts...)
+}
+
+func (c *BaseFooClient) zap(ctx context.Context, req *mypackagepb.Bar, opts ...gax.CallOption) (*mypackagepb.Foo, error) {
+	return c.internalClient.zap(ctx, req, opts...)
+}
+
+// baseFooGRPCClient is a client for interacting with Awesome Foo API over gRPC transport.
+//
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
+type baseFooGRPCClient struct {
+	// Connection pool of gRPC connections to the service.
+	connPool gtransport.ConnPool
+
+	// Points back to the CallOptions field of the containing BaseFooClient
+	CallOptions **BaseFooCallOptions
+
+	// The gRPC API client.
+	baseFooClient mypackagepb.FooClient
+
+	// The x-goog-* metadata to be sent with each request.
+	xGoogHeaders []string
+
+	logger *slog.Logger
+}
+
+// NewBaseFooClient creates a new foo client based on gRPC.
+// The returned client must be Closed when it is done being used to clean up its underlying connections.
+//
+// Foo service does stuff.
+func NewBaseFooClient(ctx context.Context, opts ...option.ClientOption) (*BaseFooClient, error) {
+	clientOpts := defaultBaseFooGRPCClientOptions()
+	if newBaseFooClientHook != nil {
+		hookOpts, err := newBaseFooClientHook(ctx, clientHookParams{})
+		if err != nil {
+			return nil, err
+		}
+		clientOpts = append(clientOpts, hookOpts...)
+	}
+
+	connPool, err := gtransport.DialPool(ctx, append(clientOpts, opts...)...)
+	if err != nil {
+		return nil, err
+	}
+	client := BaseFooClient{CallOptions: defaultBaseFooCallOptions()}
+
+	c := &baseFooGRPCClient{
+		connPool:    connPool,
+		baseFooClient: mypackagepb.NewFooClient(connPool),
+		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
+
+	}
+	c.setGoogleClientInfo()
+
+	client.internalClient = c
+
+	return &client, nil
+}
+
+// Connection returns a connection to the API service.
+//
+// Deprecated: Connections are now pooled so this method does not always
+// return the same resource.
+func (c *baseFooGRPCClient) Connection() *grpc.ClientConn {
+	return c.connPool.Conn()
+}
+
+// setGoogleClientInfo sets the name and version of the application in
+// the `x-goog-api-client` header passed on each request. Intended for
+// use by Google-written clients.
+func (c *baseFooGRPCClient) setGoogleClientInfo(keyval ...string) {
+	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
+	c.xGoogHeaders = []string{
+		"x-goog-api-client", gax.XGoogHeader(kv...),
+	}
+}
+
+// Close closes the connection to the API service. **Always** call Close() when
+// the client is no longer required.
+func (c *baseFooGRPCClient) Close() error {
+	return c.connPool.Close()
+}
+
