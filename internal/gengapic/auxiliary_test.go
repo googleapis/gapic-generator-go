@@ -428,11 +428,7 @@ func TestGenIterators(t *testing.T) {
 			},
 		},
 		imports: make(map[pbinfo.ImportSpec]bool),
-		cfg: &generatorConfig{
-			featureEnablement: map[featureID]struct{}{
-				ProtoCloneOfMigrationFeature: {},
-			},
-		},
+		cfg:     &generatorConfig{},
 	}
 
 	wantImports := map[pbinfo.ImportSpec]bool{
