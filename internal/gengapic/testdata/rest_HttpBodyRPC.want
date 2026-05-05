@@ -31,6 +31,7 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 	}
 	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "google.cloud.foo.v1.FooService/HttpBodyRPC")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.HttpBodyRPC")
 		ctx = callctx.WithTelemetryContext(ctx, "url_template", "/v1/foo")
 	}
 	opts = append((*c.CallOptions).HttpBodyRPC[0:len((*c.CallOptions).HttpBodyRPC):len((*c.CallOptions).HttpBodyRPC)], opts...)
