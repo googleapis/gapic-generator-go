@@ -74,6 +74,7 @@ go_test(
         "example_test.go",
         "generator_test.go",
         "gengapic_test.go",
+        "gengrpc_test.go",
         "genrest_test.go",
         "helpers_test.go",
         "heuristics_test.go",
