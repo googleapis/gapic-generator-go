@@ -40,6 +40,7 @@ const (
 	alpha                   = "alpha"
 	beta                    = "beta"
 	deprecated              = "deprecated"
+	baseClientPrefix        = "Base"
 	fieldTypeBool           = descriptorpb.FieldDescriptorProto_TYPE_BOOL
 	fieldTypeString         = descriptorpb.FieldDescriptorProto_TYPE_STRING
 	fieldTypeBytes          = descriptorpb.FieldDescriptorProto_TYPE_BYTES
@@ -106,6 +107,7 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 	}
 
 	for _, s := range genServs {
+		g.clientProtoPkg = g.descInfo.ParentFile[s].GetPackage()
 		// TODO(pongad): gapic-generator does not remove the package name here,
 		// so even though the client for LoggingServiceV2 is just "Client"
 		// the file name is "logging_client.go".
@@ -342,6 +344,9 @@ func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 	// If using service name overrides, use that directly for the rest of generation.
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.cfg.pkgName, override)
+	if g.isInternalService(serv) {
+		servName = baseClientPrefix + servName
+	}
 
 	g.clientHook(servName)
 	if err := g.clientOptions(serv, servName); err != nil {
