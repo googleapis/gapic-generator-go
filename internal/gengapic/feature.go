@@ -64,7 +64,7 @@ var featureRegistry = map[featureID]*featureInfo{
 		Description: "Specify that routing headers are emitted in a deterministic fashion.  Primarily used for firestore.",
 	},
 	ProtoCloneOfMigrationFeature: {
-		Description: "migrate from proto.Clone to proto.CloneOf",
+		Description: "Used to migrate proto.Clone to proto.CloneOf.  Now a no-op.",
 		TrackingID:  "b/505084464",
 	},
 	WrapperTypesForPageSizeFeature: {
