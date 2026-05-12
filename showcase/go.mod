@@ -4,14 +4,14 @@ go 1.25.0
 
 require (
 	cloud.google.com/go v0.123.0
-	cloud.google.com/go/iam v1.11.0
+	cloud.google.com/go/iam v1.10.0
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gapic-showcase v0.39.0
 	github.com/googleapis/gax-go/v2 v2.22.0
 	golang.org/x/oauth2 v0.36.0
-	google.golang.org/api v0.278.0
-	google.golang.org/genproto v0.0.0-20260511170946-3700d4141b60
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260511170946-3700d4141b60
+	google.golang.org/api v0.277.0
+	google.golang.org/genproto v0.0.0-20260427160629-7cedc36a6bc4
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260427160629-7cedc36a6bc4
 	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.11
 )
