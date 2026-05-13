@@ -36,15 +36,15 @@ func (g *generator) clientHook(servName string) {
 	p("")
 }
 
-func (g *generator) clientOptions(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
+func (g *generator) clientOptions(serv *descriptorpb.ServiceDescriptorProto, clientName, optsName string) error {
 	p := g.printf
 
 	// CallOptions struct
 	{
-		methods := append(serv.GetMethod(), g.getMixinMethods()...)
+		methods := g.getMethods(serv)
 
-		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", servName)
-		p("type %sCallOptions struct {", servName)
+		p("// %[1]sCallOptions contains the retry settings for each method of %[1]sClient.", optsName)
+		p("type %sCallOptions struct {", optsName)
 		for _, m := range methods {
 			p("%s []gax.CallOption", m.GetName())
 		}
@@ -57,12 +57,12 @@ func (g *generator) clientOptions(serv *descriptorpb.ServiceDescriptorProto, ser
 	for _, v := range g.cfg.transports {
 		switch v {
 		case grpc:
-			if err := g.grpcClientOptions(serv, servName); err != nil {
+			if err := g.grpcClientOptions(serv, clientName); err != nil {
 				return err
 			}
-			g.grpcCallOptions(serv, servName)
+			g.grpcCallOptions(serv, optsName)
 		case rest:
-			g.restCallOptions(serv, servName)
+			g.restCallOptions(serv, optsName)
 		default:
 			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
 				v, grpc, rest)
@@ -83,7 +83,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
 
 	// The mixin methods are for manipulating LROs, IAM, and Location.
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	if len(methods) > 0 {
 		g.imports[pbinfo.ImportSpec{Path: "context"}] = true
@@ -99,7 +99,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 		g.imports[inSpec] = true
 		if m.GetOutputType() == emptyType {
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) error",
-				m.GetName(),
+				g.methodName(m),
 				inSpec.Name,
 				inType.GetName())
 			continue
@@ -113,7 +113,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 				return err
 			}
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) *%s",
-				m.GetName(),
+				g.methodName(m),
 				inSpec.Name,
 				inType.GetName(),
 				iter.iterTypeName)
@@ -126,17 +126,21 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 			// longrunning.Operation and more precise types
 			lroType := lroTypeName(m)
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (*%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), lroType)
-			p("%[1]s(name string) *%[1]s", lroType)
+				g.methodName(m), inSpec.Name, inType.GetName(), lroType)
+			builderName := lroType
+			if g.isMethodInternal(m) {
+				builderName = lowerFirst(lroType)
+			}
+			p("%[1]s(name string) *%[2]s", builderName, lroType)
 
 		case m.GetClientStreaming():
 			// Handles both client-streaming and bidi-streaming
 			p("%s(context.Context, ...gax.CallOption) (%s.%s_%sClient, error)",
-				m.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+				g.methodName(m), inSpec.Name, serv.GetName(), m.GetName())
 		case m.GetServerStreaming():
 			// Handles _just_ server streaming
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s.%s_%sClient, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
+				g.methodName(m), inSpec.Name, inType.GetName(), inSpec.Name, serv.GetName(), m.GetName())
 		default:
 			retTyp, err := g.returnType(m)
 			if err != nil {
@@ -144,7 +148,7 @@ func (g *generator) internalClientIntfInit(serv *descriptorpb.ServiceDescriptorP
 			}
 
 			p("%s(context.Context, *%s.%s, ...gax.CallOption) (%s, error)",
-				m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+				g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 		}
 	}
 	p("}")
@@ -192,21 +196,21 @@ func (g *generator) serviceDoc(serv *descriptorpb.ServiceDescriptorProto, includ
 	}
 }
 
-func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servName string, hasRPCForLRO bool) {
+func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, clientName, optsName string, hasRPCForLRO bool) {
 	p := g.printf
 
 	// client struct
-	p("// %sClient is a client for interacting with %s.", servName, g.apiName)
+	p("// %sClient is a client for interacting with %s.", clientName, g.apiName)
 	p("// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.")
 	g.serviceDoc(serv, true) // include API version docs
-	p("type %sClient struct {", servName)
+	p("type %sClient struct {", clientName)
 
 	// Fields
 	p("// The internal transport-dependent client.")
-	p("internalClient internal%sClient", servName)
+	p("internalClient internal%sClient", clientName)
 	p("")
 	p("// The call options for this service.")
-	p("CallOptions *%sCallOptions", servName)
+	p("CallOptions *%sCallOptions", optsName)
 	p("")
 
 	// Need to keep for back compat
@@ -225,14 +229,14 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 	p("")
 	p("// Close closes the connection to the API service. **Always** call Close() when")
 	p("// the client is no longer required.")
-	p("func (c *%sClient) Close() error {", servName)
+	p("func (c *%sClient) Close() error {", clientName)
 	p("  return c.internalClient.Close()")
 	p("}")
 	p("")
 	p("// setGoogleClientInfo sets the name and version of the application in")
 	p("// the `x-goog-api-client` header passed on each request. Intended for")
 	p("// use by Google-written clients.")
-	p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", servName)
+	p("func (c *%sClient) setGoogleClientInfo(keyval ...string) {", clientName)
 	p("  c.internalClient.setGoogleClientInfo(keyval...)")
 	p("}")
 	if g.featureEnabled(ExportSetGoogleClientInfoFeature) {
@@ -243,7 +247,7 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 		p("//")
 		p("// SetGoogleClientInfo is not concurrency-safe and should only be invoked")
 		p("// sequentially before concurrent operations begin.")
-		p("func (c *%sClient) SetGoogleClientInfo(keyval ...string) {", servName)
+		p("func (c *%sClient) SetGoogleClientInfo(keyval ...string) {", clientName)
 		p("  c.setGoogleClientInfo(keyval...)")
 		p("}")
 	}
@@ -252,17 +256,18 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 	p("//")
 	p("// Deprecated: Connections are now pooled so this method does not always")
 	p("// return the same resource.")
-	p("func (c *%sClient) Connection() *grpc.ClientConn {", servName)
+	p("func (c *%sClient) Connection() *grpc.ClientConn {", clientName)
 	p("  return c.internalClient.Connection()")
 	p("}")
 	p("")
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 	for _, m := range methods {
-		g.genClientWrapperMethod(m, serv, servName)
+		g.genClientWrapperMethod(m, serv, clientName)
 	}
 }
 
 func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto, serv *descriptorpb.ServiceDescriptorProto, servName string) error {
+	methodName := g.methodName(m)
 	p := g.printf
 
 	// This cannot be servName since that is a shortened version and the
@@ -284,8 +289,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 	if m.GetOutputType() == emptyType {
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) error {",
-			clientTypeName, m.GetName(), reqTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -297,14 +302,18 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		lroType := lroTypeName(m)
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (*%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, lroType)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, lroType)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 		p("// %s returns a new %[1]s from a given name.", lroType)
 		p("// The name must be that of a previously created %s, possibly from a different process.", lroType)
-		p("func (c *%s) %s(name string) *%[2]s {", clientTypeName, lroType)
-		p("  return c.internalClient.%s(name)", lroType)
+		builderName := lroType
+		if g.isMethodInternal(m) {
+			builderName = lowerFirst(lroType)
+		}
+		p("func (c *%s) %s(name string) *%s {", clientTypeName, builderName, lroType)
+		p("  return c.internalClient.%s(name)", builderName)
 		p("}")
 		p("")
 
@@ -322,8 +331,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 			return err
 		}
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) *%s {",
-			clientTypeName, m.GetName(), reqTyp, iter.iterTypeName)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, iter.iterTypeName)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -341,8 +350,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 
 		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
 		p("func (c *%s) %s(ctx context.Context, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), retTyp)
-		p("    return c.internalClient.%s(ctx, opts...)", m.GetName())
+			clientTypeName, methodName, retTyp)
+		p("    return c.internalClient.%s(ctx, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -358,8 +367,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		reqTyp := fmt.Sprintf("%s.%s", inSpec.Name, inType.GetName())
 		retTyp := fmt.Sprintf("%s.%s_%sClient", servSpec.Name, serv.GetName(), m.GetName())
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, retTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, retTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -374,8 +383,8 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 		}
 
 		p("func (c *%s) %s(ctx context.Context, req *%s, opts ...gax.CallOption) (%s, error) {",
-			clientTypeName, m.GetName(), reqTyp, retTyp)
-		p("    return c.internalClient.%s(ctx, req, opts...)", m.GetName())
+			clientTypeName, methodName, reqTyp, retTyp)
+		p("    return c.internalClient.%s(ctx, req, opts...)", methodName)
 		p("}")
 		p("")
 
@@ -386,9 +395,9 @@ func (g *generator) genClientWrapperMethod(m *descriptorpb.MethodDescriptorProto
 
 }
 
-func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
+func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, clientName, optsName string) error {
 	var hasLRO bool
-	for _, m := range serv.GetMethod() {
+	for _, m := range g.getMethods(serv) {
 		if g.isLRO(m) {
 			hasLRO = true
 			break
@@ -402,18 +411,18 @@ func (g *generator) makeClients(serv *descriptorpb.ServiceDescriptorProto, servN
 
 	g.addMetadataServiceEntry(serv.GetName(), apiVersion(serv))
 
-	err = g.internalClientIntfInit(serv, servName)
+	err = g.internalClientIntfInit(serv, clientName)
 	if err != nil {
 		return err
 	}
-	g.clientInit(serv, servName, hasLRO)
+	g.clientInit(serv, clientName, optsName, hasLRO)
 
 	for _, v := range g.cfg.transports {
 		switch v {
 		case grpc:
-			g.grpcClientInit(serv, servName, imp, hasLRO)
+			g.grpcClientInit(serv, clientName, optsName, imp, hasLRO)
 		case rest:
-			g.restClientInit(serv, servName, hasLRO)
+			g.restClientInit(serv, clientName, optsName, hasLRO)
 		default:
 			return fmt.Errorf("unexpected transport variant (supported variants are %q, %q): %d",
 				v, grpc, rest)

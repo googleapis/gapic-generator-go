@@ -34,6 +34,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	if len(services) == 0 {
 		return
 	}
+	g.clientProtoPkg = g.descInfo.ParentFile[services[0]].GetPackage()
 
 	p := g.printf
 
@@ -93,6 +94,9 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	exampleService := services[0]
 	override := g.getServiceNameOverride(exampleService)
 	servName := pbinfo.ReduceServNameWithOverride(exampleService.GetName(), g.cfg.pkgName, override)
+	if g.isInternalService(exampleService) {
+		servName = baseClientPrefix + servName
+	}
 	tmpClient := g.pt
 	g.pt = printer.P{}
 	g.exampleInitClientWithOpts(g.cfg.pkgName, servName, true)
@@ -104,15 +108,22 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	p("// The returned client must be Closed when it is done being used.")
 	p("//")
 	// If the service does not have any methods, then do not generate sample method snippet.
-	if len(exampleService.GetMethod()) > 0 {
+	var exampleMethod *descriptorpb.MethodDescriptorProto
+	for _, m := range exampleService.GetMethod() {
+		if g.shouldGenerateMethod(exampleService, m) && !g.isMethodInternal(m) {
+			exampleMethod = m
+			break
+		}
+	}
+	if exampleMethod != nil {
 		p("// Using the Client")
 		p("//")
 		p("// The following is an example of making an API call with the newly created client, mentioned above.")
 		p("//")
-		// Code block for client using the first method of the service
+		// Code block for client using the first public method of the service
 		tmpMethod := g.pt
 		g.pt = printer.P{}
-		g.exampleMethodBodyWithOpts(g.cfg.pkgName, servName, exampleService.GetMethod()[0], true)
+		g.exampleMethodBodyWithOpts(g.cfg.pkgName, servName, exampleMethod, true)
 		snipMethod := g.pt.String()
 		g.pt = tmpMethod
 		g.codesnippet(snipMethod)
@@ -208,6 +219,9 @@ func (g *generator) apiVersionSection(services []*descriptorpb.ServiceDescriptor
 		// type name derivation.
 		override := g.getServiceNameOverride(s)
 		sn := pbinfo.ReduceServNameWithOverride(n, g.cfg.pkgName, override)
+		if g.isInternalService(s) {
+			sn = baseClientPrefix + sn
+		}
 		ct := fmt.Sprintf("%sClient", sn)
 
 		// Use the raw proto service name in the tuple to associate it with

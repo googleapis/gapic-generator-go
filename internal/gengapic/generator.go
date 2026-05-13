@@ -75,6 +75,11 @@ type generator struct {
 
 	// learned vocabulary for heuristic path templates
 	vocabulary map[string]bool
+
+	// clientProtoPkg is the package name of the service currently being generated.
+	// This is used to look up Selective GAPIC Generation configuration in the
+	// context of the host service, which is especially important for mixins.
+	clientProtoPkg string
 }
 
 func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
@@ -263,6 +268,7 @@ func (g *generator) reset() {
 	for k := range g.imports {
 		delete(g.imports, k)
 	}
+	g.clientProtoPkg = ""
 }
 
 // fqn recursively builds the fully qualified proto element name,

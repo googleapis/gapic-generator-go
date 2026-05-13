@@ -200,6 +200,9 @@ func (g *generator) customOperationType() error {
 	for _, handle := range op.handles {
 		pollingParams := op.pollingParams[handle]
 		s := pbinfo.ReduceServName(handle.GetName(), opImp.Name)
+		if g.isInternalService(handle) {
+			s = baseClientPrefix + s
+		}
 		n := handleName(handle.GetName(), opImp.Name)
 
 		// Look up polling method and its input.
@@ -278,7 +281,7 @@ func (g *generator) loadCustomOpServices(servs []*descriptorpb.ServiceDescriptor
 	handles := g.aux.customOp.handles
 	pollingParams := map[*descriptorpb.ServiceDescriptorProto][]string{}
 	for _, serv := range servs {
-		for _, meth := range serv.GetMethod() {
+		for _, meth := range g.getMethods(serv) {
 			if opServ := g.customOpService(meth); opServ != nil {
 				g.customOpServices[serv] = opServ
 				if !containsService(handles, opServ) {
