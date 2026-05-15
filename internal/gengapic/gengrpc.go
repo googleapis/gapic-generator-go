@@ -165,9 +165,6 @@ func (g *generator) grpcStubCall(method *descriptorpb.MethodDescriptorProto) str
 	service := g.descInfo.ParentElement[method].(*descriptorpb.ServiceDescriptorProto)
 	override := g.getServiceNameOverride(service)
 	stub := pbinfo.ReduceServNameWithOverride(service.GetName(), g.cfg.pkgName, override)
-	if g.isInternalService(service) {
-		stub = baseClientPrefix + stub
-	}
 	return fmt.Sprintf("executeRPC(ctx, c.%s.%s, req, settings.GRPC, c.logger, %q)", grpcClientField(stub), method.GetName(), method.GetName())
 }
 

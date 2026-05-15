@@ -4,7 +4,7 @@ func (c *fooGRPCClient) Zip(ctx context.Context, req *mypackagepb.InputType, opt
 	var resp *mypackagepb.OutputType
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = executeRPC(ctx, c.baseFooClient.Zip, req, settings.GRPC, c.logger, "Zip")
+		resp, err = executeRPC(ctx, c.fooClient.Zip, req, settings.GRPC, c.logger, "Zip")
 		return err
 	}, opts...)
 	if err != nil {

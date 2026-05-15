@@ -126,9 +126,6 @@ func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto)
 		// Use the client short name in this filepath.
 		// E.g. the client for LoggingServiceV2 is just "Client".
 		reducedServName := pbinfo.ReduceServName(servName, g.cfg.pkgName)
-		if g.isInternalService(s) {
-			reducedServName = baseClientPrefix + reducedServName
-		}
 		clientName := reducedServName + "Client"
 		// Get the original proto namespace for the method (different from `s` only for mixins).
 		f := g.descInfo.ParentFile[m]
@@ -151,9 +148,6 @@ func (g *generator) genSnippetFile(s *descriptorpb.ServiceDescriptorProto, m *de
 	pkgName := g.cfg.pkgName
 
 	reducedServName := pbinfo.ReduceServName(servName, pkgName)
-	if g.isInternalService(s) {
-		reducedServName = baseClientPrefix + reducedServName
-	}
 
 	p := g.printf
 	p("func main() {")

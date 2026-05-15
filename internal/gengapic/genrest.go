@@ -82,9 +82,6 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, cl
 	}
 	if opServ, ok := g.customOpServices[serv]; ok {
 		opServName := pbinfo.ReduceServName(opServ.GetName(), g.cfg.pkgName)
-		if g.isInternalService(opServ) {
-			opServName = baseClientPrefix + opServName
-		}
 		p("// operationClient is used to call the operation-specific management service.")
 		p("operationClient *%sClient", opServName)
 		p("")
@@ -225,9 +222,6 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	}
 	if hasCustomOp {
 		opServName := pbinfo.ReduceServName(opServ.GetName(), g.cfg.pkgName)
-		if g.isInternalService(opServ) {
-			opServName = baseClientPrefix + opServName
-		}
 		p("o := []option.ClientOption{")
 		p("  option.WithHTTPClient(httpClient),")
 		p("  option.WithEndpoint(endpoint),")

@@ -31,9 +31,6 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
-	if g.isInternalService(serv) {
-		servName = baseClientPrefix + servName
-	}
 
 	g.exampleClientFactory(pkgName, servName)
 
@@ -55,9 +52,6 @@ func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorP
 	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
-	if g.isInternalService(serv) {
-		servName = baseClientPrefix + servName
-	}
 	methods := g.getMethods(serv)
 	for _, m := range methods {
 		if g.isMethodInternal(m) {

@@ -15,7 +15,7 @@ func (c *baseFooGRPCClient) page(ctx context.Context, req *mypackagepb.PagingInp
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			var err error
-			resp, err = executeRPC(ctx, c.baseFooClient.Page, req, settings.GRPC, c.logger, "Page")
+			resp, err = executeRPC(ctx, c.fooClient.Page, req, settings.GRPC, c.logger, "Page")
 			return err
 		}, opts...)
 		if err != nil {

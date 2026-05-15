@@ -94,9 +94,6 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	exampleService := services[0]
 	override := g.getServiceNameOverride(exampleService)
 	servName := pbinfo.ReduceServNameWithOverride(exampleService.GetName(), g.cfg.pkgName, override)
-	if g.isInternalService(exampleService) {
-		servName = baseClientPrefix + servName
-	}
 	tmpClient := g.pt
 	g.pt = printer.P{}
 	g.exampleInitClientWithOpts(g.cfg.pkgName, servName, true)
@@ -219,9 +216,6 @@ func (g *generator) apiVersionSection(services []*descriptorpb.ServiceDescriptor
 		// type name derivation.
 		override := g.getServiceNameOverride(s)
 		sn := pbinfo.ReduceServNameWithOverride(n, g.cfg.pkgName, override)
-		if g.isInternalService(s) {
-			sn = baseClientPrefix + sn
-		}
 		ct := fmt.Sprintf("%sClient", sn)
 
 		// Use the raw proto service name in the tuple to associate it with
