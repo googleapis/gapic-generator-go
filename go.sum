@@ -10,6 +10,8 @@ cloud.google.com/go/longrunning v0.11.0 h1:fE4XVLJQj+gRnw1HrbDyQXXgC0aiqY3wxP7DD
 cloud.google.com/go/longrunning v0.11.0/go.mod h1:8nqFBPOO1U/XkhWl0I19AMZEphrHi73VNABIpKYaTwM=
 cloud.google.com/go/longrunning v0.12.0 h1:wLv2hXvID9zHejLtcPo1B0JBjErnwZCYAPKSTa65xpY=
 cloud.google.com/go/longrunning v0.12.0/go.mod h1:8nqFBPOO1U/XkhWl0I19AMZEphrHi73VNABIpKYaTwM=
+cloud.google.com/go/longrunning v1.0.0 h1:lwzWEYD8+NkYV7dhexOz6kmlvajZA70+bW/xMhRVVdY=
+cloud.google.com/go/longrunning v1.0.0/go.mod h1:8nqFBPOO1U/XkhWl0I19AMZEphrHi73VNABIpKYaTwM=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
