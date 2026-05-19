@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	cloud.google.com/go/iam v1.10.0
-	cloud.google.com/go/longrunning v0.12.0
+	cloud.google.com/go/longrunning v1.0.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.7.0
 	github.com/jhump/protoreflect v1.16.0
