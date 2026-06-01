@@ -1,3 +1,4 @@
+//go:build examples
 func main() {
 	ctx := context.Background()
 	// This snippet has been automatically generated and should be regarded as a code template only.
