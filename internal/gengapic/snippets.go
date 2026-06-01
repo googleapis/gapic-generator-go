@@ -110,6 +110,8 @@ func (g *generator) genSnippetFile(s *descriptorpb.ServiceDescriptorProto, m *de
 	if override := g.getServiceNameOverride(s); override != "" {
 		servName = override
 	}
+	// Add a build tag so snippet files aren't included in standard builds.
+	g.printf("//go:build examples\n")
 	regionTag := g.snippetMetadata.RegionTag(servName, m.GetName())
 	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
 	pkgName := g.cfg.pkgName
