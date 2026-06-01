@@ -186,11 +186,10 @@ func (g *generator) commit(fileName, pkgName string) int {
 func (g *generator) commitWithBuildTag(fileName, pkgName, buildTag string) int {
 	var header strings.Builder
 	fmt.Fprintf(&header, license.Apache, time.Now().Year())
+	header.WriteString(g.headerComments.String() + "\n")
 	if buildTag != "" {
 		fmt.Fprintf(&header, "//go:build %s\n\n", buildTag)
 	}
-	header.WriteString(g.headerComments.String())
-	header.WriteByte('\n')
 	fmt.Fprintf(&header, "package %s\n\n", pkgName)
 
 	var imps []pbinfo.ImportSpec
