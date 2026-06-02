@@ -439,7 +439,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("")
 
 	// Close method
-	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// Close closes the connection to the API service. **Always** call Close() when")
 	p("// the client is no longer required.")
 	p("func (c *%s) Close() error {", lowcaseServName)
 	p("  return c.connPool.Close()")

@@ -223,7 +223,7 @@ func (g *generator) clientInit(serv *descriptorpb.ServiceDescriptorProto, servNa
 	p("")
 	p("// Wrapper methods routed to the internal client.")
 	p("")
-	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// Close closes the connection to the API service. **Always** call Close() when")
 	p("// the client is no longer required.")
 	p("func (c *%sClient) Close() error {", servName)
 	p("  return c.internalClient.Close()")

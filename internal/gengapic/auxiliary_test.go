@@ -428,6 +428,7 @@ func TestGenIterators(t *testing.T) {
 			},
 		},
 		imports: make(map[pbinfo.ImportSpec]bool),
+		cfg:     &generatorConfig{},
 	}
 
 	wantImports := map[pbinfo.ImportSpec]bool{

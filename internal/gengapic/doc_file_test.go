@@ -228,3 +228,33 @@ func TestApiVersionSection(t *testing.T) {
 		})
 	}
 }
+
+func TestDocFile_RestOnly(t *testing.T) {
+	g := generator{
+		apiName: sample.ServiceTitle,
+		imports: map[pbinfo.ImportSpec]bool{},
+		cfg: &generatorConfig{
+			pkgPath:          sample.GoPackagePath,
+			pkgName:          sample.GoPackageName,
+			transports:       []transport{rest},
+			APIServiceConfig: sample.ServiceConfig(),
+		},
+	}
+
+	inputType := sample.InputType(sample.CreateRequest)
+	outputType := sample.OutputType(sample.Resource)
+	file := sample.File()
+
+	commonTypes(&g)
+	for _, typ := range []*descriptorpb.DescriptorProto{
+		inputType, outputType,
+	} {
+		typName := sample.DescriptorInfoTypeName(typ.GetName())
+		g.descInfo.Type[typName] = typ
+		g.descInfo.ParentFile[typ] = file
+	}
+
+	serv := sample.Service()
+	g.genDocFile(sample.Year, []*descriptorpb.ServiceDescriptorProto{serv})
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "doc_file_rest.want"))
+}
