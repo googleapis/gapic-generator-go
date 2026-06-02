@@ -77,7 +77,7 @@ func (g *generator) addMetadataServiceForTransport(service, transport, lib strin
 // Adds a metadata service transport client method entry for the given RPC.
 // Will exit early if addMetadataServiceEntry or addMetadaServiceForTransport
 // are not called prior to this.
-func (g *generator) addMetadataMethod(service, transport, rpc string) {
+func (g *generator) addMetadataMethod(service, transport, rpc, method string) {
 	if g.metadata.Services == nil {
 		return
 	}
@@ -92,8 +92,7 @@ func (g *generator) addMetadataMethod(service, transport, rpc string) {
 	if c.GetRpcs() == nil {
 		c.Rpcs = make(map[string]*metadata.GapicMetadata_MethodList)
 	}
-	// There is only one method per RPC on a generated Go client, with the same name as the RPC.
 	c.GetRpcs()[rpc] = &metadata.GapicMetadata_MethodList{
-		Methods: []string{rpc},
+		Methods: []string{method},
 	}
 }

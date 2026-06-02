@@ -256,7 +256,7 @@ func TestClientOpt(t *testing.T) {
 		t.Run(tst.tstName, func(t *testing.T) {
 			g.reset()
 			g.hasIAMPolicyOverrides = tst.hasOverride
-			if err := g.clientOptions(tst.serv, tst.servName); err != nil {
+			if err := g.clientOptions(tst.serv, tst.servName, tst.servName); err != nil {
 				t.Fatal(err)
 			}
 			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
@@ -397,7 +397,26 @@ func TestClientInit(t *testing.T) {
 			},
 		},
 	}
-	for _, s := range []*descriptorpb.ServiceDescriptorProto{servPlain, servDeprecated, servLRO} {
+
+	servSelective := &descriptorpb.ServiceDescriptorProto{
+		Name: proto.String("Foo"),
+		Method: []*descriptorpb.MethodDescriptorProto{
+			{
+				Name:       proto.String("Zip"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptorpb.MethodOptions{},
+			},
+			{
+				Name:       proto.String("Zap"),
+				InputType:  proto.String(".mypackage.Bar"),
+				OutputType: proto.String(".mypackage.Foo"),
+				Options:    &descriptorpb.MethodOptions{},
+			},
+		},
+		Options: &descriptorpb.ServiceOptions{},
+	}
+	for _, s := range []*descriptorpb.ServiceDescriptorProto{servPlain, servDeprecated, servLRO, servSelective} {
 		proto.SetExtension(s.Method[0].GetOptions(), annotations.E_Http, &annotations.HttpRule{
 			Pattern: &annotations.HttpRule_Get{
 				Get: "/zip",
@@ -408,6 +427,7 @@ func TestClientInit(t *testing.T) {
 	for _, tst := range []struct {
 		tstName      string
 		servName     string
+		optsName     string
 		mixins       mixins
 		serv         *descriptorpb.ServiceDescriptorProto
 		customOpServ *descriptorpb.ServiceDescriptorProto
@@ -416,6 +436,7 @@ func TestClientInit(t *testing.T) {
 		wantNumSnps  int
 		setExt       func() (protoreflect.ExtensionType, interface{})
 		features     []featureID
+		publishing   *annotations.Publishing
 	}{
 		{
 			tstName: "foo_client_init_default",
@@ -715,6 +736,69 @@ func TestClientInit(t *testing.T) {
 			},
 			features: []featureID{OpenTelemetryAttributesFeature},
 		},
+		{
+			tstName:   "selective_gapic_client_init",
+			servName:  "BaseFoo",
+			optsName:  "Foo",
+			serv:      servSelective,
+			parameter: proto.String("go-gapic-package=path;mypackage,F_selective_gapic_generation"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                  true,
+				{Path: "google.golang.org/api/option"}:                             true,
+				{Path: "google.golang.org/grpc"}:                                   true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
+				{Path: "log/slog"}:                                                 true,
+			},
+			wantNumSnps: 0,
+			features:    []featureID{SelectiveGapicGenerationFeature},
+			publishing: &annotations.Publishing{
+				LibrarySettings: []*annotations.ClientLibrarySettings{
+					{
+						Version: "mypackage",
+						GoSettings: &annotations.GoSettings{
+							Common: &annotations.CommonLanguageSettings{
+								SelectiveGapicGeneration: &annotations.SelectiveGapicGeneration{
+									GenerateOmittedAsInternal: true,
+									Methods:                   []string{"mypackage.Foo.Zip"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			tstName:   "selective_gapic_client_init_omitted",
+			servName:  "Foo",
+			serv:      servSelective,
+			parameter: proto.String("go-gapic-package=path;mypackage,F_selective_gapic_generation"),
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "context"}:                                                  true,
+				{Path: "google.golang.org/api/option"}:                             true,
+				{Path: "google.golang.org/grpc"}:                                   true,
+				{Name: "gtransport", Path: "google.golang.org/api/transport/grpc"}: true,
+				{Name: "mypackagepb", Path: "github.com/googleapis/mypackage"}:     true,
+				{Path: "log/slog"}:                                                 true,
+			},
+			wantNumSnps: 1,
+			features:    []featureID{SelectiveGapicGenerationFeature},
+			publishing: &annotations.Publishing{
+				LibrarySettings: []*annotations.ClientLibrarySettings{
+					{
+						Version: "mypackage",
+						GoSettings: &annotations.GoSettings{
+							Common: &annotations.CommonLanguageSettings{
+								SelectiveGapicGeneration: &annotations.SelectiveGapicGeneration{
+									GenerateOmittedAsInternal: false,
+									Methods:                   []string{"mypackage.Foo.Zip"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	} {
 		t.Run(tst.tstName, func(t *testing.T) {
 			setExt := tst.setExt
@@ -761,7 +845,8 @@ func TestClientInit(t *testing.T) {
 			}
 			g.mixins = tst.mixins
 			g.cfg.APIServiceConfig = &serviceconfig.Service{
-				Name: "foo.googleapis.com",
+				Name:       "foo.googleapis.com",
+				Publishing: tst.publishing,
 				Apis: []*apipb.Api{
 					{Name: "foo.bar.Baz"},
 					{Name: "google.iam.v1.IAMPolicy"},
@@ -792,15 +877,27 @@ func TestClientInit(t *testing.T) {
 				}
 			}
 			sm := snippets.NewMetadata("mypackage", "github.com/googleapis/mypackage", "mypackagego")
-			sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
-			for _, m := range tst.serv.GetMethod() {
-				sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
-			}
-			for _, m := range g.getMixinMethods() {
-				sm.AddMethod(tst.serv.GetName(), m.GetName(), "mypackage", tst.serv.GetName(), 50)
+			if !g.isInternalService(tst.serv) {
+				sm.AddService(tst.serv.GetName(), "mypackage.googleapis.com")
+				for _, m := range g.getMethods(tst.serv) {
+					if g.isMethodInternal(m) {
+						continue
+					}
+					sm.AddMethod(tst.serv.GetName(), g.methodName(m), "mypackage", tst.serv.GetName(), 50)
+				}
+				for _, m := range g.getMixinMethods() {
+					if g.isMethodInternal(m) {
+						continue
+					}
+					sm.AddMethod(tst.serv.GetName(), g.methodName(m), "mypackage", tst.serv.GetName(), 50)
+				}
 			}
 			g.snippetMetadata = sm
-			g.makeClients(tst.serv, tst.servName)
+			optsName := tst.optsName
+			if optsName == "" {
+				optsName = tst.servName
+			}
+			g.makeClients(tst.serv, tst.servName, optsName)
 
 			if md, ok := g.metadata.GetServices()[tst.serv.GetName()]; !ok {
 				t.Errorf("ClientInit(%s) gapic metadata, expected %s to be present but found %+v", tst.tstName, tst.serv.GetName(), g.metadata.GetServices())

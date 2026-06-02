@@ -1,0 +1,15 @@
+func (c *fooGRPCClient) zap(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).Zap[0:len((*c.CallOptions).Zap):len((*c.CallOptions).Zap)], opts...)
+	var resp *mypackagepb.OutputType
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = executeRPC(ctx, c.fooClient.Zap, req, settings.GRPC, c.logger, "Zap")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+

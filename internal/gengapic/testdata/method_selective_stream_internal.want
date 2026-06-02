@@ -1,0 +1,17 @@
+func (c *baseFooGRPCClient) stream(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (mypackagepb.Foo_StreamClient, error) {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).Stream[0:len((*c.CallOptions).Stream):len((*c.CallOptions).Stream)], opts...)
+	var resp mypackagepb.Foo_StreamClient
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		c.logger.DebugContext(ctx, "api streaming client request", "serviceName", serviceName, "rpcName", "Stream")
+		resp, err = c.baseFooClient.Stream(ctx, req, settings.GRPC...)
+		c.logger.DebugContext(ctx, "api streaming client response", "serviceName", serviceName, "rpcName", "Stream")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+

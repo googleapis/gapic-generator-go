@@ -1,0 +1,15 @@
+func (c *fooGRPCClient) Zip(ctx context.Context, req *mypackagepb.InputType, opts ...gax.CallOption) (*mypackagepb.OutputType, error) {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).Zip[0:len((*c.CallOptions).Zip):len((*c.CallOptions).Zip)], opts...)
+	var resp *mypackagepb.OutputType
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = executeRPC(ctx, c.fooClient.Zip, req, settings.GRPC, c.logger, "Zip")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+

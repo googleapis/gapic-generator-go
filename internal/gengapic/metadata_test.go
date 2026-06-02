@@ -282,7 +282,7 @@ func TestAddMetadataMethod(t *testing.T) {
 		g := generator{
 			metadata: tst.init,
 		}
-		g.addMetadataMethod(tst.service, "grpc", tst.rpc)
+		g.addMetadataMethod(tst.service, "grpc", tst.rpc, tst.rpc)
 
 		if diff := cmp.Diff(g.metadata, tst.want, cmp.Comparer(proto.Equal)); diff != "" {
 			t.Errorf("addMetadataMethod(%q, %q, %q): got(-),want(+):\n%s", tst.service, "grpc", tst.rpc, diff)
