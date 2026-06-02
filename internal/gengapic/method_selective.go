@@ -19,25 +19,56 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func (g *generator) getSelectiveGapicGeneration(protoPkg string) *annotations.SelectiveGapicGeneration {
+type sggConfig struct {
+	allowedMethods            map[string]bool
+	generateOmittedAsInternal bool
+	enabled                   bool
+}
+
+func (g *generator) getSGGConfig(protoPkg string) *sggConfig {
+	if g.sggConfigs == nil {
+		g.sggConfigs = make(map[string]*sggConfig)
+	}
+
+	if config, ok := g.sggConfigs[protoPkg]; ok {
+		return config
+	}
+
+	config := &sggConfig{
+		allowedMethods: make(map[string]bool),
+	}
+	g.sggConfigs[protoPkg] = config
+
 	if g.cfg == nil || g.cfg.APIServiceConfig == nil || g.cfg.APIServiceConfig.GetPublishing() == nil {
-		return nil
+		return config
 	}
 	if !g.featureEnabled(SelectiveGapicGenerationFeature) {
-		return nil
+		return config
 	}
 	ls := g.cfg.APIServiceConfig.GetPublishing().GetLibrarySettings()
 
+	var sgg *annotations.SelectiveGapicGeneration
 	for _, setting := range ls {
 		if setting.GetVersion() != "" && setting.GetVersion() != protoPkg {
 			continue
 		}
 		if goSettings := setting.GetGoSettings(); goSettings != nil && goSettings.GetCommon() != nil && goSettings.GetCommon().GetSelectiveGapicGeneration() != nil {
-			return goSettings.GetCommon().GetSelectiveGapicGeneration()
+			sgg = goSettings.GetCommon().GetSelectiveGapicGeneration()
+			break
 		}
 	}
 
-	return nil
+	if sgg == nil {
+		return config
+	}
+
+	config.enabled = true
+	config.generateOmittedAsInternal = sgg.GetGenerateOmittedAsInternal()
+	for _, m := range sgg.GetMethods() {
+		config.allowedMethods[m] = true
+	}
+
+	return config
 }
 
 func (g *generator) getMethods(s *descriptorpb.ServiceDescriptorProto) []*descriptorpb.MethodDescriptorProto {
@@ -53,26 +84,21 @@ func (g *generator) getMethods(s *descriptorpb.ServiceDescriptorProto) []*descri
 
 func (g *generator) shouldGenerateMethod(s *descriptorpb.ServiceDescriptorProto, m *descriptorpb.MethodDescriptorProto) bool {
 	protoPkg := g.descInfo.ParentFile[s].GetPackage()
-	sgg := g.getSelectiveGapicGeneration(protoPkg)
-	if sgg == nil {
+	sgg := g.getSGGConfig(protoPkg)
+	if sgg == nil || !sgg.enabled {
 		return true
 	}
 
-	methods := sgg.GetMethods()
-	generateOmittedAsInternal := sgg.GetGenerateOmittedAsInternal()
-
-	if len(methods) == 0 && !generateOmittedAsInternal {
+	if len(sgg.allowedMethods) == 0 && !sgg.generateOmittedAsInternal {
 		return true
 	}
 
 	mfqn := g.fqn(m)
-	for _, inc := range methods {
-		if inc == mfqn {
-			return true
-		}
+	if sgg.allowedMethods[mfqn] {
+		return true
 	}
 
-	return generateOmittedAsInternal
+	return sgg.generateOmittedAsInternal
 }
 
 func (g *generator) isMethodInternal(m *descriptorpb.MethodDescriptorProto) bool {
@@ -83,19 +109,13 @@ func (g *generator) isMethodInternal(m *descriptorpb.MethodDescriptorProto) bool
 		}
 	}
 
-	sgg := g.getSelectiveGapicGeneration(protoPkg)
-	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
+	sgg := g.getSGGConfig(protoPkg)
+	if sgg == nil || !sgg.enabled || !sgg.generateOmittedAsInternal {
 		return false
 	}
 
 	mfqn := g.fqn(m)
-	for _, inc := range sgg.GetMethods() {
-		if inc == mfqn {
-			return false
-		}
-	}
-
-	return true
+	return !sgg.allowedMethods[mfqn]
 }
 
 func (g *generator) methodName(m *descriptorpb.MethodDescriptorProto) string {
@@ -107,8 +127,8 @@ func (g *generator) methodName(m *descriptorpb.MethodDescriptorProto) string {
 
 func (g *generator) isInternalService(s *descriptorpb.ServiceDescriptorProto) bool {
 	protoPkg := g.descInfo.ParentFile[s].GetPackage()
-	sgg := g.getSelectiveGapicGeneration(protoPkg)
-	if sgg == nil || !sgg.GetGenerateOmittedAsInternal() {
+	sgg := g.getSGGConfig(protoPkg)
+	if sgg == nil || !sgg.enabled || !sgg.generateOmittedAsInternal {
 		return false
 	}
 
