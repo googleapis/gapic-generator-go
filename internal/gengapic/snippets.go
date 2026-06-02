@@ -91,7 +91,7 @@ func (g *generator) addSnippetsMetadataResult(m *descriptorpb.MethodDescriptorPr
 }
 
 // genAndCommitSnippets generates and commits a snippet file for each method in a client.
-// Does nothing and returns nil if opts.omitSnippets is true.
+// Does nothing and returns nil if opts.omitSnippets is true or if internal generation mode.
 func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto) error {
 	if g.isInternalService(s) {
 		return nil
