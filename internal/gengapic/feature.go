@@ -35,6 +35,7 @@ const (
 	OpenTelemetryAttributesFeature   featureID = "open_telemetry_attributes"
 	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
 	ProtoCloneOfMigrationFeature     featureID = "proto_cloneof"
+	SelectiveGapicGenerationFeature  featureID = "selective_gapic_generation"
 	WrapperTypesForPageSizeFeature   featureID = "wrapper_types_for_page_size"
 )
 
@@ -64,8 +65,11 @@ var featureRegistry = map[featureID]*featureInfo{
 		Description: "Specify that routing headers are emitted in a deterministic fashion.  Primarily used for firestore.",
 	},
 	ProtoCloneOfMigrationFeature: {
-		Description: "migrate from proto.Clone to proto.CloneOf",
+		Description: "Used to migrate proto.Clone to proto.CloneOf.  Now a no-op.",
 		TrackingID:  "b/505084464",
+	},
+	SelectiveGapicGenerationFeature: {
+		Description: "Enable selective GAPIC generation, reducing public surface area based on config.",
 	},
 	WrapperTypesForPageSizeFeature: {
 		Description: "Allow List RPCs to generator with support for protobuf wrapper types (e.g. Int32Value, etc).",

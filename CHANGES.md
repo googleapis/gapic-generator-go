@@ -1,5 +1,30 @@
 # Changes
 
+## [0.61.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.61.0) (2026-06-02)
+
+### Features
+
+* Selective GAPIC generation (#1729) ([9ce69a0](https://github.com/googleapis/google-cloud-go/commit/9ce69a05502f36e1b8aaf853dd236d0082e6e3f1))
+* add build tag to generated snippets (#1753) ([6ab1212](https://github.com/googleapis/google-cloud-go/commit/6ab1212c1f8b2729c58f5cda2bbd61e8b2c93e88))
+* make proto.CloneOf default behavior, no-op the feature flag (#1739) ([a785f57](https://github.com/googleapis/google-cloud-go/commit/a785f57bc7cdf255254cabd11282b0b57940c745))
+
+### Documentation
+
+* use stronger language in Close comment (#1738) ([ac17b8c](https://github.com/googleapis/google-cloud-go/commit/ac17b8c84075255ef00e378275372732d06ef2b5))
+
+## [0.60.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.60.0) (2026-04-28)
+
+## [0.59.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.59.0) (2026-04-27)
+
+### Features
+
+* add proto.clone migration feature (#1730) ([2ba041d](https://github.com/googleapis/google-cloud-go/commit/2ba041dbac577695be2efdcaaad080ffd43170a7))
+* make exporting goog client info a generator capability (#1726) ([5359f2c](https://github.com/googleapis/google-cloud-go/commit/5359f2cb993205c1bc0891ea6d1a47d959dea30c))
+
+### Bug Fixes
+
+* make documentation transport aware (#1731) ([541e230](https://github.com/googleapis/google-cloud-go/commit/541e230a8f34b346215d787d4eaf7273961e466c))
+
 ## [0.58.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.58.0) (2026-04-06)
 
 ### Features

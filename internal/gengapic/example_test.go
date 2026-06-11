@@ -346,7 +346,7 @@ func TestGenSnippetFile(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			g.commit(filepath.Join(sample.SnippetsDirectory, "main.go"), "main")
+			g.commitWithBuildTag(filepath.Join(sample.SnippetsDirectory, "main.go"), "main", "examples")
 			if diff := cmp.Diff(test.imports, g.imports); diff != "" {
 				t.Errorf("TestExample(%s) imports mismatch: (-want +got):\n%s", test.name, diff)
 			}

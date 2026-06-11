@@ -1,0 +1,43 @@
+func (c *baseFooGRPCClient) page(ctx context.Context, req *mypackagepb.PagingInputType, opts ...gax.CallOption) *StringIterator {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).Page[0:len((*c.CallOptions).Page):len((*c.CallOptions).Page)], opts...)
+	it := &StringIterator{}
+	req = proto.CloneOf(req)
+	it.InternalFetch = func(pageSize int, pageToken string) ([]string, string, error) {
+		resp := &mypackagepb.PagingOutputType{}
+		if pageToken != "" {
+			req.PageToken = pageToken
+		}
+		if pageSize > math.MaxInt32 {
+			req.PageSize = math.MaxInt32
+		} else if pageSize != 0 {
+			req.PageSize = int32(pageSize)
+		}
+		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+			var err error
+			resp, err = executeRPC(ctx, c.fooClient.Page, req, settings.GRPC, c.logger, "Page")
+			return err
+		}, opts...)
+		if err != nil {
+			return nil, "", err
+		}
+
+		it.Response = resp
+		return resp.GetItems(), resp.GetNextPageToken(), nil
+	}
+	fetch := func(pageSize int, pageToken string) (string, error) {
+		items, nextPageToken, err := it.InternalFetch(pageSize, pageToken)
+		if err != nil {
+			return "", err
+		}
+		it.items = append(it.items, items...)
+		return nextPageToken, nil
+	}
+
+	it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)
+	it.pageInfo.MaxSize = int(req.GetPageSize())
+	it.pageInfo.Token = req.GetPageToken()
+
+	return it
+}
+

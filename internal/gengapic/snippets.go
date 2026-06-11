@@ -43,7 +43,15 @@ func (g *generator) addSnippetsMetadataDoc(m *descriptorpb.MethodDescriptorProto
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
-	g.snippetMetadata.UpdateMethodDoc(servName, m.GetName(), doc)
+	if g.isMethodInternal(m) {
+		return
+	}
+	if parent, ok := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto); ok && parent != nil {
+		if g.isInternalService(parent) {
+			return
+		}
+	}
+	g.snippetMetadata.UpdateMethodDoc(servName, g.methodName(m), doc)
 }
 
 // addSnippetsMetadataParams sets the parameters for a method in the snippet metadata.
@@ -53,7 +61,15 @@ func (g *generator) addSnippetsMetadataParams(m *descriptorpb.MethodDescriptorPr
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
-	g.snippetMetadata.AddParams(servName, m.GetName(), requestType)
+	if g.isMethodInternal(m) {
+		return
+	}
+	if parent, ok := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto); ok && parent != nil {
+		if g.isInternalService(parent) {
+			return
+		}
+	}
+	g.snippetMetadata.AddParams(servName, g.methodName(m), requestType)
 }
 
 // addSnippetsMetadataResult sets the result type for a method in the snippet metadata.
@@ -63,12 +79,24 @@ func (g *generator) addSnippetsMetadataResult(m *descriptorpb.MethodDescriptorPr
 		// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODO(pongad).
 		return
 	}
-	g.snippetMetadata.UpdateMethodResult(servName, m.GetName(), resultType)
+	if g.isMethodInternal(m) {
+		return
+	}
+	if parent, ok := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto); ok && parent != nil {
+		if g.isInternalService(parent) {
+			return
+		}
+	}
+	g.snippetMetadata.UpdateMethodResult(servName, g.methodName(m), resultType)
 }
 
 // genAndCommitSnippets generates and commits a snippet file for each method in a client.
-// Does nothing and returns nil if opts.omitSnippets is true.
+// Does nothing and returns nil if opts.omitSnippets is true or if internal generation mode.
 func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto) error {
+	if g.isInternalService(s) {
+		return nil
+	}
+	g.clientProtoPkg = g.descInfo.ParentFile[s].GetPackage()
 	if g.cfg.omitSnippets {
 		return nil
 	}
@@ -78,8 +106,11 @@ func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto)
 		servName = override
 	}
 	g.snippetMetadata.AddService(servName, defaultHost)
-	methods := append(s.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(s)
 	for _, m := range methods {
+		if g.isMethodInternal(m) {
+			continue
+		}
 		if m.GetClientStreaming() != m.GetServerStreaming() {
 			// TODO(chrisdsmith): implement streaming examples correctly, see example.go TODOs.
 			continue
@@ -87,19 +118,21 @@ func (g *generator) genAndCommitSnippets(s *descriptorpb.ServiceDescriptorProto)
 		// For each method, reset the generator in order to write a
 		// separate main.go snippet file.
 		g.reset()
+		g.clientProtoPkg = g.descInfo.ParentFile[s].GetPackage()
 		if err := g.genSnippetFile(s, m); err != nil {
 			return err
 		}
 		g.imports[pbinfo.ImportSpec{Name: g.cfg.pkgName, Path: g.cfg.pkgPath}] = true
 		// Use the client short name in this filepath.
 		// E.g. the client for LoggingServiceV2 is just "Client".
-		clientName := pbinfo.ReduceServName(servName, g.cfg.pkgName) + "Client"
+		reducedServName := pbinfo.ReduceServName(servName, g.cfg.pkgName)
+		clientName := reducedServName + "Client"
 		// Get the original proto namespace for the method (different from `s` only for mixins).
 		f := g.descInfo.ParentFile[m]
 		// Get the original proto service for the method (different from `s` only for mixins).
 		methodServ := (g.descInfo.ParentElement[m]).(*descriptorpb.ServiceDescriptorProto)
-		lineCount := g.commit(filepath.Join(g.snippetsOutDir(), clientName, m.GetName(), "main.go"), "main")
-		g.snippetMetadata.AddMethod(servName, m.GetName(), f.GetPackage(), methodServ.GetName(), lineCount-1)
+		lineCount := g.commitWithBuildTag(filepath.Join(g.snippetsOutDir(), clientName, g.methodName(m), "main.go"), "main", "examples")
+		g.snippetMetadata.AddMethod(servName, g.methodName(m), f.GetPackage(), methodServ.GetName(), lineCount-1)
 	}
 	return nil
 }
@@ -110,7 +143,7 @@ func (g *generator) genSnippetFile(s *descriptorpb.ServiceDescriptorProto, m *de
 	if override := g.getServiceNameOverride(s); override != "" {
 		servName = override
 	}
-	regionTag := g.snippetMetadata.RegionTag(servName, m.GetName())
+	regionTag := g.snippetMetadata.RegionTag(servName, g.methodName(m))
 	g.headerComment(fmt.Sprintf("[START %s]", regionTag))
 	pkgName := g.cfg.pkgName
 

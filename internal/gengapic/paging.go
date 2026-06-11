@@ -374,17 +374,13 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 
 	p := g.printf
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) *%s {",
-		lowcaseServName, *m.Name, inSpec.Name, inType.GetName(), pt.iterTypeName)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), pt.iterTypeName)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
 	g.appendCallOpts(m)
 	p("it := &%s{}", pt.iterTypeName)
-	if g.featureEnabled(ProtoCloneOfMigrationFeature) {
-		p("req = proto.CloneOf(req)")
-	} else {
-		p("req = proto.Clone(req).(*%s.%s)", inSpec.Name, inType.GetName())
-	}
+	p("req = proto.CloneOf(req)")
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
 	g.internalFetchSetup(outType, outSpec, pageSize, tok)
 	p("  err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {")

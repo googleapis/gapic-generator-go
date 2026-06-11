@@ -37,12 +37,12 @@ func lowcaseGRPCClientName(servName string) string {
 func (g *generator) genGRPCMethods(serv *descriptorpb.ServiceDescriptorProto, servName string) error {
 	g.addMetadataServiceForTransport(serv.GetName(), "grpc", servName)
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 	for _, m := range methods {
 		if err := g.genGRPCMethod(servName, serv, m); err != nil {
 			return fmt.Errorf("error generating method %q: %v", m.GetName(), err)
 		}
-		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName())
+		g.addMetadataMethod(serv.GetName(), "grpc", m.GetName(), g.methodName(m))
 	}
 	return nil
 }
@@ -101,7 +101,7 @@ func (g *generator) unaryGRPCCall(servName string, m *descriptorpb.MethodDescrip
 	lowcaseServName := lowcaseGRPCClientName(servName)
 	retTyp := fmt.Sprintf("%s.%s", outSpec.Name, outType.GetName())
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), retTyp)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), retTyp)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
@@ -141,7 +141,7 @@ func (g *generator) emptyUnaryGRPCCall(servName string, m *descriptorpb.MethodDe
 	lowcaseServName := lowcaseGRPCClientName(servName)
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) error {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName())
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName())
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
@@ -211,7 +211,7 @@ func (g *generator) grpcCallOptions(serv *descriptorpb.ServiceDescriptorProto, s
 	// defaultCallOptions
 	c := g.cfg.gRPCServiceConfig
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	// read retry params from gRPC ServiceConfig
 	p("func default%[1]sCallOptions() *%[1]sCallOptions {", servName)
@@ -266,11 +266,11 @@ func (g *generator) grpcCallOptions(serv *descriptorpb.ServiceDescriptorProto, s
 	p("")
 }
 
-func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, clientName, optsName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
 	// We DON'T want to export the transport layers.
-	lowcaseServName := lowcaseGRPCClientName(servName)
+	lowcaseServName := lowcaseGRPCClientName(clientName)
 
 	p("// %s is a client for interacting with %s over gRPC transport.", lowcaseServName, g.apiName)
 	p("//")
@@ -280,12 +280,12 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	p("connPool gtransport.ConnPool")
 	p("")
 
-	p("// Points back to the CallOptions field of the containing %sClient", servName)
-	p("CallOptions **%sCallOptions", servName)
+	p("// Points back to the CallOptions field of the containing %sClient", clientName)
+	p("CallOptions **%sCallOptions", optsName)
 	p("")
 
 	p("// The gRPC API client.")
-	p("%s %s.%sClient", grpcClientField(servName), imp.Name, serv.GetName())
+	p("%s %s.%sClient", grpcClientField(clientName), imp.Name, serv.GetName())
 	p("")
 
 	if hasRPCForLRO {
@@ -309,27 +309,27 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, se
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/grpc"}] = true
 	g.imports[imp] = true
 
-	g.grpcClientUtilities(serv, servName, imp, hasRPCForLRO)
+	g.grpcClientUtilities(serv, clientName, optsName, imp, hasRPCForLRO)
 	g.imports[pbinfo.ImportSpec{Path: "log/slog"}] = true
 }
 
-func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProto, servName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
+func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProto, clientName, optsName string, imp pbinfo.ImportSpec, hasRPCForLRO bool) {
 	p := g.printf
 
-	clientName := serv.GetName()
+	docLibName := serv.GetName()
 	if override := g.getServiceNameOverride(serv); override != "" {
-		clientName = override
+		docLibName = override
 	}
-	clientName = camelToSnake(clientName)
-	clientName = strings.Replace(clientName, "_", " ", -1)
-	lowcaseServName := lowcaseGRPCClientName(servName)
+	docLibName = camelToSnake(docLibName)
+	docLibName = strings.Replace(docLibName, "_", " ", -1)
+	lowcaseServName := lowcaseGRPCClientName(clientName)
 
 	// Factory function
-	p("// New%sClient creates a new %s client based on gRPC.", servName, clientName)
+	p("// New%sClient creates a new %s client based on gRPC.", clientName, docLibName)
 	p("// The returned client must be Closed when it is done being used to clean up its underlying connections.")
 	g.serviceDoc(serv, false) // exclude API version docs
-	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", servName)
-	p("  clientOpts := default%[1]sGRPCClientOptions()", servName)
+	p("func New%[1]sClient(ctx context.Context, opts ...option.ClientOption) (*%[1]sClient, error) {", clientName)
+	p("  clientOpts := default%[1]sGRPCClientOptions()", clientName)
 	if g.featureEnabled(OpenTelemetryAttributesFeature) {
 		p("    if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
 		p("    clientOpts = append(clientOpts, internaloption.WithTelemetryAttributes(map[string]string{")
@@ -343,8 +343,8 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("  }")
 	}
 
-	p("  if new%sClientHook != nil {", servName)
-	p("    hookOpts, err := new%sClientHook(ctx, clientHookParams{})", servName)
+	p("  if new%sClientHook != nil {", clientName)
+	p("    hookOpts, err := new%sClientHook(ctx, clientHookParams{})", clientName)
 	p("    if err != nil {")
 	p("      return nil, err")
 	p("    }")
@@ -355,11 +355,11 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("  if err != nil {")
 	p("    return nil, err")
 	p("  }")
-	p("  client := %[1]sClient{CallOptions: default%[1]sCallOptions()}", servName)
+	p("  client := %[1]sClient{CallOptions: default%[2]sCallOptions()}", clientName, optsName)
 	p("")
 	p("  c := &%s{", lowcaseServName)
 	p("    connPool:    connPool,")
-	p("    %s: %s.New%sClient(connPool),", grpcClientField(servName), imp.Name, serv.GetName())
+	p("    %s: %s.New%sClient(connPool),", grpcClientField(clientName), imp.Name, serv.GetName())
 	p("    CallOptions: &client.CallOptions,")
 	p("    logger: internaloption.GetLogger(opts),")
 	g.mixinStubsInit()
@@ -379,7 +379,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("      }),")
 		p("    )")
 		p("")
-		methods := append(serv.GetMethod(), g.getMixinMethods()...)
+		methods := g.getMethods(serv)
 		for _, m := range methods {
 			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientMetrics(metrics))", m.GetName(), m.GetName())
 		}
@@ -439,7 +439,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("")
 
 	// Close method
-	p("// Close closes the connection to the API service. The user should invoke this when")
+	p("// Close closes the connection to the API service. **Always** call Close() when")
 	p("// the client is no longer required.")
 	p("func (c *%s) Close() error {", lowcaseServName)
 	p("  return c.connPool.Close()")

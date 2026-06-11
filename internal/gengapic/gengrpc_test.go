@@ -119,7 +119,7 @@ func TestServiceRenaming(t *testing.T) {
 	}
 
 	// Test the generation of the client boilerplate and single gRPC method rename.
-	g.grpcClientInit(serv, "Bar", imp, false)
+	g.grpcClientInit(serv, "Bar", "Bar", imp, false)
 	if err := g.genGRPCMethod("Bar", serv, m); err != nil {
 		t.Fatal(err)
 	}

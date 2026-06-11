@@ -805,7 +805,6 @@ func TestGenRestMethod(t *testing.T) {
 			method: pagingRPC,
 			cfg: &generatorConfig{featureEnablement: map[featureID]struct{}{
 				OpenTelemetryAttributesFeature: {},
-				ProtoCloneOfMigrationFeature:   {},
 			}},
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "math"}:    true,

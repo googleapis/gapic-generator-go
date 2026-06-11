@@ -34,6 +34,7 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	if len(services) == 0 {
 		return
 	}
+	g.clientProtoPkg = g.descInfo.ParentFile[services[0]].GetPackage()
 
 	p := g.printf
 
@@ -104,15 +105,22 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 	p("// The returned client must be Closed when it is done being used.")
 	p("//")
 	// If the service does not have any methods, then do not generate sample method snippet.
-	if len(exampleService.GetMethod()) > 0 {
+	var exampleMethod *descriptorpb.MethodDescriptorProto
+	for _, m := range exampleService.GetMethod() {
+		if g.shouldGenerateMethod(exampleService, m) && !g.isMethodInternal(m) {
+			exampleMethod = m
+			break
+		}
+	}
+	if exampleMethod != nil {
 		p("// Using the Client")
 		p("//")
 		p("// The following is an example of making an API call with the newly created client, mentioned above.")
 		p("//")
-		// Code block for client using the first method of the service
+		// Code block for client using the first public method of the service
 		tmpMethod := g.pt
 		g.pt = printer.P{}
-		g.exampleMethodBodyWithOpts(g.cfg.pkgName, servName, exampleService.GetMethod()[0], true)
+		g.exampleMethodBodyWithOpts(g.cfg.pkgName, servName, exampleMethod, true)
 		snipMethod := g.pt.String()
 		g.pt = tmpMethod
 		g.codesnippet(snipMethod)
@@ -120,7 +128,12 @@ func (g *generator) genDocFile(year int, services []*descriptorpb.ServiceDescrip
 
 	p("// Use of Context")
 	p("//")
-	p("// The ctx passed to New%sClient is used for authentication requests and", servName)
+	clientName := servName
+	// Guard against double-suffixing if the caller already appended "REST".
+	if len(g.cfg.transports) == 1 && g.cfg.transports[0] == rest && !strings.HasSuffix(servName, restClientSuffix) {
+		clientName += restClientSuffix
+	}
+	p("// The ctx passed to New%sClient is used for authentication requests and", clientName)
 	p("// for creating the underlying connection, but is not used for subsequent calls.")
 	p("// Individual methods on the client use the ctx given to them.")
 	p("//")
