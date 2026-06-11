@@ -364,7 +364,7 @@ var {{$methodCmdVar}} = &cobra.Command{
 		printMessage(result){{ end }}
 		{{ end }}
 		{{ end }}
-		{{ if .Paged }}
+		{{ if and .Paged (not .IsLRO) }}
 		if err == iterator.Done {
 		    return nil
 		}
