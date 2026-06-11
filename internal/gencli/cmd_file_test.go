@@ -137,6 +137,41 @@ func TestCommandFile(t *testing.T) {
 		IsLRO: true,
 	}
 
+	// LRO and Paged
+	lroPagedCmd := &Command{
+		Service:           "Todo",
+		Method:            "LROPagedTodo",
+		MethodCmd:         "lro-paged-todo",
+		ShortDesc:         "lro paged todo",
+		LongDesc:          "lro paged todo description",
+		InputMessage:      "todopb.LROPagedTodoRequest",
+		InputMessageVar:   "LROPagedTodoInput",
+		OutputMessageType: ".google.longrunning.Operation",
+		Imports: map[string]*pbinfo.ImportSpec{
+			"todopb": &pbinfo.ImportSpec{Name: "todopb", Path: "github.com/googleapis/todo/generated"},
+		},
+		Flags: []*Flag{
+			&Flag{
+				Name:      "page_size",
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_INT32,
+				FieldName: "PageSize",
+				VarName:   "LROPagedTodoInput",
+				Usage:     "size of page to list",
+				Optional:  true,
+			},
+			&Flag{
+				Name:      "page_token",
+				FieldName: "PageToken",
+				VarName:   "LROPagedTodoInput",
+				Type:      descriptorpb.FieldDescriptorProto_TYPE_STRING,
+				Usage:     "the token from a previous page listed",
+				Optional:  true,
+			},
+		},
+		IsLRO: true,
+		Paged: true,
+	}
+
 	// client streaming
 	copyTodosCmd := &Command{
 		Service:           "Todo",
@@ -223,6 +258,14 @@ func TestCommandFile(t *testing.T) {
 			cmd:        startTodoCmd,
 			name:       "start-todo",
 			goldenPath: filepath.Join("testdata", "start-todo.want"),
+		},
+		{
+			g: &gcli{
+				format: true,
+			},
+			cmd:        lroPagedCmd,
+			name:       "lro-paged-todo",
+			goldenPath: filepath.Join("testdata", "lro-paged.want"),
 		},
 		{
 			g: &gcli{
