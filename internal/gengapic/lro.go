@@ -41,7 +41,7 @@ func (g *generator) lroCall(servName string, m *descriptorpb.MethodDescriptorPro
 	lowcaseServName := lowerFirst(servName + "GRPCClient")
 
 	p("func (c *%s) %s(ctx context.Context, req *%s.%s, opts ...gax.CallOption) (*%s, error) {",
-		lowcaseServName, m.GetName(), inSpec.Name, inType.GetName(), lroType)
+		lowcaseServName, g.methodName(m), inSpec.Name, inType.GetName(), lroType)
 
 	g.insertRequestHeaders(m, grpc)
 	g.injectTelemetryContext(m, nil)
@@ -95,6 +95,10 @@ func (g *generator) genOperationBuilders(s *descriptorpb.ServiceDescriptorProto,
 func (g *generator) genOperationBuilder(servName string, m *descriptorpb.MethodDescriptorProto) error {
 	protoPkg := g.descInfo.ParentFile[m].GetPackage()
 	ow := g.aux.methodToWrapper[m]
+	builderName := ow.name
+	if g.isMethodInternal(m) {
+		builderName = lowerFirst(ow.name)
+	}
 	p := g.printf
 
 	// LRO from name
@@ -106,7 +110,7 @@ func (g *generator) genOperationBuilder(servName string, m *descriptorpb.MethodD
 			switch t {
 			case grpc:
 				receiver := lowcaseGRPCClientName(servName)
-				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, ow.name)
+				p("func (c *%s) %s(name string) *%[3]s {", receiver, builderName, ow.name)
 				p("  return &%s{", ow.name)
 				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
 				p("  }")
@@ -115,7 +119,7 @@ func (g *generator) genOperationBuilder(servName string, m *descriptorpb.MethodD
 			case rest:
 				receiver := lowcaseRestClientName(servName)
 				override := g.getOperationPathOverride(protoPkg)
-				p("func (c *%s) %[2]s(name string) *%[2]s {", receiver, ow.name)
+				p("func (c *%s) %s(name string) *%[3]s {", receiver, builderName, ow.name)
 				p("  override := fmt.Sprintf(%q, name)", override)
 				p("  return &%s{", ow.name)
 				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")

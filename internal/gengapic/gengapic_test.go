@@ -581,6 +581,218 @@ func TestGenGRPCMethods(t *testing.T) {
 	}
 }
 
+func TestSelectiveGapicMethod(t *testing.T) {
+	file := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+	m := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("Zip"),
+		InputType:  proto.String(".my.pkg.InputType"),
+		OutputType: proto.String(".my.pkg.OutputType"),
+		Options:    &descriptorpb.MethodOptions{},
+	}
+	m2 := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("Zap"),
+		InputType:  proto.String(".my.pkg.InputType"),
+		OutputType: proto.String(".my.pkg.OutputType"),
+		Options:    &descriptorpb.MethodOptions{},
+	}
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Name:   proto.String("Foo"),
+		Method: []*descriptorpb.MethodDescriptorProto{m, m2},
+	}
+
+	inputType := &descriptorpb.DescriptorProto{Name: proto.String("InputType")}
+	outputType := &descriptorpb.DescriptorProto{Name: proto.String("OutputType")}
+
+	var g generator
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.cfg = &generatorConfig{
+		pkgName: "pkg",
+		featureEnablement: map[featureID]struct{}{
+			SelectiveGapicGenerationFeature: {},
+		},
+	}
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{
+		m:    serv,
+		m2:   serv,
+		serv: file,
+	}
+	g.descInfo.ParentFile = map[proto.Message]*descriptorpb.FileDescriptorProto{
+		serv:       file,
+		m:          file,
+		m2:         file,
+		inputType:  file,
+		outputType: file,
+	}
+	g.descInfo.Type = map[string]pbinfo.ProtoType{
+		".my.pkg.InputType":  inputType,
+		".my.pkg.OutputType": outputType,
+	}
+
+	g.cfg.APIServiceConfig = &serviceconfig.Service{
+		Publishing: &annotations.Publishing{
+			LibrarySettings: []*annotations.ClientLibrarySettings{
+				{
+					Version: "my.pkg",
+					GoSettings: &annotations.GoSettings{
+						Common: &annotations.CommonLanguageSettings{
+							SelectiveGapicGeneration: &annotations.SelectiveGapicGeneration{
+								GenerateOmittedAsInternal: true,
+								Methods:                   []string{"my.pkg.Foo.Zip"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	g.clientProtoPkg = "my.pkg"
+
+	g.reset()
+	// Zap is unexported
+	if err := g.genGRPCMethod("Foo", serv, m2); err != nil {
+		t.Fatal(err)
+	}
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_selective_zap.want"))
+
+	g.reset()
+	// Zip is exported
+	if err := g.genGRPCMethod("Foo", serv, m); err != nil {
+		t.Fatal(err)
+	}
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_selective_zip.want"))
+}
+
+func TestSelectiveGapicPagingStreaming(t *testing.T) {
+	file := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+
+	pagingInputType := &descriptorpb.DescriptorProto{
+		Name: proto.String("PagingInputType"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:  proto.String("page_size"),
+				Type:  descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(),
+				Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+			},
+			{
+				Name:  proto.String("page_token"),
+				Type:  descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+				Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+			},
+		},
+	}
+	pagingOutputType := &descriptorpb.DescriptorProto{
+		Name: proto.String("PagingOutputType"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:  proto.String("next_page_token"),
+				Type:  descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+				Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+			},
+			{
+				Name:  proto.String("items"),
+				Type:  descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+				Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+			},
+		},
+	}
+
+	inputType := &descriptorpb.DescriptorProto{Name: proto.String("InputType")}
+	outputType := &descriptorpb.DescriptorProto{Name: proto.String("OutputType")}
+
+	mPage := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("Page"),
+		InputType:  proto.String(".my.pkg.PagingInputType"),
+		OutputType: proto.String(".my.pkg.PagingOutputType"),
+		Options:    &descriptorpb.MethodOptions{},
+	}
+	mStream := &descriptorpb.MethodDescriptorProto{
+		Name:            proto.String("Stream"),
+		InputType:       proto.String(".my.pkg.InputType"),
+		OutputType:      proto.String(".my.pkg.OutputType"),
+		ServerStreaming: proto.Bool(true),
+		Options:         &descriptorpb.MethodOptions{},
+	}
+
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Name:   proto.String("Foo"),
+		Method: []*descriptorpb.MethodDescriptorProto{mPage, mStream},
+	}
+
+	var g generator
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.cfg = &generatorConfig{
+		pkgName: "pkg",
+		featureEnablement: map[featureID]struct{}{
+			SelectiveGapicGenerationFeature: {},
+		},
+	}
+	g.aux = &auxTypes{
+		iters: map[string]*iterType{},
+	}
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{
+		mPage:   serv,
+		mStream: serv,
+	}
+	g.descInfo.ParentFile = map[proto.Message]*descriptorpb.FileDescriptorProto{
+		serv:             file,
+		mPage:            file,
+		mStream:          file,
+		pagingInputType:  file,
+		pagingOutputType: file,
+		inputType:        file,
+		outputType:       file,
+	}
+	g.descInfo.Type = map[string]pbinfo.ProtoType{
+		".my.pkg.PagingInputType":  pagingInputType,
+		".my.pkg.PagingOutputType": pagingOutputType,
+		".my.pkg.InputType":        inputType,
+		".my.pkg.OutputType":       outputType,
+	}
+
+	g.cfg.APIServiceConfig = &serviceconfig.Service{
+		Publishing: &annotations.Publishing{
+			LibrarySettings: []*annotations.ClientLibrarySettings{
+				{
+					Version: "my.pkg",
+					GoSettings: &annotations.GoSettings{
+						Common: &annotations.CommonLanguageSettings{
+							SelectiveGapicGeneration: &annotations.SelectiveGapicGeneration{
+								GenerateOmittedAsInternal: true,
+								Methods:                   []string{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	g.clientProtoPkg = "my.pkg"
+
+	g.reset()
+	g.clientProtoPkg = "my.pkg"
+	if err := g.genGRPCMethod("BaseFoo", serv, mPage); err != nil {
+		t.Fatal(err)
+	}
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_selective_page_internal.want"))
+
+	g.reset()
+	g.clientProtoPkg = "my.pkg"
+	if err := g.genGRPCMethod("BaseFoo", serv, mStream); err != nil {
+		t.Fatal(err)
+	}
+	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_selective_stream_internal.want"))
+}
+
 func TestContainsDeprecated(t *testing.T) {
 	tests := []struct {
 		in   string
@@ -1676,5 +1888,110 @@ func TestResourceNameField_FeatureFlag(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestSelectiveGapicMetadata(t *testing.T) {
+	file := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("my.pkg"),
+		Options: &descriptorpb.FileOptions{
+			GoPackage: proto.String("mypackage"),
+		},
+	}
+	m := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("Zip"),
+		InputType:  proto.String(".my.pkg.InputType"),
+		OutputType: proto.String(".my.pkg.OutputType"),
+		Options:    &descriptorpb.MethodOptions{},
+	}
+	m2 := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("Zap"),
+		InputType:  proto.String(".my.pkg.InputType"),
+		OutputType: proto.String(".my.pkg.OutputType"),
+		Options:    &descriptorpb.MethodOptions{},
+	}
+	serv := &descriptorpb.ServiceDescriptorProto{
+		Name:   proto.String("Foo"),
+		Method: []*descriptorpb.MethodDescriptorProto{m, m2},
+	}
+
+	inputType := &descriptorpb.DescriptorProto{Name: proto.String("InputType")}
+	outputType := &descriptorpb.DescriptorProto{Name: proto.String("OutputType")}
+
+	var g generator
+	g.metadata = &metadatapb.GapicMetadata{}
+	g.imports = map[pbinfo.ImportSpec]bool{}
+	g.cfg = &generatorConfig{
+		pkgName: "pkg",
+		featureEnablement: map[featureID]struct{}{
+			SelectiveGapicGenerationFeature: {},
+		},
+	}
+	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{
+		m:    serv,
+		m2:   serv,
+		serv: file,
+	}
+	g.descInfo.ParentFile = map[proto.Message]*descriptorpb.FileDescriptorProto{
+		serv:       file,
+		m:          file,
+		m2:         file,
+		inputType:  file,
+		outputType: file,
+	}
+	g.descInfo.Type = map[string]pbinfo.ProtoType{
+		".my.pkg.InputType":  inputType,
+		".my.pkg.OutputType": outputType,
+	}
+
+	g.cfg.APIServiceConfig = &serviceconfig.Service{
+		Publishing: &annotations.Publishing{
+			LibrarySettings: []*annotations.ClientLibrarySettings{
+				{
+					Version: "my.pkg",
+					GoSettings: &annotations.GoSettings{
+						Common: &annotations.CommonLanguageSettings{
+							SelectiveGapicGeneration: &annotations.SelectiveGapicGeneration{
+								GenerateOmittedAsInternal: true,
+								Methods:                   []string{"my.pkg.Foo.Zip"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	g.clientProtoPkg = "my.pkg"
+
+	// Initialize metadata service entry
+	g.addMetadataServiceEntry("Foo", "v1")
+
+	if err := g.genGRPCMethods(serv, "Foo"); err != nil {
+		t.Fatal(err)
+	}
+
+	// We expect both Zip (exported) and zap (unexported) to be in metadata.
+	// Zip should be mapped to "Zip".
+	// Zap should be mapped to "zap" (lowercase).
+
+	want := &metadatapb.GapicMetadata{
+		Services: map[string]*metadatapb.GapicMetadata_ServiceForTransport{
+			"Foo": {
+				ApiVersion: "v1",
+				Clients: map[string]*metadatapb.GapicMetadata_ServiceAsClient{
+					"grpc": {
+						LibraryClient: "FooClient",
+						Rpcs: map[string]*metadatapb.GapicMetadata_MethodList{
+							"Zip": {Methods: []string{"Zip"}},
+							"Zap": {Methods: []string{"zap"}},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(g.metadata, want, cmp.Comparer(proto.Equal)); diff != "" {
+		t.Errorf("gapic_metadata got(-),want(+):\n%s", diff)
 	}
 }

@@ -27,15 +27,19 @@ import (
 const restClientSuffix = "REST"
 
 func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) error {
+	g.clientProtoPkg = g.descInfo.ParentFile[serv].GetPackage()
 	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
 
 	g.exampleClientFactory(pkgName, servName)
 
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 
 	for _, m := range methods {
+		if g.isMethodInternal(m) {
+			continue
+		}
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {
 			return err
 		}
@@ -44,11 +48,15 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 }
 
 func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
+	g.clientProtoPkg = g.descInfo.ParentFile[serv].GetPackage()
 	pkgName := g.cfg.pkgName
 	override := g.getServiceNameOverride(serv)
 	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
-	methods := append(serv.GetMethod(), g.getMixinMethods()...)
+	methods := g.getMethods(serv)
 	for _, m := range methods {
+		if g.isMethodInternal(m) {
+			continue
+		}
 		// Don't need streaming RPCs
 		if m.GetClientStreaming() || m.GetServerStreaming() {
 			continue
