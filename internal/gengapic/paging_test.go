@@ -450,7 +450,7 @@ func TestPagingField(t *testing.T) {
 
 	// First, test using the default "paging" package.
 	req := pluginpb.CodeGeneratorRequest{
-		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest,F_proto_cloneof"),
+		Parameter: proto.String("go-gapic-package=path;mypackage,transport=rest"),
 		ProtoFile: []*descriptorpb.FileDescriptorProto{file},
 	}
 	g, err := newGenerator(&req)
