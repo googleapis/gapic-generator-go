@@ -27,9 +27,9 @@ http_archive(
 
 http_archive(
     name = "bazel_features",
-    sha256 = "89eca73d4c334cf664f84920365d2ce04e2c98099b89f7c5b676b5f377c8e754",
-    strip_prefix = "bazel_features-1.48.1",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.48.1/bazel_features-v1.48.1.tar.gz",
+    sha256 = "094367e732ece23f334eaf84089a720b861d053beeba6a6a68356d3aee1dc32b",
+    strip_prefix = "bazel_features-1.50.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.50.0/bazel_features-v1.50.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -110,9 +110,9 @@ com_googleapis_gapic_generator_go_repositories()
 
 http_archive(
     name = "rules_python",
-    sha256 = "2119ca04726066c53b8f1ff42dffa090ea7f3e42a75679f1cfda937406cf7753",
-    strip_prefix = "rules_python-2.0.2",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/2.0.2/rules_python-2.0.2.tar.gz",
+    sha256 = "2610f57b934dc55d1df2728290199519b11cc53508dec34fd5ef0424bcb50242",
+    strip_prefix = "rules_python-2.0.3",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/2.0.3/rules_python-2.0.3.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
