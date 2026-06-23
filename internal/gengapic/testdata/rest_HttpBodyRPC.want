@@ -26,10 +26,10 @@ func (c *fooRESTClient) HttpBodyRPC(ctx context.Context, req *foopb.Foo, opts ..
 	hds = append(c.xGoogHeaders, hds...)
 	hds = append(hds, "Content-Type", "application/json")
 	headers := gax.BuildHeaders(ctx, hds...)
-	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
+	if c.tracingOrLoggingEnabled {
 		ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
-	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
+	if c.telemetryEnabled {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "google.cloud.foo.v1.FooService/HttpBodyRPC")
 		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.HttpBodyRPC")
 		ctx = callctx.WithTelemetryContext(ctx, "url_template", "/v1/foo")

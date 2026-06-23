@@ -509,7 +509,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 			if g.featureEnabled(OpenTelemetryAttributesFeature) {
 				resTarget := g.resourceNameField(m)
 				if resTarget != nil {
-					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
+					p("if c.tracingOrLoggingEnabled {")
 
 					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
 					// the expression fieldGetter(resField) returns an accessor for the full
@@ -547,7 +547,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 			if g.featureEnabled(OpenTelemetryAttributesFeature) {
 				resTarget := g.resourceNameField(m)
 				if resTarget != nil {
-					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
+					p("if c.tracingOrLoggingEnabled {")
 					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
 					// the expression fieldGetter(resField) returns an accessor for the full
 					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
@@ -715,10 +715,10 @@ func (g *generator) injectTelemetryContext(m *descriptorpb.MethodDescriptorProto
 		fqn := fmt.Sprintf("%s.%s/%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
 
 		override := g.getServiceNameOverride(serv)
-		servName := pbinfo.ReduceServNameTelemetry(serv.GetName(), override)
+		servName := pbinfo.ReduceServNameWithoutPackage(serv.GetName(), override)
 		clientSpanName := fmt.Sprintf("%s.%s.%s", g.cfg.pkgPath, servName, m.GetName())
 
-		g.printf("if gax.IsFeatureEnabled(\"METRICS\") || gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
+		g.printf("if c.telemetryEnabled {")
 		g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"rpc_method\", %q)", fqn)
 		g.printf("  ctx = callctx.WithTelemetryContext(ctx, \"client_span_name\", %q)", clientSpanName)
 		if info != nil && info.url != "" {
