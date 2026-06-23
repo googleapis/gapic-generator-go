@@ -715,7 +715,7 @@ func (g *generator) injectTelemetryContext(m *descriptorpb.MethodDescriptorProto
 		fqn := fmt.Sprintf("%s.%s/%s", g.descInfo.ParentFile[serv].GetPackage(), serv.GetName(), m.GetName())
 
 		override := g.getServiceNameOverride(serv)
-		servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), g.cfg.pkgName, override)
+		servName := pbinfo.ReduceServNameTelemetry(serv.GetName(), override)
 		clientSpanName := fmt.Sprintf("%s.%s.%s", g.cfg.pkgPath, servName, m.GetName())
 
 		g.printf("if gax.IsFeatureEnabled(\"METRICS\") || gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")

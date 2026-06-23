@@ -206,6 +206,18 @@ func ReduceServNameWithOverride(svc, pkg, override string) string {
 	return ReduceServName(svc, pkg)
 }
 
+// ReduceServNameTelemetry returns a reduced service name suitable for telemetry.
+// Unlike ReduceServName, it is guaranteed to be non-empty (it does not return
+// an empty string if the service name matches the package name).
+func ReduceServNameTelemetry(svc, override string) string {
+	if override != "" {
+		return override
+	}
+	// Passing an empty package name bypasses the package-matching check
+	// and prevents it from returning "".
+	return ReduceServName(svc, "")
+}
+
 // ReduceServName removes redundant components from the service name.
 // For example, FooServiceV2 -> Foo.
 // The returned name is used as part of longer names, like FooClient.
