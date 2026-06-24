@@ -1,5 +1,17 @@
 # Changes
 
+## [0.62.0](https://github.com/googleapis/gapic-generator-go/compare/v0.61.0...v0.62.0) (2026-06-24)
+
+
+### Features
+
+* Remove unusued proto.CloneOf migration feature ([#1761](https://github.com/googleapis/gapic-generator-go/issues/1761)) ([40d3ada](https://github.com/googleapis/gapic-generator-go/commit/40d3ada3057112194ffc653cd056efe8aba71a1f))
+
+
+### Bug Fixes
+
+* **gencli:** Guard iterator.Done check for LROs with paging fields ([#1758](https://github.com/googleapis/gapic-generator-go/issues/1758)) ([9a5d4dd](https://github.com/googleapis/gapic-generator-go/commit/9a5d4ddf238a096ba8ee7489e3c7445f688f3623))
+
 ## [0.61.0](https://github.com/googleapis/google-cloud-go/releases/tag/v0.61.0) (2026-06-02)
 
 ### Features
