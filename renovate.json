@@ -11,10 +11,6 @@
     "io_bazel_rules_go"
   ],
   "golang": {
-    "ignoreDeps": [
-      "github.com/russross/blackfriday",
-      "github.com/jhump/protoreflect"
-    ],
     "postUpdateOptions": [
       "gomodTidy"
     ]

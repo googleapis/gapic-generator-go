@@ -246,28 +246,6 @@ def com_googleapis_gapic_generator_go_repositories():
         sum = "h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=",
         version = "v1.1.0",
     )
-
-    go_repository(
-        name = "com_github_jhump_gopoet",
-        importpath = "github.com/jhump/gopoet",
-        sum = "h1:gYjOPnzHd2nzB37xYQZxj4EIQNpBrBskRqQQ3q4ZgSg=",
-        version = "v0.1.0",
-    )
-    go_repository(
-        name = "com_github_jhump_goprotoc",
-        importpath = "github.com/jhump/goprotoc",
-        sum = "h1:Y1UgUX+txUznfqcGdDef8ZOVlyQvnV0pKWZH08RmZuo=",
-        version = "v0.5.0",
-    )
-    go_repository(
-        name = "com_github_jhump_protoreflect",
-        # Added in order to disable testproto BUILD file generation.
-        # This should be retained by gazelle.
-        build_file_proto_mode = "disable",
-        importpath = "github.com/jhump/protoreflect",
-        sum = "h1:54fZg+49widqXYQ0b+usAFHbMkBGR4PpXrsHc8+TBDg=",
-        version = "v1.16.0",
-    )
     go_repository(
         name = "com_github_kr_pretty",
         importpath = "github.com/kr/pretty",
@@ -316,12 +294,6 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/rogpeppe/go-internal",
         sum = "h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=",
         version = "v1.14.1",
-    )
-    go_repository(
-        name = "com_github_russross_blackfriday_v2",
-        importpath = "github.com/russross/blackfriday/v2",
-        sum = "h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=",
-        version = "v2.1.0",
     )
     go_repository(
         name = "com_github_sagikazarmark_locafero",
