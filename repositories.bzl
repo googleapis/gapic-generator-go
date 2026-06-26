@@ -29,12 +29,6 @@ def com_googleapis_gapic_generator_go_repositories():
         urls = ["https://github.com/googleapis/rules_gapic/archive/v%s.tar.gz" % _rules_gapic_version],
     )
     go_repository(
-        name = "com_github_bufbuild_protocompile",
-        importpath = "github.com/bufbuild/protocompile",
-        sum = "h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=",
-        version = "v0.14.1",
-    )
-    go_repository(
         name = "com_github_cespare_xxhash_v2",
         importpath = "github.com/cespare/xxhash/v2",
         sum = "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=",
@@ -296,6 +290,12 @@ def com_googleapis_gapic_generator_go_repositories():
         version = "v1.14.1",
     )
     go_repository(
+        name = "com_github_russross_blackfriday_v2",
+        importpath = "github.com/russross/blackfriday/v2",
+        sum = "h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=",
+        version = "v2.1.0",
+    )
+    go_repository(
         name = "com_github_sagikazarmark_locafero",
         importpath = "github.com/sagikazarmark/locafero",
         sum = "h1:/NQhBAkUb4+fH1jivKHWusDYFjMOOKU88eegjfxfHb4=",
@@ -342,12 +342,6 @@ def com_googleapis_gapic_generator_go_repositories():
         importpath = "github.com/spiffe/go-spiffe/v2",
         sum = "h1:l+DolpxNWYgruGQVV0xsfeya3CsC7m8iBzDnMpsbLuo=",
         version = "v2.6.0",
-    )
-    go_repository(
-        name = "com_github_stretchr_objx",
-        importpath = "github.com/stretchr/objx",
-        sum = "h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=",
-        version = "v0.5.2",
     )
     go_repository(
         name = "com_github_stretchr_testify",
