@@ -1,4 +1,7 @@
 ---
+permissions:
+  contents: read
+
 name: Generator tests
 on:
   push:
@@ -11,8 +14,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - uses: actions/setup-go@v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      with:
+        persist-credentials: false
+    - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
       with:
         go-version-file: 'go.mod'
     - name: Check formatting
@@ -21,7 +26,7 @@ jobs:
       run: go install golang.org/x/lint/golint@latest
       if: ${{ always() }}
     - name: Staticcheck
-      uses: dominikh/staticcheck-action@v1.4.1
+      uses: dominikh/staticcheck-action@9716614d4101e79b4340dd97b10e54d68234e431 # v1.4.1
     - name: Lint
       # Exclude all of the grpc_service_config package (it is generated).
       run: golint -set_exit_status $(go list ./... | grep -v 'grpc_service_config') > golint.txt
@@ -32,7 +37,7 @@ jobs:
       # Exclude all of the grpc_service_config package (it is generated).
       run: go mod download && go vet $(go list ./... | grep -v 'grpc_service_config') > govet.txt && ! [ -s govet.txt ]
       if: ${{ always() }}
-    - uses: actions/upload-artifact@v7
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       if: ${{ always() }}
       with:
         name: linting-results
@@ -43,16 +48,20 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - uses: actions/setup-go@v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      with:
+        persist-credentials: false
+    - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
       with:
         go-version-file: 'go.mod'
     - run: go test ./...
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - uses: actions/setup-go@v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      with:
+        persist-credentials: false
+    - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
       with:
         go-version-file: 'go.mod'
     - name: Install protoc
@@ -89,8 +98,10 @@ jobs:
   bazel-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - uses: bazel-contrib/setup-bazel@0.19.0
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      with:
+        persist-credentials: false
+    - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
       with:
         # Avoid downloading Bazel every time.
         bazelisk-cache: true
