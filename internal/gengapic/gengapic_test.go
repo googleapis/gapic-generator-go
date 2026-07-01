@@ -337,6 +337,7 @@ func TestGenGRPCMethods(t *testing.T) {
 	var g generator
 	g.cfg = &generatorConfig{
 		pkgName: "pkg",
+		pkgPath: "github.com/my/pkg",
 		featureEnablement: map[featureID]struct{}{
 			OpenTelemetryAttributesFeature: {},
 		},
