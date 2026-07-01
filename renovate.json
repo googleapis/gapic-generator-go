@@ -10,11 +10,6 @@
     "com_google_protobuf",
     "io_bazel_rules_go"
   ],
-  "golang": {
-    "postUpdateOptions": [
-      "gomodTidy"
-    ]
-  },
   "rebaseWhen": "behind-base-branch",
   "labels": [
     "automerge"
@@ -24,5 +19,11 @@
     "constraints": {
       "go": "1.24"
     }
-  }
+  },
+  "packageRules": [
+    {
+      "matchCategories": ["golang"],
+      "postUpdateOptions": ["gomodTidy"]
+    }
+  ]
 }
