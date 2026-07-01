@@ -3,7 +3,6 @@
     "config:best-practices",
     ":disableDependencyDashboard",
     ":semanticCommitTypeAll(chore)",
-    "helpers:pinGitHubActionDigests",
     "schedule:weekly"
   ],
   "ignoreDeps": [
