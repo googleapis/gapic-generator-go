@@ -857,6 +857,7 @@ func TestGenRestMethod(t *testing.T) {
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Name: "longrunningpb", Path: "cloud.google.com/go/longrunning/autogen/longrunningpb"}: true,
+				{Name: "trace", Path: "go.opentelemetry.io/otel/trace"}:                                true,
 				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                                      true,
 				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:                                 true,
 			},
