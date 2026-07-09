@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/googleapis/gapic-generator-go/internal/pbinfo"
@@ -57,14 +58,19 @@ func (g *generator) lroCall(servName string, m *descriptorpb.MethodDescriptorPro
 	p("  if err != nil {")
 	p("    return nil, err")
 	p("  }")
+	p("  lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, %q)", fmt.Sprintf("*%s.%s", g.cfg.pkgName, lroType))
+	p("  if gax.IsFeatureEnabled(%q) {", "TRACING")
+	p("    lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))")
+	p("  }")
 	p("  return &%s{", lroType)
-	p("    lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
+	p("    lro: lro,")
 	p("  }, nil")
 
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
+	g.imports[pbinfo.ImportSpec{Name: "trace", Path: "go.opentelemetry.io/otel/trace"}] = true
 	g.imports[inSpec] = true
 	g.imports[outSpec] = true
 	return nil
@@ -112,7 +118,7 @@ func (g *generator) genOperationBuilder(servName string, m *descriptorpb.MethodD
 				receiver := lowcaseGRPCClientName(servName)
 				p("func (c *%s) %s(name string) *%[3]s {", receiver, builderName, ow.name)
 				p("  return &%s{", ow.name)
-				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
+				p("    lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, %q),", fmt.Sprintf("*%s.%s", g.cfg.pkgName, ow.name))
 				p("  }")
 				p("}")
 				p("")
@@ -122,7 +128,7 @@ func (g *generator) genOperationBuilder(servName string, m *descriptorpb.MethodD
 				p("func (c *%s) %s(name string) *%[3]s {", receiver, builderName, ow.name)
 				p("  override := fmt.Sprintf(%q, name)", override)
 				p("  return &%s{", ow.name)
-				p("    lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),")
+				p("    lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, %q),", fmt.Sprintf("*%s.%s", g.cfg.pkgName, ow.name))
 				p("    pollPath: override,")
 				p("  }")
 				p("}")

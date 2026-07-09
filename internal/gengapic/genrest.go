@@ -1004,15 +1004,20 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 	p("")
 	override := g.getOperationPathOverride(g.descInfo.ParentFile[m].GetPackage())
 	p("override := fmt.Sprintf(%q, resp.GetName())", override)
-	p("return &%s{", opWrapperType)
-	p("  lro: longrunning.InternalNewOperation(*c.LROClient, resp),")
-	p("  pollPath: override,")
-	p("}, nil")
+	p("  lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, %q)", fmt.Sprintf("*%s.%s", g.cfg.pkgName, opWrapperType))
+	p("  if gax.IsFeatureEnabled(%q) {", "TRACING")
+	p("    lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))")
+	p("  }")
+	p("  return &%s{", opWrapperType)
+	p("    lro: lro,")
+	p("    pollPath: override,")
+	p("  }, nil")
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "cloud.google.com/go/longrunning"}] = true
+	g.imports[pbinfo.ImportSpec{Name: "trace", Path: "go.opentelemetry.io/otel/trace"}] = true
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 
 	return nil
