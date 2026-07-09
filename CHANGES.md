@@ -1,5 +1,12 @@
 # Changes
 
+## [0.63.0](https://github.com/googleapis/gapic-generator-go/compare/v0.62.0...v0.63.0) (2026-07-09)
+
+
+### Features
+
+* **o11y:** Implement explicit context capture for LROs to support tracing ([#1776](https://github.com/googleapis/gapic-generator-go/issues/1776)) ([9b0dd2c](https://github.com/googleapis/gapic-generator-go/commit/9b0dd2c06a1a91099205accd4efc36c8d03e8088))
+
 ## [0.62.0](https://github.com/googleapis/gapic-generator-go/compare/v0.61.0...v0.62.0) (2026-06-24)
 
 
