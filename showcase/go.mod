@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.123.0
 	cloud.google.com/go/iam v1.11.0
 	github.com/google/go-cmp v0.7.0
-	github.com/googleapis/gapic-showcase v0.41.0
+	github.com/googleapis/gapic-showcase v0.41.1
 	github.com/googleapis/gax-go/v2 v2.23.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.288.0
@@ -20,7 +20,7 @@ require (
 	cloud.google.com/go/auth v0.20.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
-	cloud.google.com/go/longrunning v1.1.0 // indirect
+	cloud.google.com/go/longrunning v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
