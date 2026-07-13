@@ -49,8 +49,12 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 	}
 
 	override := fmt.Sprintf("/v1beta1/%s", resp.GetName())
+	lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, "*.LongrunningRPCOperation")
+	if gax.IsFeatureEnabled("TRACING") {
+		lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))
+	}
 	return &LongrunningRPCOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
+		lro: lro,
 		pollPath: override,
 	}, nil
 }
@@ -60,7 +64,7 @@ func (c *fooRESTClient) LongrunningRPC(ctx context.Context, req *foopb.Foo, opts
 func (c *fooRESTClient) LongrunningRPCOperation(name string) *LongrunningRPCOperation {
 	override := fmt.Sprintf("/v1beta1/%s", name)
 	return &LongrunningRPCOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, "*.LongrunningRPCOperation"),
 		pollPath: override,
 	}
 }
