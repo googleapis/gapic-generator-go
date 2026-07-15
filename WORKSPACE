@@ -20,9 +20,9 @@ bazel_skylib_workspace()
 http_archive(
     name = "rules_java",
     urls = [
-        "https://github.com/bazelbuild/rules_java/releases/download/9.6.1/rules_java-9.6.1.tar.gz",
+        "https://github.com/bazelbuild/rules_java/releases/download/9.7.0/rules_java-9.7.0.tar.gz",
     ],
-    sha256 = "9de4e178c2c4f98d32aafe5194c3f2b717ae10405caa11bdcb460ac2a6f61516",
+    sha256 = "68794ca344c1caf13dca65f90c06660823013fa080931266e2625103904a664e",
 )
 
 http_archive(
