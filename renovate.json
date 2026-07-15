@@ -22,6 +22,11 @@
   },
   "packageRules": [
     {
+      "description": "prevent go version upgrades",
+      "matchManagers": ["gomod"],
+      "constraintsFiltering": "strict"
+    },
+    {
       "matchCategories": ["golang"],
       "postUpdateOptions": ["gomodTidy"]
     }
