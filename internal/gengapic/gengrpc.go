@@ -15,6 +15,7 @@
 package gengapic
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -56,6 +57,12 @@ func (g *generator) genGRPCMethod(servName string, serv *descriptorpb.ServiceDes
 			return err
 		}
 		return g.lroCall(servName, m)
+	}
+
+	if g.isMediaUpload(m) {
+		// TODO: implement change to RPC signature to return an upload helper.
+		// In the meantime, we just fail.
+		return errors.New("media upload support unimplemented")
 	}
 
 	if m.GetOutputType() == emptyType {
