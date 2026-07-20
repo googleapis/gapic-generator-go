@@ -80,6 +80,7 @@ go_test(
         "heuristics_test.go",
         "imports_test.go",
         "markdown_test.go",
+        "media_upload.go",
         "metadata_test.go",
         "method_selective_test.go",
         "mixins_test.go",
