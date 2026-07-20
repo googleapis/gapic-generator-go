@@ -18,6 +18,7 @@ go_library(
         "imports.go",
         "lro.go",
         "markdown.go",
+        "media_upload.go",
         "metadata.go",
         "method_selective.go",
         "mixins.go",

@@ -31,6 +31,7 @@ type featureInfo struct {
 const (
 	DynamicResourceHeuristicsFeature featureID = "dynamic_resource_heuristics"
 	ExportSetGoogleClientInfoFeature featureID = "export_set_google_client_info"
+	MediaUploadFeature               featureID = "enable_media_upload"
 	MTLSHardBoundTokensFeature       featureID = "mtls_hard_bound_tokens"
 	OpenTelemetryAttributesFeature   featureID = "open_telemetry_attributes"
 	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
@@ -51,6 +52,10 @@ var featureRegistry = map[featureID]*featureInfo{
 	ExportSetGoogleClientInfoFeature: {
 		Description: "Generated exported SetGoogleClientInfo function in client",
 		TrackingID:  "b/489495186",
+	},
+	MediaUploadFeature: {
+		Description: "support media upload as part of RPC definitions",
+		TrackingID:  "b/484135845",
 	},
 	MTLSHardBoundTokensFeature: {
 		Description: "support MTLS hard bound tokens",
