@@ -190,6 +190,10 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 		return nil, err
 	}
 
+	if err := g.genResourceSpecsFile(genReq.GetProtoFile()); err != nil {
+		return nil, err
+	}
+
 	return &g.resp, nil
 }
 
