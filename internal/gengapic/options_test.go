@@ -67,6 +67,16 @@ func TestParseOptions(t *testing.T) {
 			},
 		},
 		{
+			param: "emit-resource-specs,go-gapic-package=path;pkg",
+			expectedCfg: &generatorConfig{
+				transports:        []transport{grpc},
+				pkgPath:           "path",
+				pkgName:           "pkg",
+				outDir:            "path",
+				emitResourceSpecs: true,
+			},
+		},
+		{
 			param: "module=path,go-gapic-package=path/to/out;pkg",
 			expectedCfg: &generatorConfig{
 				transports:   []transport{grpc},
