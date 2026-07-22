@@ -95,7 +95,10 @@ func addResourceDescriptor(specs map[string]resourceSpec, rd *annotations.Resour
 		altPatterns = patterns[1:]
 	}
 
-	collection := extractCollectionName(resType, primaryPattern)
+	collection := rd.GetPlural()
+	if collection == "" {
+		collection = extractCollectionName(resType, primaryPattern)
+	}
 	params := extractParams(primaryPattern)
 
 	specs[resType] = resourceSpec{
