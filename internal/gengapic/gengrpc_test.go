@@ -55,6 +55,7 @@ func TestServiceRenaming(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.cfg = &generatorConfig{
 		pkgName:           "pkg",
+		pkgPath:           "github.com/my/pkg",
 		transports:        []transport{grpc},
 		featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}},
 		APIServiceConfig: &serviceconfig.Service{
@@ -148,6 +149,7 @@ func TestMetricsInstrumentation(t *testing.T) {
 	g.imports = map[pbinfo.ImportSpec]bool{}
 	g.cfg = &generatorConfig{
 		pkgName:           "pkg",
+		pkgPath:           "github.com/my/pkg",
 		transports:        []transport{grpc},
 		featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}},
 		APIServiceConfig: &serviceconfig.Service{

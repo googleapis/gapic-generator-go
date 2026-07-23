@@ -3,11 +3,12 @@ func (c *fooGRPCClient) GetEmptyThing(ctx context.Context, req *mypackagepb.Inpu
 
 	hds = append(c.xGoogHeaders, hds...)
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
-	if gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
+	if c.tracingOrLoggingEnabled {
 		ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//foo.googleapis.com/%v", req.GetOther()))
 	}
-	if gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING") {
+	if c.telemetryEnabled {
 		ctx = callctx.WithTelemetryContext(ctx, "rpc_method", "my.pkg.Foo/GetEmptyThing")
+		ctx = callctx.WithTelemetryContext(ctx, "client_span_name", "github.com/my/pkg.Foo.GetEmptyThing")
 	}
 	if req != nil && req.RequestId == nil {
 		req.RequestId = proto.String(uuid.NewString())

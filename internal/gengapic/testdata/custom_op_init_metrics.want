@@ -65,6 +65,9 @@ type restClient struct {
 	CallOptions **CallOptions
 
 	logger *slog.Logger
+
+	telemetryEnabled bool
+	tracingOrLoggingEnabled bool
 }
 
 // NewRESTClient creates a new foo rest client.
@@ -93,6 +96,8 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		httpClient: httpClient,
 		CallOptions: &callOpts,
 		logger: internaloption.GetLogger(opts),
+		telemetryEnabled: gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
+		tracingOrLoggingEnabled: gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
 	}
 	c.setGoogleClientInfo()
 
