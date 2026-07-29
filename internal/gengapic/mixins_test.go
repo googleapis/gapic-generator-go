@@ -21,7 +21,6 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/apipb"
 )
@@ -47,7 +46,7 @@ func TestCollectMixins(t *testing.T) {
 	}
 	iamDescription := "Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set."
 	g := generator{
-		comments: make(map[protoiface.MessageV1]string),
+		comments: make(map[proto.Message]string),
 		mixins:   make(mixins),
 		cfg: &generatorConfig{
 			APIServiceConfig: &serviceconfig.Service{
@@ -303,7 +302,7 @@ func TestGetOperationPathOverride(t *testing.T) {
 	} {
 		initMixinFiles()
 		g := generator{
-			comments: make(map[protoiface.MessageV1]string),
+			comments: make(map[proto.Message]string),
 			mixins:   make(mixins),
 			cfg: &generatorConfig{
 				APIServiceConfig: &serviceconfig.Service{
