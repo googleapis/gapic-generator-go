@@ -34,7 +34,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/descriptorpb"
 	duration "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/pluginpb"
@@ -837,7 +836,7 @@ func TestMethodDoc(t *testing.T) {
 	}
 
 	g := generator{
-		comments: make(map[protoiface.MessageV1]string),
+		comments: make(map[proto.Message]string),
 	}
 	g.descInfo.ParentElement = map[pbinfo.ProtoType]pbinfo.ProtoType{}
 	g.descInfo.ParentElement[m] = serv

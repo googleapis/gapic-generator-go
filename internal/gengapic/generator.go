@@ -26,7 +26,6 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/gapic/metadata"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/pluginpb"
 )
@@ -38,7 +37,7 @@ type generator struct {
 	descInfo pbinfo.Info
 
 	// Maps proto elements to their comments
-	comments map[protoiface.MessageV1]string
+	comments map[proto.Message]string
 
 	resp pluginpb.CodeGeneratorResponse
 
@@ -94,7 +93,7 @@ func newGenerator(req *pluginpb.CodeGeneratorRequest) (*generator, error) {
 			Services: make(map[string]*metadata.GapicMetadata_ServiceForTransport),
 		},
 		mixins:           make(mixins),
-		comments:         map[protoiface.MessageV1]string{},
+		comments:         map[proto.Message]string{},
 		imports:          map[pbinfo.ImportSpec]bool{},
 		customOpServices: map[*descriptorpb.ServiceDescriptorProto]*descriptorpb.ServiceDescriptorProto{},
 		sggConfigs:       make(map[string]*sggConfig),

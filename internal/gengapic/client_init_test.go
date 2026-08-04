@@ -32,7 +32,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/apipb"
 	duration "google.golang.org/protobuf/types/known/durationpb"
@@ -277,7 +276,7 @@ func TestServiceDoc(t *testing.T) {
 	}
 
 	var g generator
-	g.comments = make(map[protoiface.MessageV1]string)
+	g.comments = make(map[proto.Message]string)
 	g.cfg = &generatorConfig{}
 
 	for _, tst := range []struct {
@@ -839,7 +838,7 @@ func TestClientInit(t *testing.T) {
 				t.Fatal(err)
 			}
 			g.apiName = "Awesome Foo API"
-			g.comments = map[protoiface.MessageV1]string{
+			g.comments = map[proto.Message]string{
 				tst.serv:                "Foo service does stuff.",
 				tst.serv.GetMethod()[0]: "Does some stuff.",
 			}
