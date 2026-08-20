@@ -434,6 +434,8 @@ func TestGenIterators(t *testing.T) {
 	wantImports := map[pbinfo.ImportSpec]bool{
 		{Name: "examplepb", Path: "cloud.google.com/go/example/apiv1/examplepb"}: true,
 		{Path: "google.golang.org/api/iterator"}:                                 true,
+		{Path: "iter"}:                                                           true,
+		{Name: "gaxIterator", Path: "github.com/googleapis/gax-go/v2/iterator"}:  true,
 	}
 
 	if err := g.genIterators(); err != nil {
@@ -448,19 +450,6 @@ func TestGenIterators(t *testing.T) {
 
 	g.reset()
 
-	wantImports = map[pbinfo.ImportSpec]bool{
-		{Path: "iter"}: true,
-		{Path: "github.com/googleapis/gax-go/v2/iterator"}:                       true,
-		{Name: "examplepb", Path: "cloud.google.com/go/example/apiv1/examplepb"}: true,
-	}
-
-	g.genIteratorsGo123()
-
-	if diff := cmp.Diff(g.imports, wantImports); diff != "" {
-		t.Errorf("imports got(-),want(+):\n%s", diff)
-	}
-
-	txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "gen_iterators_go123.want"))
 }
 
 func TestSortOperationWrapperMap(t *testing.T) {

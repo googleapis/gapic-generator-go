@@ -79,10 +79,6 @@ func (g *generator) genAuxFile() error {
 	g.commit(filepath.Join(g.cfg.outDir, "auxiliary.go"), g.cfg.pkgName)
 	g.reset()
 
-	g.genIteratorsGo123()
-	g.commitWithBuildTag(filepath.Join(g.cfg.outDir, "auxiliary_go123.go"), g.cfg.pkgName, "go1.23")
-	g.reset()
-
 	return nil
 }
 
@@ -125,17 +121,6 @@ func (g *generator) genIterators() error {
 	}
 
 	return nil
-}
-
-// genIteratorsGo123 generates adapters for Go iterators for Go versions 1.23+.
-func (g *generator) genIteratorsGo123() {
-	// Sort iterators to generate by type name to
-	// avoid spurious regenerations created by
-	// non-deterministic map traversal order.
-	iters := sortIteratorMap(g.aux.iters)
-	for _, iter := range iters {
-		g.pagingIterGo123(iter)
-	}
 }
 
 // sortIteratorMap sorts the map of iterator types by iterTypeName.
