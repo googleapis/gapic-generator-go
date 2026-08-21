@@ -2,6 +2,9 @@
 permissions:
   contents: read
 
+env:
+  GOTOOLCHAIN: local
+
 name: Generator tests
 on:
   push:
