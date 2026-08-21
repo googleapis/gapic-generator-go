@@ -412,6 +412,18 @@ func (g *generator) pagingCall(servName string, m *descriptorpb.MethodDescriptor
 
 func (g *generator) pagingIter(pt *iterType) {
 	p := g.printf
+
+	// include the new style iterator first.
+	p("// All returns an iterator. If an error is returned by the iterator, the")
+	p("// iterator will stop after that iteration.")
+	p("func (it *%s) All() iter.Seq2[%s, error] {", pt.iterTypeName, pt.elemTypeName)
+	p("  return gaxiter.RangeAdapter(it.Next)")
+	p("}")
+	p("")
+
+	g.imports[pbinfo.ImportSpec{Path: "iter"}] = true
+	g.imports[pbinfo.ImportSpec{Name: "gaxiter", Path: "github.com/googleapis/gax-go/v2/iterator"}] = true
+
 	if pt.mapValueTypeName != "" {
 		p("// %s is a holder type for string/%s map entries", pt.elemTypeName, pt.mapValueTypeName)
 		p("type %s struct {", pt.elemTypeName)
@@ -473,23 +485,6 @@ func (g *generator) pagingIter(pt *iterType) {
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "google.golang.org/api/iterator"}] = true
-	for _, spec := range pt.elemImports {
-		g.imports[spec] = true
-	}
-}
-
-func (g *generator) pagingIterGo123(pt *iterType) {
-	p := g.printf
-
-	p("// All returns an iterator. If an error is returned by the iterator, the")
-	p("// iterator will stop after that iteration.")
-	p("func (it *%s) All() iter.Seq2[%s, error] {", pt.iterTypeName, pt.elemTypeName)
-	p("  return iterator.RangeAdapter(it.Next)")
-	p("}")
-	p("")
-
-	g.imports[pbinfo.ImportSpec{Path: "iter"}] = true
-	g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/iterator"}] = true
 	for _, spec := range pt.elemImports {
 		g.imports[spec] = true
 	}
