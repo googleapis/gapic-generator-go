@@ -417,12 +417,12 @@ func (g *generator) pagingIter(pt *iterType) {
 	p("// All returns an iterator. If an error is returned by the iterator, the")
 	p("// iterator will stop after that iteration.")
 	p("func (it *%s) All() iter.Seq2[%s, error] {", pt.iterTypeName, pt.elemTypeName)
-	p("  return gaxIterator.RangeAdapter(it.Next)")
+	p("  return gaxiter.RangeAdapter(it.Next)")
 	p("}")
 	p("")
 
 	g.imports[pbinfo.ImportSpec{Path: "iter"}] = true
-	g.imports[pbinfo.ImportSpec{Name: "gaxIterator", Path: "github.com/googleapis/gax-go/v2/iterator"}] = true
+	g.imports[pbinfo.ImportSpec{Name: "gaxiter", Path: "github.com/googleapis/gax-go/v2/iterator"}] = true
 
 	if pt.mapValueTypeName != "" {
 		p("// %s is a holder type for string/%s map entries", pt.elemTypeName, pt.mapValueTypeName)

@@ -435,7 +435,7 @@ func TestGenIterators(t *testing.T) {
 		{Name: "examplepb", Path: "cloud.google.com/go/example/apiv1/examplepb"}: true,
 		{Path: "google.golang.org/api/iterator"}:                                 true,
 		{Path: "iter"}:                                                           true,
-		{Name: "gaxIterator", Path: "github.com/googleapis/gax-go/v2/iterator"}:  true,
+		{Name: "gaxiter", Path: "github.com/googleapis/gax-go/v2/iterator"}:      true,
 	}
 
 	if err := g.genIterators(); err != nil {
