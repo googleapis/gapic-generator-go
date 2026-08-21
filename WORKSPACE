@@ -6,10 +6,10 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # we can remove this if gazelle ships a fix since we didn't need it before.
 http_archive(
     name = "bazel_skylib",
-    sha256 = "3b5b49006181f5f8ff626ef8ddceaa95e9bb8ad294f7b5d7b11ea9f7ddaf8c59",
+    sha256 = "37cdfbc6faefea94f7b37760a305c98c08981116c2bc9e821e3b423221fad8c8",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.9.0/bazel-skylib-1.9.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.9.0/bazel-skylib-1.9.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.9.2/bazel-skylib-1.9.2.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.9.2/bazel-skylib-1.9.2.tar.gz",
     ],
 )
 
@@ -20,9 +20,9 @@ bazel_skylib_workspace()
 http_archive(
     name = "rules_java",
     urls = [
-        "https://github.com/bazelbuild/rules_java/releases/download/9.7.0/rules_java-9.7.0.tar.gz",
+        "https://github.com/bazelbuild/rules_java/releases/download/9.8.0/rules_java-9.8.0.tar.gz",
     ],
-    sha256 = "68794ca344c1caf13dca65f90c06660823013fa080931266e2625103904a664e",
+    sha256 = "88537048d7d07589ff4939c99889300c7063e43480ddd3cfa94d6c2cc899aa2e",
 )
 
 http_archive(
@@ -110,9 +110,9 @@ com_googleapis_gapic_generator_go_repositories()
 
 http_archive(
     name = "rules_python",
-    sha256 = "e11d2e1efce1589e5bdfa93986712c74fc7467a0f093143d489d2ef5ebb1ed2a",
-    strip_prefix = "rules_python-2.2.0",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/2.2.0/rules_python-2.2.0.tar.gz",
+    sha256 = "678358df0f4ae7f00a33ce33cced97c301f3c523bdd71cb2573d20a93efbf6c6",
+    strip_prefix = "rules_python-2.3.1",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/2.3.1/rules_python-2.3.1.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
