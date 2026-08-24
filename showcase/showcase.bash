@@ -60,7 +60,8 @@ protoc \
 	google/showcase/v1beta1/sequence.proto \
 	google/showcase/v1beta1/testing.proto \
 	google/showcase/v1beta1/messaging.proto \
-	google/showcase/v1beta1/compliance.proto
+	google/showcase/v1beta1/compliance.proto \
+	google/showcase/v1beta1/resumable_upload.proto
 
 hostos=$(go env GOHOSTOS)
 hostarch=$(go env GOHOSTARCH)
