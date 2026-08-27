@@ -1,5 +1,19 @@
 # Changes
 
+## [0.64.0](https://github.com/googleapis/gapic-generator-go/compare/v0.63.0...v0.64.0) (2026-08-27)
+
+
+### Features
+
+* Consolidate iterator gencode ([#1795](https://github.com/googleapis/gapic-generator-go/issues/1795)) ([e2186e1](https://github.com/googleapis/gapic-generator-go/commit/e2186e1872288f12414fe9409484089b13d0b039))
+* Stub out the basic feature wiring for media upload ([#1786](https://github.com/googleapis/gapic-generator-go/issues/1786)) ([dc50141](https://github.com/googleapis/gapic-generator-go/commit/dc50141169c20edf4104c6dfdb730fd894ed38c8))
+
+
+### Bug Fixes
+
+* Refactor off of protoiface dep ([#1792](https://github.com/googleapis/gapic-generator-go/issues/1792)) ([dd0d1dc](https://github.com/googleapis/gapic-generator-go/commit/dd0d1dc224a757ac30bf295080c9899fc1055ba0))
+* Update go min version ([#1778](https://github.com/googleapis/gapic-generator-go/issues/1778)) ([ec8a655](https://github.com/googleapis/gapic-generator-go/commit/ec8a6554ca70c9117ddcf68a6a159fd3276cb17d))
+
 ## [0.63.0](https://github.com/googleapis/gapic-generator-go/compare/v0.62.0...v0.63.0) (2026-07-09)
 
 
