@@ -3,6 +3,7 @@ releaseType: go-librarian
 manifest: true
 branches:
   - branch: main
+    handleGHRelease: true
     tagPullRequestNumber: true
     manifestFile: .release-please-manifest.json
     manifestConfig: release-please-config.json
