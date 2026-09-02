@@ -95,6 +95,9 @@ type fooGRPCClient struct {
 	xGoogHeaders []string
 
 	logger *slog.Logger
+
+	telemetryEnabled bool
+	tracingOrLoggingEnabled bool
 }
 
 // NewFooClient creates a new foo client based on gRPC.
@@ -134,7 +137,8 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		logger: internaloption.GetLogger(opts),
 		iamPolicyClient: iampb.NewIAMPolicyClient(connPool),
 		locationsClient: locationpb.NewLocationsClient(connPool),
-
+		telemetryEnabled: gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
+		tracingOrLoggingEnabled: gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
 	}
 	c.setGoogleClientInfo()
 	if gax.IsFeatureEnabled("METRICS") {

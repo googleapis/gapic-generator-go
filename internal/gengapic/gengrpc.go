@@ -310,6 +310,11 @@ func (g *generator) grpcClientInit(serv *descriptorpb.ServiceDescriptorProto, cl
 	p("xGoogHeaders []string")
 	p("")
 	p("logger *slog.Logger")
+	p("")
+	if g.featureEnabled(OpenTelemetryAttributesFeature) {
+		p("telemetryEnabled bool")
+		p("tracingOrLoggingEnabled bool")
+	}
 	p("}")
 	p("")
 
@@ -370,7 +375,10 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("    CallOptions: &client.CallOptions,")
 	p("    logger: internaloption.GetLogger(opts),")
 	g.mixinStubsInit()
-	p("")
+	if g.featureEnabled(OpenTelemetryAttributesFeature) {
+		p("    telemetryEnabled: gax.IsFeatureEnabled(\"METRICS\") || gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\"),")
+		p("    tracingOrLoggingEnabled: gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\"),")
+	}
 	p("  }")
 	p("  c.setGoogleClientInfo()")
 	if g.featureEnabled(OpenTelemetryAttributesFeature) {

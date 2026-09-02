@@ -94,6 +94,11 @@ func (g *generator) restClientInit(serv *descriptorpb.ServiceDescriptorProto, cl
 	p("  CallOptions **%sCallOptions", optsName)
 	p("")
 	p("  logger *slog.Logger")
+	p("")
+	if g.featureEnabled(OpenTelemetryAttributesFeature) {
+		p("  telemetryEnabled bool")
+		p("  tracingOrLoggingEnabled bool")
+	}
 	p("}")
 	p("")
 	g.restClientUtilities(serv, clientName, optsName, hasRPCForLRO)
@@ -186,6 +191,10 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("        httpClient: httpClient,")
 	p("        CallOptions: &callOpts,")
 	p("        logger: internaloption.GetLogger(opts),")
+	if g.featureEnabled(OpenTelemetryAttributesFeature) {
+		p("        telemetryEnabled: gax.IsFeatureEnabled(\"METRICS\") || gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\"),")
+		p("        tracingOrLoggingEnabled: gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\"),")
+	}
 	p("    }")
 	p("    c.setGoogleClientInfo()")
 	p("")

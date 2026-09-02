@@ -89,6 +89,7 @@ type fooRESTClient struct {
 	CallOptions **FooCallOptions
 
 	logger *slog.Logger
+
 }
 
 // NewFooRESTClient creates a new foo rest client.
