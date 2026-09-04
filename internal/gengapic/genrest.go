@@ -846,24 +846,31 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 	p("it := &%s{}", pt.iterTypeName)
 	p("req = proto.CloneOf(req)")
 
-	maybeReqBytes, logBody := "nil", "nil"
-	if info.body != "" {
-		g.protoJSONMarshaler()
-		maybeReqBytes = "bytes.NewReader(jsonReq)"
-		logBody = "jsonReq"
-		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
-	}
-
 	p("unm := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}")
 	p("it.InternalFetch = func(pageSize int, pageToken string) ([]%s, string, error) {", pt.elemTypeName)
 	g.internalFetchSetup(outType, outSpec, pageSize, tok)
 
+	// Marshal body for HTTP methods that take a body.
+	maybeReqBytes, logBody := "nil", "nil"
 	if info.body != "" {
-		p("  jsonReq, err := m.Marshal(req)")
+		if verb == http.MethodGet || verb == http.MethodDelete {
+			return fmt.Errorf("invalid use of body parameter for a get/delete method %q", m.GetName())
+		}
+		g.protoJSONMarshaler()
+		requestObject := "req"
+		if info.body != "*" {
+			requestObject = "body"
+			p("  body := req%s", fieldGetter(info.body))
+		}
+		p("  jsonReq, err := m.Marshal(%s)", requestObject)
 		p("  if err != nil {")
 		p(`    return nil, "", err`)
 		p("  }")
 		p("")
+
+		maybeReqBytes = "bytes.NewReader(jsonReq)"
+		logBody = "jsonReq"
+		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
 	g.generateBaseURL(info, `return nil, "", err`)
