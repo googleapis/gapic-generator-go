@@ -6,12 +6,12 @@ require (
 	cloud.google.com/go v0.123.0
 	cloud.google.com/go/iam v1.13.0
 	github.com/google/go-cmp v0.7.0
-	github.com/googleapis/gapic-showcase v0.43.1
-	github.com/googleapis/gax-go/v2 v2.24.0
-	golang.org/x/oauth2 v0.36.0
-	google.golang.org/api v0.296.0
-	google.golang.org/genproto v0.0.0-20260831171406-18b4a7587f8a
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260831171406-18b4a7587f8a
+	github.com/googleapis/gapic-showcase v0.44.0
+	github.com/googleapis/gax-go/v2 v2.24.1
+	golang.org/x/oauth2 v0.37.0
+	google.golang.org/api v0.298.0
+	google.golang.org/genproto v0.0.0-20260911204522-f61a6ca850bd
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260911204522-f61a6ca850bd
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 )
@@ -40,5 +40,5 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260825221802-da73d73af1c5 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260904194346-d0f1323225a4 // indirect
 )
