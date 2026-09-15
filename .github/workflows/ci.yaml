@@ -76,9 +76,8 @@ jobs:
         unzip protoc-3.17.3.zip
         sudo ln -s /usr/src/protoc/bin/protoc /usr/local/bin/protoc
     - name: Install tools and dependencies
-      # TODO: unpin apidiff after 1.26 upgrade
       run: |
-        go install golang.org/x/exp/cmd/apidiff@v0.0.0-20260820122028-d6e0b57b1a69
+        go install golang.org/x/exp/cmd/apidiff@latest
         go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
         curl -sSL https://github.com/googleapis/googleapis/archive/master.zip > googleapis.zip
