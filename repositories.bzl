@@ -184,8 +184,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_googleapis_gapic_showcase",
         importpath = "github.com/googleapis/gapic-showcase",
-        sum = "h1:ODrmwUrNXgnxMYvdKvQUgZk9hn8HlzSl/tSnrV5gaLI=",
-        version = "v0.43.1",
+        sum = "h1:5vDTfScn2QZJbF6oWRyNl5S8SSd6oSYtvO8miOXwL2Y=",
+        version = "v0.44.0",
     )
     go_repository(
         name = "com_github_googleapis_gax_go_v2",
@@ -195,8 +195,8 @@ def com_googleapis_gapic_generator_go_repositories():
             "gazelle:resolve proto proto google/rpc/code.proto @com_google_googleapis//google/rpc:code_proto",
         ],
         importpath = "github.com/googleapis/gax-go/v2",
-        sum = "h1:myMaPYyF9MecEmvQqMqomIwn9t/4KCZN9qnwsS76wlg=",
-        version = "v2.24.0",
+        sum = "h1:AtqTN21IXMMWo99LiEVAiBfNNQmO40d8xUfZI640mc0=",
+        version = "v2.24.1",
     )
     go_repository(
         name = "com_github_googleapis_grpc_fallback_go",
@@ -436,8 +436,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_google_cloud_go_bigquery",
         importpath = "cloud.google.com/go/bigquery",
-        sum = "h1:NcnkqYN8jjtn6B1o7W/aUNl7DjJiNqgO0xnDNGxW+2s=",
-        version = "v1.82.0",
+        sum = "h1:P0p6xSOAurff5Uo3bR6Ch4x56maGHNW10iqJPh7/LpE=",
+        version = "v1.83.0",
     )
     go_repository(
         name = "com_google_cloud_go_cloudtasks",
@@ -691,8 +691,8 @@ def com_googleapis_gapic_generator_go_repositories():
             "gazelle:resolve go go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc @io_opentelemetry_go_contrib_instrumentation_google_golang_org_grpc_otelgrpc//:go_default_library",
         ],
         importpath = "google.golang.org/api",
-        sum = "h1:Nn5EHeKdGx70MFClaV/II0gsWUm6xhEjb0xYLylVvaA=",
-        version = "v0.296.0",
+        sum = "h1:YW18RkHBMZBA1ergX0m4biagzgbiPTb2uTsRsDPWNRY=",
+        version = "v0.298.0",
     )
     go_repository(
         name = "org_golang_google_appengine",
@@ -703,14 +703,14 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:d5Vqs7VNOkWqGjSrJDOsHsLOm9Z0lAn+xHX7TCEcFmk=",
-        version = "v0.0.0-20260831171406-18b4a7587f8a",
+        sum = "h1:s/EXdxMDrmT++u0VepJKO4U6dzOPJVRdHKmrazC1Qxg=",
+        version = "v0.0.0-20260911204522-f61a6ca850bd",
     )
     go_repository(
         name = "org_golang_google_genproto_googleapis_api",
         importpath = "google.golang.org/genproto/googleapis/api",
-        sum = "h1:izFU9hz7aeLI/Mi1J0991ae+xcwRLr7hTqWnB/9aIIU=",
-        version = "v0.0.0-20260825221802-da73d73af1c5",
+        sum = "h1:NCe/UiklGd/9xjT+ROBVhJ1kf6TRQaFedsR+z7u1gvo=",
+        version = "v0.0.0-20260904194346-d0f1323225a4",
     )
     go_repository(
         name = "org_golang_google_genproto_googleapis_bytestream",
@@ -721,8 +721,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_google_genproto_googleapis_rpc",
         importpath = "google.golang.org/genproto/googleapis/rpc",
-        sum = "h1:3Dnd1cDaZlB68lziofO+bJXpjOy8UfRv8Unt+yH8tQ4=",
-        version = "v0.0.0-20260831171406-18b4a7587f8a",
+        sum = "h1:29LZPNIJg+GEmJwZXruJJRwqy/wnWAYZXDtROToV/aQ=",
+        version = "v0.0.0-20260911204522-f61a6ca850bd",
     )
     go_repository(
         name = "org_golang_google_grpc",
@@ -766,8 +766,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "org_golang_x_oauth2",
         importpath = "golang.org/x/oauth2",
-        sum = "h1:peZ/1z27fi9hUOFCAZaHyrpWG5lwe0RJEEEeH0ThlIs=",
-        version = "v0.36.0",
+        sum = "h1:JUlcxA8oAtauLfiH8FX2/FkAWHAdi0QtGCGc+hofE98=",
+        version = "v0.37.0",
     )
     go_repository(
         name = "org_golang_x_sync",
