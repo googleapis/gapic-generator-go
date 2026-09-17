@@ -66,6 +66,9 @@ type gRPCClient struct {
 	xGoogHeaders []string
 
 	logger *slog.Logger
+
+	telemetryEnabled bool
+	tracingOrLoggingEnabled bool
 }
 
 // NewClient creates a new foo client based on gRPC.
@@ -103,7 +106,8 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 		client: mypackagepb.NewFooClient(connPool),
 		CallOptions: &client.CallOptions,
 		logger: internaloption.GetLogger(opts),
-
+		telemetryEnabled: gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
+		tracingOrLoggingEnabled: gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
 	}
 	c.setGoogleClientInfo()
 	if gax.IsFeatureEnabled("METRICS") {
@@ -167,6 +171,9 @@ type restClient struct {
 	CallOptions **CallOptions
 
 	logger *slog.Logger
+
+	telemetryEnabled bool
+	tracingOrLoggingEnabled bool
 }
 
 // NewRESTClient creates a new foo rest client.
@@ -195,6 +202,8 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		httpClient: httpClient,
 		CallOptions: &callOpts,
 		logger: internaloption.GetLogger(opts),
+		telemetryEnabled: gax.IsFeatureEnabled("METRICS") || gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
+		tracingOrLoggingEnabled: gax.IsFeatureEnabled("TRACING") || gax.IsFeatureEnabled("LOGGING"),
 	}
 	c.setGoogleClientInfo()
 
