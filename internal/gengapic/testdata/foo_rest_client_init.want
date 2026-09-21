@@ -157,6 +157,25 @@ func NewFooRESTClient(ctx context.Context, opts ...option.ClientOption) (*FooCli
 		callOpts.GetIamPolicy = append(callOpts.GetIamPolicy, gax.WithClientTracing(tracing))
 		callOpts.TestIamPermissions = append(callOpts.TestIamPermissions, gax.WithClientTracing(tracing))
 	}
+	if gax.IsFeatureEnabled("LOGGING") {
+		logging := gax.NewClientLogging(
+		gax.WithLoggerProvider(c.logger),
+		gax.WithLoggingAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "http",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		callOpts.Zip = append(callOpts.Zip, gax.WithClientLogging(logging))
+		callOpts.ListLocations = append(callOpts.ListLocations, gax.WithClientLogging(logging))
+		callOpts.GetLocation = append(callOpts.GetLocation, gax.WithClientLogging(logging))
+		callOpts.SetIamPolicy = append(callOpts.SetIamPolicy, gax.WithClientLogging(logging))
+		callOpts.GetIamPolicy = append(callOpts.GetIamPolicy, gax.WithClientLogging(logging))
+		callOpts.TestIamPermissions = append(callOpts.TestIamPermissions, gax.WithClientLogging(logging))
+	}
 
 	return &FooClient{internalClient: c, CallOptions: callOpts}, nil
 }

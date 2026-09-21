@@ -133,6 +133,20 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 
 		client.CallOptions.Zip = append(client.CallOptions.Zip, gax.WithClientTracing(tracing))
 	}
+	if gax.IsFeatureEnabled("LOGGING") {
+		logging := gax.NewClientLogging(
+		gax.WithLoggerProvider(c.logger),
+		gax.WithLoggingAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "grpc",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		client.CallOptions.Zip = append(client.CallOptions.Zip, gax.WithClientLogging(logging))
+	}
 
 	client.internalClient = c
 
@@ -237,6 +251,20 @@ func NewRESTClient(ctx context.Context, opts ...option.ClientOption) (*Client, e
 		)
 
 		callOpts.Zip = append(callOpts.Zip, gax.WithClientTracing(tracing))
+	}
+	if gax.IsFeatureEnabled("LOGGING") {
+		logging := gax.NewClientLogging(
+		gax.WithLoggerProvider(c.logger),
+		gax.WithLoggingAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "path",
+			gax.RPCSystem: "http",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		callOpts.Zip = append(callOpts.Zip, gax.WithClientLogging(logging))
 	}
 
 	return &Client{internalClient: c, CallOptions: callOpts}, nil
