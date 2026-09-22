@@ -195,8 +195,8 @@ def com_googleapis_gapic_generator_go_repositories():
             "gazelle:resolve proto proto google/rpc/code.proto @com_google_googleapis//google/rpc:code_proto",
         ],
         importpath = "github.com/googleapis/gax-go/v2",
-        sum = "h1:77gyzCOrTyzPKfzGZJG/V5DO4/Kuamek8W+cYJQ4U8k=",
-        version = "v2.25.0",
+        sum = "h1:EQd25QY0qQk+S8OZA5wRflUckH5jD2Uw0zj2l23f/lc=",
+        version = "v2.26.0",
     )
     go_repository(
         name = "com_github_googleapis_grpc_fallback_go",
