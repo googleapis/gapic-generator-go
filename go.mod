@@ -1,6 +1,6 @@
 module github.com/googleapis/gapic-generator-go
 
-go 1.26.0
+go 1.26.6
 
 require (
 	cloud.google.com/go/iam v1.13.0
