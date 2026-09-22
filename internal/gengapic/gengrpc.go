@@ -374,6 +374,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("  }")
 	p("  c.setGoogleClientInfo()")
 	if g.featureEnabled(OpenTelemetryAttributesFeature) {
+		methods := g.getMethods(serv)
 		p("  if gax.IsFeatureEnabled(\"METRICS\") {")
 		p("    metrics := gax.NewClientMetrics(")
 		p("      gax.WithTelemetryLogger(c.logger),")
@@ -386,9 +387,23 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("      }),")
 		p("    )")
 		p("")
-		methods := g.getMethods(serv)
 		for _, m := range methods {
 			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientMetrics(metrics))", m.GetName(), m.GetName())
+		}
+		p("  }")
+		p("  if gax.IsFeatureEnabled(\"TRACING\") {")
+		p("    tracing := gax.NewClientTracing(")
+		p("      gax.WithTracingAttributes(map[string]string{")
+		p("        gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+		p("        gax.ClientVersion: getVersionClient(),")
+		p("        gax.ClientArtifact: %q,", g.cfg.pkgPath)
+		p("        gax.RPCSystem: \"grpc\",")
+		p("        gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
+		p("      }),")
+		p("    )")
+		p("")
+		for _, m := range methods {
+			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientTracing(tracing))", m.GetName(), m.GetName())
 		}
 		p("  }")
 	}
