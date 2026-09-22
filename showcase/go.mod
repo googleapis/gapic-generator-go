@@ -1,6 +1,6 @@
 module showcase
 
-go 1.26.6
+go 1.26.0
 
 require (
 	cloud.google.com/go v0.123.0
