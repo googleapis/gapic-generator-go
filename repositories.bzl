@@ -106,8 +106,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_github_go_logr_logr",
         importpath = "github.com/go-logr/logr",
-        sum = "h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=",
-        version = "v1.4.3",
+        sum = "h1:tG4xh9yMsRCAiodLVTxyrkzSZ9+o0L1Kg/+cPVcbP/8=",
+        version = "v1.4.4",
     )
     go_repository(
         name = "com_github_go_logr_stdr",
@@ -651,8 +651,8 @@ def com_googleapis_gapic_generator_go_repositories():
             "gazelle:resolve go go.opentelemetry.io/otel/metric/embedded @io_opentelemetry_go_otel_metric//embedded:go_default_library",
         ],
         importpath = "go.opentelemetry.io/otel",
-        sum = "h1:JjwHmHpA4iZ3wBxluu2fbbE7j4kqlE8jXyAyPXH7HqU=",
-        version = "v1.44.0",
+        sum = "h1:pdrWmLHofpubmArBv1LgFSv1Z0Ie/ppdZzu+kUN5EeU=",
+        version = "v1.45.0",
     )
     go_repository(
         name = "io_opentelemetry_go_otel_metric",
@@ -660,20 +660,20 @@ def com_googleapis_gapic_generator_go_repositories():
             "gazelle:resolve go go.opentelemetry.io/otel/attribute @io_opentelemetry_go_otel//attribute:go_default_library",
         ],
         importpath = "go.opentelemetry.io/otel/metric",
-        sum = "h1:1w0gILTcHdr3YI+ixLyjemwrVnsMURbTZFrSYCdDdmc=",
-        version = "v1.44.0",
+        sum = "h1:7Eg1uH7CJ5cXv9is6tnBe1FI6rj1nwUdbFypRm3br/M=",
+        version = "v1.45.0",
     )
     go_repository(
         name = "io_opentelemetry_go_otel_sdk",
         importpath = "go.opentelemetry.io/otel/sdk",
-        sum = "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=",
-        version = "v1.44.0",
+        sum = "h1:4VVSMgQ83dUgW2aoX5f6JgLvHwIvzcuLnF9lUdCSpCw=",
+        version = "v1.45.0",
     )
     go_repository(
         name = "io_opentelemetry_go_otel_sdk_metric",
         importpath = "go.opentelemetry.io/otel/sdk/metric",
-        sum = "h1:3LlKgI+VjbVsjNRFZJZAJ30WjXC5VkNRks6si09iEfI=",
-        version = "v1.44.0",
+        sum = "h1:oVFszMfyj1Am6s24Vtc7wBb8BKLcwepJjNEYILuiE3o=",
+        version = "v1.45.0",
     )
     go_repository(
         name = "io_opentelemetry_go_otel_trace",
@@ -681,8 +681,8 @@ def com_googleapis_gapic_generator_go_repositories():
             "gazelle:resolve go go.opentelemetry.io/otel/attribute @io_opentelemetry_go_otel//attribute:go_default_library",
         ],
         importpath = "go.opentelemetry.io/otel/trace",
-        sum = "h1:jxF5CsGYCe74MCRx2X4g7WsY/VBKRqqpNvXlX/6gtIk=",
-        version = "v1.44.0",
+        sum = "h1:l/mP6Uv7oNO7/TblbhpbgMidxhq1uO/rPsikOyVhxag=",
+        version = "v1.45.0",
     )
     go_repository(
         name = "org_golang_google_api",
