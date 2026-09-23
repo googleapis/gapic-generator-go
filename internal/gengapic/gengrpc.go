@@ -406,6 +406,22 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientTracing(tracing))", m.GetName(), m.GetName())
 		}
 		p("  }")
+		p("  if gax.IsFeatureEnabled(\"LOGGING\") {")
+		p("    logging := gax.NewClientLogging(")
+		p("      gax.WithLoggerProvider(c.logger),")
+		p("      gax.WithLoggingAttributes(map[string]string{")
+		p("        gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+		p("        gax.ClientVersion: getVersionClient(),")
+		p("        gax.ClientArtifact: %q,", g.cfg.pkgPath)
+		p("        gax.RPCSystem: \"grpc\",")
+		p("        gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
+		p("      }),")
+		p("    )")
+		p("")
+		for _, m := range methods {
+			p("    client.CallOptions.%s = append(client.CallOptions.%s, gax.WithClientLogging(logging))", m.GetName(), m.GetName())
+		}
+		p("  }")
 	}
 	p("")
 	p("  client.internalClient = c")

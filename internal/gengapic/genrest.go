@@ -222,6 +222,22 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 			p("        callOpts.%s = append(callOpts.%s, gax.WithClientTracing(tracing))", m.GetName(), m.GetName())
 		}
 		p("    }")
+		p("    if gax.IsFeatureEnabled(\"LOGGING\") {")
+		p("        logging := gax.NewClientLogging(")
+		p("            gax.WithLoggerProvider(c.logger),")
+		p("            gax.WithLoggingAttributes(map[string]string{")
+		p("                gax.ClientService: %q,", strings.Split(g.cfg.APIServiceConfig.GetName(), ".")[0])
+		p("                gax.ClientVersion: getVersionClient(),")
+		p("                gax.ClientArtifact: %q,", g.cfg.pkgPath)
+		p("                gax.RPCSystem: \"http\",")
+		p("                gax.URLDomain: %q,", g.cfg.APIServiceConfig.GetName())
+		p("            }),")
+		p("        )")
+		p("")
+		for _, m := range methods {
+			p("        callOpts.%s = append(callOpts.%s, gax.WithClientLogging(logging))", m.GetName(), m.GetName())
+		}
+		p("    }")
 		p("")
 	}
 	if hasRPCForLRO {

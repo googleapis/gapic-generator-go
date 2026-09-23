@@ -80,6 +80,20 @@ func NewBarClient(ctx context.Context, opts ...option.ClientOption) (*BarClient,
 
 		client.CallOptions.Baz = append(client.CallOptions.Baz, gax.WithClientTracing(tracing))
 	}
+	if gax.IsFeatureEnabled("LOGGING") {
+		logging := gax.NewClientLogging(
+		gax.WithLoggerProvider(c.logger),
+		gax.WithLoggingAttributes(map[string]string{
+			gax.ClientService: "foo",
+			gax.ClientVersion: getVersionClient(),
+			gax.ClientArtifact: "",
+			gax.RPCSystem: "grpc",
+			gax.URLDomain: "foo.googleapis.com",
+		}),
+		)
+
+		client.CallOptions.Baz = append(client.CallOptions.Baz, gax.WithClientLogging(logging))
+	}
 
 	client.internalClient = c
 
