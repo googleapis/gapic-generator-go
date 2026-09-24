@@ -69,6 +69,7 @@ type baseFooGRPCClient struct {
 	xGoogHeaders []string
 
 	logger *slog.Logger
+
 }
 
 // NewBaseFooClient creates a new foo client based on gRPC.
@@ -96,7 +97,6 @@ func NewBaseFooClient(ctx context.Context, opts ...option.ClientOption) (*BaseFo
 		baseFooClient: mypackagepb.NewFooClient(connPool),
 		CallOptions: &client.CallOptions,
 		logger: internaloption.GetLogger(opts),
-
 	}
 	c.setGoogleClientInfo()
 
