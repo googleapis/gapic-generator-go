@@ -1,5 +1,18 @@
 # Changes
 
+## [0.65.0](https://github.com/googleapis/gapic-generator-go/compare/v0.64.0...v0.65.0) (2026-09-26)
+
+
+### Features
+
+* **o11y:** generate ClientLogging options ([19e59bb](https://github.com/googleapis/gapic-generator-go/commit/19e59bb240cecaf6244968c6f46f69d166733bf3))
+* **o11y:** generate ClientTracing options ([a69324a](https://github.com/googleapis/gapic-generator-go/commit/a69324a3eef521fa3a6b8bd5a00ada4903f01ac2))
+
+
+### Bug Fixes
+
+* **o11y:** remove deprioritized resource_name telemetry injection ([#1816](https://github.com/googleapis/gapic-generator-go/issues/1816)) ([86262db](https://github.com/googleapis/gapic-generator-go/commit/86262db4ad196c2d31352d520c4b8381c1f03ee4))
+
 ## [0.64.0](https://github.com/googleapis/gapic-generator-go/compare/v0.63.0...v0.64.0) (2026-08-27)
 
 
