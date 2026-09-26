@@ -506,76 +506,10 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 		case grpc:
 			p("hds = append(c.xGoogHeaders, hds...)")
 			p("ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)")
-			if g.featureEnabled(OpenTelemetryAttributesFeature) {
-				resTarget := g.resourceNameField(m)
-				if resTarget != nil {
-					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-
-					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
-					// the expression fieldGetter(resField) returns an accessor for the full
-					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
-					// APIs (missing the resource_reference annotation), an empty string is returned.
-
-					// Prepend the service host if available
-					var getters []string
-					for _, f := range resTarget.FieldNames {
-						getters = append(getters, fmt.Sprintf("req%s", fieldGetter(f)))
-					}
-					gettersStr := strings.Join(getters, ", ")
-
-					serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
-					host := ""
-					if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
-						host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
-					}
-
-					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
-					if host != "" {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
-					} else {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
-					}
-					p("}")
-					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
-					g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-				}
-			}
 		case rest:
 			p(`hds = append(c.xGoogHeaders, hds...)`)
 			p(`hds = append(hds, "Content-Type", "application/json")`)
 			p(`headers := gax.BuildHeaders(ctx, hds...)`)
-			if g.featureEnabled(OpenTelemetryAttributesFeature) {
-				resTarget := g.resourceNameField(m)
-				if resTarget != nil {
-					p("if gax.IsFeatureEnabled(\"TRACING\") || gax.IsFeatureEnabled(\"LOGGING\") {")
-					// For Standard APIs (AIP-122 compliant), for both gRPC and HTTP transports,
-					// the expression fieldGetter(resField) returns an accessor for the full
-					// canonical resource name (e.g., "projects/p/secrets/s"). For non-compliant
-					// APIs (missing the resource_reference annotation), an empty string is returned.
-
-					var getters []string
-					for _, f := range resTarget.FieldNames {
-						getters = append(getters, fmt.Sprintf("req%s", fieldGetter(f)))
-					}
-					gettersStr := strings.Join(getters, ", ")
-
-					serv := g.descInfo.ParentElement[m].(*descriptorpb.ServiceDescriptorProto)
-					host := ""
-					if proto.HasExtension(serv.Options, annotations.E_DefaultHost) {
-						host = proto.GetExtension(serv.Options, annotations.E_DefaultHost).(string)
-					}
-
-					escapedFormat := strings.ReplaceAll(resTarget.Format, "%", "%%")
-					if host != "" {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("//%s/`+escapedFormat+`", `+gettersStr+`))`, host)
-					} else {
-						p(`  ctx = callctx.WithTelemetryContext(ctx, "resource_name", fmt.Sprintf("` + escapedFormat + `", ` + gettersStr + `))`)
-					}
-					p("}")
-					g.imports[pbinfo.ImportSpec{Path: "github.com/googleapis/gax-go/v2/callctx"}] = true
-					g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
-				}
-			}
 		}
 		g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
@@ -909,76 +843,6 @@ func parseDynamicRequestHeaders(m *descriptorpb.MethodDescriptorProto) [][]strin
 	}
 
 	return matches
-}
-
-// resourceNameField returns the name of the field in the input message
-// that carries a google.api.resource_reference annotation.
-// If multiple fields match, it prioritizes the one that also appears in the HTTP path.
-// If no input type or associated attributes are found, it returns an empty string.
-func (g *generator) resourceNameField(m *descriptorpb.MethodDescriptorProto) *heuristicTarget {
-	if m.GetInputType() == "" {
-		return nil
-	}
-	inType := g.descInfo.Type[m.GetInputType()]
-	if inType == nil {
-		return nil
-	}
-	msg, ok := inType.(*descriptorpb.DescriptorProto)
-	if !ok {
-		return nil
-	}
-
-	var candidates []string
-	for _, f := range msg.GetField() {
-		if proto.HasExtension(f.GetOptions(), annotations.E_ResourceReference) {
-			candidates = append(candidates, f.GetName())
-		}
-	}
-
-	if len(candidates) == 0 {
-		if !g.featureEnabled(DynamicResourceHeuristicsFeature) {
-			return nil
-		}
-		if m.GetOptions() == nil {
-			return nil
-		}
-		eHTTP := proto.GetExtension(m.GetOptions(), annotations.E_Http)
-		if eHTTP == nil {
-			return nil
-		}
-		h, ok := eHTTP.(*annotations.HttpRule)
-		if !ok || h == nil {
-			return nil
-		}
-		target, err := identifyHeuristicTarget(m, h, g.vocabulary)
-		if err != nil || target == nil {
-			return nil
-		}
-		return target
-	}
-
-	selected := candidates[0]
-	if len(candidates) > 1 {
-		pathParams := make(map[string]bool)
-		headers := parseImplicitRequestHeaders(m)
-		for _, h := range headers {
-			if len(h) > 1 {
-				pathParams[h[1]] = true
-			}
-		}
-
-		for _, c := range candidates {
-			if pathParams[c] {
-				selected = c
-				break
-			}
-		}
-	}
-
-	return &heuristicTarget{
-		Format:     "%v",
-		FieldNames: []string{selected},
-	}
 }
 
 func (g *generator) hasRESTMethod(service *descriptorpb.ServiceDescriptorProto) bool {
