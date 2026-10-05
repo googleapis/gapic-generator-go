@@ -8,9 +8,9 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.7.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
-	google.golang.org/genproto v0.0.0-20260921155816-b14227669459
-	google.golang.org/genproto/googleapis/api v0.0.0-20260921155816-b14227669459
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260921155816-b14227669459
+	google.golang.org/genproto v0.0.0-20260928230214-8a89bd6388cc
+	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc
 	google.golang.org/protobuf v1.36.12
 )
 
