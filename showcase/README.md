@@ -5,14 +5,17 @@ gapic-generator-go, as well as the script used to setup and execute them.
 
 ## How the tests work
 
+### Testing the released Showcase GAPIC client
 The tests can be run out-of-the-box in the normal `go test` fashion, so long as
 there is a `gapic-showcase` server already running locally. This does not test
 the Showcase client generated with the locally installed generator - it would
-use the released version of the GAPIC. Running `make test` (from the repository
-root) will execute the tests against the locally installed generator.
+use the released version of the GAPIC.
 
-To test the local generator, use the `showcase.bash` script. It does the
-following:
+### Testing client locally generated from published Showcase repo
+Running `make test` (from the repository root) will execute the tests against
+the locally installed generator. It installs the generator locally and then
+calls the `showcase.bash` script to test the local generator. The script does
+the following:
 
 1. Downloads the Showcase artifacts associated with the targeted version.
 These are the compiled proto descriptor set, the retry configuration, and a
@@ -20,8 +23,10 @@ pre-compiled server binary.
 
 1. Using protoc and the retrieved artifacts as input, the Go protobuf/gRPC
 bindings, and the Go GAPIC are generated, the latter with the **locally
-installed** gapic-generator-go. Make sure to `make install` (from the repository
-root) so that any new changes are utilized during generation.
+installed** gapic-generator-go. If invoking the script directly, make sure to
+`make install` (from the repository root) so that any new changes are utilized
+during generation; if invoking the script via `make test`, this will
+automatically happen.
 
 1. The submodule's `go.mod` is temporarily edited to replace the remote
 dependency on `github.com/googleapis/gapic-showcase` with the locally generated
@@ -32,6 +37,12 @@ artifacts.
 1. The tests in this directory are executed against the locally running server.
 
 1. The server process is stopped.
+
+### Testing client locally generated from local Showcase repo
+During development, it may sometimes be necessary to run the Go Showcase tests
+against a local version of Showcase with pending changes that are not yet in the
+[googleapis/gapic-showcase](https://github.com/googleapis/gapic-showcase/releases/tag/v0.28.1)
+repository. To do that, refer to [showcase-local.sh](./showcase-local.sh).
 
 ### Adding tests
 
