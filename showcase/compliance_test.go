@@ -89,7 +89,7 @@ func TestComplianceSuite(t *testing.T) {
 
 				response, err := method(context.Background(), requestProto)
 				if err != nil {
-					t.Errorf("%s error: %s", errorPrefix, err)
+					t.Errorf("%s error: \n%s\n", errorPrefix, err)
 				}
 				// Check for expected response.
 				if diff := cmp.Diff(response.GetRequest().GetInfo(), requestProto.GetInfo(), cmp.Comparer(proto.Equal)); diff != "" {

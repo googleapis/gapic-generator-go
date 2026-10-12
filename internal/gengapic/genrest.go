@@ -569,7 +569,7 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 	fmtStr := info.url
 	// TODO(noahdietz): handle more complex path urls involving = and *,
 	// e.g. v1beta1/repeat/{info.f_string=first/*}/{info.f_child.f_string=second/**}:pathtrailingresource
-	fmtStr = httpPatternVarRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%v" })
+	fmtStr = httpPatternVarRegex.ReplaceAllStringFunc(fmtStr, func(s string) string { return "%s" })
 
 	g.imports[pbinfo.ImportSpec{Path: "net/url"}] = true
 	p("baseUrl, err := url.Parse(c.endpoint)")
@@ -583,9 +583,20 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
-		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
+
+		// We emit the values wrapped in fmt.Sprint so that we're consistently dealing with strings.
+		tokens = append(tokens, fmt.Sprintf("fmt.Sprint(req%s)", fieldGetter(path[1])))
 	}
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	// Handle basic binding validation: disallow single and double period bindings
+	if len(tokens) > 1 {
+		for _, tok := range tokens[1:] {
+			p("if v := %s; v == \".\" || v == \"..\" {", tok)
+			p("	 err := fmt.Errorf(\"Invalid value . or .. present\")")
+			p(" %s", ret)
+			p("}")
+		}
+	}
 	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 }
