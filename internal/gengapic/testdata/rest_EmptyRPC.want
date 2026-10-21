@@ -6,11 +6,12 @@ func (c *fooRESTClient) EmptyRPC(ctx context.Context, req *foopb.Foo, opts ...ga
 	if err != nil {
 		return err
 	}
-	if v := fmt.Sprint(req.GetOther()); v == "." || v == ".." {
-		err := fmt.Errorf("Invalid value . or .. present")
+	if err = gax.ValidatePathExpressions(
+	req.GetOther(),
+	); err != nil {
 		return err
 	}
-	baseUrl.Path += fmt.Sprintf("/v1/foo/%s", fmt.Sprint(req.GetOther()))
+	baseUrl.Path += fmt.Sprintf("/v1/foo/%v", req.GetOther())
 
 	params := url.Values{}
 	if req != nil && req.RequestId != nil {
