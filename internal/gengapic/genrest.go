@@ -586,6 +586,17 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
 	}
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
+	// Prevalidate inputs used to generate the URL, and return early if we fail validation.
+	if len(tokens) > 1 {
+		p("if err = gax.ValidatePathExpressions(")
+		for _, tok := range tokens[1:] {
+			p("  %s,", tok)
+		}
+		p("); err != nil {")
+		p(" %s", ret)
+		p("}")
+	}
+
 	p("baseUrl.Path += fmt.Sprintf(%s)", strings.Join(tokens, ", "))
 	p("")
 }
