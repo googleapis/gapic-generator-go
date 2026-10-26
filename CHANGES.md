@@ -1,5 +1,12 @@
 # Changes
 
+## [0.65.1](https://github.com/googleapis/gapic-generator-go/compare/v0.65.0...v0.65.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* add value validation for HTTP path elements ([#1821](https://github.com/googleapis/gapic-generator-go/issues/1821)) ([41a19a7](https://github.com/googleapis/gapic-generator-go/commit/41a19a74603fc15fa5f6df546117a574ed358d63))
+
 ## [0.65.0](https://github.com/googleapis/gapic-generator-go/compare/v0.64.0...v0.65.0) (2026-09-26)
 
 
