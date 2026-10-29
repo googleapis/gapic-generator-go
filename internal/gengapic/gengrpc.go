@@ -439,6 +439,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("    // TODO: investigate error conditions.")
 		p("    return nil, err")
 		p("  }")
+		// We propagate the x-goog-api-version into the LRO client if available.
 		if apiVersion != "" {
 			p(`client.LROClient.SetGoogleClientInfo("x-goog-api-version", %q)`, apiVersion)
 		}
