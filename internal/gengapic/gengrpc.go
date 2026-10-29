@@ -330,6 +330,7 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	docLibName = camelToSnake(docLibName)
 	docLibName = strings.Replace(docLibName, "_", " ", -1)
 	lowcaseServName := lowcaseGRPCClientName(clientName)
+	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
 
 	// Factory function
 	p("// New%sClient creates a new %s client based on gRPC.", clientName, docLibName)
@@ -438,6 +439,9 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("    // TODO: investigate error conditions.")
 		p("    return nil, err")
 		p("  }")
+		if apiVersion != "" {
+			p(`client.LROClient.SetGoogleClientInfo("x-goog-api-version", %q)`, apiVersion)
+		}
 		p("  c.LROClient = &client.LROClient")
 	}
 
@@ -457,8 +461,6 @@ func (g *generator) grpcClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("  return c.connPool.Conn()")
 	p("}")
 	p("")
-
-	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
 
 	// setGoogleClientInfo method
 	p("// setGoogleClientInfo sets the name and version of the application in")
