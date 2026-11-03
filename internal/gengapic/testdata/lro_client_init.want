@@ -220,6 +220,7 @@ func NewFooClient(ctx context.Context, opts ...option.ClientOption) (*FooClient,
 		// TODO: investigate error conditions.
 		return nil, err
 	}
+	client.LROClient.SetSourceAPIVersion("v1_20240425")
 	c.LROClient = &client.LROClient
 	return &client, nil
 }

@@ -156,6 +156,7 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	docLibName = camelToSnake(docLibName)
 	docLibName = strings.Replace(docLibName, "_", " ", -1)
 	lowcaseServName := lowcaseRestClientName(clientName)
+	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
 
 	opServ, hasCustomOp := g.customOpServices[serv]
 
@@ -249,6 +250,10 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 		p("if err != nil {")
 		p("    return nil, err")
 		p("}")
+		// We propagate the x-goog-api-version into the LRO client if available.
+		if apiVersion != "" {
+			p(`opClient.SetSourceAPIVersion(%q)`, apiVersion)
+		}
 		p("c.LROClient = &opClient")
 		p("")
 	}
@@ -273,8 +278,6 @@ func (g *generator) restClientUtilities(serv *descriptorpb.ServiceDescriptorProt
 	p("")
 
 	g.restClientOptions(serv, clientName)
-
-	apiVersion := proto.GetExtension(serv.Options, annotations.E_ApiVersion).(string)
 
 	// setGoogleClientInfo method
 	p("// setGoogleClientInfo sets the name and version of the application in")
