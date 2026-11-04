@@ -1,5 +1,12 @@
 # Changes
 
+## [0.66.0](https://github.com/googleapis/gapic-generator-go/compare/v0.65.1...v0.66.0) (2026-11-04)
+
+
+### Features
+
+* propagate x-goog-api-version header into the supporting LRO client ([#1828](https://github.com/googleapis/gapic-generator-go/issues/1828)) ([8ed7d8a](https://github.com/googleapis/gapic-generator-go/commit/8ed7d8a1818555673f54a19bfa33316b62f55283))
+
 ## [0.65.1](https://github.com/googleapis/gapic-generator-go/compare/v0.65.0...v0.65.1) (2026-10-26)
 
 
