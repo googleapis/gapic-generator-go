@@ -508,8 +508,8 @@ def com_googleapis_gapic_generator_go_repositories():
     go_repository(
         name = "com_google_cloud_go_longrunning",
         importpath = "cloud.google.com/go/longrunning",
-        sum = "h1:lZ6c8SJJBmILp/Wnr3vGnBLa0q+cYfSHRCcUfVI2hpI=",
-        version = "v1.3.0",
+        sum = "h1:aGonu6LHQl38DyozLs2jxGieI4Ixk+7GTnmHVcHt8zA=",
+        version = "v1.5.0",
     )
     go_repository(
         name = "com_google_cloud_go_monitoring",
