@@ -211,12 +211,12 @@ func (g *generator) customOperationType() error {
 		if errorCodeField == nil {
 			return fmt.Errorf("field %s not found in %T", extendedops.OperationResponseMapping_ERROR_CODE, op)
 		}
-		errorCode := snakeToCamel(errorCodeField.GetName())
+		errorCode := goCamelCase(errorCodeField.GetName())
 		errorMessageField := operationField(op.message, extendedops.OperationResponseMapping_ERROR_MESSAGE)
 		if errorMessageField == nil {
 			return fmt.Errorf("field %s not found in %T", extendedops.OperationResponseMapping_ERROR_MESSAGE, op)
 		}
-		errorMessage := snakeToCamel(errorMessageField.GetName())
+		errorMessage := goCamelCase(errorMessageField.GetName())
 
 		// type
 		p("// Implements the %s interface for %s.", handleInt, handle.GetName())
@@ -233,7 +233,7 @@ func (g *generator) customOperationType() error {
 		p("// Poll retrieves the latest data for the long-running operation.")
 		p("func (h *%s) Poll(ctx context.Context, opts ...gax.CallOption) error {", n)
 		p("  resp, err := h.c.Get(ctx, &%s.%s{", opImp.Name, upperFirst(pollReq.GetName()))
-		p("    %s: h.proto%s,", snakeToCamel(pollNameField.GetName()), opNameGetter)
+		p("    %s: h.proto%s,", goCamelCase(pollNameField.GetName()), opNameGetter)
 		for _, f := range pollingParams {
 			p("    %s: h.%s,", upperFirst(f), f)
 		}
