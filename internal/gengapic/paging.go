@@ -290,7 +290,7 @@ func (g *generator) makeFetchAndIterUpdate(pageSize *descriptorpb.FieldDescripto
 // This method is called from makeFetchAndIterUpdate() and deals with the
 // various types allowed for the page_size field.
 func internalPageInfoMax(p func(s string, a ...interface{}), pageSize *descriptorpb.FieldDescriptorProto) {
-	cName := snakeToCamel(pageSize.GetName())
+	cName := goCamelCase(pageSize.GetName())
 	switch pageSize.GetType() {
 	case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_UINT32:
 		p("it.pageInfo.MaxSize = int(req.Get%s())", cName)
@@ -320,7 +320,7 @@ func (g *generator) internalFetchSetup(outType *descriptorpb.DescriptorProto, ou
 // The incoming setVal is based on an incoming set int32-based value variable,
 // typically either labelled as 'pageSize' or 'math.MaxInt32'.
 func internalPageSizeSetter(p func(s string, a ...interface{}), pageSize *descriptorpb.FieldDescriptorProto, setVal string) {
-	cName := snakeToCamel(pageSize.GetName())
+	cName := goCamelCase(pageSize.GetName())
 	switch pageSize.GetType() {
 	case descriptorpb.FieldDescriptorProto_TYPE_INT32:
 		if pageSize.GetProto3Optional() {

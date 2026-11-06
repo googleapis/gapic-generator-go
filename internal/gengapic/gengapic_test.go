@@ -1074,6 +1074,8 @@ func Test_buildAccessor(t *testing.T) {
 		{name: "numbers", field: "foo_foo64", want: ".GetFooFoo64()", variant: fieldGetter},
 		{name: "raw_final", field: "foo.bar.baz.bif", want: ".GetFoo().GetBar().GetBaz().Bif", variant: directAccess},
 		{name: "independent_number", field: "display_video_360_advertiser_links", want: ".GetDisplayVideo_360AdvertiserLinks()", variant: fieldGetter},
+		{name: "letter_after_digit", field: "foo2bar_items", want: ".GetFoo2BarItems()", variant: fieldGetter},
+		{name: "letter_after_digit_raw_final", field: "parent.foo2bar_id", want: ".GetParent().Foo2BarId", variant: directAccess},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

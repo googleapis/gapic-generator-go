@@ -65,6 +65,10 @@ func camelToSnake(s string) string {
 }
 
 // snakeToCamel converts snake_case and SNAKE_CASE to CamelCase.
+//
+// Do not use it to name Go fields or getters of generated proto messages; it
+// differs from protoc-gen-go when a digit is followed by a letter (e.g.
+// "foo2bar_id" becomes "Foo2barId" rather than "Foo2BarId"). Use goCamelCase for those.
 func snakeToCamel(s string) string {
 	var sb strings.Builder
 	up := true
@@ -83,6 +87,60 @@ func snakeToCamel(s string) string {
 		}
 	}
 	return sb.String()
+}
+
+// goCamelCase camel-cases a protobuf name for use as a Go identifier. It must
+// match the field and getter names produced by protoc-gen-go, so it is a copy
+// of GoCamelCase from google.golang.org/protobuf/internal/strs, which cannot be
+// imported. That implementation is Copyright 2019 The Go Authors and governed
+// by a BSD-style license.
+//
+// If there is an interior underscore followed by a lower case letter,
+// drop the underscore and convert the letter to upper case.
+func goCamelCase(s string) string {
+	// Invariant: if the next letter is lower case, it must be converted
+	// to upper case.
+	// That is, we process a word at a time, where words are marked by _ or
+	// upper case letter. Digits are treated as words.
+	var b []byte
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case c == '.' && i+1 < len(s) && isASCIILower(s[i+1]):
+			// Skip over '.' in ".{{lowercase}}".
+		case c == '.':
+			b = append(b, '_') // convert '.' to '_'
+		case c == '_' && (i == 0 || s[i-1] == '.'):
+			// Convert initial '_' to ensure we start with a capital letter.
+			// Do the same for '_' after '.' to match historic behavior.
+			b = append(b, 'X') // convert '_' to 'X'
+		case c == '_' && i+1 < len(s) && isASCIILower(s[i+1]):
+			// Skip over '_' in "_{{lowercase}}".
+		case isASCIIDigit(c):
+			b = append(b, c)
+		default:
+			// Assume we have a letter now - if not, it's a bogus identifier.
+			// The next word is a sequence of characters that must start upper case.
+			if isASCIILower(c) {
+				c -= 'a' - 'A' // convert lowercase to uppercase
+			}
+			b = append(b, c)
+
+			// Accept lower case sequence that follows.
+			for ; i+1 < len(s) && isASCIILower(s[i+1]); i++ {
+				b = append(b, s[i+1])
+			}
+		}
+	}
+	return string(b)
+}
+
+func isASCIILower(c byte) bool {
+	return 'a' <= c && c <= 'z'
+}
+
+func isASCIIDigit(c byte) bool {
+	return '0' <= c && c <= '9'
 }
 
 // isOptional returns true if the named Field in the given Message

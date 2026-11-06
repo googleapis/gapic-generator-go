@@ -569,10 +569,10 @@ func buildAccessor(field string, rawFinal bool) string {
 		idx--
 	}
 	for _, s := range split[:idx] {
-		fmt.Fprintf(&ax, ".Get%s()", snakeToCamel(s))
+		fmt.Fprintf(&ax, ".Get%s()", goCamelCase(s))
 	}
 	if rawFinal {
-		fmt.Fprintf(&ax, ".%s", snakeToCamel(split[len(split)-1]))
+		fmt.Fprintf(&ax, ".%s", goCamelCase(split[len(split)-1]))
 	}
 	return ax.String()
 }
