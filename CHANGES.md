@@ -1,5 +1,12 @@
 # Changes
 
+## [0.66.1](https://github.com/googleapis/gapic-generator-go/compare/v0.66.0...v0.66.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **gengapic:** match protoc-gen-go names for field getters ([#1832](https://github.com/googleapis/gapic-generator-go/issues/1832)) ([cada4df](https://github.com/googleapis/gapic-generator-go/commit/cada4df580ee5f4632354afe56d99f3bb4543045))
+
 ## [0.66.0](https://github.com/googleapis/gapic-generator-go/compare/v0.65.1...v0.66.0) (2026-11-04)
 
 
