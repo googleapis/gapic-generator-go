@@ -55,6 +55,42 @@ func TestSnakeToCamel(t *testing.T) {
 	}
 }
 
+func TestGoCamelCase(t *testing.T) {
+	for _, tst := range []struct {
+		in, want string
+	}{
+		// Cases from google.golang.org/protobuf/internal/strs.
+		{"", ""},
+		{"one", "One"},
+		{"one_two", "OneTwo"},
+		{"_my_field_name_2", "XMyFieldName_2"},
+		{"Something_Capped", "Something_Capped"},
+		{"my_Name", "My_Name"},
+		{"OneTwo", "OneTwo"},
+		{"_", "X"},
+		{"_a_", "XA_"},
+		{"one.two", "OneTwo"},
+		{"one.Two", "One_Two"},
+		{"one_two.three_four", "OneTwoThreeFour"},
+		{"one_two.Three_four", "OneTwo_ThreeFour"},
+		{"_one._two", "XOne_XTwo"},
+		{"SCREAMING_SNAKE_CASE", "SCREAMING_SNAKE_CASE"},
+		{"double__underscore", "Double_Underscore"},
+		{"camelCase", "CamelCase"},
+		{"go2proto", "Go2Proto"},
+		{"世界", "世界"},
+		{"x世界", "X世界"},
+		{"foo_bar世界", "FooBar世界"},
+		// snakeToCamel gives "Foo2barItemId" here, which protoc-gen-go does not.
+		{"foo2bar_item_id", "Foo2BarItemId"},
+		{"display_video_360_advertiser_links", "DisplayVideo_360AdvertiserLinks"},
+	} {
+		if got := goCamelCase(tst.in); got != tst.want {
+			t.Errorf("goCamelCase(%q) = %q, want %q", tst.in, got, tst.want)
+		}
+	}
+}
+
 func TestLowerFirst(t *testing.T) {
 	for _, tst := range []struct {
 		in, want string
