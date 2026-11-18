@@ -43,67 +43,9 @@ func (g *generator) genExampleFile(serv *descriptorpb.ServiceDescriptorProto) er
 		if err := g.exampleMethod(pkgName, servName, m); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func (g *generator) genExampleIteratorFile(serv *descriptorpb.ServiceDescriptorProto) error {
-	g.clientProtoPkg = g.descInfo.ParentFile[serv].GetPackage()
-	pkgName := g.cfg.pkgName
-	override := g.getServiceNameOverride(serv)
-	servName := pbinfo.ReduceServNameWithOverride(serv.GetName(), pkgName, override)
-	methods := g.getMethods(serv)
-	for _, m := range methods {
-		if g.isMethodInternal(m) {
-			continue
-		}
-		// Don't need streaming RPCs
-		if m.GetClientStreaming() || m.GetServerStreaming() {
-			continue
-		}
-		pf, _, err := g.getPagingFields(m)
-		if err != nil {
+		if err := g.exampleMethodAll(pkgName, servName, m); err != nil {
 			return err
 		}
-		// Don't generate for non-list RPCs
-		if pf == nil {
-			continue
-		}
-
-		p := g.printf
-
-		inType := g.descInfo.Type[m.GetInputType()]
-		if inType == nil {
-			return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetInputType())
-		}
-
-		inSpec, err := g.descInfo.ImportSpec(inType)
-		if err != nil {
-			return err
-		}
-
-		g.imports[inSpec] = true
-		// Pick the first transport for simplicity. We don't need examples
-		// of each method for both transports when they have the same surface.
-		t := g.cfg.transports[0]
-		s := servName
-		if t == rest {
-			s += restClientSuffix
-		}
-		p("func Example%sClient_%s_all() {", servName, m.GetName())
-		g.exampleInitClient(pkgName, s)
-
-		p("")
-		p("req := &%s.%s{", inSpec.Name, inType.GetName())
-		p("  // TODO: Fill request struct fields.")
-		p("  // See https://pkg.go.dev/%s#%s.", inSpec.Path, inType.GetName())
-		p("}")
-
-		if err := g.examplePagingAllCall(m); err != nil {
-			return err
-		}
-		p("}")
-		p("")
 	}
 	return nil
 }
@@ -170,6 +112,57 @@ func (g *generator) exampleMethod(pkgName, servName string, m *descriptorpb.Meth
 		return err
 	}
 
+	p("}")
+	p("")
+	return nil
+}
+
+func (g *generator) exampleMethodAll(pkgName, servName string, m *descriptorpb.MethodDescriptorProto) error {
+	// Don't need streaming RPCs
+	if m.GetClientStreaming() || m.GetServerStreaming() {
+		return nil
+	}
+	pf, _, err := g.getPagingFields(m)
+	if err != nil {
+		return err
+	}
+	// Don't generate for non-list RPCs
+	if pf == nil {
+		return nil
+	}
+
+	p := g.printf
+
+	inType := g.descInfo.Type[m.GetInputType()]
+	if inType == nil {
+		return fmt.Errorf("cannot find type %q, malformed descriptor?", m.GetInputType())
+	}
+
+	inSpec, err := g.descInfo.ImportSpec(inType)
+	if err != nil {
+		return err
+	}
+
+	g.imports[inSpec] = true
+	// Pick the first transport for simplicity. We don't need examples
+	// of each method for both transports when they have the same surface.
+	t := g.cfg.transports[0]
+	s := servName
+	if t == rest {
+		s += restClientSuffix
+	}
+	p("func Example%sClient_%s_all() {", servName, m.GetName())
+	g.exampleInitClient(pkgName, s)
+
+	p("")
+	p("req := &%s.%s{", inSpec.Name, inType.GetName())
+	p("  // TODO: Fill request struct fields.")
+	p("  // See https://pkg.go.dev/%s#%s.", inSpec.Path, inType.GetName())
+	p("}")
+
+	if err := g.examplePagingAllCall(m); err != nil {
+		return err
+	}
 	p("}")
 	p("")
 	return nil

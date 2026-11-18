@@ -143,13 +143,6 @@ func gen(genReq *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse
 			}
 			g.imports[pbinfo.ImportSpec{Name: g.cfg.pkgName, Path: g.cfg.pkgPath}] = true
 			g.commit(outFile+"_client_example_test.go", g.cfg.pkgName+"_test")
-
-			g.reset()
-			if err := g.genExampleIteratorFile(s); err != nil {
-				return &g.resp, fmt.Errorf("error generating iter example for %q; %v", s.GetName(), err)
-			}
-			g.imports[pbinfo.ImportSpec{Name: g.cfg.pkgName, Path: g.cfg.pkgPath}] = true
-			g.commitWithBuildTag(outFile+"_client_example_go123_test.go", g.cfg.pkgName+"_test", "go1.23")
 		}
 
 		// Replace original set of transports for the next service that may have
