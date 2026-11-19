@@ -528,6 +528,36 @@ func TestGenRestMethod(t *testing.T) {
 	}
 	updateReqFqn := fmt.Sprintf(".%s.UpdateRequest", pkg)
 
+	stateEnum := &descriptorpb.EnumDescriptorProto{
+		Name: proto.String("State"),
+		Value: []*descriptorpb.EnumValueDescriptorProto{
+			{Name: proto.String("STATE_UNSPECIFIED"), Number: proto.Int32(0)},
+			{Name: proto.String("STATE_ACTIVE"), Number: proto.Int32(1)},
+		},
+	}
+	stateFQN := fmt.Sprintf(".%s.State", pkg)
+	stateField := &descriptorpb.FieldDescriptorProto{
+		Name:     proto.String("state"),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum(),
+		TypeName: proto.String(stateFQN),
+	}
+	filterStateField := &descriptorpb.FieldDescriptorProto{
+		Name:     proto.String("filter_state"),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum(),
+		TypeName: proto.String(stateFQN),
+	}
+	statesField := &descriptorpb.FieldDescriptorProto{
+		Name:     proto.String("states"),
+		Type:     descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum(),
+		TypeName: proto.String(stateFQN),
+		Label:    descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+	}
+	enumReq := &descriptorpb.DescriptorProto{
+		Name:  proto.String("EnumRequest"),
+		Field: []*descriptorpb.FieldDescriptorProto{stateField, filterStateField, statesField},
+	}
+	enumReqFQN := fmt.Sprintf(".%s.EnumRequest", pkg)
+
 	nameOpts := &descriptorpb.FieldOptions{}
 	proto.SetExtension(nameOpts, extendedops.E_OperationField, extendedops.OperationResponseMapping_NAME)
 	nameField := &descriptorpb.FieldDescriptorProto{
@@ -677,6 +707,26 @@ func TestGenRestMethod(t *testing.T) {
 		Options:    updateRPCOpt,
 	}
 
+	enumRPCOpt := &descriptorpb.MethodOptions{}
+	proto.SetExtension(enumRPCOpt, annotations.E_Http, &annotations.HttpRule{
+		Pattern: &annotations.HttpRule_Get{
+			Get: "/v1/{state}/foo",
+		},
+	})
+
+	numericEnumRPC := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("NumericEnumRPC"),
+		InputType:  proto.String(enumReqFQN),
+		OutputType: proto.String(foofqn),
+		Options:    enumRPCOpt,
+	}
+	stringEnumRPC := &descriptorpb.MethodDescriptorProto{
+		Name:       proto.String("StringEnumRPC"),
+		InputType:  proto.String(enumReqFQN),
+		OutputType: proto.String(foofqn),
+		Options:    enumRPCOpt,
+	}
+
 	s := &descriptorpb.ServiceDescriptorProto{
 		Name:    proto.String("FooService"),
 		Options: &descriptorpb.ServiceOptions{},
@@ -721,6 +771,8 @@ func TestGenRestMethod(t *testing.T) {
 				lroDesc:      protodesc.ToFileDescriptorProto(longrunning.File_google_longrunning_operations_proto),
 				httpBodyDesc: protodesc.ToFileDescriptorProto(httpbody.File_google_api_httpbody_proto),
 				updateReq:    f,
+				stateEnum:    f,
+				enumReq:      f,
 			},
 			ParentElement: map[pbinfo.ProtoType]pbinfo.ProtoType{
 				opRPC:               s,
@@ -737,6 +789,8 @@ func TestGenRestMethod(t *testing.T) {
 				otherField:          foo,
 				maskField:           updateReq,
 				numericWrapperField: updateReq,
+				numericEnumRPC:      s,
+				stringEnumRPC:       s,
 			},
 			Type: map[string]pbinfo.ProtoType{
 				opfqn:          op,
@@ -747,6 +801,8 @@ func TestGenRestMethod(t *testing.T) {
 				operationType:  lroDesc,
 				httpBodyType:   httpBodyDesc,
 				updateReqFqn:   updateReq,
+				stateFQN:       stateEnum,
+				enumReqFQN:     enumReq,
 			},
 		},
 	}
@@ -886,6 +942,32 @@ func TestGenRestMethod(t *testing.T) {
 			imports: map[pbinfo.ImportSpec]bool{
 				{Path: "bytes"}: true,
 				{Path: "fmt"}:   true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "net/url"}: true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
+			},
+		},
+		{
+			name:   "numeric_enum_rpc",
+			method: numericEnumRPC,
+			cfg:    &generatorConfig{restNumericEnum: true, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}: true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "net/url"}: true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
+			},
+		},
+		{
+			name:   "string_enum_rpc",
+			method: stringEnumRPC,
+			cfg:    &generatorConfig{restNumericEnum: false, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}: true,
 				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
 				{Path: "net/url"}: true,
 				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
