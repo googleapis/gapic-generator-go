@@ -45,6 +45,7 @@ const (
 	fieldTypeBytes          = descriptorpb.FieldDescriptorProto_TYPE_BYTES
 	fieldTypeMessage        = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
 	fieldLabelRepeated      = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
+	fieldTypeEnum           = descriptorpb.FieldDescriptorProto_TYPE_ENUM
 	defaultPollInitialDelay = "time.Second" // 1 second
 	defaultPollMaxDelay     = "time.Minute" // 1 minute
 )
@@ -386,24 +387,35 @@ func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, fie
 		// See golang.org/pkg/fmt for more information on formatting.
 		value = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
 	case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-		en := g.descInfo.Type[f.GetTypeName()]
+		if v, ok := g.enumValue(f, accessor); ok {
+			value = v
+		} else {
+			en := g.descInfo.Type[f.GetTypeName()]
 
-		n, imp, err := g.descInfo.NameSpec(en)
-		if err != nil {
-			return "", err
+			n, imp, err := g.descInfo.NameSpec(en)
+			if err != nil {
+				return "", err
+			}
+			g.imports[imp] = true
+
+			// protobuf Go generates a mapping from number to string
+			// representation of an enum, in UPPER_SNAKE_CASE form. The map
+			// is named with the enum name and the _name suffix. If it is a
+			// nested enum, the name is prefixed with the parent message name.
+			// For example, Severity_name or Error_Severity_name.
+			value = fmt.Sprintf("%s.%s_name[int32(%s)]", imp.Name, n, accessor)
 		}
-		g.imports[imp] = true
-
-		// protobuf Go generates a mapping from number to string
-		// representation of an enum, in UPPER_SNAKE_CASE form. The map
-		// is named with the enum name and the _name suffix. If it is a
-		// nested enum, the name is prefixed with the parent message name.
-		// For example, Severity_name or Error_Severity_name.
-		value = fmt.Sprintf("%s.%s_name[int32(%s)]", imp.Name, n, accessor)
 	default:
 		value = accessor
 	}
 	return value, nil
+}
+
+func (g *generator) enumValue(f *descriptorpb.FieldDescriptorProto, expr string) (string, bool) {
+	if !g.cfg.restNumericEnum || f.GetType() != fieldTypeEnum {
+		return expr, false
+	}
+	return fmt.Sprintf("int32(%s)", expr), true
 }
 
 func (g *generator) insertImplicitRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string) error {
