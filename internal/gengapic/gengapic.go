@@ -369,7 +369,7 @@ func (g *generator) gen(serv *descriptorpb.ServiceDescriptorProto) error {
 	return g.genOperationBuilders(serv, clientName)
 }
 
-func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, field string, accessor string) (string, error) {
+func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, field string, accessor string, t transport) (string, error) {
 	f := g.lookupField(m.GetInputType(), field)
 	value := ""
 	// TODO(noahdietz): need to handle []byte for TYPE_BYTES.
@@ -387,7 +387,7 @@ func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, fie
 		// See golang.org/pkg/fmt for more information on formatting.
 		value = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
 	case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-		if v, ok := g.enumValue(f, accessor); ok {
+		if v, ok := g.enumValue(f, accessor, t); ok {
 			value = v
 		} else {
 			en := g.descInfo.Type[f.GetTypeName()]
@@ -411,14 +411,14 @@ func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, fie
 	return value, nil
 }
 
-func (g *generator) enumValue(f *descriptorpb.FieldDescriptorProto, expr string) (string, bool) {
-	if !g.cfg.restNumericEnum || f.GetType() != fieldTypeEnum {
+func (g *generator) enumValue(f *descriptorpb.FieldDescriptorProto, expr string, t transport) (string, bool) {
+	if t != rest || !g.cfg.restNumericEnum || f.GetType() != fieldTypeEnum {
 		return expr, false
 	}
 	return fmt.Sprintf("int32(%s)", expr), true
 }
 
-func (g *generator) insertImplicitRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string) error {
+func (g *generator) insertImplicitRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string, t transport) error {
 	if len(headers) == 0 {
 		return nil
 	}
@@ -433,7 +433,7 @@ func (g *generator) insertImplicitRequestHeaders(m *descriptorpb.MethodDescripto
 		}
 		seen[field] = true
 		accessor := fmt.Sprintf("req%s", fieldGetter(field))
-		accessor, err := g.getFormattedValue(m, field, accessor)
+		accessor, err := g.getFormattedValue(m, field, accessor, t)
 		if err != nil {
 			return err
 		}
@@ -447,7 +447,7 @@ func (g *generator) insertImplicitRequestHeaders(m *descriptorpb.MethodDescripto
 	return nil
 }
 
-func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string) error {
+func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string, t transport) error {
 	if len(headers) == 0 {
 		return nil
 	}
@@ -460,7 +460,7 @@ func (g *generator) insertDynamicRequestHeaders(m *descriptorpb.MethodDescriptor
 		headerName := headers[i][2]
 		accessor := fmt.Sprintf("req%s", fieldGetter(field))
 		regexHelper := fmt.Sprintf("reg.FindStringSubmatch(%s)[1]", accessor)
-		regexHelper, err := g.getFormattedValue(m, field, regexHelper)
+		regexHelper, err := g.getFormattedValue(m, field, regexHelper, t)
 		if err != nil {
 			return err
 		}
@@ -505,7 +505,7 @@ func (g *generator) insertRequestHeaders(m *descriptorpb.MethodDescriptorProto, 
 
 	// Has request-based header parameters
 	if len(headers) > 0 {
-		insertHeaders(m, headers)
+		insertHeaders(m, headers, t)
 		p("")
 		switch t {
 		case grpc:

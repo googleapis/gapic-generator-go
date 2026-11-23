@@ -510,7 +510,7 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 			}
 			paramAdd = b.String()
 		} else {
-			arg, _ := g.enumValue(field, "req"+accessor)
+			arg, _ := g.enumValue(field, "req"+accessor, rest)
 			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, %s))", key, "%v", arg)
 			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		}
@@ -527,7 +527,7 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 			p("if items := req%s; len(items) > 0 {", accessor)
 			b := strings.Builder{}
 			b.WriteString("for _, item := range items {\n")
-			itemArg, _ := g.enumValue(field, "item")
+			itemArg, _ := g.enumValue(field, "item", rest)
 			b.WriteString(fmt.Sprintf("  params.Add(%q, fmt.Sprintf(%q, %s))\n", key, "%v", itemArg))
 			b.WriteString("}")
 			paramAdd = b.String()
@@ -589,7 +589,7 @@ func (g *generator) generateBaseURL(m *descriptorpb.MethodDescriptorProto, info 
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
 		accessor := fmt.Sprintf("req%s", fieldGetter(path[1]))
-		token, _ := g.enumValue(g.lookupField(m.GetInputType(), path[1]), accessor)
+		token, _ := g.enumValue(g.lookupField(m.GetInputType(), path[1]), accessor, rest)
 		tokens = append(tokens, token)
 	}
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true

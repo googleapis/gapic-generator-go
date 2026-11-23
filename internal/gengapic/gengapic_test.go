@@ -1723,7 +1723,7 @@ func TestInsertDynamicRequestHeaders_Ordering(t *testing.T) {
 			g.descInfo.ParentFile[m] = file
 			g.descInfo.ParentFile[inputType] = file
 
-			err := g.insertDynamicRequestHeaders(m, headers)
+			err := g.insertDynamicRequestHeaders(m, headers, grpc)
 			if err != nil {
 				t.Fatalf("insertDynamicRequestHeaders failed: %v", err)
 			}
