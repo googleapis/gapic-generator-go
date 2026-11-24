@@ -4,20 +4,20 @@ func (c *fooRESTClient) NumericEnumRPC(ctx context.Context, req *foopb.EnumReque
 		return nil, err
 	}
 	if err = gax.ValidatePathExpressions(
-	int32(req.GetState()),
+	req.GetState(),
 	); err != nil {
 		return nil, err
 	}
-	baseUrl.Path += fmt.Sprintf("/v1/%v/foo", int32(req.GetState()))
+	baseUrl.Path += fmt.Sprintf("/v1/%v/foo", req.GetState())
 
 	params := url.Values{}
 	params.Add("$alt", "json;enum-encoding=int")
 	if req.GetFilterState() != 0 {
-		params.Add("filterState", fmt.Sprintf("%v", int32(req.GetFilterState())))
+		params.Add("filterState", fmt.Sprintf("%v", req.GetFilterState()))
 	}
 	if items := req.GetStates(); len(items) > 0 {
 		for _, item := range items {
-		  params.Add("states", fmt.Sprintf("%v", int32(item)))
+		  params.Add("states", fmt.Sprintf("%v", item))
 		}
 	}
 

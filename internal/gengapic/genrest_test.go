@@ -812,6 +812,8 @@ func TestGenRestMethod(t *testing.T) {
 		method  *descriptorpb.MethodDescriptorProto
 		cfg     *generatorConfig
 		imports map[pbinfo.ImportSpec]bool
+		// customize golden file name from method name default
+		golden string
 	}{
 		{
 			name:   "custom_op",
@@ -963,6 +965,20 @@ func TestGenRestMethod(t *testing.T) {
 			},
 		},
 		{
+			name:   "numeric_enum_rpc_feature",
+			method: numericEnumRPC,
+			cfg:    &generatorConfig{restNumericEnum: true, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}, NumericEnumRequestParamFeature: {}}},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}: true,
+				{Path: "google.golang.org/protobuf/encoding/protojson"}: true,
+				{Path: "net/url"}: true,
+				{Name: "foopb", Path: "google.golang.org/genproto/cloud/foo/v1"}: true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:                true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}:           true,
+			},
+			golden: "NumericEnumRPC_feature",
+		},
+		{
 			name:   "string_enum_rpc",
 			method: stringEnumRPC,
 			cfg:    &generatorConfig{restNumericEnum: false, featureEnablement: map[featureID]struct{}{OpenTelemetryAttributesFeature: {}}},
@@ -1027,7 +1043,12 @@ func TestGenRestMethod(t *testing.T) {
 				t.Errorf("TestGenRESTMethod(%s): imports got(-),want(+):\n%s", tst.name, diff)
 			}
 
-			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", tst.method.GetName())))
+			golden := tst.golden
+			if golden == "" {
+				golden = tst.method.GetName()
+			}
+
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", fmt.Sprintf("rest_%s.want", golden)))
 			g.reset()
 			g.aux.methodToWrapper = make(map[*descriptorpb.MethodDescriptorProto]operationWrapper)
 			g.aux.opWrappers = make(map[string]operationWrapper)

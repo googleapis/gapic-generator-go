@@ -387,6 +387,10 @@ func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, fie
 		// See golang.org/pkg/fmt for more information on formatting.
 		value = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
 	case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
+		if v, ok := g.enumValue(f, accessor); ok {
+			value = v
+			break
+		}
 		en := g.descInfo.Type[f.GetTypeName()]
 
 		n, imp, err := g.descInfo.NameSpec(en)
@@ -408,7 +412,7 @@ func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, fie
 }
 
 func (g *generator) enumValue(f *descriptorpb.FieldDescriptorProto, expr string) (string, bool) {
-	if !g.cfg.restNumericEnum || f.GetType() != fieldTypeEnum {
+	if !g.cfg.restNumericEnum || f.GetType() != fieldTypeEnum || !g.featureEnabled(NumericEnumRequestParamFeature) {
 		return expr, false
 	}
 	return fmt.Sprintf("int32(%s)", expr), true
