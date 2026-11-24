@@ -510,7 +510,8 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 			}
 			paramAdd = b.String()
 		} else {
-			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, req%s))", key, "%v", accessor)
+			arg, _ := g.enumValue(field, "req"+accessor)
+			paramAdd = fmt.Sprintf("params.Add(%q, fmt.Sprintf(%q, %s))", key, "%v", arg)
 			g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 		}
 
@@ -526,7 +527,8 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 			p("if items := req%s; len(items) > 0 {", accessor)
 			b := strings.Builder{}
 			b.WriteString("for _, item := range items {\n")
-			b.WriteString(fmt.Sprintf("  params.Add(%q, fmt.Sprintf(%q, item))\n", key, "%v"))
+			itemArg, _ := g.enumValue(field, "item")
+			b.WriteString(fmt.Sprintf("  params.Add(%q, fmt.Sprintf(%q, %s))\n", key, "%v", itemArg))
 			b.WriteString("}")
 			paramAdd = b.String()
 
@@ -566,7 +568,7 @@ func (g *generator) generateQueryString(m *descriptorpb.MethodDescriptorProto) {
 	}
 }
 
-func (g *generator) generateBaseURL(info *httpInfo, ret string) {
+func (g *generator) generateBaseURL(m *descriptorpb.MethodDescriptorProto, info *httpInfo, ret string) {
 	p := g.printf
 
 	fmtStr := info.url
@@ -586,7 +588,9 @@ func (g *generator) generateBaseURL(info *httpInfo, ret string) {
 		// In the returned slice, the zeroth element is the full regex match,
 		// and the subsequent elements are the sub group matches.
 		// See the docs for FindStringSubmatch for further details.
-		tokens = append(tokens, fmt.Sprintf("req%s", fieldGetter(path[1])))
+		accessor := fmt.Sprintf("req%s", fieldGetter(path[1]))
+		token, _ := g.enumValue(g.lookupField(m.GetInputType(), path[1]), accessor)
+		tokens = append(tokens, token)
 	}
 	g.imports[pbinfo.ImportSpec{Path: "fmt"}] = true
 	// Prevalidate inputs used to generate the URL, and return early if we fail validation.
@@ -737,7 +741,7 @@ func (g *generator) serverStreamRESTCall(servName string, s *descriptorpb.Servic
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
-	g.generateBaseURL(info, "return nil, err")
+	g.generateBaseURL(m, info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
@@ -911,7 +915,7 @@ func (g *generator) pagingRESTCall(servName string, m *descriptorpb.MethodDescri
 		p("")
 	}
 
-	g.generateBaseURL(info, `return nil, "", err`)
+	g.generateBaseURL(m, info, `return nil, "", err`)
 	g.generateQueryString(m)
 	p("  // Build HTTP headers from client and context metadata.")
 	p(`  hds := append(c.xGoogHeaders, "Content-Type", "application/json")`)
@@ -1021,7 +1025,7 @@ func (g *generator) lroRESTCall(servName string, m *descriptorpb.MethodDescripto
 		g.imports[pbinfo.ImportSpec{Path: "bytes"}] = true
 	}
 
-	g.generateBaseURL(info, "return nil, err")
+	g.generateBaseURL(m, info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
@@ -1124,7 +1128,7 @@ func (g *generator) emptyUnaryRESTCall(servName string, m *descriptorpb.MethodDe
 		g.imports[pbinfo.ImportSpec{Path: "google.golang.org/protobuf/encoding/protojson"}] = true
 	}
 
-	g.generateBaseURL(info, "return err")
+	g.generateBaseURL(m, info, "return err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)
@@ -1215,7 +1219,7 @@ func (g *generator) unaryRESTCall(servName string, m *descriptorpb.MethodDescrip
 
 	}
 
-	g.generateBaseURL(info, "return nil, err")
+	g.generateBaseURL(m, info, "return nil, err")
 	g.generateQueryString(m)
 	p("// Build HTTP headers from client and context metadata.")
 	g.insertRequestHeaders(m, rest)

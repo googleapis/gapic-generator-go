@@ -37,6 +37,7 @@ const (
 	OrderedRoutingHeadersFeature     featureID = "ordered_routing_headers"
 	SelectiveGapicGenerationFeature  featureID = "selective_gapic_generation"
 	WrapperTypesForPageSizeFeature   featureID = "wrapper_types_for_page_size"
+	NumericEnumRequestParamFeature   featureID = "numeric_enum_request_param"
 )
 
 // featureRegistry contains the registry of defined features.
@@ -74,5 +75,9 @@ var featureRegistry = map[featureID]*featureInfo{
 	WrapperTypesForPageSizeFeature: {
 		Description: "Allow List RPCs to generator with support for protobuf wrapper types (e.g. Int32Value, etc).",
 		TrackingID:  "b/352331075",
+	},
+	NumericEnumRequestParamFeature: {
+		Description: "Send enum numbers instead of names in x-goog-request-params and REST paths and queries.",
+		TrackingID:  "b/299487176",
 	},
 }

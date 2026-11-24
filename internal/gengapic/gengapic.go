@@ -45,6 +45,7 @@ const (
 	fieldTypeBytes          = descriptorpb.FieldDescriptorProto_TYPE_BYTES
 	fieldTypeMessage        = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
 	fieldLabelRepeated      = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
+	fieldTypeEnum           = descriptorpb.FieldDescriptorProto_TYPE_ENUM
 	defaultPollInitialDelay = "time.Second" // 1 second
 	defaultPollMaxDelay     = "time.Minute" // 1 minute
 )
@@ -386,6 +387,10 @@ func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, fie
 		// See golang.org/pkg/fmt for more information on formatting.
 		value = fmt.Sprintf(`url.QueryEscape(fmt.Sprintf("%%g", %s))`, accessor)
 	case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
+		if v, ok := g.enumValue(f, accessor); ok {
+			value = v
+			break
+		}
 		en := g.descInfo.Type[f.GetTypeName()]
 
 		n, imp, err := g.descInfo.NameSpec(en)
@@ -404,6 +409,13 @@ func (g *generator) getFormattedValue(m *descriptorpb.MethodDescriptorProto, fie
 		value = accessor
 	}
 	return value, nil
+}
+
+func (g *generator) enumValue(f *descriptorpb.FieldDescriptorProto, expr string) (string, bool) {
+	if !g.cfg.restNumericEnum || f.GetType() != fieldTypeEnum || !g.featureEnabled(NumericEnumRequestParamFeature) {
+		return expr, false
+	}
+	return fmt.Sprintf("int32(%s)", expr), true
 }
 
 func (g *generator) insertImplicitRequestHeaders(m *descriptorpb.MethodDescriptorProto, headers [][]string) error {

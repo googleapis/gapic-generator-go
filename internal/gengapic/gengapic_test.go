@@ -408,8 +408,11 @@ func TestGenGRPCMethods(t *testing.T) {
 	g.descInfo.Type[n] = nestedEnum
 
 	for _, tst := range []struct {
-		m       *descriptorpb.MethodDescriptorProto
-		imports map[pbinfo.ImportSpec]bool
+		m        *descriptorpb.MethodDescriptorProto
+		imports  map[pbinfo.ImportSpec]bool
+		features []featureID
+		// customize golden file name from method name default
+		golden string
 	}{
 		{
 			m: &descriptorpb.MethodDescriptorProto{
@@ -441,6 +444,23 @@ func TestGenGRPCMethods(t *testing.T) {
 				{Path: "github.com/googleapis/gax-go/v2/callctx"}:      true,
 				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}: true,
 			},
+		}, {
+			m: &descriptorpb.MethodDescriptorProto{
+				Name:       proto.String("GetOneThing"),
+				InputType:  proto.String(".my.pkg.InputType"),
+				OutputType: proto.String(".my.pkg.OutputType"),
+				Options:    opts,
+			},
+			imports: map[pbinfo.ImportSpec]bool{
+				{Path: "fmt"}:                                          true,
+				{Path: "github.com/google/uuid"}:                       true,
+				{Path: "net/url"}:                                      true,
+				{Name: "mypackagepb", Path: "mypackage"}:               true,
+				{Path: "github.com/googleapis/gax-go/v2/callctx"}:      true,
+				{Name: "gax", Path: "github.com/googleapis/gax-go/v2"}: true,
+			},
+			features: []featureID{NumericEnumRequestParamFeature},
+			golden:   "GetOneThing_numeric_enum",
 		},
 		{
 			m: &descriptorpb.MethodDescriptorProto{
@@ -555,8 +575,20 @@ func TestGenGRPCMethods(t *testing.T) {
 			},
 		},
 	} {
-		t.Run(tst.m.GetName(), func(t *testing.T) {
+		golden := tst.golden
+		if golden == "" {
+			golden = tst.m.GetName()
+		}
+		t.Run(golden, func(t *testing.T) {
 			g.reset()
+			for _, f := range tst.features {
+				g.cfg.featureEnablement[f] = struct{}{}
+			}
+			defer func() {
+				for _, f := range tst.features {
+					delete(g.cfg.featureEnablement, f)
+				}
+			}()
 			g.descInfo.ParentElement[tst.m] = serv
 			serv.Method = []*descriptorpb.MethodDescriptorProto{
 				tst.m,
@@ -575,7 +607,7 @@ func TestGenGRPCMethods(t *testing.T) {
 			if diff := cmp.Diff(g.imports, tst.imports); diff != "" {
 				t.Errorf("TestGenMethod(%s): imports got(-),want(+):\n%s", tst.m.GetName(), diff)
 			}
-			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_"+tst.m.GetName()+".want"))
+			txtdiff.Diff(t, g.pt.String(), filepath.Join("testdata", "method_"+golden+".want"))
 		})
 	}
 }
